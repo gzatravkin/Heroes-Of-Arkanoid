@@ -20,6 +20,8 @@ const SRC: Record<string, string> = {
   StandartHaven:     "/art/StandartHaven.png",
   Standart2Haven:    "/art/Standart2Haven.png",
   InvulnerableHaven: "/art/InvulnerableHaven.png",
+  // Boss blocks
+  DemonBody: "/art/DemonBody.png",
   // Game objects
   Ball:      "/art/Ball.png",
   Paddle:    "/art/Paddle.png",

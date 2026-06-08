@@ -37,16 +37,38 @@ const TURRET_BARREL_WIDTH_MULT  = 0.45;
 
 // Note: turret bullets (id >= 10000) render via the normal ball path — no special branch needed.
 
+// Boss block rendering constants.
+const BOSS_SCALE_MULT  = 1.15;   // slightly enlarged vs normal brickSize
+const BOSS_AURA_COLOR  = 0xcc0000; // menacing red aura
+const BOSS_AURA_RADIUS_MULT = 0.8; // fraction of brickSize/2
+const BOSS_AURA_ALPHA  = 0.55;
+const BOSS_AURA_PULSE_SPEED = 0.06;
+const BOSS_AURA_ALPHA_AMP  = 0.25;
+
+// Hazard (falling enemy projectile) rendering constants.
+const HAZARD_RADIUS    = 6;         // px in world space (scaled later)
+const HAZARD_COLOR     = 0xdd1111; // crimson
+const HAZARD_GLOW_COLOR = 0xff3333; // additive glow
+const HAZARD_GLOW_ALPHA = 0.45;
+const HAZARD_GLOW_RADIUS_MULT = 1.9;
+
+// Damage flash: full-screen red overlay that fades out on a lives decrease.
+const DAMAGE_FLASH_ALPHA_START = 0.45;
+const DAMAGE_FLASH_FADE_SPEED  = 0.04; // alpha lost per ticker delta
+
 export class Renderer {
   app: Application;
   private world = new Container();
   private blocks = new Container();
   private effectsLayer: Effects;
   private fireWalls = new Container();
+  private hazardsLayer = new Container();
   private paddle = new Graphics();
   private turretSprite = new Sprite();
   private balls = new Container();
+  private damageFlash = new Graphics(); // full-screen overlay for HP hit feedback
   private _tick = 0; // used to drive wall flicker animation
+  private _lastLives = -1; // track lives decreases for damage flash
 
   constructor(host: HTMLElement) {
     this.app = new Application({ resizeTo: host, background: "#0b0b12", antialias: true });
@@ -59,7 +81,7 @@ export class Renderer {
     this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
     this.turretSprite.visible = false;
 
-    // Layer order: blocks → fireWalls → effects → balls → paddle → turret
+    // Layer order: blocks → fireWalls → effects → balls → paddle → turret → hazards
     this.world.addChild(
       this.blocks,
       this.fireWalls,
@@ -67,8 +89,12 @@ export class Renderer {
       this.balls,
       this.paddle,
       this.turretSprite,
+      this.hazardsLayer,
     );
+    // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
+    this.damageFlash.alpha = 0;
     this.app.stage.addChild(this.world);
+    this.app.stage.addChild(this.damageFlash);
 
     // Tick the effects every frame and drive wall flicker.
     this.app.ticker.add((delta) => {
@@ -81,6 +107,10 @@ export class Renderer {
         const child = this.fireWalls.children[i];
         const flicker = 0.72 + 0.28 * Math.sin(this._tick * 0.18 + i * 1.3);
         child.alpha = flicker;
+      }
+      // Fade the damage flash overlay.
+      if (this.damageFlash.alpha > 0) {
+        this.damageFlash.alpha = Math.max(0, this.damageFlash.alpha - DAMAGE_FLASH_FADE_SPEED * delta);
       }
     });
   }
@@ -102,11 +132,34 @@ export class Renderer {
   draw(s: Snapshot) {
     this.fit(s);
 
+    // --- damage flash: trigger on lives decrease ---
+    if (this._lastLives >= 0 && s.lives < this._lastLives) {
+      // Repaint the full-screen flash rect to match current screen size, then trigger.
+      this.damageFlash.clear();
+      this.damageFlash.beginFill(0xff0000, 1)
+        .drawRect(0, 0, this.app.screen.width, this.app.screen.height)
+        .endFill();
+      this.damageFlash.alpha = DAMAGE_FLASH_ALPHA_START;
+    }
+    this._lastLives = s.lives;
+
     // --- blocks ---
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
     this.blocks.removeChildren();
     for (const b of s.blocks) {
+      // Boss block: pulsing red aura behind the sprite.
+      if (b.boss) {
+        const auraAlpha = BOSS_AURA_ALPHA
+          + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
+        const aura = new Graphics();
+        aura.blendMode = BLEND_MODES.ADD;
+        aura.beginFill(BOSS_AURA_COLOR, auraAlpha)
+          .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT)
+          .endFill();
+        this.blocks.addChild(aura);
+      }
+
       // Teleporter: additive pulsing glow ring drawn behind the sprite.
       if (b.teleporter) {
         const ringAlpha = TELEPORTER_RING_ALPHA_BASE
@@ -119,13 +172,17 @@ export class Renderer {
         this.blocks.addChild(ring);
       }
 
+      const bossRenderSize = b.boss ? brickSize * BOSS_SCALE_MULT : brickSize;
       const sp = new Sprite(tex(b.sprite));
       sp.anchor.set(0.5);
-      sp.width = brickSize;
-      sp.height = brickSize;
+      sp.width = bossRenderSize;
+      sp.height = bossRenderSize;
       sp.position.set(b.x, b.y);
 
-      if (b.ballPhases) {
+      if (b.boss) {
+        // Boss blocks: always full alpha, no HP fade.
+        sp.alpha = 1.0;
+      } else if (b.ballPhases) {
         // Ghost block: semi-transparent blue/cyan tint with pulsing alpha.
         sp.tint = GHOST_TINT;
         sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
@@ -210,6 +267,25 @@ export class Renderer {
         .drawCircle(ball.x, ball.y, ballRadius)
         .endFill();
       this.balls.addChild(g);
+    }
+
+    // --- hazards (falling enemy projectiles) ---
+    this.hazardsLayer.removeChildren();
+    for (const hz of (s.hazards ?? [])) {
+      const hg = new Graphics();
+      // Additive glow halo behind the hazard circle.
+      hg.blendMode = BLEND_MODES.ADD;
+      hg.beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
+        .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT)
+        .endFill();
+      this.hazardsLayer.addChild(hg);
+
+      // Solid crimson core on top.
+      const hc = new Graphics();
+      hc.beginFill(HAZARD_COLOR, 1)
+        .drawCircle(hz.x, hz.y, HAZARD_RADIUS)
+        .endFill();
+      this.hazardsLayer.addChild(hc);
     }
 
     // --- effects: consume snapshot events ---

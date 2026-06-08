@@ -100,6 +100,35 @@ export function mountMenu(host: HTMLElement) {
   });
   el.appendChild(campaignBtn);
 
+  // Characters button — navigate to character select scene
+  const charactersBtn = document.createElement("button");
+  charactersBtn.id = "btn-characters";
+  charactersBtn.textContent = "Characters";
+  charactersBtn.style.cssText = [
+    "margin-top:10px",
+    "font-size:15px",
+    "padding:12px 32px",
+    "background:#120a22",
+    "color:#cc88ff",
+    "border:1px solid #553366",
+    "border-radius:6px",
+    "cursor:pointer",
+    "letter-spacing:0.05em",
+    "transition:background 0.15s,border-color 0.15s",
+  ].join(";");
+  charactersBtn.addEventListener("mouseenter", () => {
+    charactersBtn.style.background = "#1e1040";
+    charactersBtn.style.borderColor = "#885599";
+  });
+  charactersBtn.addEventListener("mouseleave", () => {
+    charactersBtn.style.background = "#120a22";
+    charactersBtn.style.borderColor = "#553366";
+  });
+  charactersBtn.addEventListener("click", () => {
+    location.href = "/?scene=characters";
+  });
+  el.appendChild(charactersBtn);
+
   // Dungeons button — navigate to dungeons scene
   const dungeonsBtn = document.createElement("button");
   dungeonsBtn.id = "btn-dungeons";

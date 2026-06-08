@@ -3,6 +3,7 @@ import { mountBattle } from "./scenes/BattleScene";
 import { mountCampaign } from "./scenes/CampaignScene";
 import { mountDungeons } from "./scenes/DungeonsScene";
 import { mountDungeon } from "./scenes/DungeonScene";
+import { mountCharacters } from "./scenes/CharacterScene";
 
 const host = document.getElementById("app")!;
 const q = new URLSearchParams(location.search);
@@ -16,4 +17,5 @@ if (scene === "battle") mountBattle(host, level, seed, run, from);
 else if (scene === "campaign") mountCampaign(host);
 else if (scene === "dungeons") mountDungeons(host);
 else if (scene === "dungeon") mountDungeon(host);
+else if (scene === "characters") mountCharacters(host);
 else mountMenu(host);
