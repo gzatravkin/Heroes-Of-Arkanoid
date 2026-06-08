@@ -60,6 +60,7 @@ public sealed class GameSession
 
         var profile = _profileStore.Load();
         _game.SetSpellLevels(profile.SpellLevels);
+        _game.SetCharacter(profile.SelectedCharacter);
 
         // Apply dungeon run buffs if there is an active run for this level.
         var run = _dungeonStore.Load();

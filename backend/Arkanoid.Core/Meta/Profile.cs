@@ -17,6 +17,12 @@ public sealed class Profile
     [JsonPropertyName("spellLevels")]
     public Dictionary<string, int> SpellLevels { get; set; } = new();
 
+    [JsonPropertyName("selectedCharacter")]
+    public string SelectedCharacter { get; set; } = "fire_mage";
+
+    [JsonPropertyName("unlockedCharacters")]
+    public List<string> UnlockedCharacters { get; set; } = new();
+
     public static Profile NewDefault()
     {
         return new Profile
@@ -27,7 +33,9 @@ public sealed class Profile
                 ["fireball"] = 1,
                 ["firewall"] = 1,
                 ["turret"]   = 1,
-            }
+            },
+            SelectedCharacter  = "fire_mage",
+            UnlockedCharacters = new List<string> { "fire_mage", "paladin", "engineer", "necromancer" },
         };
     }
 }

@@ -38,6 +38,10 @@ public sealed class GameInstance
     public RelicCatalog? RelicCatalog { get; }
     public long TickCount { get; private set; }
 
+    public string Character { get; private set; } = "fire_mage";
+    public void SetCharacter(string id) => Character = id;
+    private bool _wallSaveAvailable;
+
     public HashSet<string> ActiveRelics { get; } = new();
     public bool HasRelic(string id) => ActiveRelics.Contains(id);
 
@@ -70,6 +74,7 @@ public sealed class GameInstance
         Lives = config.StartLives;
         SpareBalls = config.StartBalls;
         ManaMaxValue = config.ManaMax;
+        _wallSaveAvailable = true;
         Paddle = new Paddle {
             Width = config.PaddleWidth,
             Height = config.PaddleHeight,
@@ -186,6 +191,7 @@ public sealed class GameInstance
     private void RegenMana(double dt)
     {
         var mult = HasRelic("mana_battery") ? Config.ManaBatteryRegenMult : 1.0;
+        mult *= (Character == "engineer" ? Config.EngineerRegenMult : 1.0);
         ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaRegenPerSec * mult * dt);
     }
 
@@ -272,8 +278,9 @@ public sealed class GameInstance
             blk.Dead = true;
             var c = Level.Grid.CellCenter(blk.Col, blk.Row);
             RaiseEvent("blockDestroyed", c.X, c.Y);
-            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaPerKill);
-            if (igniteSource) SpreadFire(blk);
+            var manaGrant = Config.ManaPerKill * (Character == "necromancer" ? Config.NecromancerKillManaMult : 1.0);
+            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + manaGrant);
+            if (igniteSource && (Character == "fire_mage" || HasRelic("pyroclasm"))) SpreadFire(blk);
         }
     }
 
@@ -315,6 +322,15 @@ public sealed class GameInstance
 
         if (Balls.All(b => !b.Alive))
         {
+            // Paladin passive: once per level, a lost ball is saved for free.
+            if (Character == "paladin" && _wallSaveAvailable)
+            {
+                _wallSaveAvailable = false;
+                _log.Log(TickCount, "passive", "wall save", "paladin saved a ball — no spare ball consumed");
+                SpawnBallOnPaddle();
+                return;
+            }
+
             if (SpareBalls <= 0)
             { Phase = GamePhase.Lost; _log.Log(TickCount, "lose", "out of spare balls"); RaiseEvent("levelLost", 0, 0); return; }
             SpareBalls--;

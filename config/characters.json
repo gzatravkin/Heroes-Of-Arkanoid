@@ -1,0 +1,6 @@
+{ "characters": [
+  { "id": "fire_mage",   "name": "Fire Mage",   "passive": "Ignited kills spread fire to neighbors.",   "icon": "FireHeroBall" },
+  { "id": "paladin",     "name": "Paladin",     "passive": "Once per level, a lost ball is saved.",      "icon": "HPFull" },
+  { "id": "engineer",    "name": "Engineer",    "passive": "Mana regenerates faster.",                   "icon": "FireTurretIco" },
+  { "id": "necromancer", "name": "Necromancer", "passive": "Killing blocks grants extra mana (souls).",  "icon": "MPFull" }
+]}

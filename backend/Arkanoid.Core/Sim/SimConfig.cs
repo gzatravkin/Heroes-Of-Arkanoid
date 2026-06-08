@@ -75,6 +75,12 @@ public sealed class SimConfig
     /// <summary>IgniteHitsLeft assigned to every served ball when the "ember" ball core is active.</summary>
     public int EmberBallIgniteHits { get; init; } = 2;
 
+    // --- Character passive magnitudes ---
+    /// <summary>Regen multiplier applied when the active character is "engineer".</summary>
+    public double EngineerRegenMult { get; init; } = 1.5;
+    /// <summary>Multiplier on ManaPerKill applied when the active character is "necromancer".</summary>
+    public double NecromancerKillManaMult { get; init; } = 2.0;
+
     // --- Boss enemy ---
     /// <summary>Seconds between boss hazard shots per live boss block.</summary>
     public double BossAttackInterval { get; init; } = 1.6;
