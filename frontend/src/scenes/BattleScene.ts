@@ -2,11 +2,13 @@ import { Renderer } from "../render/Renderer";
 import { Connection } from "../net/Connection";
 import { attachPaddleInput } from "../input/PaddleInput";
 import { installTestHooks } from "../testhooks";
+import { Hud } from "../ui/Hud";
 
 export function mountBattle(host: HTMLElement, level: string, seed: number, run: string) {
   const r = new Renderer(host);
+  const hud = new Hud(host);
   const conn = new Connection(level, seed, run);
-  conn.onSnapshot = (s) => r.draw(s);
+  conn.onSnapshot = (s) => { r.draw(s); hud.update(s); };
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);
   // auto-serve shortly after connect so the ball is live for tests/play
