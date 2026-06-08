@@ -16,6 +16,8 @@ public sealed class SimConfig
 
     public double PaddleWidth { get; init; } = 96;
     public double PaddleHeight { get; init; } = 16;
+    // INVARIANT: keep < acos(MinVerticalRatio) (~72.5deg at 0.30) so paddle deflection
+    // can never produce a sub-MinVerticalRatio ("shallow") trajectory on its own.
     public double PaddleMaxDeflectAngleDeg { get; init; } = 60;
 
     public int StartLives { get; init; } = 3;   // HP, enemy damage (M3+)

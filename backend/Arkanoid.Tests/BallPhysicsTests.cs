@@ -47,6 +47,48 @@ public class BallPhysicsTests
     }
 
     [Fact]
+    public void ClampVertical_RaisesShallowAngleToMinRatio_PreservingSpeedAndSign()
+    {
+        var cfg = SimConfig.Default;
+        var shallow = new Arkanoid.Core.Math.Vec2(360, 20); // |vy|/|v| ~= 0.055, well below 0.30
+        var clamped = Arkanoid.Core.Physics.BallPhysics.ClampVertical(shallow, cfg);
+        var ratio = System.Math.Abs(clamped.Y) / clamped.Length;
+        Assert.True(ratio >= cfg.MinVerticalRatio - 1e-9, $"ratio {ratio} below min {cfg.MinVerticalRatio}");
+        Assert.Equal(shallow.Length, clamped.Length, 4);       // speed preserved
+        Assert.True(clamped.Y > 0);                            // downward sign preserved
+        Assert.True(clamped.X > 0);                            // rightward sign preserved
+    }
+
+    [Fact]
+    public void Ball_AfterHittingBlock_ExitsAndDoesNotStick()
+    {
+        var catalog = Arkanoid.Core.Blocks.BlockCatalog.FromJson(
+          "{\"types\":[{\"id\":\"b\",\"biome\":\"hell\",\"hp\":5,\"sprite\":\"s\",\"needToKill\":true}]}");
+        var level = Arkanoid.Core.Grid.LevelLoader.FromJson(
+          "{\"id\":\"t\",\"biome\":\"hell\",\"cols\":3,\"rows\":3,\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
+          catalog);
+        var g = new GameInstance(level, SimConfig.Default, 1);
+        g.Serve();
+        var blk = level.Blocks[0];
+        var c = level.Grid.CellCenter(blk.Col, blk.Row);
+        var cell = SimConfig.Default.CellSize;
+        // ball just below the block, moving up
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(c.X, c.Y + cell / 2 + 6);
+        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
+        var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
+        // tick several frames; within a few ticks the ball must be clear of the block AABB
+        bool clearedAndStayed = false;
+        for (int i = 0; i < 20; i++)
+        {
+            g.Tick(SimConfig.Default.FixedDt);
+            if (!box.IntersectsCircle(g.Balls[0].Pos, g.Balls[0].Radius)) { clearedAndStayed = true; }
+            else if (clearedAndStayed) { clearedAndStayed = false; break; } // re-entered => stuck/oscillating
+        }
+        Assert.True(clearedAndStayed, "ball failed to cleanly exit the block (stuck or oscillating)");
+        Assert.True(blk.Hp < blk.MaxHp, "block should have taken damage");
+    }
+
+    [Fact]
     public void Ball_DamagesBlock_AndBouncesOff()
     {
         var catalog = Arkanoid.Core.Blocks.BlockCatalog.FromJson(

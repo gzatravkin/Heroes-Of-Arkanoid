@@ -94,6 +94,9 @@ public sealed class GameInstance
     private void ResolveBlocks(Ball b)
     {
         var cell = Config.CellSize;
+        // NOTE: on simultaneous overlap of two blocks (corner), we resolve the FIRST in
+        // list order (deterministic). Sign-based reflection prevents sticking; exact face
+        // selection is a known feel item deferred to the M1 demo pass.
         foreach (var blk in Blocks)
         {
             if (blk.Dead) continue;
