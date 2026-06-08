@@ -3,6 +3,7 @@ using Arkanoid.Core.Entities;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Math;
 using Arkanoid.Core.Relics;
+using Arkanoid.Core.Sim.Systems;
 namespace Arkanoid.Core.Sim;
 
 public sealed class GameInstance
@@ -34,7 +35,7 @@ public sealed class GameInstance
     private double _turretRemaining;
     private double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
-    private readonly ISimLog _log;
+    internal readonly ISimLog _log;
     public RelicCatalog? RelicCatalog { get; }
     public long TickCount { get; private set; }
 
@@ -260,42 +261,8 @@ public sealed class GameInstance
     }
 
     private void DamageBlock(Block blk, int dmg, bool igniteSource)
-    {
-        if (blk.Indestructible) return;   // indestructible blocks absorb no damage
-        blk.Hp -= dmg;
-        _log.Log(TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
-                 $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource}");
-        if (blk.Hp <= 0 && !blk.Dead)
-        {
-            blk.Dead = true;
-            var c = Level.Grid.CellCenter(blk.Col, blk.Row);
-            RaiseEvent("blockDestroyed", c.X, c.Y);
-            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Modifiers.KillManaGain(this));
-            if (igniteSource && Modifiers.ShouldSpreadFire(this)) SpreadFire(blk);
-        }
-    }
+        => BlockDamage.DamageBlock(this, blk, dmg, igniteSource);
 
-    private void SpreadFire(Block origin)
-    {
-        var chip = Modifiers.SpreadChip(this);
-        (int dc, int dr)[] cardinal  = { (1,0), (-1,0), (0,1), (0,-1) };
-        (int dc, int dr)[] diagonals = { (1,1), (1,-1), (-1,1), (-1,-1) };
-        var neighbors = Modifiers.SpreadIncludesDiagonals(this)
-            ? cardinal.Concat(diagonals)
-            : (IEnumerable<(int, int)>)cardinal;
-        foreach (var (dc, dr) in neighbors)
-        {
-            var nb = Blocks.FirstOrDefault(b => !b.Dead && b.Col == origin.Col + dc && b.Row == origin.Row + dr);
-            if (nb != null)
-            {
-                nb.Hp -= chip;
-                _log.Log(TickCount, "burn", "spread chip", $"id={nb.Id} hp={nb.Hp} chip={chip}");
-                var c = Level.Grid.CellCenter(nb.Col, nb.Row);
-                RaiseEvent("burn", c.X, c.Y);
-                if (nb.Hp <= 0) { nb.Dead = true; RaiseEvent("blockDestroyed", c.X, c.Y); }
-            }
-        }
-    }
     private void ResolveDrainAndWin()
     {
         if (!Blocks.Any(b => b.NeedToKill && !b.Dead))
