@@ -8,6 +8,7 @@ node_modules/
 
 # logs & test artifacts
 backend/Arkanoid.Server/logs/
+backend/Arkanoid.Server/saves/
 tests/test-results/
 tests/playwright-report/
 playwright/.cache/
