@@ -1,3 +1,4 @@
+using System.Linq;
 using Arkanoid.Core.Entities;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Math;
@@ -131,7 +132,29 @@ public sealed class GameInstance
             // Ignite spread handled in Task 1.6
         }
     }
-    private void ResolveDrainAndWin() { /* Task 1.3 */ }
+    private void ResolveDrainAndWin()
+    {
+        if (!Blocks.Any(b => b.NeedToKill && !b.Dead))
+        {
+            Phase = GamePhase.Won;
+            _log.Log(TickCount, "win", "all needToKill cleared");
+            RaiseEvent("levelWon", 0, 0);
+            return;
+        }
+        var drainLine = Level.Grid.Height + Config.CellSize * 2;
+        foreach (var b in Balls)
+            if (b.Alive && b.Pos.Y - b.Radius > drainLine)
+            { b.Alive = false; _log.Log(TickCount, "drain", "ball lost", $"id={b.Id}"); }
+
+        if (Balls.All(b => !b.Alive))
+        {
+            if (SpareBalls <= 0)
+            { Phase = GamePhase.Lost; _log.Log(TickCount, "lose", "out of spare balls"); RaiseEvent("levelLost", 0, 0); return; }
+            SpareBalls--;
+            _log.Log(TickCount, "reserve", "re-serve", $"spareBalls={SpareBalls}");
+            SpawnBallOnPaddle();
+        }
+    }
 
     // --- resources/events surface (mana fully wired in Task 1.5) ---
     public double ManaValue { get; internal set; } = 0;
