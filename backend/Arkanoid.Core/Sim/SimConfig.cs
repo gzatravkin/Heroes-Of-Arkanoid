@@ -75,5 +75,17 @@ public sealed class SimConfig
     /// <summary>IgniteHitsLeft assigned to every served ball when the "ember" ball core is active.</summary>
     public int EmberBallIgniteHits { get; init; } = 2;
 
+    // --- Boss enemy ---
+    /// <summary>Seconds between boss hazard shots per live boss block.</summary>
+    public double BossAttackInterval { get; init; } = 1.6;
+    /// <summary>Downward speed of a boss hazard (units/sec).</summary>
+    public double BossHazardSpeed { get; init; } = 240;
+    /// <summary>HP damage dealt to the player when a hazard hits the paddle.</summary>
+    public int    BossHazardDamage { get; init; } = 1;
+    /// <summary>Collision radius of a boss hazard.</summary>
+    public double BossHazardRadius { get; init; } = 9;
+    /// <summary>How strongly a hazard aims toward the paddle (0 = straight down, 1 = full tracking).</summary>
+    public double BossHazardAimStrength { get; init; } = 0.35;
+
     public static SimConfig Default { get; } = new();
 }

@@ -26,6 +26,11 @@ public sealed class GameInstance
     private int _nextWallId = 1;
     public List<FireWall> FireWalls { get; } = new();
 
+    private int _nextHazardId = 1;
+    /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
+    public List<Projectile> Hazards { get; } = new();
+    private double _bossAttackAccumulator;
+
     private double _turretRemaining;
     private double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
@@ -173,6 +178,8 @@ public sealed class GameInstance
         UpdateProjectiles(dt);
         UpdateFireWalls(dt);
         UpdateTurret(dt);
+        UpdateBoss(dt);
+        UpdateHazards(dt);
         ResolveDrainAndWin();
     }
 
@@ -435,6 +442,82 @@ public sealed class GameInstance
             });
             RaiseEvent("turretShot", Paddle.Center.X, Paddle.Center.Y);
             _turretAccumulator -= Config.TurretFireInterval;
+        }
+    }
+
+    // --- Boss enemy ---
+
+    private void UpdateBoss(double dt)
+    {
+        var bossBlocks = Blocks.Where(b => !b.Dead && b.Boss).ToList();
+        if (bossBlocks.Count == 0) return;
+
+        _bossAttackAccumulator += dt;
+        while (_bossAttackAccumulator >= Config.BossAttackInterval)
+        {
+            foreach (var boss in bossBlocks)
+            {
+                var origin = Level.Grid.CellCenter(boss.Col, boss.Row);
+                // Deterministic horizontal lean toward the paddle (limited by aim strength)
+                var dx = Paddle.Center.X - origin.X;
+                var aimX = dx * Config.BossHazardAimStrength;
+                // Normalise so speed is preserved: resultant is (aimX, BossHazardSpeed) but
+                // we keep the downward component fixed at full speed for predictable dodging.
+                var vel = new Arkanoid.Core.Math.Vec2(aimX, Config.BossHazardSpeed);
+                Hazards.Add(new Projectile {
+                    Id = _nextHazardId++,
+                    Pos = origin,
+                    Vel = vel,
+                    Damage = Config.BossHazardDamage,
+                    Radius = Config.BossHazardRadius
+                });
+                RaiseEvent("bossAttack", origin.X, origin.Y);
+                _log.Log(TickCount, "boss", "hazard spawned", $"bossId={boss.Id} paddleX={Paddle.Center.X:F1}");
+            }
+            _bossAttackAccumulator -= Config.BossAttackInterval;
+        }
+    }
+
+    private void UpdateHazards(double dt)
+    {
+        var drainLine = Level.Grid.Height + Config.CellSize * 2;
+        var halfW = Paddle.Width / 2;
+        var halfH = Paddle.Height / 2;
+        var paddleBox = Arkanoid.Core.Math.Aabb.FromCenter(Paddle.Center, halfW, halfH);
+
+        foreach (var hz in Hazards)
+        {
+            if (!hz.Alive) continue;
+            hz.Pos += hz.Vel * dt;
+
+            if (paddleBox.IntersectsCircle(hz.Pos, hz.Radius))
+            {
+                hz.Alive = false;
+                DamagePlayer(hz.Damage);
+                _log.Log(TickCount, "hazard", "hit paddle", $"damage={hz.Damage}");
+                // playerHit event already raised inside DamagePlayer
+                continue;
+            }
+
+            if (hz.Pos.Y - hz.Radius > drainLine)
+            {
+                hz.Alive = false; // dodged / missed
+                _log.Log(TickCount, "hazard", "missed paddle", "");
+            }
+        }
+        Hazards.RemoveAll(h => !h.Alive);
+    }
+
+    public void DamagePlayer(int dmg)
+    {
+        Lives -= dmg;
+        RaiseEvent("playerHit", Paddle.Center.X, Paddle.Center.Y);
+        _log.Log(TickCount, "hp", "player hit", $"lives={Lives}");
+        if (Lives <= 0)
+        {
+            Phase = GamePhase.Lost;
+            RaiseEvent("levelLost", 0, 0);
+            _log.Log(TickCount, "lose", "hp depleted");
         }
     }
 

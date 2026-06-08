@@ -17,4 +17,6 @@ public sealed class Block
     public bool BallPhases { get; init; }
     /// <summary>Warps the ball to the next teleporter cyclically (Hell signature mechanic).</summary>
     public bool Teleporter { get; init; }
+    /// <summary>Boss block: periodically fires falling hazards that damage player HP on paddle contact.</summary>
+    public bool Boss { get; init; }
 }

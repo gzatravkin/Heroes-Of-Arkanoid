@@ -38,7 +38,8 @@ public static class LevelLoader
                     Sprite = t.Sprite, NeedToKill = t.NeedToKill,
                     Indestructible = t.Indestructible,
                     BallPhases = t.BallPhases,
-                    Teleporter = t.Teleporter
+                    Teleporter = t.Teleporter,
+                    Boss = t.Boss
                 });
             }
         }

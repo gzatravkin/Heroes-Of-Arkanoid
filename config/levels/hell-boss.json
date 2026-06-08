@@ -1,0 +1,12 @@
+{ "id": "hell-boss", "biome": "hell", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "....ABBA....",
+    "..AABBBBAA..",
+    "..AB.DD.BA..",
+    "..AABBBBAA..",
+    "....ABBA....",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "hell_basic", "B": "hell_tough", "D": "hell_demon_boss" } }

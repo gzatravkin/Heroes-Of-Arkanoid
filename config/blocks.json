@@ -3,6 +3,7 @@
   { "id": "hell_tough",      "biome": "hell",    "hp": 4, "sprite": "HellStandart2",       "needToKill": true  },
   { "id": "hell_obsidian",   "biome": "hell",    "hp": 1, "sprite": "HellInvulnerable",    "needToKill": false, "indestructible": true },
   { "id": "hell_teleporter", "biome": "hell",    "hp": 1, "sprite": "SkullRed",            "needToKill": false, "indestructible": true, "teleporter": true },
+  { "id": "hell_demon_boss", "biome": "hell",    "hp": 20, "sprite": "DemonBody",          "needToKill": true,  "boss": true },
   { "id": "cavern_basic",    "biome": "cavern",  "hp": 2, "sprite": "DungeonStandart",     "needToKill": true  },
   { "id": "cavern_tough",    "biome": "cavern",  "hp": 3, "sprite": "DungeonStandart2",    "needToKill": true  },
   { "id": "cavern_rock",     "biome": "cavern",  "hp": 1, "sprite": "DungeonInvulnerable", "needToKill": false, "indestructible": true },

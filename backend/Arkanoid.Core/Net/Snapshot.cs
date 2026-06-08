@@ -22,6 +22,13 @@ public sealed class BlockDto
     [JsonPropertyName("ballPhases")] public bool BallPhases { get; set; }
     [JsonPropertyName("teleporter")] public bool Teleporter { get; set; }
     [JsonPropertyName("indestructible")] public bool Indestructible { get; set; }
+    [JsonPropertyName("boss")] public bool Boss { get; set; }
+}
+
+public sealed class HazardDto
+{
+    [JsonPropertyName("x")] public double X { get; set; }
+    [JsonPropertyName("y")] public double Y { get; set; }
 }
 
 public sealed class WallDto
@@ -63,6 +70,7 @@ public sealed class Snapshot
     [JsonPropertyName("walls")] public List<WallDto> Walls { get; set; } = new();
     [JsonPropertyName("turretActive")]  public bool TurretActive { get; set; }
     [JsonPropertyName("activeRelics")]  public List<RelicDto> ActiveRelics { get; set; } = new();
+    [JsonPropertyName("hazards")] public List<HazardDto> Hazards { get; set; } = new();
     [JsonPropertyName("events")] public List<EventDto> Events { get; set; } = new();
 
     public static Snapshot From(GameInstance g, long tick)
@@ -83,10 +91,12 @@ public sealed class Snapshot
         {
             if (blk.Dead) continue;
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible });
+            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss });
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });
+        foreach (var hz in g.Hazards)
+            s.Hazards.Add(new HazardDto { X = hz.Pos.X, Y = hz.Pos.Y });
         s.TurretActive = g.TurretActive;
         foreach (var id in g.ActiveRelics)
         {
