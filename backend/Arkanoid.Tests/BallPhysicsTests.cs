@@ -45,4 +45,24 @@ public class BallPhysicsTests
         var ratio = System.Math.Abs(b.Vel.Y) / b.Vel.Length;
         Assert.True(ratio >= Cfg.MinVerticalRatio - 1e-9);
     }
+
+    [Fact]
+    public void Ball_DamagesBlock_AndBouncesOff()
+    {
+        var catalog = Arkanoid.Core.Blocks.BlockCatalog.FromJson(
+          "{\"types\":[{\"id\":\"b\",\"biome\":\"hell\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":true}]}");
+        var level = Arkanoid.Core.Grid.LevelLoader.FromJson(
+          "{\"id\":\"t\",\"biome\":\"hell\",\"cols\":3,\"rows\":3,\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
+          catalog);
+        var g = new GameInstance(level, SimConfig.Default, 1);
+        g.Serve();
+        var block = level.Blocks[0];
+        var c = level.Grid.CellCenter(block.Col, block.Row);
+        // place ball just under the block moving up
+        g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + 6);
+        g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(1, block.Hp);            // took 1 damage
+        Assert.True(g.Balls[0].Vel.Y > 0);    // bounced downward
+    }
 }

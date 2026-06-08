@@ -91,7 +91,43 @@ public sealed class GameInstance
         _log.Log(TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
         // mana bonus (Task 1.5) + ignite imbue (Task 1.6) added later
     }
-    private void ResolveBlocks(Ball b) { /* Task 1.2 */ }
+    private void ResolveBlocks(Ball b)
+    {
+        var cell = Config.CellSize;
+        foreach (var blk in Blocks)
+        {
+            if (blk.Dead) continue;
+            var c = Level.Grid.CellCenter(blk.Col, blk.Row);
+            var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
+            if (!box.IntersectsCircle(b.Pos, b.Radius)) continue;
+
+            // reflect by dominant penetration axis
+            var dx = b.Pos.X - c.X; var dy = b.Pos.Y - c.Y;
+            if (System.Math.Abs(dx) / (cell / 2) > System.Math.Abs(dy) / (cell / 2))
+                b.Vel = new Arkanoid.Core.Math.Vec2(System.Math.Sign(dx) * System.Math.Abs(b.Vel.X), b.Vel.Y);
+            else
+                b.Vel = new Arkanoid.Core.Math.Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
+
+            DamageBlock(blk, Config.BallDamage, igniteSource: b.IgniteHitsLeft > 0);
+            if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--; // imbue consumed per hit (Task 1.6)
+            break; // one block per tick keeps it deterministic
+        }
+    }
+
+    private void DamageBlock(Block blk, int dmg, bool igniteSource)
+    {
+        blk.Hp -= dmg;
+        _log.Log(TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
+                 $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource}");
+        if (blk.Hp <= 0 && !blk.Dead)
+        {
+            blk.Dead = true;
+            var c = Level.Grid.CellCenter(blk.Col, blk.Row);
+            RaiseEvent("blockDestroyed", c.X, c.Y);
+            ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaPerKill);
+            // Ignite spread handled in Task 1.6
+        }
+    }
     private void ResolveDrainAndWin() { /* Task 1.3 */ }
 
     // --- resources/events surface (mana fully wired in Task 1.5) ---
