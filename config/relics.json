@@ -1,0 +1,6 @@
+{ "relics": [
+  { "id": "glass_cannon", "name": "Glass Cannon", "description": "+1 ball damage, but -1 life.", "icon": "ItemHummer" },
+  { "id": "flint_core",   "name": "Flint Core",   "description": "+1 damage to tough blocks (3+ HP).", "icon": "ItemDrill" },
+  { "id": "pyroclasm",    "name": "Pyroclasm",    "description": "Fire spread hits harder and farther.", "icon": "ItemTorch" },
+  { "id": "mana_battery", "name": "Mana Battery", "description": "+50 max mana and faster regen.", "icon": "ItemGem" }
+]}

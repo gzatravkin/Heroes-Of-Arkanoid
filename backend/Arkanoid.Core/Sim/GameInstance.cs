@@ -2,6 +2,7 @@ using System.Linq;
 using Arkanoid.Core.Entities;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Math;
+using Arkanoid.Core.Relics;
 namespace Arkanoid.Core.Sim;
 
 public sealed class GameInstance
@@ -29,13 +30,20 @@ public sealed class GameInstance
     private double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
     private readonly ISimLog _log;
+    public RelicCatalog? RelicCatalog { get; }
     public long TickCount { get; private set; }
 
-    public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null)
+    public HashSet<string> ActiveRelics { get; } = new();
+    public bool HasRelic(string id) => ActiveRelics.Contains(id);
+    public double ManaMaxValue { get; private set; }
+
+    public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null)
     {
         Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
+        RelicCatalog = relics;
         Lives = config.StartLives;
         SpareBalls = config.StartBalls;
+        ManaMaxValue = config.ManaMax;
         Paddle = new Paddle {
             Width = config.PaddleWidth,
             Height = config.PaddleHeight,
@@ -43,6 +51,21 @@ public sealed class GameInstance
         };
         SpawnBallOnPaddle();
         _log.Log(0, "init", "instance created", $"level={level.Id} seed={seed} blocks={Blocks.Count} lives={Lives} balls={SpareBalls}");
+    }
+
+    public void AddRelic(string id)
+    {
+        ActiveRelics.Add(id);
+        _log.Log(TickCount, "relic", "added", id);
+        switch (id)
+        {
+            case "glass_cannon":
+                Lives = System.Math.Max(1, Lives - 1);
+                break;
+            case "mana_battery":
+                ManaMaxValue += Config.ManaBatteryBonus;
+                break;
+        }
     }
 
     private void SpawnBallOnPaddle()
@@ -100,14 +123,17 @@ public sealed class GameInstance
     }
 
     private void RegenMana(double dt)
-        => ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaRegenPerSec * dt);
+    {
+        var mult = HasRelic("mana_battery") ? Config.ManaBatteryRegenMult : 1.0;
+        ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaRegenPerSec * mult * dt);
+    }
 
     private void OnPaddleHit(Ball b, double t)
     {
         _log.Log(TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
         if (System.Math.Abs(t) < Config.PerfectDeflectBand)
         {
-            ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaPerfectDeflectBonus);
+            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaPerfectDeflectBonus);
             _log.Log(TickCount, "mana", "perfect deflect bonus", $"mana={ManaValue:F0}");
         }
         ApplyIgniteOnDeflect(b);
@@ -141,8 +167,10 @@ public sealed class GameInstance
             else
                 b.Vel = new Arkanoid.Core.Math.Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
 
-            var bonus = b.IgniteHitsLeft > 0 ? 1 : 0;
-            DamageBlock(blk, Config.BallDamage + bonus, igniteSource: b.IgniteHitsLeft > 0);
+            var igniteBonus = b.IgniteHitsLeft > 0 ? 1 : 0;
+            var relicBonus  = (HasRelic("glass_cannon") ? Config.GlassCannonDamageBonus : 0)
+                            + (HasRelic("flint_core") && blk.MaxHp >= Config.FlintToughThreshold ? Config.FlintBonus : 0);
+            DamageBlock(blk, Config.BallDamage + igniteBonus + relicBonus, igniteSource: b.IgniteHitsLeft > 0);
             if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--;
             break; // one block per tick keeps it deterministic
         }
@@ -158,21 +186,27 @@ public sealed class GameInstance
             blk.Dead = true;
             var c = Level.Grid.CellCenter(blk.Col, blk.Row);
             RaiseEvent("blockDestroyed", c.X, c.Y);
-            ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaPerKill);
+            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaPerKill);
             if (igniteSource) SpreadFire(blk);
         }
     }
 
     private void SpreadFire(Block origin)
     {
-        (int dc, int dr)[] n = { (1,0), (-1,0), (0,1), (0,-1) };
-        foreach (var (dc, dr) in n)
+        var pyroclasm = HasRelic("pyroclasm");
+        var chip = pyroclasm ? Config.PyroclasmChip : 1;
+        (int dc, int dr)[] cardinal  = { (1,0), (-1,0), (0,1), (0,-1) };
+        (int dc, int dr)[] diagonals = { (1,1), (1,-1), (-1,1), (-1,-1) };
+        var neighbors = pyroclasm
+            ? cardinal.Concat(diagonals)
+            : (IEnumerable<(int, int)>)cardinal;
+        foreach (var (dc, dr) in neighbors)
         {
             var nb = Blocks.FirstOrDefault(b => !b.Dead && b.Col == origin.Col + dc && b.Row == origin.Row + dr);
             if (nb != null)
             {
-                nb.Hp -= 1; // chip
-                _log.Log(TickCount, "burn", "spread chip", $"id={nb.Id} hp={nb.Hp}");
+                nb.Hp -= chip;
+                _log.Log(TickCount, "burn", "spread chip", $"id={nb.Id} hp={nb.Hp} chip={chip}");
                 var c = Level.Grid.CellCenter(nb.Col, nb.Row);
                 RaiseEvent("burn", c.X, c.Y);
                 if (nb.Hp <= 0) { nb.Dead = true; RaiseEvent("blockDestroyed", c.X, c.Y); }
@@ -338,6 +372,7 @@ public sealed class GameInstance
     public void ApplyCheat(string op, double value)
     {
         _log.Log(TickCount, "cheat", op, $"value={value}");
+        if (op.StartsWith("addRelic:")) { AddRelic(op.Substring("addRelic:".Length)); return; }
         switch (op)
         {
             case "clearAllButN":
@@ -353,7 +388,7 @@ public sealed class GameInstance
                 Phase = GamePhase.Lost; RaiseEvent("levelLost", 0, 0);
                 break;
             case "setSeed": Rng = new Rng((int)value); break;
-            case "setMana": ManaValue = System.Math.Clamp(value, 0, Config.ManaMax); break;
+            case "setMana": ManaValue = System.Math.Clamp(value, 0, ManaMaxValue); break;
             case "loseBall":
                 foreach (var b in Balls) b.Alive = false;
                 break;

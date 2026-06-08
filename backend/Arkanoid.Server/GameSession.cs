@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using Arkanoid.Core.Blocks;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Net;
+using Arkanoid.Core.Relics;
 using Arkanoid.Core.Sim;
 
 namespace Arkanoid.Server;
@@ -51,7 +52,8 @@ public sealed class GameSession
     {
         var catalog = BlockCatalog.FromFile(System.IO.Path.Combine(_configRoot, "blocks.json"));
         var level = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
-        _game = new GameInstance(level, SimConfig.Default, seed, _log);
+        var relics = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
+        _game = new GameInstance(level, SimConfig.Default, seed, _log, relics);
     }
 
     private void Apply(InputCommand c)

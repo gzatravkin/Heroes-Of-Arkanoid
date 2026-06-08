@@ -49,5 +49,13 @@ public sealed class SimConfig
     public int    TurretDamage { get; init; } = 1;
     public double TurretBulletSpeed { get; init; } = 460;
 
+    // --- Relic magnitudes ---
+    public int    GlassCannonDamageBonus { get; init; } = 1;
+    public int    FlintToughThreshold { get; init; } = 3;
+    public int    FlintBonus { get; init; } = 1;
+    public int    PyroclasmChip { get; init; } = 2;        // vs default 1
+    public double ManaBatteryBonus { get; init; } = 50;
+    public double ManaBatteryRegenMult { get; init; } = 1.6;
+
     public static SimConfig Default { get; } = new();
 }
