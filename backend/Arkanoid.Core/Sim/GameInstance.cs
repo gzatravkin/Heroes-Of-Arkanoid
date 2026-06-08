@@ -75,4 +75,9 @@ public sealed class GameInstance
         => _events.Add(new Arkanoid.Core.Net.EventDto { Type = type, X = x, Y = y });
     public List<Arkanoid.Core.Net.EventDto> DrainEvents()
     { var copy = new List<Arkanoid.Core.Net.EventDto>(_events); _events.Clear(); return copy; }
+
+    // --- spell stubs (real bodies in Tasks 1.3/1.5/1.6) ---
+    public void CastIgnite() { /* Task 1.6 */ }
+    public void CastFireball() { /* Task 1.5 */ }
+    public void ApplyCheat(string op, double value) { /* Task 1.4 */ }
 }
