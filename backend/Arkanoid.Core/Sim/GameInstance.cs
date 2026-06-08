@@ -167,5 +167,28 @@ public sealed class GameInstance
     // --- spell stubs (real bodies in Tasks 1.3/1.5/1.6) ---
     public void CastIgnite() { /* Task 1.6 */ }
     public void CastFireball() { /* Task 1.5 */ }
-    public void ApplyCheat(string op, double value) { /* Task 1.4 */ }
+    public void ApplyCheat(string op, double value)
+    {
+        _log.Log(TickCount, "cheat", op, $"value={value}");
+        switch (op)
+        {
+            case "clearAllButN":
+                var keep = (int)value;
+                var alive = Blocks.Where(b => !b.Dead).ToList();
+                for (int i = 0; i < alive.Count - keep; i++) alive[i].Dead = true;
+                break;
+            case "winNow":
+                foreach (var b in Blocks) b.Dead = true;
+                Phase = GamePhase.Won; RaiseEvent("levelWon", 0, 0);
+                break;
+            case "loseNow":
+                Phase = GamePhase.Lost; RaiseEvent("levelLost", 0, 0);
+                break;
+            case "setSeed": Rng = new Rng((int)value); break;
+            case "setMana": ManaValue = System.Math.Clamp(value, 0, Config.ManaMax); break;
+            case "loseBall":
+                foreach (var b in Balls) b.Alive = false;
+                break;
+        }
+    }
 }

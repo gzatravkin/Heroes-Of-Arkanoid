@@ -50,4 +50,22 @@ public class WinLoseTests
         g.Tick(SimConfig.Default.FixedDt);
         Assert.Equal(GamePhase.Won, g.Phase);
     }
+
+    [Fact]
+    public void Cheat_ClearAllButN_LeavesNBlocks()
+    {
+        var g = Make("\"AAA\",\"AAA\",\"...\""); // 6 blocks
+        g.Serve();
+        g.ApplyCheat("clearAllButN", 1);
+        Assert.Equal(1, g.Blocks.Count(b => !b.Dead));
+    }
+
+    [Fact]
+    public void Cheat_WinNow_SetsWon()
+    {
+        var g = Make("\"AAA\",\"...\",\"...\"");
+        g.Serve();
+        g.ApplyCheat("winNow", 0);
+        Assert.Equal(GamePhase.Won, g.Phase);
+    }
 }

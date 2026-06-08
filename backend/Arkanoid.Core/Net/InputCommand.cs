@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 namespace Arkanoid.Core.Net;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum InputKind { PaddleX, Serve, CastImbueIgnite, CastFireball, Cheat }
 
 public sealed class InputCommand
