@@ -12,9 +12,9 @@ public sealed class GameInstance
     public LevelData Level { get; }
     public Rng Rng { get; private set; }
 
-    public GamePhase Phase { get; private set; } = GamePhase.Serving;
-    public int Lives { get; private set; }
-    public int SpareBalls { get; private set; }
+    public GamePhase Phase { get; internal set; } = GamePhase.Serving;
+    public int Lives { get; internal set; }
+    public int SpareBalls { get; internal set; }
 
     public Paddle Paddle { get; }
     public List<Ball> Balls { get; } = new();
@@ -30,7 +30,7 @@ public sealed class GameInstance
     internal int _nextHazardId = 1;
     /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
     public List<Projectile> Hazards { get; } = new();
-    private double _bossAttackAccumulator;
+    internal double _bossAttackAccumulator;
 
     internal double _turretRemaining;
     internal double _turretAccumulator;
@@ -41,7 +41,7 @@ public sealed class GameInstance
 
     public string Character { get; private set; } = "fire_mage";
     public void SetCharacter(string id) => Character = id;
-    private bool _wallSaveAvailable;
+    internal bool _wallSaveAvailable;
 
     public HashSet<string> ActiveRelics { get; } = new();
     public bool HasRelic(string id) => ActiveRelics.Contains(id);
@@ -98,7 +98,7 @@ public sealed class GameInstance
         }
     }
 
-    private void SpawnBallOnPaddle()
+    internal void SpawnBallOnPaddle()
     {
         Balls.Clear();
         Balls.Add(new Ball {
@@ -179,38 +179,7 @@ public sealed class GameInstance
 
     private void RegenMana(double dt) => SpellSystem.RegenMana(this, dt);
 
-    private void ResolveDrainAndWin()
-    {
-        if (!Blocks.Any(b => b.NeedToKill && !b.Dead))
-        {
-            Phase = GamePhase.Won;
-            _log.Log(TickCount, "win", "all needToKill cleared");
-            RaiseEvent("levelWon", 0, 0);
-            return;
-        }
-        var drainLine = Level.Grid.Height + Config.CellSize * 2;
-        foreach (var b in Balls)
-            if (b.Alive && b.Pos.Y - b.Radius > drainLine)
-            { b.Alive = false; _log.Log(TickCount, "drain", "ball lost", $"id={b.Id}"); }
-
-        if (Balls.All(b => !b.Alive))
-        {
-            // Paladin passive: once per level, a lost ball is saved for free.
-            if (Character == "paladin" && _wallSaveAvailable)
-            {
-                _wallSaveAvailable = false;
-                _log.Log(TickCount, "passive", "wall save", "paladin saved a ball — no spare ball consumed");
-                SpawnBallOnPaddle();
-                return;
-            }
-
-            if (SpareBalls <= 0)
-            { Phase = GamePhase.Lost; _log.Log(TickCount, "lose", "out of spare balls"); RaiseEvent("levelLost", 0, 0); return; }
-            SpareBalls--;
-            _log.Log(TickCount, "reserve", "re-serve", $"spareBalls={SpareBalls}");
-            SpawnBallOnPaddle();
-        }
-    }
+    private void ResolveDrainAndWin() => WinLoseSystem.ResolveDrainAndWin(this);
 
     // --- resources/events surface ---
     public double ManaValue { get; set; } = 0;
@@ -229,81 +198,9 @@ public sealed class GameInstance
     private void UpdateFireWalls(double dt)   => SpellSystem.UpdateFireWalls(this, dt);
     private void UpdateTurret(double dt)      => SpellSystem.UpdateTurret(this, dt);
 
-    // --- Boss enemy ---
-
-    private void UpdateBoss(double dt)
-    {
-        var bossBlocks = Blocks.Where(b => !b.Dead && b.Boss).ToList();
-        if (bossBlocks.Count == 0) return;
-
-        _bossAttackAccumulator += dt;
-        while (_bossAttackAccumulator >= Config.BossAttackInterval)
-        {
-            foreach (var boss in bossBlocks)
-            {
-                var origin = Level.Grid.CellCenter(boss.Col, boss.Row);
-                // Deterministic horizontal lean toward the paddle (limited by aim strength)
-                var dx = Paddle.Center.X - origin.X;
-                var aimX = dx * Config.BossHazardAimStrength;
-                // Normalise so speed is preserved: resultant is (aimX, BossHazardSpeed) but
-                // we keep the downward component fixed at full speed for predictable dodging.
-                var vel = new Arkanoid.Core.Math.Vec2(aimX, Config.BossHazardSpeed);
-                Hazards.Add(new Projectile {
-                    Id = _nextHazardId++,
-                    Pos = origin,
-                    Vel = vel,
-                    Damage = Config.BossHazardDamage,
-                    Radius = Config.BossHazardRadius
-                });
-                RaiseEvent("bossAttack", origin.X, origin.Y);
-                _log.Log(TickCount, "boss", "hazard spawned", $"bossId={boss.Id} paddleX={Paddle.Center.X:F1}");
-            }
-            _bossAttackAccumulator -= Config.BossAttackInterval;
-        }
-    }
-
-    private void UpdateHazards(double dt)
-    {
-        var drainLine = Level.Grid.Height + Config.CellSize * 2;
-        var halfW = Paddle.Width / 2;
-        var halfH = Paddle.Height / 2;
-        var paddleBox = Arkanoid.Core.Math.Aabb.FromCenter(Paddle.Center, halfW, halfH);
-
-        foreach (var hz in Hazards)
-        {
-            if (!hz.Alive) continue;
-            hz.Pos += hz.Vel * dt;
-
-            if (paddleBox.IntersectsCircle(hz.Pos, hz.Radius))
-            {
-                hz.Alive = false;
-                DamagePlayer(hz.Damage);
-                _log.Log(TickCount, "hazard", "hit paddle", $"damage={hz.Damage}");
-                // playerHit event already raised inside DamagePlayer
-                continue;
-            }
-
-            if (hz.Pos.Y - hz.Radius > drainLine)
-            {
-                hz.Alive = false; // dodged / missed
-                _log.Log(TickCount, "hazard", "missed paddle", "");
-            }
-        }
-        Hazards.RemoveAll(h => !h.Alive);
-    }
-
-    public void DamagePlayer(int dmg)
-    {
-        Lives -= dmg;
-        RaiseEvent("playerHit", Paddle.Center.X, Paddle.Center.Y);
-        _log.Log(TickCount, "hp", "player hit", $"lives={Lives}");
-        if (Lives <= 0)
-        {
-            Phase = GamePhase.Lost;
-            RaiseEvent("levelLost", 0, 0);
-            _log.Log(TickCount, "lose", "hp depleted");
-        }
-    }
+    private void UpdateBoss(double dt)    => CombatSystem.UpdateBoss(this, dt);
+    private void UpdateHazards(double dt) => CombatSystem.UpdateHazards(this, dt);
+    public void DamagePlayer(int dmg)     => CombatSystem.DamagePlayer(this, dmg);
 
     internal bool _igniteArmed = false;
 
