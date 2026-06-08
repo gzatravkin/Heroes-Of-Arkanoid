@@ -70,5 +70,35 @@ export function mountMenu(host: HTMLElement) {
   });
 
   el.appendChild(grid);
+
+  // Campaign button — navigate to campaign scene
+  const campaignBtn = document.createElement("button");
+  campaignBtn.id = "btn-campaign";
+  campaignBtn.textContent = "Campaign";
+  campaignBtn.style.cssText = [
+    "margin-top:20px",
+    "font-size:15px",
+    "padding:12px 32px",
+    "background:#1a1a3a",
+    "color:#cc88ff",
+    "border:1px solid #553377",
+    "border-radius:6px",
+    "cursor:pointer",
+    "letter-spacing:0.05em",
+    "transition:background 0.15s,border-color 0.15s",
+  ].join(";");
+  campaignBtn.addEventListener("mouseenter", () => {
+    campaignBtn.style.background = "#2a1a4a";
+    campaignBtn.style.borderColor = "#775599";
+  });
+  campaignBtn.addEventListener("mouseleave", () => {
+    campaignBtn.style.background = "#1a1a3a";
+    campaignBtn.style.borderColor = "#553377";
+  });
+  campaignBtn.addEventListener("click", () => {
+    location.href = "/?scene=campaign";
+  });
+  el.appendChild(campaignBtn);
+
   host.appendChild(el);
 }
