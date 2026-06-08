@@ -19,6 +19,8 @@ public sealed class GameInstance
     public List<Block> Blocks => Level.Blocks;
 
     private int _nextBallId = 1;
+    private int _nextProjId = 1;
+    public List<Projectile> Projectiles { get; } = new();
     private readonly ISimLog _log;
     public long TickCount { get; private set; }
 
@@ -83,15 +85,25 @@ public sealed class GameInstance
                 OnPaddleHit(b, t);
             ResolveBlocks(b);
         }
+        UpdateProjectiles(dt);
         ResolveDrainAndWin();
     }
 
-    private void RegenMana(double dt) { /* Task 1.5 */ }
+    private void RegenMana(double dt)
+        => ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaRegenPerSec * dt);
+
     private void OnPaddleHit(Ball b, double t)
     {
         _log.Log(TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
-        // mana bonus (Task 1.5) + ignite imbue (Task 1.6) added later
+        if (System.Math.Abs(t) < Config.PerfectDeflectBand)
+        {
+            ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaPerfectDeflectBonus);
+            _log.Log(TickCount, "mana", "perfect deflect bonus", $"mana={ManaValue:F0}");
+        }
+        ApplyIgniteOnDeflect(b);
     }
+
+    private void ApplyIgniteOnDeflect(Ball b) { /* Task 1.6 */ }
     private void ResolveBlocks(Ball b)
     {
         var cell = Config.CellSize;
@@ -156,17 +168,52 @@ public sealed class GameInstance
         }
     }
 
-    // --- resources/events surface (mana fully wired in Task 1.5) ---
-    public double ManaValue { get; internal set; } = 0;
+    // --- resources/events surface ---
+    public double ManaValue { get; set; } = 0;
     private readonly List<Arkanoid.Core.Net.EventDto> _events = new();
     public void RaiseEvent(string type, double x, double y)
         => _events.Add(new Arkanoid.Core.Net.EventDto { Type = type, X = x, Y = y });
     public List<Arkanoid.Core.Net.EventDto> DrainEvents()
     { var copy = new List<Arkanoid.Core.Net.EventDto>(_events); _events.Clear(); return copy; }
 
-    // --- spell stubs (real bodies in Tasks 1.3/1.5/1.6) ---
+    public void CastFireball()
+    {
+        if (Phase != GamePhase.Playing) return;
+        if (ManaValue < Config.FireballCost)
+        { _log.Log(TickCount, "spell", "fireball denied", $"mana={ManaValue:F0} need={Config.FireballCost}"); return; }
+        ManaValue -= Config.FireballCost;
+        Projectiles.Add(new Projectile {
+            Id = _nextProjId++,
+            Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height),
+            Vel = new Vec2(0, -Config.FireballSpeed),
+            Damage = Config.FireballDamage, Radius = Config.BallRadius
+        });
+        _log.Log(TickCount, "spell", "fireball cast", $"mana={ManaValue:F0}");
+        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
+    }
+
+    private void UpdateProjectiles(double dt)
+    {
+        var cell = Config.CellSize;
+        foreach (var pr in Projectiles)
+        {
+            if (!pr.Alive) continue;
+            pr.Pos += pr.Vel * dt;
+            if (pr.Pos.Y < -cell) { pr.Alive = false; continue; }
+            foreach (var blk in Blocks)
+            {
+                if (blk.Dead) continue;
+                var c = Level.Grid.CellCenter(blk.Col, blk.Row);
+                var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
+                if (box.IntersectsCircle(pr.Pos, pr.Radius))
+                { DamageBlock(blk, pr.Damage, igniteSource: false); pr.Alive = false; break; }
+            }
+        }
+        Projectiles.RemoveAll(p => !p.Alive);
+    }
+
+    // --- spell stubs ---
     public void CastIgnite() { /* Task 1.6 */ }
-    public void CastFireball() { /* Task 1.5 */ }
     public void ApplyCheat(string op, double value)
     {
         _log.Log(TickCount, "cheat", op, $"value={value}");

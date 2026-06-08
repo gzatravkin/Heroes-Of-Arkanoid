@@ -57,6 +57,8 @@ public sealed class Snapshot
         };
         foreach (var b in g.Balls)
             s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0 });
+        foreach (var pr in g.Projectiles)
+            s.Balls.Add(new BallDto { Id = 10000 + pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Ignited = true });
         foreach (var blk in g.Blocks)
         {
             if (blk.Dead) continue;
