@@ -65,8 +65,6 @@ public sealed class GameInstance
                 SpellLevels[k] = v;
     }
 
-    private int Lvl(string id) => SpellLevels.TryGetValue(id, out var l) ? l : 1;
-
     public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null)
     {
         Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
@@ -190,9 +188,7 @@ public sealed class GameInstance
 
     private void RegenMana(double dt)
     {
-        var mult = HasRelic("mana_battery") ? Config.ManaBatteryRegenMult : 1.0;
-        mult *= (Character == "engineer" ? Config.EngineerRegenMult : 1.0);
-        ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaRegenPerSec * mult * dt);
+        ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaRegenPerSec * Modifiers.ManaRegenMult(this) * dt);
     }
 
     private void OnPaddleHit(Ball b, double t)
@@ -209,7 +205,7 @@ public sealed class GameInstance
     private void ApplyIgniteOnDeflect(Ball b)
     {
         if (!_igniteArmed) return;
-        b.IgniteHitsLeft = Config.IgniteHits + (Lvl("ignite") - 1) * Config.IgniteHitsPerLevel;
+        b.IgniteHitsLeft = Modifiers.IgniteHits(this);
         _igniteArmed = false;
         _log.Log(TickCount, "ignite", "imbued ball", $"id={b.Id} hits={b.IgniteHitsLeft}");
         RaiseEvent("ignite", b.Pos.X, b.Pos.Y);
@@ -257,11 +253,7 @@ public sealed class GameInstance
             else
                 b.Vel = new Arkanoid.Core.Math.Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
 
-            var igniteBonus   = b.IgniteHitsLeft > 0 ? 1 : 0;
-            var relicBonus    = (HasRelic("glass_cannon") ? Config.GlassCannonDamageBonus : 0)
-                              + (HasRelic("flint_core") && blk.MaxHp >= Config.FlintToughThreshold ? Config.FlintBonus : 0);
-            var ballCoreBonus = BallCores.Contains("heavy") ? Config.HeavyBallDamageBonus : 0;
-            DamageBlock(blk, Config.BallDamage + igniteBonus + relicBonus + ballCoreBonus, igniteSource: b.IgniteHitsLeft > 0);
+            DamageBlock(blk, Modifiers.BallDamage(this, blk, b.IgniteHitsLeft > 0), igniteSource: b.IgniteHitsLeft > 0);
             if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--;
             break; // one block per tick keeps it deterministic
         }
@@ -278,19 +270,17 @@ public sealed class GameInstance
             blk.Dead = true;
             var c = Level.Grid.CellCenter(blk.Col, blk.Row);
             RaiseEvent("blockDestroyed", c.X, c.Y);
-            var manaGrant = Config.ManaPerKill * (Character == "necromancer" ? Config.NecromancerKillManaMult : 1.0);
-            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + manaGrant);
-            if (igniteSource && (Character == "fire_mage" || HasRelic("pyroclasm"))) SpreadFire(blk);
+            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Modifiers.KillManaGain(this));
+            if (igniteSource && Modifiers.ShouldSpreadFire(this)) SpreadFire(blk);
         }
     }
 
     private void SpreadFire(Block origin)
     {
-        var pyroclasm = HasRelic("pyroclasm");
-        var chip = pyroclasm ? Config.PyroclasmChip : 1;
+        var chip = Modifiers.SpreadChip(this);
         (int dc, int dr)[] cardinal  = { (1,0), (-1,0), (0,1), (0,-1) };
         (int dc, int dr)[] diagonals = { (1,1), (1,-1), (-1,1), (-1,-1) };
-        var neighbors = pyroclasm
+        var neighbors = Modifiers.SpreadIncludesDiagonals(this)
             ? cardinal.Concat(diagonals)
             : (IEnumerable<(int, int)>)cardinal;
         foreach (var (dc, dr) in neighbors)
@@ -357,7 +347,7 @@ public sealed class GameInstance
             Id = _nextProjId++,
             Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height),
             Vel = new Vec2(0, -Config.FireballSpeed),
-            Damage = Config.FireballDamage + (Lvl("fireball") - 1) * Config.FireballDamagePerLevel,
+            Damage = Modifiers.FireballDamage(this),
             Radius = Config.BallRadius
         });
         _log.Log(TickCount, "spell", "fireball cast", $"mana={ManaValue:F0}");
@@ -417,7 +407,7 @@ public sealed class GameInstance
                     if (c.Y >= wall.Y - Config.FireWallBandHalfHeight &&
                         c.Y <= wall.Y + Config.FireWallBandHalfHeight)
                     {
-                        DamageBlock(blk, Config.FireWallDamage + (Lvl("firewall") - 1) * Config.FireWallDamagePerLevel, igniteSource: false);
+                        DamageBlock(blk, Modifiers.FireWallDamage(this), igniteSource: false);
                         RaiseEvent("burn", c.X, c.Y);
                     }
                 }
@@ -436,7 +426,7 @@ public sealed class GameInstance
         if (ManaValue < Config.TurretCost)
         { _log.Log(TickCount, "spell", "turret denied", $"mana={ManaValue:F0} need={Config.TurretCost}"); return; }
         ManaValue -= Config.TurretCost;
-        _turretRemaining = Config.TurretDuration + (Lvl("turret") - 1) * Config.TurretDurationPerLevel;
+        _turretRemaining = Modifiers.TurretDuration(this);
         _turretAccumulator = 0;
         _log.Log(TickCount, "spell", "turret cast", $"mana={ManaValue:F0}");
         RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
