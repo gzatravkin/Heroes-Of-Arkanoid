@@ -7,6 +7,7 @@ const SRC: Record<string, string> = {
   HellStandart2: "/art/HellStandart2.png",
   Ball: "/art/Ball.png",
   Paddle: "/art/Paddle.png",
+  Explosion: "/art/Explosion.png",
 };
 
 const cache = new Map<string, Texture>();
