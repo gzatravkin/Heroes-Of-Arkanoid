@@ -53,6 +53,12 @@ public sealed class SimConfig
     /// <summary>Ticks a ball must wait before it can be teleported again after a warp.</summary>
     public int TeleportCooldownTicks { get; init; } = 18;
 
+    // --- Spell level scaling ---
+    public int    FireballDamagePerLevel { get; init; } = 1;
+    public int    IgniteHitsPerLevel     { get; init; } = 1;
+    public int    FireWallDamagePerLevel { get; init; } = 1;
+    public double TurretDurationPerLevel { get; init; } = 1.0; // seconds added per level above 1
+
     // --- Relic magnitudes ---
     public int    GlassCannonDamageBonus { get; init; } = 1;
     public int    FlintToughThreshold { get; init; } = 3;

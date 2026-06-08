@@ -37,6 +37,24 @@ public sealed class GameInstance
     public bool HasRelic(string id) => ActiveRelics.Contains(id);
     public double ManaMaxValue { get; private set; }
 
+    public Dictionary<string, int> SpellLevels { get; } = new()
+    {
+        ["ignite"]   = 1,
+        ["fireball"] = 1,
+        ["firewall"] = 1,
+        ["turret"]   = 1,
+    };
+
+    /// <summary>Overwrites spell levels from the given dictionary (unknown keys ignored; missing keys keep their current value).</summary>
+    public void SetSpellLevels(IDictionary<string, int> levels)
+    {
+        foreach (var (k, v) in levels)
+            if (SpellLevels.ContainsKey(k))
+                SpellLevels[k] = v;
+    }
+
+    private int Lvl(string id) => SpellLevels.TryGetValue(id, out var l) ? l : 1;
+
     public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null)
     {
         Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
@@ -144,7 +162,7 @@ public sealed class GameInstance
     private void ApplyIgniteOnDeflect(Ball b)
     {
         if (!_igniteArmed) return;
-        b.IgniteHitsLeft = Config.IgniteHits;
+        b.IgniteHitsLeft = Config.IgniteHits + (Lvl("ignite") - 1) * Config.IgniteHitsPerLevel;
         _igniteArmed = false;
         _log.Log(TickCount, "ignite", "imbued ball", $"id={b.Id} hits={b.IgniteHitsLeft}");
         RaiseEvent("ignite", b.Pos.X, b.Pos.Y);
@@ -281,7 +299,8 @@ public sealed class GameInstance
             Id = _nextProjId++,
             Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height),
             Vel = new Vec2(0, -Config.FireballSpeed),
-            Damage = Config.FireballDamage, Radius = Config.BallRadius
+            Damage = Config.FireballDamage + (Lvl("fireball") - 1) * Config.FireballDamagePerLevel,
+            Radius = Config.BallRadius
         });
         _log.Log(TickCount, "spell", "fireball cast", $"mana={ManaValue:F0}");
         RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
@@ -340,7 +359,7 @@ public sealed class GameInstance
                     if (c.Y >= wall.Y - Config.FireWallBandHalfHeight &&
                         c.Y <= wall.Y + Config.FireWallBandHalfHeight)
                     {
-                        DamageBlock(blk, Config.FireWallDamage, igniteSource: false);
+                        DamageBlock(blk, Config.FireWallDamage + (Lvl("firewall") - 1) * Config.FireWallDamagePerLevel, igniteSource: false);
                         RaiseEvent("burn", c.X, c.Y);
                     }
                 }
@@ -359,7 +378,7 @@ public sealed class GameInstance
         if (ManaValue < Config.TurretCost)
         { _log.Log(TickCount, "spell", "turret denied", $"mana={ManaValue:F0} need={Config.TurretCost}"); return; }
         ManaValue -= Config.TurretCost;
-        _turretRemaining = Config.TurretDuration;
+        _turretRemaining = Config.TurretDuration + (Lvl("turret") - 1) * Config.TurretDurationPerLevel;
         _turretAccumulator = 0;
         _log.Log(TickCount, "spell", "turret cast", $"mana={ManaValue:F0}");
         RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);

@@ -86,7 +86,7 @@ app.Map("/ws", async context =>
     var seed = int.TryParse(context.Request.Query["seed"].FirstOrDefault(), out var s) ? s : 1;
     var runId = context.Request.Query["run"].FirstOrDefault() ?? $"sess-{DateTime.UtcNow:HHmmss-fff}";
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var session = new GameSession(socket, configRoot);
+    var session = new GameSession(socket, configRoot, profileStore);
     await session.RunAsync(levelId, seed, runId, context.RequestAborted);
 });
 

@@ -7,6 +7,7 @@ using Arkanoid.Core.Grid;
 using Arkanoid.Core.Net;
 using Arkanoid.Core.Relics;
 using Arkanoid.Core.Sim;
+using Arkanoid.Server.Meta;
 
 namespace Arkanoid.Server;
 
@@ -15,13 +16,14 @@ public sealed class GameSession
 {
     private readonly WebSocket _socket;
     private readonly string _configRoot;
+    private readonly ProfileStore _profileStore;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
     private FileSimLog _log = null!;
     private long _tick;
 
-    public GameSession(WebSocket socket, string configRoot)
-    { _socket = socket; _configRoot = configRoot; }
+    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore)
+    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; }
 
     public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
@@ -54,6 +56,8 @@ public sealed class GameSession
         var level = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
         var relics = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
         _game = new GameInstance(level, SimConfig.Default, seed, _log, relics);
+        var profile = _profileStore.Load();
+        _game.SetSpellLevels(profile.SpellLevels);
     }
 
     private void Apply(InputCommand c)
