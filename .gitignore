@@ -1,0 +1,20 @@
+# build output
+**/bin/
+**/obj/
+frontend/dist/
+frontend/node_modules/
+tests/node_modules/
+node_modules/
+
+# logs & test artifacts
+backend/Arkanoid.Server/logs/
+tests/test-results/
+tests/playwright-report/
+playwright/.cache/
+
+# IDE / OS
+.vs/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
