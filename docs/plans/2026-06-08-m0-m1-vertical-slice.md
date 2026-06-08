@@ -1,7 +1,8 @@
 # M0 + M1 Vertical Slice — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-> **This repo bans git worktrees** (see `CLAUDE.md`). Execute every task directly on the current branch.
+> **Git worktrees are banned** (see the parent `CLAUDE.md`). Execute directly in the working tree.
+> **This is a standalone git repo rooted at `Arkanoid game/`** (the parent Terraria repo ignores this folder; it will be relocated later). Run all `git` commands from this folder with **paths relative to it** — e.g. `git add backend` and `git add tests`, *not* `git add "Arkanoid game/backend"`. The baseline commit (design docs + this plan) already exists.
 
 **Goal:** Stand up the Arkanoid-RPG architecture end to end — a pure C# simulation core, a WebSocket server host, a PixiJS renderer, and an automation-first Playwright harness — then build the playable Fire Mage / Hell vertical slice (ball ↔ paddle ↔ block physics, lives/balls, win/lose, mana, one imbue spell + one active spell), with an **individual Playwright scenario for each part** (menu, HUD, battle-start, battle-winnable, battle-lose, spell-cast) booted from pre-set states.
 
