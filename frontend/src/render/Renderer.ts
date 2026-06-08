@@ -18,6 +18,19 @@ const IGNITE_HALO_ALPHA = 0.35;
 // Fire wall band height as a fraction of cellSize.
 const FIRE_WALL_HEIGHT_MULT = 1.1;
 
+// Ghost blocks (ballPhases): drawn semi-transparent with a blue/cyan tint.
+const GHOST_ALPHA_BASE = 0.45;
+const GHOST_ALPHA_AMP  = 0.12;   // oscillation amplitude around base
+const GHOST_PULSE_SPEED = 0.055; // ticker units per radian
+const GHOST_TINT = 0x88ccff;     // faint cyan tint
+
+// Teleporter glow ring: additive ring drawn behind the block sprite.
+const TELEPORTER_RING_ALPHA_BASE = 0.35;
+const TELEPORTER_RING_ALPHA_AMP  = 0.25;
+const TELEPORTER_RING_PULSE_SPEED = 0.07;
+const TELEPORTER_RING_COLOR = 0x44aaff; // cool blue portal glow
+const TELEPORTER_RING_RADIUS_MULT = 0.72; // fraction of brickSize/2
+
 // Turret visual: barrel length and width as fractions of paddleH.
 const TURRET_BARREL_LENGTH_MULT = 1.8;
 const TURRET_BARREL_WIDTH_MULT  = 0.45;
@@ -94,12 +107,36 @@ export class Renderer {
     const brickSize = s.cellSize - gap;
     this.blocks.removeChildren();
     for (const b of s.blocks) {
+      // Teleporter: additive pulsing glow ring drawn behind the sprite.
+      if (b.teleporter) {
+        const ringAlpha = TELEPORTER_RING_ALPHA_BASE
+          + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
+        const ring = new Graphics();
+        ring.blendMode = BLEND_MODES.ADD;
+        ring.beginFill(TELEPORTER_RING_COLOR, ringAlpha)
+          .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT)
+          .endFill();
+        this.blocks.addChild(ring);
+      }
+
       const sp = new Sprite(tex(b.sprite));
       sp.anchor.set(0.5);
       sp.width = brickSize;
       sp.height = brickSize;
       sp.position.set(b.x, b.y);
-      sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+
+      if (b.ballPhases) {
+        // Ghost block: semi-transparent blue/cyan tint with pulsing alpha.
+        sp.tint = GHOST_TINT;
+        sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
+      } else if (b.indestructible || b.teleporter) {
+        // Indestructible / teleporter: always full alpha — these never lose HP.
+        sp.alpha = 1.0;
+      } else {
+        // Normal destructible block: fade slightly with damage.
+        sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+      }
+
       this.blocks.addChild(sp);
     }
 

@@ -19,6 +19,9 @@ public sealed class BlockDto
     [JsonPropertyName("hp")] public int Hp { get; set; }
     [JsonPropertyName("maxHp")] public int MaxHp { get; set; }
     [JsonPropertyName("sprite")] public string Sprite { get; set; } = "";
+    [JsonPropertyName("ballPhases")] public bool BallPhases { get; set; }
+    [JsonPropertyName("teleporter")] public bool Teleporter { get; set; }
+    [JsonPropertyName("indestructible")] public bool Indestructible { get; set; }
 }
 
 public sealed class WallDto
@@ -80,7 +83,7 @@ public sealed class Snapshot
         {
             if (blk.Dead) continue;
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite });
+            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible });
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });

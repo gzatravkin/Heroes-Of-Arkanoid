@@ -5,7 +5,7 @@ export interface Snapshot {
   mana: number; manaMax: number; boardW: number; boardH: number;
   paddleX: number; paddleW: number; paddleH: number; cellSize: number;
   balls: { id: number; x: number; y: number; ignited: boolean }[];
-  blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string }[];
+  blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string; ballPhases: boolean; teleporter: boolean; indestructible: boolean }[];
   events: { type: string; x: number; y: number }[];
   walls: { y: number; width: number }[];
   turretActive: boolean;
