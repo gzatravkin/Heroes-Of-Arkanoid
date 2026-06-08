@@ -72,6 +72,16 @@ public class SpellTests
     }
 
     [Fact]
+    public void Cheat_ParkBallAbovePaddle_WithIgniteArmed_ImbuesOnNextTick()
+    {
+        var g = Make(); g.Serve();
+        g.CastIgnite();
+        g.ApplyCheat("parkBallAbovePaddle", 0);
+        g.Tick(SimConfig.Default.FixedDt); // deflect off paddle -> imbue
+        Assert.True(g.Balls[0].IgniteHitsLeft > 0);
+    }
+
+    [Fact]
     public void IgnitedBall_DealsBonusDamage()
     {
         var g = Make(); g.Serve();

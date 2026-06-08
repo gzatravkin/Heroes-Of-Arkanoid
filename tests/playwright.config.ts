@@ -3,7 +3,12 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: ".",
   timeout: 30_000,
-  use: { baseURL: "http://localhost:5175", headless: true },
+  // PixiJS/WebGL contexts are GPU-limited; running specs in parallel exhausts
+  // contexts and causes "context lost" flakiness. Serialize for reliable integration runs.
+  fullyParallel: false,
+  workers: 1,
+  retries: 1,
+  use: { baseURL: "http://localhost:5175", headless: true, trace: "retain-on-failure" },
   webServer: [
     {
       command: "dotnet run --project ../backend/Arkanoid.Server",

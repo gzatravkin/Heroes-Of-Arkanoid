@@ -271,6 +271,17 @@ public sealed class GameInstance
             case "loseBall":
                 foreach (var b in Balls) b.Alive = false;
                 break;
+            case "parkBallAbovePaddle":
+                if (Phase == GamePhase.Serving) Phase = GamePhase.Playing;
+                foreach (var b in Balls)
+                {
+                    b.Alive = true;
+                    b.Pos = new Arkanoid.Core.Math.Vec2(
+                        Paddle.Center.X,
+                        Paddle.Center.Y - Paddle.Height / 2 - b.Radius - 1);
+                    b.Vel = new Arkanoid.Core.Math.Vec2(0, Config.BallSpeed); // downward -> deflect next tick
+                }
+                break;
         }
     }
 }
