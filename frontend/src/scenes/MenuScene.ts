@@ -100,5 +100,34 @@ export function mountMenu(host: HTMLElement) {
   });
   el.appendChild(campaignBtn);
 
+  // Dungeons button — navigate to dungeons scene
+  const dungeonsBtn = document.createElement("button");
+  dungeonsBtn.id = "btn-dungeons";
+  dungeonsBtn.textContent = "Dungeons";
+  dungeonsBtn.style.cssText = [
+    "margin-top:10px",
+    "font-size:15px",
+    "padding:12px 32px",
+    "background:#1a0a2a",
+    "color:#aa66ff",
+    "border:1px solid #442266",
+    "border-radius:6px",
+    "cursor:pointer",
+    "letter-spacing:0.05em",
+    "transition:background 0.15s,border-color 0.15s",
+  ].join(";");
+  dungeonsBtn.addEventListener("mouseenter", () => {
+    dungeonsBtn.style.background = "#2a1a4a";
+    dungeonsBtn.style.borderColor = "#664488";
+  });
+  dungeonsBtn.addEventListener("mouseleave", () => {
+    dungeonsBtn.style.background = "#1a0a2a";
+    dungeonsBtn.style.borderColor = "#442266";
+  });
+  dungeonsBtn.addEventListener("click", () => {
+    location.href = "/?scene=dungeons";
+  });
+  el.appendChild(dungeonsBtn);
+
   host.appendChild(el);
 }
