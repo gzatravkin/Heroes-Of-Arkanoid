@@ -36,5 +36,18 @@ public sealed class SimConfig
     public double FireballSpeed { get; init; } = 420;
     public int    FireballDamage { get; init; } = 2;
 
+    public double FireWallCost { get; init; } = 30;
+    public double FireWallRiseSpeed { get; init; } = 90;   // units/sec upward
+    public double FireWallLifetime { get; init; } = 3.0;   // seconds
+    public double FireWallDamageInterval { get; init; } = 0.4; // seconds between damage ticks
+    public int    FireWallDamage { get; init; } = 1;
+    public double FireWallBandHalfHeight { get; init; } = 18; // band reaches +-this around its Y
+
+    public double TurretCost { get; init; } = 25;
+    public double TurretDuration { get; init; } = 5.0;     // seconds active
+    public double TurretFireInterval { get; init; } = 0.35;
+    public int    TurretDamage { get; init; } = 1;
+    public double TurretBulletSpeed { get; init; } = 460;
+
     public static SimConfig Default { get; } = new();
 }

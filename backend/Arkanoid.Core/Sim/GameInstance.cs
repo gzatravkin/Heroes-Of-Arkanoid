@@ -21,6 +21,13 @@ public sealed class GameInstance
     private int _nextBallId = 1;
     private int _nextProjId = 1;
     public List<Projectile> Projectiles { get; } = new();
+
+    private int _nextWallId = 1;
+    public List<FireWall> FireWalls { get; } = new();
+
+    private double _turretRemaining;
+    private double _turretAccumulator;
+    public bool TurretActive => _turretRemaining > 0;
     private readonly ISimLog _log;
     public long TickCount { get; private set; }
 
@@ -87,6 +94,8 @@ public sealed class GameInstance
             ResolveBlocks(b);
         }
         UpdateProjectiles(dt);
+        UpdateFireWalls(dt);
+        UpdateTurret(dt);
         ResolveDrainAndWin();
     }
 
@@ -236,6 +245,83 @@ public sealed class GameInstance
             }
         }
         Projectiles.RemoveAll(p => !p.Alive);
+    }
+
+    public void CastFireWall()
+    {
+        if (Phase != GamePhase.Playing) return;
+        if (ManaValue < Config.FireWallCost)
+        { _log.Log(TickCount, "spell", "firewall denied", $"mana={ManaValue:F0} need={Config.FireWallCost}"); return; }
+        ManaValue -= Config.FireWallCost;
+        var wallY = Level.Grid.Height;
+        FireWalls.Add(new FireWall {
+            Id = _nextWallId++,
+            Y = wallY,
+            Width = Level.Grid.Width,
+            LifeRemaining = Config.FireWallLifetime
+        });
+        _log.Log(TickCount, "spell", "firewall cast", $"mana={ManaValue:F0}");
+        RaiseEvent("spellCast", Paddle.Center.X, wallY);
+    }
+
+    private void UpdateFireWalls(double dt)
+    {
+        foreach (var wall in FireWalls)
+        {
+            if (!wall.Alive) continue;
+            wall.Y -= Config.FireWallRiseSpeed * dt;
+            wall.Accumulator += dt;
+            while (wall.Accumulator >= Config.FireWallDamageInterval)
+            {
+                foreach (var blk in Blocks)
+                {
+                    if (blk.Dead) continue;
+                    var c = Level.Grid.CellCenter(blk.Col, blk.Row);
+                    if (c.Y >= wall.Y - Config.FireWallBandHalfHeight &&
+                        c.Y <= wall.Y + Config.FireWallBandHalfHeight)
+                    {
+                        DamageBlock(blk, Config.FireWallDamage, igniteSource: false);
+                        RaiseEvent("burn", c.X, c.Y);
+                    }
+                }
+                wall.Accumulator -= Config.FireWallDamageInterval;
+            }
+            wall.LifeRemaining -= dt;
+            if (wall.LifeRemaining <= 0 || wall.Y < -Config.CellSize)
+                wall.Alive = false;
+        }
+        FireWalls.RemoveAll(w => !w.Alive);
+    }
+
+    public void CastTurret()
+    {
+        if (Phase != GamePhase.Playing) return;
+        if (ManaValue < Config.TurretCost)
+        { _log.Log(TickCount, "spell", "turret denied", $"mana={ManaValue:F0} need={Config.TurretCost}"); return; }
+        ManaValue -= Config.TurretCost;
+        _turretRemaining = Config.TurretDuration;
+        _turretAccumulator = 0;
+        _log.Log(TickCount, "spell", "turret cast", $"mana={ManaValue:F0}");
+        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
+    }
+
+    private void UpdateTurret(double dt)
+    {
+        if (_turretRemaining <= 0) return;
+        _turretRemaining -= dt;
+        _turretAccumulator += dt;
+        while (_turretAccumulator >= Config.TurretFireInterval)
+        {
+            Projectiles.Add(new Projectile {
+                Id = _nextProjId++,
+                Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height / 2),
+                Vel = new Vec2(0, -Config.TurretBulletSpeed),
+                Damage = Config.TurretDamage,
+                Radius = Config.BallRadius * 0.6
+            });
+            RaiseEvent("turretShot", Paddle.Center.X, Paddle.Center.Y);
+            _turretAccumulator -= Config.TurretFireInterval;
+        }
     }
 
     private bool _igniteArmed = false;

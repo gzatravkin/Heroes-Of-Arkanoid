@@ -20,6 +20,12 @@ public sealed class BlockDto
     [JsonPropertyName("sprite")] public string Sprite { get; set; } = "";
 }
 
+public sealed class WallDto
+{
+    [JsonPropertyName("y")] public double Y { get; set; }
+    [JsonPropertyName("width")] public double Width { get; set; }
+}
+
 public sealed class EventDto
 {
     [JsonPropertyName("type")] public string Type { get; set; } = ""; // e.g. blockDestroyed, spellCast
@@ -43,6 +49,8 @@ public sealed class Snapshot
     [JsonPropertyName("cellSize")] public double CellSize { get; set; }
     [JsonPropertyName("balls")] public List<BallDto> Balls { get; set; } = new();
     [JsonPropertyName("blocks")] public List<BlockDto> Blocks { get; set; } = new();
+    [JsonPropertyName("walls")] public List<WallDto> Walls { get; set; } = new();
+    [JsonPropertyName("turretActive")] public bool TurretActive { get; set; }
     [JsonPropertyName("events")] public List<EventDto> Events { get; set; } = new();
 
     public static Snapshot From(GameInstance g, long tick)
@@ -65,6 +73,9 @@ public sealed class Snapshot
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite });
         }
+        foreach (var w in g.FireWalls)
+            s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });
+        s.TurretActive = g.TurretActive;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

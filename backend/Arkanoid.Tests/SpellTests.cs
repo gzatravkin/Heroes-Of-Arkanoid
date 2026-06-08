@@ -93,4 +93,40 @@ public class SpellTests
         g.Tick(SimConfig.Default.FixedDt);
         Assert.Equal(1, blk.Hp);                     // 3 - (1 base + 1 ignite) = 1
     }
+
+    [Fact]
+    public void FireWall_Cast_RisesAndDamagesBlocksInItsBand()
+    {
+        var g = Make(); g.Serve();              // Make() level has a block at row 0 (top)
+        g.ManaValue = SimConfig.Default.FireWallCost;
+        g.CastFireWall();
+        Assert.Single(g.FireWalls);
+        var blk = g.Level.Blocks[0];
+        int hp0 = blk.Hp;
+        // run ~ enough sim time for the wall to rise from bottom to the block row and tick damage
+        for (int i = 0; i < (int)(SimConfig.Default.TickHz * SimConfig.Default.FireWallLifetime); i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(blk.Hp < hp0 || blk.Dead, "fire wall should have damaged the block it passed through");
+    }
+
+    [Fact]
+    public void Turret_Cast_ActivatesAndSpawnsBullets()
+    {
+        var g = Make(); g.Serve();
+        g.ManaValue = SimConfig.Default.TurretCost;
+        g.CastTurret();
+        Assert.True(g.TurretActive);
+        int spawned = 0;
+        for (int i = 0; i < (int)(SimConfig.Default.TickHz * SimConfig.Default.TurretFireInterval) + 2; i++)
+        { g.Tick(SimConfig.Default.FixedDt); spawned += g.Projectiles.Count; }
+        Assert.True(spawned > 0, "turret should have fired at least one bullet");
+    }
+
+    [Fact]
+    public void FireWall_TooLittleMana_DoesNothing()
+    {
+        var g = Make(); g.Serve(); g.ManaValue = 0;
+        g.CastFireWall();
+        Assert.Empty(g.FireWalls);
+    }
 }
