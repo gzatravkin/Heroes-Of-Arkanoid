@@ -42,4 +42,29 @@ public class SpellTests
         g.CastFireball();
         Assert.Empty(g.Projectiles);
     }
+
+    [Fact]
+    public void Ignite_ArmsOnCast_AndImbuesNextDeflect()
+    {
+        var g = Make(); g.Serve();
+        g.CastIgnite();                 // arm
+        // drive a paddle hit: place ball just above paddle moving down at center
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height/2 - g.Balls[0].Radius - 1);
+        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, 200);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(g.Balls[0].IgniteHitsLeft > 0);
+    }
+
+    [Fact]
+    public void IgnitedBall_DealsBonusDamage()
+    {
+        var g = Make(); g.Serve();
+        var blk = g.Level.Blocks[0];                 // hp 3
+        g.Balls[0].IgniteHitsLeft = 2;               // pre-imbued
+        var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(c.X, c.Y + SimConfig.Default.CellSize/2 + 6);
+        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(1, blk.Hp);                     // 3 - (1 base + 1 ignite) = 1
+    }
 }

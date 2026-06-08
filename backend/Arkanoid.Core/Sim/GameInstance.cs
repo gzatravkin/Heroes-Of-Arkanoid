@@ -103,7 +103,14 @@ public sealed class GameInstance
         ApplyIgniteOnDeflect(b);
     }
 
-    private void ApplyIgniteOnDeflect(Ball b) { /* Task 1.6 */ }
+    private void ApplyIgniteOnDeflect(Ball b)
+    {
+        if (!_igniteArmed) return;
+        b.IgniteHitsLeft = Config.IgniteHits;
+        _igniteArmed = false;
+        _log.Log(TickCount, "ignite", "imbued ball", $"id={b.Id} hits={b.IgniteHitsLeft}");
+        RaiseEvent("ignite", b.Pos.X, b.Pos.Y);
+    }
     private void ResolveBlocks(Ball b)
     {
         var cell = Config.CellSize;
@@ -124,8 +131,9 @@ public sealed class GameInstance
             else
                 b.Vel = new Arkanoid.Core.Math.Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
 
-            DamageBlock(blk, Config.BallDamage, igniteSource: b.IgniteHitsLeft > 0);
-            if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--; // imbue consumed per hit (Task 1.6)
+            var bonus = b.IgniteHitsLeft > 0 ? 1 : 0;
+            DamageBlock(blk, Config.BallDamage + bonus, igniteSource: b.IgniteHitsLeft > 0);
+            if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--;
             break; // one block per tick keeps it deterministic
         }
     }
@@ -141,7 +149,24 @@ public sealed class GameInstance
             var c = Level.Grid.CellCenter(blk.Col, blk.Row);
             RaiseEvent("blockDestroyed", c.X, c.Y);
             ManaValue = System.Math.Min(Config.ManaMax, ManaValue + Config.ManaPerKill);
-            // Ignite spread handled in Task 1.6
+            if (igniteSource) SpreadFire(blk);
+        }
+    }
+
+    private void SpreadFire(Block origin)
+    {
+        (int dc, int dr)[] n = { (1,0), (-1,0), (0,1), (0,-1) };
+        foreach (var (dc, dr) in n)
+        {
+            var nb = Blocks.FirstOrDefault(b => !b.Dead && b.Col == origin.Col + dc && b.Row == origin.Row + dr);
+            if (nb != null)
+            {
+                nb.Hp -= 1; // chip
+                _log.Log(TickCount, "burn", "spread chip", $"id={nb.Id} hp={nb.Hp}");
+                var c = Level.Grid.CellCenter(nb.Col, nb.Row);
+                RaiseEvent("burn", c.X, c.Y);
+                if (nb.Hp <= 0) { nb.Dead = true; RaiseEvent("blockDestroyed", c.X, c.Y); }
+            }
         }
     }
     private void ResolveDrainAndWin()
@@ -212,8 +237,17 @@ public sealed class GameInstance
         Projectiles.RemoveAll(p => !p.Alive);
     }
 
-    // --- spell stubs ---
-    public void CastIgnite() { /* Task 1.6 */ }
+    private bool _igniteArmed = false;
+
+    public void CastIgnite()
+    {
+        if (Phase != GamePhase.Playing) return;
+        if (ManaValue < Config.IgniteCost) return;
+        ManaValue -= Config.IgniteCost; // cost is 0 by default (anti-Wizorb)
+        _igniteArmed = true;
+        _log.Log(TickCount, "ignite", "armed", $"mana={ManaValue:F0}");
+        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
+    }
     public void ApplyCheat(string op, double value)
     {
         _log.Log(TickCount, "cheat", op, $"value={value}");
