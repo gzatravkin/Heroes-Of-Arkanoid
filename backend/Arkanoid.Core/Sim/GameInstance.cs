@@ -10,7 +10,7 @@ public sealed class GameInstance
 {
     public SimConfig Config { get; }
     public LevelData Level { get; }
-    public Rng Rng { get; private set; }
+    public Rng Rng { get; internal set; }
 
     public GamePhase Phase { get; internal set; } = GamePhase.Serving;
     public int Lives { get; internal set; }
@@ -204,40 +204,5 @@ public sealed class GameInstance
 
     internal bool _igniteArmed = false;
 
-    public void ApplyCheat(string op, double value)
-    {
-        _log.Log(TickCount, "cheat", op, $"value={value}");
-        if (op.StartsWith("addRelic:")) { AddRelic(op.Substring("addRelic:".Length)); return; }
-        switch (op)
-        {
-            case "clearAllButN":
-                var keep = (int)value;
-                var alive = Blocks.Where(b => !b.Dead).ToList();
-                for (int i = 0; i < alive.Count - keep; i++) alive[i].Dead = true;
-                break;
-            case "winNow":
-                foreach (var b in Blocks) b.Dead = true;
-                Phase = GamePhase.Won; RaiseEvent("levelWon", 0, 0);
-                break;
-            case "loseNow":
-                Phase = GamePhase.Lost; RaiseEvent("levelLost", 0, 0);
-                break;
-            case "setSeed": Rng = new Rng((int)value); break;
-            case "setMana": ManaValue = System.Math.Clamp(value, 0, ManaMaxValue); break;
-            case "loseBall":
-                foreach (var b in Balls) b.Alive = false;
-                break;
-            case "parkBallAbovePaddle":
-                if (Phase == GamePhase.Serving) Phase = GamePhase.Playing;
-                foreach (var b in Balls)
-                {
-                    b.Alive = true;
-                    b.Pos = new Arkanoid.Core.Math.Vec2(
-                        Paddle.Center.X,
-                        Paddle.Center.Y - Paddle.Height / 2 - b.Radius - 1);
-                    b.Vel = new Arkanoid.Core.Math.Vec2(0, Config.BallSpeed); // downward -> deflect next tick
-                }
-                break;
-        }
-    }
+    public void ApplyCheat(string op, double value) => CheatHandler.Apply(this, op, value);
 }
