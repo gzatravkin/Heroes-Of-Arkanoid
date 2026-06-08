@@ -48,6 +48,7 @@ public sealed class GameInstance
             Vel = new Vec2(0, 0),
             Alive = true
         });
+        _igniteArmed = false;   // discard any unused arm so it doesn't leak to the next life
         Phase = GamePhase.Serving;
     }
 

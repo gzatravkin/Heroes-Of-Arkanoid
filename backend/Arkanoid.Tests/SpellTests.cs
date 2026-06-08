@@ -56,6 +56,22 @@ public class SpellTests
     }
 
     [Fact]
+    public void Ignite_ArmedButBallDrains_DoesNotLeakToNextLife()
+    {
+        var g = Make(); g.Serve();
+        g.CastIgnite();                                  // arm, but never deflect
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(50, g.Level.Grid.Height + 999);
+        g.Tick(SimConfig.Default.FixedDt);               // ball drains -> re-serve; arm must clear
+        Assert.Equal(GamePhase.Serving, g.Phase);
+        g.Serve();                                       // next life
+        var p = g.Paddle;
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(p.Center.X, p.Center.Y - p.Height / 2 - g.Balls[0].Radius - 1);
+        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, 200);  // drive into the paddle
+        g.Tick(SimConfig.Default.FixedDt);               // deflect
+        Assert.Equal(0, g.Balls[0].IgniteHitsLeft);      // must NOT be imbued (no leak)
+    }
+
+    [Fact]
     public void IgnitedBall_DealsBonusDamage()
     {
         var g = Make(); g.Serve();
