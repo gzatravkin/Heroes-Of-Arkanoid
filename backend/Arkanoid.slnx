@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Arkanoid.Core/Arkanoid.Core.csproj" />
+  <Project Path="Arkanoid.Server/Arkanoid.Server.csproj" />
+  <Project Path="Arkanoid.Tests/Arkanoid.Tests.csproj" />
+</Solution>
