@@ -17,13 +17,14 @@ public sealed class GameSession
     private readonly WebSocket _socket;
     private readonly string _configRoot;
     private readonly ProfileStore _profileStore;
+    private readonly DungeonStore _dungeonStore;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
     private FileSimLog _log = null!;
     private long _tick;
 
-    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore)
-    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; }
+    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore, DungeonStore dungeonStore)
+    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; _dungeonStore = dungeonStore; }
 
     public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
@@ -53,11 +54,22 @@ public sealed class GameSession
     private void LoadLevel(string levelId, int seed)
     {
         var catalog = BlockCatalog.FromFile(System.IO.Path.Combine(_configRoot, "blocks.json"));
-        var level = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
-        var relics = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
+        var level   = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
+        var relics  = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
         _game = new GameInstance(level, SimConfig.Default, seed, _log, relics);
+
         var profile = _profileStore.Load();
         _game.SetSpellLevels(profile.SpellLevels);
+
+        // Apply dungeon run buffs if there is an active run for this level.
+        var run = _dungeonStore.Load();
+        if (run is { Active: true } && run.CurrentFloor == levelId)
+        {
+            foreach (var relicId in run.Relics)
+                _game.AddRelic(relicId);
+            foreach (var coreId in run.BallCores)
+                _game.AddBallCore(coreId);
+        }
     }
 
     private void Apply(InputCommand c)

@@ -35,6 +35,9 @@ public sealed class GameInstance
 
     public HashSet<string> ActiveRelics { get; } = new();
     public bool HasRelic(string id) => ActiveRelics.Contains(id);
+
+    public HashSet<string> BallCores { get; } = new();
+    public void AddBallCore(string id) => BallCores.Add(id);
     public double ManaMaxValue { get; private set; }
 
     public Dictionary<string, int> SpellLevels { get; } = new()
@@ -108,6 +111,37 @@ public sealed class GameInstance
         Balls[0].Vel = new Vec2(lean, -1).Normalized() * Config.BallSpeed;
         Phase = GamePhase.Playing;
         _log.Log(TickCount, "serve", "ball launched", $"lean={lean:F3} vx={Balls[0].Vel.X:F1} vy={Balls[0].Vel.Y:F1}");
+
+        // ember ball-core: permanently ignite every served ball
+        if (BallCores.Contains("ember"))
+        {
+            foreach (var b in Balls)
+                b.IgniteHitsLeft = System.Math.Max(b.IgniteHitsLeft, Config.EmberBallIgniteHits);
+            _log.Log(TickCount, "ballcore", "ember ignite", $"hitsLeft={Config.EmberBallIgniteHits}");
+        }
+
+        // split ball-core: spawn extra balls next to the main one with slightly different velocity
+        if (BallCores.Contains("split"))
+        {
+            var main = Balls[0];
+            for (int i = 0; i < Config.SplitBallExtraBalls; i++)
+            {
+                // Deterministic lean offset: ±(i+1)*0.15 so each extra ball diverges
+                var extraLean = lean + (i + 1) * 0.15 * (i % 2 == 0 ? 1 : -1);
+                var extraBall = new Entities.Ball
+                {
+                    Id     = _nextBallId++,
+                    Radius = Config.BallRadius,
+                    Pos    = new Vec2(main.Pos.X + (i + 1) * (Config.BallRadius * 2 + 2), main.Pos.Y),
+                    Vel    = new Vec2(extraLean, -1).Normalized() * Config.BallSpeed,
+                    Alive  = true,
+                };
+                if (BallCores.Contains("ember"))
+                    extraBall.IgniteHitsLeft = System.Math.Max(extraBall.IgniteHitsLeft, Config.EmberBallIgniteHits);
+                Balls.Add(extraBall);
+                _log.Log(TickCount, "ballcore", "split extra ball", $"id={extraBall.Id} lean={extraLean:F3}");
+            }
+        }
     }
 
     public void SetPaddleX(double x)
@@ -210,10 +244,11 @@ public sealed class GameInstance
             else
                 b.Vel = new Arkanoid.Core.Math.Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
 
-            var igniteBonus = b.IgniteHitsLeft > 0 ? 1 : 0;
-            var relicBonus  = (HasRelic("glass_cannon") ? Config.GlassCannonDamageBonus : 0)
-                            + (HasRelic("flint_core") && blk.MaxHp >= Config.FlintToughThreshold ? Config.FlintBonus : 0);
-            DamageBlock(blk, Config.BallDamage + igniteBonus + relicBonus, igniteSource: b.IgniteHitsLeft > 0);
+            var igniteBonus   = b.IgniteHitsLeft > 0 ? 1 : 0;
+            var relicBonus    = (HasRelic("glass_cannon") ? Config.GlassCannonDamageBonus : 0)
+                              + (HasRelic("flint_core") && blk.MaxHp >= Config.FlintToughThreshold ? Config.FlintBonus : 0);
+            var ballCoreBonus = BallCores.Contains("heavy") ? Config.HeavyBallDamageBonus : 0;
+            DamageBlock(blk, Config.BallDamage + igniteBonus + relicBonus + ballCoreBonus, igniteSource: b.IgniteHitsLeft > 0);
             if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--;
             break; // one block per tick keeps it deterministic
         }

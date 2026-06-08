@@ -67,5 +67,13 @@ public sealed class SimConfig
     public double ManaBatteryBonus { get; init; } = 50;
     public double ManaBatteryRegenMult { get; init; } = 1.6;
 
+    // --- Ball-core magnitudes ---
+    /// <summary>Extra damage added to every ball hit when the "heavy" ball core is active.</summary>
+    public int HeavyBallDamageBonus { get; init; } = 1;
+    /// <summary>Number of extra balls spawned at serve when the "split" ball core is active.</summary>
+    public int SplitBallExtraBalls { get; init; } = 1;
+    /// <summary>IgniteHitsLeft assigned to every served ball when the "ember" ball core is active.</summary>
+    public int EmberBallIgniteHits { get; init; } = 2;
+
     public static SimConfig Default { get; } = new();
 }

@@ -17,8 +17,10 @@ if (!Directory.Exists(configRoot))
 
 // --- Meta singletons (loaded once at startup) ---
 var campaignCatalog   = CampaignCatalog.FromFile(Path.Combine(configRoot, "campaign.json"));
+var dungeonCatalog    = DungeonCatalog.FromFile(Path.Combine(configRoot, "dungeons.json"));
 var progressionConfig = ProgressionConfig.Default;
 var profileStore      = new ProfileStore();
+var dungeonStore      = new DungeonStore();
 
 var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -79,6 +81,95 @@ app.MapPost("/reset", () =>
     return Results.Json(profile, jsonOpts);
 });
 
+// ── Dungeon endpoints ──────────────────────────────────────────────────────
+
+// GET /dungeons → full catalog
+app.MapGet("/dungeons", () =>
+    Results.Json(new { dungeons = dungeonCatalog.All }, jsonOpts));
+
+// POST /dungeon/start?id=<id> → start a new run
+app.MapPost("/dungeon/start", (HttpContext ctx) =>
+{
+    var id = ctx.Request.Query["id"].FirstOrDefault();
+    if (string.IsNullOrWhiteSpace(id))
+        return Results.BadRequest("id query parameter required");
+
+    DungeonDef def;
+    try { def = dungeonCatalog.Get(id); }
+    catch (KeyNotFoundException) { return Results.NotFound($"Dungeon '{id}' not found"); }
+
+    var seed = (int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff);
+    var run  = DungeonService.StartRun(def, seed);
+    dungeonStore.Save(run);
+    return Results.Json(run, jsonOpts);
+});
+
+// GET /dungeon/state → current run (or {active:false})
+app.MapGet("/dungeon/state", () =>
+{
+    var run = dungeonStore.Load();
+    return run is null
+        ? Results.Json(new { active = false }, jsonOpts)
+        : Results.Json(run, jsonOpts);
+});
+
+// POST /dungeon/floor-cleared → advance floor; grants permanent reward on final floor
+app.MapPost("/dungeon/floor-cleared", () =>
+{
+    var run = dungeonStore.Load();
+    if (run is null || !run.Active)
+        return Results.BadRequest("No active dungeon run");
+
+    // Need the def for reward data (final floor only)
+    DungeonDef def;
+    try { def = dungeonCatalog.Get(run.DungeonId); }
+    catch { return Results.BadRequest($"Unknown dungeon id '{run.DungeonId}'"); }
+
+    var isLastFloor = DungeonService.OnFloorCleared(run, progressionConfig);
+    dungeonStore.Save(run);
+
+    Profile? updatedProfile = null;
+    if (isLastFloor)
+    {
+        // Grant permanent reward to profile
+        var profile = profileStore.Load();
+        if (!profile.UnlockedRelics.Contains(def.RewardRelic))
+            profile.UnlockedRelics.Add(def.RewardRelic);
+        profile.Crystals += def.RewardCrystals;
+        profileStore.Save(profile);
+        updatedProfile = profile;
+    }
+
+    return Results.Json(new { run, isLastFloor, profile = updatedProfile }, jsonOpts);
+});
+
+// POST /dungeon/pick?choice=<id> → player picks one of the 3 pending choices
+app.MapPost("/dungeon/pick", (HttpContext ctx) =>
+{
+    var choice = ctx.Request.Query["choice"].FirstOrDefault();
+    if (string.IsNullOrWhiteSpace(choice))
+        return Results.BadRequest("choice query parameter required");
+
+    var run = dungeonStore.Load();
+    if (run is null || !run.Active)
+        return Results.BadRequest("No active dungeon run");
+
+    DungeonService.PickChoice(run, choice);
+    dungeonStore.Save(run);
+    return Results.Json(run, jsonOpts);
+});
+
+// POST /dungeon/fail → permadeath — ends the run
+app.MapPost("/dungeon/fail", () =>
+{
+    var run = dungeonStore.Load();
+    if (run is null) return Results.BadRequest("No active dungeon run");
+
+    DungeonService.Fail(run);
+    dungeonStore.Save(run);
+    return Results.Json(run, jsonOpts);
+});
+
 app.Map("/ws", async context =>
 {
     if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = 400; return; }
@@ -86,7 +177,7 @@ app.Map("/ws", async context =>
     var seed = int.TryParse(context.Request.Query["seed"].FirstOrDefault(), out var s) ? s : 1;
     var runId = context.Request.Query["run"].FirstOrDefault() ?? $"sess-{DateTime.UtcNow:HHmmss-fff}";
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var session = new GameSession(socket, configRoot, profileStore);
+    var session = new GameSession(socket, configRoot, profileStore, dungeonStore);
     await session.RunAsync(levelId, seed, runId, context.RequestAborted);
 });
 
