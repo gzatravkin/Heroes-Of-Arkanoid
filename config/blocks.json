@@ -1,0 +1,4 @@
+{ "types": [
+  { "id": "hell_basic", "biome": "hell", "hp": 2, "sprite": "HellStandart",  "needToKill": true },
+  { "id": "hell_tough", "biome": "hell", "hp": 4, "sprite": "HellStandart2", "needToKill": true }
+]}

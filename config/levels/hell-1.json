@@ -1,0 +1,12 @@
+{ "id": "hell-1", "biome": "hell", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "..AAAAAAAA..",
+    "..ABBBBBBA..",
+    "..ABBBBBBA..",
+    "..AAAAAAAA..",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "hell_basic", "B": "hell_tough" } }
