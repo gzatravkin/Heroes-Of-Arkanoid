@@ -9,6 +9,7 @@ export interface Snapshot {
   events: { type: string; x: number; y: number }[];
   walls: { y: number; width: number }[];
   turretActive: boolean;
+  activeRelics: { id: string; name: string; icon: string }[];
 }
 
 export class Connection {

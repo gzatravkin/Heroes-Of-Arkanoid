@@ -39,6 +39,7 @@ export class Hud {
   private manaText: HTMLElement;
   private spellSlots: Map<string, HTMLElement> = new Map();
   private banner: HTMLElement;
+  private relicsEl: HTMLElement;
 
   constructor(host: HTMLElement) {
     this.root = this.createElement("div", "hud-root");
@@ -64,10 +65,15 @@ export class Hud {
     this.ballsEl.dataset.balls = "0";
     topLeft.appendChild(this.ballsEl);
 
-    // ---- top-right panel: relics placeholder ----
+    // ---- top-right panel: relics row ----
     const topRight = this.createElement("div", "hud-relics");
     topRight.id = "hud-relics";
-    topRight.style.cssText = "position:absolute;top:10px;right:12px;min-width:40px;min-height:20px;";
+    topRight.style.cssText = [
+      "position:absolute", "top:10px", "right:12px",
+      "display:flex", "flex-direction:row", "gap:6px",
+      "align-items:center", "min-width:40px", "min-height:20px",
+    ].join(";");
+    this.relicsEl = topRight;
 
     // ---- bottom-center: mana bar + spell hotbar ----
     const bottomCenter = this.createElement("div", "hud-bottom");
@@ -134,6 +140,9 @@ export class Hud {
       el.classList.toggle("unaffordable", !canAfford);
     }
 
+    // -- relics --
+    this.updateRelics(s.activeRelics ?? []);
+
     // -- banner --
     if (s.phase === "Won") {
       this.banner.style.display = "block";
@@ -152,6 +161,40 @@ export class Hud {
   // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
+
+  private updateRelics(relics: { id: string; name: string; icon: string }[]) {
+    // Diff by id — only rebuild if the set has changed.
+    const existing = this.relicsEl.querySelectorAll<HTMLElement>("[data-relic-id]");
+    const existingIds = Array.from(existing).map(el => el.dataset.relicId!);
+    const newIds = relics.map(r => r.id);
+    if (existingIds.join(",") === newIds.join(",")) return;
+
+    // Clear and rebuild.
+    this.relicsEl.innerHTML = "";
+    for (const relic of relics) {
+      const tile = this.createElement("div");
+      tile.dataset.relicId = relic.id;
+      tile.title = relic.name;
+      tile.style.cssText = [
+        "width:32px", "height:32px",
+        "background:rgba(0,0,0,0.55)",
+        "border:1px solid rgba(255,255,255,0.2)",
+        "border-radius:5px",
+        "display:flex", "align-items:center", "justify-content:center",
+        "pointer-events:none",
+      ].join(";");
+
+      const iconSrc = `/art/${relic.icon}.png`;
+      const img = document.createElement("img");
+      img.src = iconSrc;
+      img.alt = relic.name;
+      img.style.cssText = "width:24px;height:24px;object-fit:contain;image-rendering:pixelated;";
+      img.onerror = () => { img.style.display = "none"; tile.textContent = "?"; };
+      tile.appendChild(img);
+
+      this.relicsEl.appendChild(tile);
+    }
+  }
 
   private buildManaBar(): HTMLElement {
     const outer = this.createElement("div");
@@ -319,6 +362,9 @@ export class Hud {
         background: rgba(40,5,5,0.85);
         border: 2px solid #ff3333;
         color: #ff3333;
+      }
+      #hud-relics [data-relic-id] {
+        cursor: default;
       }
     `;
     document.head.appendChild(style);

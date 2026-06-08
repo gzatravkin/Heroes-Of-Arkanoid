@@ -8,6 +8,11 @@ const SRC: Record<string, string> = {
   Ball: "/art/Ball.png",
   Paddle: "/art/Paddle.png",
   Explosion: "/art/Explosion.png",
+  // Relic icons (referenced by Snapshot.activeRelics[].icon)
+  ItemHummer: "/art/ItemHummer.png",
+  ItemDrill:  "/art/ItemDrill.png",
+  ItemTorch:  "/art/ItemTorch.png",
+  ItemGem:    "/art/ItemGem.png",
 };
 
 const cache = new Map<string, Texture>();
