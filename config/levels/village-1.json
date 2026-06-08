@@ -1,0 +1,12 @@
+{ "id": "village-1", "biome": "village", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "..AAAAAAAA..",
+    "..ATTTTTTA..",
+    "..ATTTTTTA..",
+    "..ATTTTTTA..",
+    "..AAAAAAAA..",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "village_basic", "T": "village_tough" } }

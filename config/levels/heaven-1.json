@@ -1,0 +1,12 @@
+{ "id": "heaven-1", "biome": "heaven", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "SSSSSSSSSSSS",
+    ".SAAAAAAS...",
+    ".SATTTTAS...",
+    ".SAAAAAAS...",
+    "SSSSSSSSSSSS",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "heaven_basic", "T": "heaven_tough", "S": "heaven_statue" } }

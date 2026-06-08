@@ -1,0 +1,12 @@
+{ "id": "hell-teleport", "biome": "hell", "cols": 12, "rows": 8,
+  "rows_data": [
+    "..P.........",
+    "..AAAAAAAA..",
+    "..ABBBBBBA..",
+    "..ABBBBBBA..",
+    "..AAAAAAAA..",
+    "...........P",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "hell_basic", "B": "hell_tough", "P": "hell_teleporter" } }

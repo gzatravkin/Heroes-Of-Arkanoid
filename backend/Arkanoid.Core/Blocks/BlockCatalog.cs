@@ -9,6 +9,12 @@ public sealed class BlockType
     [JsonPropertyName("hp")] public int Hp { get; set; } = 1;
     [JsonPropertyName("sprite")] public string Sprite { get; set; } = "";
     [JsonPropertyName("needToKill")] public bool NeedToKill { get; set; } = true;
+    /// <summary>Ball and all damage sources are ignored; ball still bounces.</summary>
+    [JsonPropertyName("indestructible")] public bool Indestructible { get; set; } = false;
+    /// <summary>Ball passes through with no collision/damage, but projectiles and firewalls still hit it.</summary>
+    [JsonPropertyName("ballPhases")] public bool BallPhases { get; set; } = false;
+    /// <summary>On ball overlap, warps the ball to the next teleporter cyclically (Hell signature mechanic).</summary>
+    [JsonPropertyName("teleporter")] public bool Teleporter { get; set; } = false;
 }
 
 public sealed class BlockCatalog

@@ -1,0 +1,12 @@
+{ "id": "village-ghost", "biome": "village", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "..AAAAAAAA..",
+    "..AGGGGGGA..",
+    "..AGGGGGGA..",
+    "..AAAAAAAA..",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "village_basic", "G": "village_ghost" } }

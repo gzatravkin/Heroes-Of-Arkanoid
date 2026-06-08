@@ -49,6 +49,10 @@ public sealed class SimConfig
     public int    TurretDamage { get; init; } = 1;
     public double TurretBulletSpeed { get; init; } = 460;
 
+    // --- Biome block mechanics ---
+    /// <summary>Ticks a ball must wait before it can be teleported again after a warp.</summary>
+    public int TeleportCooldownTicks { get; init; } = 18;
+
     // --- Relic magnitudes ---
     public int    GlassCannonDamageBonus { get; init; } = 1;
     public int    FlintToughThreshold { get; init; } = 3;

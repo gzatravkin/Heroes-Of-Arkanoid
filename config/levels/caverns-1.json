@@ -1,0 +1,12 @@
+{ "id": "caverns-1", "biome": "cavern", "cols": 12, "rows": 8,
+  "rows_data": [
+    "............",
+    "RRRRRRRRRRRR",
+    ".RABBBBBBR..",
+    ".RABBBBBBR..",
+    ".RABBBBBBR..",
+    "RRRRRRRRRRRR",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "cavern_basic", "B": "cavern_tough", "R": "cavern_rock" } }

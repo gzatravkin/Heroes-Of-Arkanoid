@@ -109,6 +109,8 @@ public sealed class GameInstance
         foreach (var b in Balls)
         {
             if (!b.Alive) continue;
+            // Decrement teleport cooldown once per tick (min 0)
+            if (b.TeleportCooldown > 0) b.TeleportCooldown--;
             b.Pos += b.Vel * dt;
             if (_log.Verbose) _log.Log(TickCount, "ball", "move", $"id={b.Id} x={b.Pos.X:F1} y={b.Pos.Y:F1}");
             Arkanoid.Core.Physics.BallPhysics.ResolveWalls(b, Level.Grid.Width, Config);
@@ -160,6 +162,29 @@ public sealed class GameInstance
             var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
             if (!box.IntersectsCircle(b.Pos, b.Radius)) continue;
 
+            // Teleporter: warp ball to next teleporter in cycle (Hell signature mechanic)
+            if (blk.Teleporter && b.TeleportCooldown == 0)
+            {
+                var teleporters = Blocks.Where(t => !t.Dead && t.Teleporter).ToList();
+                if (teleporters.Count >= 2)
+                {
+                    int idx = teleporters.IndexOf(blk);
+                    var dest = teleporters[(idx + 1) % teleporters.Count];
+                    var destCenter = Level.Grid.CellCenter(dest.Col, dest.Row);
+                    // nudge one ball-radius along current velocity so ball exits cleanly
+                    var nudge = b.Vel.Length > 0 ? b.Vel.Normalized() * b.Radius : new Arkanoid.Core.Math.Vec2(0, -b.Radius);
+                    b.Pos = destCenter + nudge;
+                    b.TeleportCooldown = Config.TeleportCooldownTicks;
+                    RaiseEvent("teleport", destCenter.X, destCenter.Y);
+                    _log.Log(TickCount, "teleport", "warped", $"ball={b.Id} from=({blk.Col},{blk.Row}) to=({dest.Col},{dest.Row})");
+                    return; // do not also reflect
+                }
+                // single teleporter: fall through to indestructible bounce below
+            }
+
+            // Ghost block (ballPhases): ball passes through entirely — no reflection, no damage
+            if (blk.BallPhases) continue;
+
             // reflect by dominant penetration axis
             var dx = b.Pos.X - c.X; var dy = b.Pos.Y - c.Y;
             if (System.Math.Abs(dx) / (cell / 2) > System.Math.Abs(dy) / (cell / 2))
@@ -178,6 +203,7 @@ public sealed class GameInstance
 
     private void DamageBlock(Block blk, int dmg, bool igniteSource)
     {
+        if (blk.Indestructible) return;   // indestructible blocks absorb no damage
         blk.Hp -= dmg;
         _log.Log(TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
                  $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource}");

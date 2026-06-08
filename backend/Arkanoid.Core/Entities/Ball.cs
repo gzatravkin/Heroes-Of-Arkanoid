@@ -9,4 +9,6 @@ public sealed class Ball
     public double Radius;
     public bool Alive = true;
     public int IgniteHitsLeft = 0;     // >0 means imbued with Ignite
+    /// <summary>Ticks remaining before this ball can be warped by a teleporter again.</summary>
+    public int TeleportCooldown = 0;
 }

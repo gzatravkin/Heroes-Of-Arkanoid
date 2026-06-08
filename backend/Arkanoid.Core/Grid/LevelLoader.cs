@@ -35,7 +35,10 @@ public static class LevelLoader
                 blocks.Add(new Block {
                     Id = nextId++, Col = col, Row = row,
                     Hp = t.Hp, MaxHp = t.Hp, TypeId = t.Id,
-                    Sprite = t.Sprite, NeedToKill = t.NeedToKill
+                    Sprite = t.Sprite, NeedToKill = t.NeedToKill,
+                    Indestructible = t.Indestructible,
+                    BallPhases = t.BallPhases,
+                    Teleporter = t.Teleporter
                 });
             }
         }
