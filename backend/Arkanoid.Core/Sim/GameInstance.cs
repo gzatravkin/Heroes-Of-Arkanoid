@@ -67,4 +67,12 @@ public sealed class GameInstance
         foreach (var b in Balls)
             b.Pos += b.Vel * dt;   // collisions added in M1
     }
+
+    // --- resources/events surface (mana fully wired in Task 1.5) ---
+    public double ManaValue { get; internal set; } = 0;
+    private readonly List<Arkanoid.Core.Net.EventDto> _events = new();
+    public void RaiseEvent(string type, double x, double y)
+        => _events.Add(new Arkanoid.Core.Net.EventDto { Type = type, X = x, Y = y });
+    public List<Arkanoid.Core.Net.EventDto> DrainEvents()
+    { var copy = new List<Arkanoid.Core.Net.EventDto>(_events); _events.Clear(); return copy; }
 }

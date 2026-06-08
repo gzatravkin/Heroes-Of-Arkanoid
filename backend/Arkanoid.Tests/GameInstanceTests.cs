@@ -1,5 +1,6 @@
 using Arkanoid.Core.Blocks;
 using Arkanoid.Core.Grid;
+using Arkanoid.Core.Net;
 using Arkanoid.Core.Sim;
 using Xunit;
 
@@ -43,5 +44,19 @@ public class GameInstanceTests
         var y0 = g.Balls[0].Pos.Y;
         g.Tick(SimConfig.Default.FixedDt);
         Assert.NotEqual(y0, g.Balls[0].Pos.Y);
+    }
+
+    [Fact]
+    public void Snapshot_SerializesEntitiesAndPhase()
+    {
+        var g = MakeInstance();
+        g.Serve();
+        var snap = Snapshot.From(g, tick: 1);
+        var json = System.Text.Json.JsonSerializer.Serialize(snap);
+        Assert.Contains("\"phase\"", json);
+        Assert.Contains("\"balls\"", json);
+        Assert.Contains("\"blocks\"", json);
+        Assert.Single(snap.Balls);
+        Assert.Equal(1, snap.Blocks.Count); // level "A.." in row1 = 1 block
     }
 }
