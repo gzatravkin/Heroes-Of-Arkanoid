@@ -1,4 +1,5 @@
 import type { Connection, Snapshot } from "./net/Connection";
+import { getLogs } from "./log";
 
 declare global { interface Window { __game: GameTestApi } }
 export interface GameTestApi {
@@ -8,6 +9,8 @@ export interface GameTestApi {
   castIgnite: () => void;
   castFireball: () => void;
   setPaddleX: (x: number) => void;
+  runId: string;
+  getLogs: () => unknown[];
 }
 export function installTestHooks(conn: Connection) {
   window.__game = {
@@ -17,5 +20,7 @@ export function installTestHooks(conn: Connection) {
     castIgnite: () => conn.castIgnite(),
     castFireball: () => conn.castFireball(),
     setPaddleX: (x) => conn.paddleX(x),
+    runId: conn.runId,
+    getLogs: () => getLogs(),
   };
 }

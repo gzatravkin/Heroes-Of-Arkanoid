@@ -18,10 +18,12 @@ public sealed class GameInstance
     public List<Block> Blocks => Level.Blocks;
 
     private int _nextBallId = 1;
+    private readonly ISimLog _log;
+    public long TickCount { get; private set; }
 
-    public GameInstance(LevelData level, SimConfig config, int seed)
+    public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null)
     {
-        Level = level; Config = config; Rng = new Rng(seed);
+        Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
         Lives = config.StartLives;
         SpareBalls = config.StartBalls;
         Paddle = new Paddle {
@@ -30,6 +32,7 @@ public sealed class GameInstance
             Center = new Vec2(level.Grid.Width / 2.0, level.Grid.Height + config.CellSize)
         };
         SpawnBallOnPaddle();
+        _log.Log(0, "init", "instance created", $"level={level.Id} seed={seed} blocks={Blocks.Count} lives={Lives} balls={SpareBalls}");
     }
 
     private void SpawnBallOnPaddle()
@@ -52,6 +55,7 @@ public sealed class GameInstance
         var lean = Rng.Range(-0.25, 0.25);
         Balls[0].Vel = new Vec2(lean, -1).Normalized() * Config.BallSpeed;
         Phase = GamePhase.Playing;
+        _log.Log(TickCount, "serve", "ball launched", $"lean={lean:F3} vx={Balls[0].Vel.X:F1} vy={Balls[0].Vel.Y:F1}");
     }
 
     public void SetPaddleX(double x)
@@ -64,8 +68,14 @@ public sealed class GameInstance
     public void Tick(double dt)
     {
         if (Phase != GamePhase.Playing) return;
+        TickCount++;
+        if (_log.Verbose)
+            _log.Log(TickCount, "tick", "", $"balls={Balls.Count(b=>b.Alive)} mana={ManaValue:F0} blocks={Blocks.Count(b=>!b.Dead)}");
         foreach (var b in Balls)
+        {
             b.Pos += b.Vel * dt;   // collisions added in M1
+            if (_log.Verbose) _log.Log(TickCount, "ball", "move", $"id={b.Id} x={b.Pos.X:F1} y={b.Pos.Y:F1}");
+        }
     }
 
     // --- resources/events surface (mana fully wired in Task 1.5) ---

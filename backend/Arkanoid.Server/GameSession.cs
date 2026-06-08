@@ -16,17 +16,20 @@ public sealed class GameSession
     private readonly string _configRoot;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
+    private FileSimLog _log = null!;
     private long _tick;
 
     public GameSession(WebSocket socket, string configRoot)
     { _socket = socket; _configRoot = configRoot; }
 
-    public async Task RunAsync(string levelId, int seed, CancellationToken ct)
+    public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
+        var path = System.IO.Path.Combine(FileSimLog.DirFor(), $"{runId}.jsonl");
+        _log = new FileSimLog(path, verbose: true);
+        _log.Note("conn", "session open", $"run={runId} level={levelId} seed={seed}");
         LoadLevel(levelId, seed);
         var recv = ReceiveLoop(ct);
         var dtMs = (int)(_game.Config.FixedDt * 1000);
-        var sb = new byte[1 << 16];
         while (!ct.IsCancellationRequested && _socket.State == WebSocketState.Open)
         {
             while (_inbox.TryDequeue(out var cmd)) Apply(cmd);
@@ -39,18 +42,21 @@ public sealed class GameSession
             catch { break; }
             await Task.Delay(dtMs, ct);
         }
+        _log.Note("conn", "session close", $"ticks={_tick}");
+        _log.Dispose();
         try { await recv; } catch { /* socket closed */ }
     }
 
     private void LoadLevel(string levelId, int seed)
     {
-        var catalog = BlockCatalog.FromFile(Path.Combine(_configRoot, "blocks.json"));
-        var level = LevelLoader.FromFile(Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
-        _game = new GameInstance(level, SimConfig.Default, seed);
+        var catalog = BlockCatalog.FromFile(System.IO.Path.Combine(_configRoot, "blocks.json"));
+        var level = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
+        _game = new GameInstance(level, SimConfig.Default, seed, _log);
     }
 
     private void Apply(InputCommand c)
     {
+        _log.Note("cmd", c.Kind.ToString(), $"x={c.X:F1} cheat={c.Cheat} value={c.Value}");
         switch (c.Kind)
         {
             case InputKind.PaddleX: _game.SetPaddleX(c.X); break;

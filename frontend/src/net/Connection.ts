@@ -1,3 +1,5 @@
+import { log } from "../log";
+
 export interface Snapshot {
   tick: number; phase: string; lives: number; spareBalls: number;
   mana: number; manaMax: number; boardW: number; boardH: number;
@@ -11,16 +13,27 @@ export class Connection {
   private ws: WebSocket;
   latest: Snapshot | null = null;
   onSnapshot: ((s: Snapshot) => void) | null = null;
+  readonly runId: string;
+  private lastPhase = "";
 
-  constructor(level: string, seed: number) {
-    this.ws = new WebSocket(`ws://localhost:5080/ws?level=${level}&seed=${seed}`);
+  constructor(level: string, seed: number, runId: string) {
+    this.runId = runId;
+    this.ws = new WebSocket(`ws://localhost:5080/ws?level=${level}&seed=${seed}&run=${runId}`);
+    log("net", "connecting", { level, seed, runId });
+    this.ws.onopen = () => log("net", "open");
+    this.ws.onclose = () => log("net", "close");
+    this.ws.onerror = () => log("net", "error");
     this.ws.onmessage = (e) => {
       const s = JSON.parse(e.data) as Snapshot;
       this.latest = s;
+      if (s.phase !== this.lastPhase) {
+        log("phase", s.phase, { tick: s.tick, lives: s.lives, balls: s.spareBalls });
+        this.lastPhase = s.phase;
+      }
       this.onSnapshot?.(s);
     };
   }
-  private send(o: object) { if (this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); }
+  private send(o: any) { if (this.ws.readyState === 1) { log("cmd", o.kind, o); this.ws.send(JSON.stringify(o)); } }
   paddleX(x: number) { this.send({ kind: "PaddleX", x }); }
   serve() { this.send({ kind: "Serve" }); }
   castIgnite() { this.send({ kind: "CastImbueIgnite" }); }

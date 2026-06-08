@@ -2,7 +2,8 @@ import { Page, expect } from "@playwright/test";
 
 /** Open a battle pre-set to a given level/seed and wait until the sim is streaming. */
 export async function openBattle(page: Page, level = "hell-1", seed = 1) {
-  await page.goto(`/?scene=battle&level=${level}&seed=${seed}`);
+  const run = `${level}-${seed}-${Date.now()}`;
+  await page.goto(`/?scene=battle&level=${level}&seed=${seed}&run=${run}`);
   await page.waitForFunction(() => !!(window as any).__game?.getState());
   await page.waitForFunction(() => (window as any).__game.getState()?.balls.length > 0);
 }

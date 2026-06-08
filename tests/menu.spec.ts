@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/fixtures";
 
 test("menu renders with a play button", async ({ page }) => {
   await page.goto("/?scene=menu");
