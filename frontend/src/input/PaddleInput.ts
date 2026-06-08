@@ -13,5 +13,7 @@ export function attachPaddleInput(canvas: HTMLCanvasElement, conn: Connection, g
     if (e.code === "Space") conn.serve();
     if (e.key === "q" || e.key === "Q") conn.castIgnite();
     if (e.key === "e" || e.key === "E") conn.castFireball();
+    if (e.key === "w" || e.key === "W") conn.castFireWall();
+    if (e.key === "r" || e.key === "R") conn.castTurret();
   });
 }

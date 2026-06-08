@@ -7,6 +7,8 @@ import type { Snapshot } from "../net/Connection";
 const SPELL_COSTS: Record<string, number> = {
   ignite: 0,
   fireball: 20,
+  firewall: 30,
+  turret: 25,
 };
 
 interface SpellDef {
@@ -18,8 +20,10 @@ interface SpellDef {
 }
 
 const SPELLS: SpellDef[] = [
-  { id: "ignite",   key: "Q", label: "Ignite",   icon: "/art/FireHeroBall.png", emoji: "🔥" },
-  { id: "fireball", key: "E", label: "Fireball", icon: "/art/FireBallIco.png",  emoji: "💥" },
+  { id: "ignite",   key: "Q", label: "Ignite",   icon: "/art/FireHeroBall.png",  emoji: "🔥" },
+  { id: "fireball", key: "E", label: "Fireball", icon: "/art/FireBallIco.png",   emoji: "💥" },
+  { id: "firewall", key: "W", label: "Fire Wall", icon: "/art/FireWallIco.png",  emoji: "🧱" },
+  { id: "turret",   key: "R", label: "Turret",   icon: "/art/FireTurretIco.png", emoji: "🔫" },
 ];
 
 // ---------------------------------------------------------------------------

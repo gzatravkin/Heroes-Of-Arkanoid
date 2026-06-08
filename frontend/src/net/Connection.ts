@@ -7,6 +7,8 @@ export interface Snapshot {
   balls: { id: number; x: number; y: number; ignited: boolean }[];
   blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string }[];
   events: { type: string; x: number; y: number }[];
+  walls: { y: number; width: number }[];
+  turretActive: boolean;
 }
 
 export class Connection {
@@ -38,6 +40,8 @@ export class Connection {
   serve() { this.send({ kind: "Serve" }); }
   castIgnite() { this.send({ kind: "CastImbueIgnite" }); }
   castFireball() { this.send({ kind: "CastFireball" }); }
+  castFireWall() { this.send({ kind: "CastFireWall" }); }
+  castTurret() { this.send({ kind: "CastTurret" }); }
   cheat(op: string, value = 0) { this.send({ kind: "Cheat", cheat: op, value }); }
   whenReady(cb: () => void) {
     if (this.ws.readyState === 1) cb(); else this.ws.addEventListener("open", cb, { once: true });

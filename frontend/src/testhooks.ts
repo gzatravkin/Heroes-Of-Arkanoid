@@ -8,6 +8,8 @@ export interface GameTestApi {
   serve: () => void;
   castIgnite: () => void;
   castFireball: () => void;
+  castFireWall: () => void;
+  castTurret: () => void;
   setPaddleX: (x: number) => void;
   runId: string;
   getLogs: () => unknown[];
@@ -19,6 +21,8 @@ export function installTestHooks(conn: Connection) {
     serve: () => conn.serve(),
     castIgnite: () => conn.castIgnite(),
     castFireball: () => conn.castFireball(),
+    castFireWall: () => conn.castFireWall(),
+    castTurret: () => conn.castTurret(),
     setPaddleX: (x) => conn.paddleX(x),
     runId: conn.runId,
     getLogs: () => getLogs(),

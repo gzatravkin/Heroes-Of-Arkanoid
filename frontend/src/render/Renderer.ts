@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Sprite, BLEND_MODES } from "pixi.js";
+import { Application, Container, Graphics, Sprite, BLEND_MODES, Texture } from "pixi.js";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
 import { Effects } from "./Effects";
@@ -15,13 +15,25 @@ const PADDLE_ZONE_CELLS = 3;
 const IGNITE_HALO_RADIUS_MULT = 1.8;
 const IGNITE_HALO_ALPHA = 0.35;
 
+// Fire wall band height as a fraction of cellSize.
+const FIRE_WALL_HEIGHT_MULT = 1.1;
+
+// Turret visual: barrel length and width as fractions of paddleH.
+const TURRET_BARREL_LENGTH_MULT = 1.8;
+const TURRET_BARREL_WIDTH_MULT  = 0.45;
+
+// Note: turret bullets (id >= 10000) render via the normal ball path — no special branch needed.
+
 export class Renderer {
   app: Application;
   private world = new Container();
   private blocks = new Container();
   private effectsLayer: Effects;
+  private fireWalls = new Container();
   private paddle = new Graphics();
+  private turretSprite = new Sprite();
   private balls = new Container();
+  private _tick = 0; // used to drive wall flicker animation
 
   constructor(host: HTMLElement) {
     this.app = new Application({ resizeTo: host, background: "#0b0b12", antialias: true });
@@ -29,20 +41,34 @@ export class Renderer {
 
     this.effectsLayer = new Effects();
 
-    // Layer order: blocks → effects → balls → paddle (effects behind balls)
+    // Try to load the turret sprite; fall back to Graphics if it fails.
+    this.turretSprite = Sprite.from("/art/FireHeroTurret.png");
+    this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
+    this.turretSprite.visible = false;
+
+    // Layer order: blocks → fireWalls → effects → balls → paddle → turret
     this.world.addChild(
       this.blocks,
+      this.fireWalls,
       this.effectsLayer.container,
       this.balls,
       this.paddle,
+      this.turretSprite,
     );
     this.app.stage.addChild(this.world);
 
-    // Tick the effects every frame.
+    // Tick the effects every frame and drive wall flicker.
     this.app.ticker.add((delta) => {
       // delta is in Pixi ticker units (frames at 60 fps → multiply by 1000/60 for ms)
       const dtMs = (delta / 60) * 1000;
       this.effectsLayer.update(dtMs);
+      this._tick += delta;
+      // Animate the alpha flicker on each fire-wall tile every frame.
+      for (let i = 0; i < this.fireWalls.children.length; i++) {
+        const child = this.fireWalls.children[i];
+        const flicker = 0.72 + 0.28 * Math.sin(this._tick * 0.18 + i * 1.3);
+        child.alpha = flicker;
+      }
     });
   }
 
@@ -77,6 +103,29 @@ export class Renderer {
       this.blocks.addChild(sp);
     }
 
+    // --- fire walls ---
+    this.fireWalls.removeChildren();
+    const wallH = s.cellSize * FIRE_WALL_HEIGHT_MULT;
+    for (const wall of (s.walls ?? [])) {
+      // Tile Explosion.png across the board width to form the flame band.
+      const explosionTex: Texture = tex("Explosion");
+      const tileW = wallH; // square tiles looks good
+      const count  = Math.ceil(s.boardW / tileW);
+      for (let i = 0; i < count; i++) {
+        const sp = new Sprite(explosionTex);
+        sp.blendMode = BLEND_MODES.ADD;
+        sp.tint    = 0xff6620; // orange-red tint
+        sp.anchor.set(0, 0.5);
+        sp.width   = tileW + 1;  // +1 to avoid hairline gaps
+        sp.height  = wallH;
+        sp.x       = i * tileW;
+        sp.y       = wall.y;
+        // Initial alpha; the ticker loop will flicker it each frame.
+        sp.alpha   = 0.85;
+        this.fireWalls.addChild(sp);
+      }
+    }
+
     // --- paddle ---
     this.paddle.clear();
     this.paddle.beginFill(0x7fd1ff).drawRect(
@@ -85,6 +134,19 @@ export class Renderer {
       s.paddleW,
       s.paddleH,
     ).endFill();
+
+    // --- turret indicator ---
+    const paddleTopY = (s.boardH + s.cellSize) - s.paddleH / 2;
+    if (s.turretActive) {
+      const turretSize = s.paddleH * TURRET_BARREL_LENGTH_MULT;
+      this.turretSprite.visible = true;
+      this.turretSprite.width   = s.paddleH * TURRET_BARREL_WIDTH_MULT * 2;
+      this.turretSprite.height  = turretSize;
+      this.turretSprite.x       = s.paddleX;
+      this.turretSprite.y       = paddleTopY - s.paddleH / 2;
+    } else {
+      this.turretSprite.visible = false;
+    }
 
     // --- balls ---
     this.balls.removeChildren();
