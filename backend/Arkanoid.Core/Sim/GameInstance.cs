@@ -20,20 +20,20 @@ public sealed class GameInstance
     public List<Ball> Balls { get; } = new();
     public List<Block> Blocks => Level.Blocks;
 
-    private int _nextBallId = 1;
-    private int _nextProjId = 1;
+    internal int _nextBallId = 1;
+    internal int _nextProjId = 1;
     public List<Projectile> Projectiles { get; } = new();
 
-    private int _nextWallId = 1;
+    internal int _nextWallId = 1;
     public List<FireWall> FireWalls { get; } = new();
 
-    private int _nextHazardId = 1;
+    internal int _nextHazardId = 1;
     /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
     public List<Projectile> Hazards { get; } = new();
     private double _bossAttackAccumulator;
 
-    private double _turretRemaining;
-    private double _turretAccumulator;
+    internal double _turretRemaining;
+    internal double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
     internal readonly ISimLog _log;
     public RelicCatalog? RelicCatalog { get; }
@@ -187,30 +187,8 @@ public sealed class GameInstance
         ResolveDrainAndWin();
     }
 
-    private void RegenMana(double dt)
-    {
-        ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaRegenPerSec * Modifiers.ManaRegenMult(this) * dt);
-    }
-
-    private void OnPaddleHit(Ball b, double t)
-    {
-        _log.Log(TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
-        if (System.Math.Abs(t) < Config.PerfectDeflectBand)
-        {
-            ManaValue = System.Math.Min(ManaMaxValue, ManaValue + Config.ManaPerfectDeflectBonus);
-            _log.Log(TickCount, "mana", "perfect deflect bonus", $"mana={ManaValue:F0}");
-        }
-        ApplyIgniteOnDeflect(b);
-    }
-
-    private void ApplyIgniteOnDeflect(Ball b)
-    {
-        if (!_igniteArmed) return;
-        b.IgniteHitsLeft = Modifiers.IgniteHits(this);
-        _igniteArmed = false;
-        _log.Log(TickCount, "ignite", "imbued ball", $"id={b.Id} hits={b.IgniteHitsLeft}");
-        RaiseEvent("ignite", b.Pos.X, b.Pos.Y);
-    }
+    private void RegenMana(double dt)  => SpellSystem.RegenMana(this, dt);
+    private void OnPaddleHit(Ball b, double t) => SpellSystem.OnPaddleHit(this, b, t);
     private void ResolveBlocks(Ball b)
     {
         var cell = Config.CellSize;
@@ -304,119 +282,14 @@ public sealed class GameInstance
     public List<Arkanoid.Core.Net.EventDto> DrainEvents()
     { var copy = new List<Arkanoid.Core.Net.EventDto>(_events); _events.Clear(); return copy; }
 
-    public void CastFireball()
-    {
-        if (Phase != GamePhase.Playing) return;
-        if (ManaValue < Config.FireballCost)
-        { _log.Log(TickCount, "spell", "fireball denied", $"mana={ManaValue:F0} need={Config.FireballCost}"); return; }
-        ManaValue -= Config.FireballCost;
-        Projectiles.Add(new Projectile {
-            Id = _nextProjId++,
-            Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height),
-            Vel = new Vec2(0, -Config.FireballSpeed),
-            Damage = Modifiers.FireballDamage(this),
-            Radius = Config.BallRadius
-        });
-        _log.Log(TickCount, "spell", "fireball cast", $"mana={ManaValue:F0}");
-        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
-    }
+    public void CastFireball()  => SpellSystem.CastFireball(this);
+    public void CastIgnite()    => SpellSystem.CastIgnite(this);
+    public void CastFireWall()  => SpellSystem.CastFireWall(this);
+    public void CastTurret()    => SpellSystem.CastTurret(this);
 
-    private void UpdateProjectiles(double dt)
-    {
-        var cell = Config.CellSize;
-        foreach (var pr in Projectiles)
-        {
-            if (!pr.Alive) continue;
-            pr.Pos += pr.Vel * dt;
-            if (pr.Pos.Y < -cell) { pr.Alive = false; continue; }
-            foreach (var blk in Blocks)
-            {
-                if (blk.Dead) continue;
-                var c = Level.Grid.CellCenter(blk.Col, blk.Row);
-                var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
-                if (box.IntersectsCircle(pr.Pos, pr.Radius))
-                { DamageBlock(blk, pr.Damage, igniteSource: false); pr.Alive = false; break; }
-            }
-        }
-        Projectiles.RemoveAll(p => !p.Alive);
-    }
-
-    public void CastFireWall()
-    {
-        if (Phase != GamePhase.Playing) return;
-        if (ManaValue < Config.FireWallCost)
-        { _log.Log(TickCount, "spell", "firewall denied", $"mana={ManaValue:F0} need={Config.FireWallCost}"); return; }
-        ManaValue -= Config.FireWallCost;
-        var wallY = Level.Grid.Height;
-        FireWalls.Add(new FireWall {
-            Id = _nextWallId++,
-            Y = wallY,
-            Width = Level.Grid.Width,
-            LifeRemaining = Config.FireWallLifetime
-        });
-        _log.Log(TickCount, "spell", "firewall cast", $"mana={ManaValue:F0}");
-        RaiseEvent("spellCast", Paddle.Center.X, wallY);
-    }
-
-    private void UpdateFireWalls(double dt)
-    {
-        foreach (var wall in FireWalls)
-        {
-            if (!wall.Alive) continue;
-            wall.Y -= Config.FireWallRiseSpeed * dt;
-            wall.Accumulator += dt;
-            while (wall.Accumulator >= Config.FireWallDamageInterval)
-            {
-                foreach (var blk in Blocks)
-                {
-                    if (blk.Dead) continue;
-                    var c = Level.Grid.CellCenter(blk.Col, blk.Row);
-                    if (c.Y >= wall.Y - Config.FireWallBandHalfHeight &&
-                        c.Y <= wall.Y + Config.FireWallBandHalfHeight)
-                    {
-                        DamageBlock(blk, Modifiers.FireWallDamage(this), igniteSource: false);
-                        RaiseEvent("burn", c.X, c.Y);
-                    }
-                }
-                wall.Accumulator -= Config.FireWallDamageInterval;
-            }
-            wall.LifeRemaining -= dt;
-            if (wall.LifeRemaining <= 0 || wall.Y < -Config.CellSize)
-                wall.Alive = false;
-        }
-        FireWalls.RemoveAll(w => !w.Alive);
-    }
-
-    public void CastTurret()
-    {
-        if (Phase != GamePhase.Playing) return;
-        if (ManaValue < Config.TurretCost)
-        { _log.Log(TickCount, "spell", "turret denied", $"mana={ManaValue:F0} need={Config.TurretCost}"); return; }
-        ManaValue -= Config.TurretCost;
-        _turretRemaining = Modifiers.TurretDuration(this);
-        _turretAccumulator = 0;
-        _log.Log(TickCount, "spell", "turret cast", $"mana={ManaValue:F0}");
-        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
-    }
-
-    private void UpdateTurret(double dt)
-    {
-        if (_turretRemaining <= 0) return;
-        _turretRemaining -= dt;
-        _turretAccumulator += dt;
-        while (_turretAccumulator >= Config.TurretFireInterval)
-        {
-            Projectiles.Add(new Projectile {
-                Id = _nextProjId++,
-                Pos = new Vec2(Paddle.Center.X, Paddle.Center.Y - Paddle.Height / 2),
-                Vel = new Vec2(0, -Config.TurretBulletSpeed),
-                Damage = Config.TurretDamage,
-                Radius = Config.BallRadius * 0.6
-            });
-            RaiseEvent("turretShot", Paddle.Center.X, Paddle.Center.Y);
-            _turretAccumulator -= Config.TurretFireInterval;
-        }
-    }
+    private void UpdateProjectiles(double dt) => SpellSystem.UpdateProjectiles(this, dt);
+    private void UpdateFireWalls(double dt)   => SpellSystem.UpdateFireWalls(this, dt);
+    private void UpdateTurret(double dt)      => SpellSystem.UpdateTurret(this, dt);
 
     // --- Boss enemy ---
 
@@ -494,17 +367,8 @@ public sealed class GameInstance
         }
     }
 
-    private bool _igniteArmed = false;
+    internal bool _igniteArmed = false;
 
-    public void CastIgnite()
-    {
-        if (Phase != GamePhase.Playing) return;
-        if (ManaValue < Config.IgniteCost) return;
-        ManaValue -= Config.IgniteCost; // cost is 0 by default (anti-Wizorb)
-        _igniteArmed = true;
-        _log.Log(TickCount, "ignite", "armed", $"mana={ManaValue:F0}");
-        RaiseEvent("spellCast", Paddle.Center.X, Paddle.Center.Y);
-    }
     public void ApplyCheat(string op, double value)
     {
         _log.Log(TickCount, "cheat", op, $"value={value}");
