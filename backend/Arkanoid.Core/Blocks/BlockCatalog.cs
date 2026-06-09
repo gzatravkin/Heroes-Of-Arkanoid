@@ -32,6 +32,8 @@ public sealed class BlockType
     [JsonPropertyName("emitAim")]      public string EmitAim      { get; set; } = "down";
     /// <summary>Bomb: explosion radius in cells (chains into other bombs).</summary>
     [JsonPropertyName("explodeRadius")] public int  ExplodeRadius { get; set; } = 1;
+    /// <summary>Emitter: hazard kind tag the renderer maps to missile art ("hellball" | "beholdermissile" | "heavenmissile").</summary>
+    [JsonPropertyName("missileKind")]  public string MissileKind  { get; set; } = "";
 
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;

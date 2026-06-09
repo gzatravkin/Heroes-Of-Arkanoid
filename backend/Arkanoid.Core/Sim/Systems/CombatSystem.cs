@@ -22,6 +22,14 @@ internal static class CombatSystem
             if (!hz.Alive) continue;
             hz.Pos += hz.Vel * dt;
 
+            // Harmless visual hazards (bat flyaway) just drift; despawn above the board.
+            if (hz.Damage <= 0)
+            {
+                if (hz.Pos.Y + hz.Radius < g.Config.BoardOriginY - g.Config.CellSize)
+                    hz.Alive = false;
+                continue;
+            }
+
             if (paddleBox.IntersectsCircle(hz.Pos, hz.Radius))
             {
                 hz.Alive = false;

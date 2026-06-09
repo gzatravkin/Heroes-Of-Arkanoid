@@ -6,34 +6,59 @@ const SHOTS = path.resolve(__dirname, "demo-screenshots");
 
 // Use the deterministic fastForward cheat (freezes balls, advances N sim-ticks) so the
 // emitter fires in sim-time regardless of the wall-clock tick rate under parallel load.
-async function emitsHazard(page: import("@playwright/test").Page, level: string, name: string) {
+// `expectedKind` asserts the hazard carries its missile-art tag (renderer draws the
+// original missile sprite from it — HellBallMissile / BeholderMissile / heaven Missile).
+async function emitsHazard(
+  page: import("@playwright/test").Page, level: string, name: string, expectedKind: string,
+) {
   await openBattle(page, level);
   await cheat(page, "fastForward", 150); // ~2.5s sim → first emitter shot is mid-flight
-  // Wait for the post-cheat snapshot: a hazard is in flight, or one already hit the paddle (HP lost).
-  await page.waitForFunction(() => {
+  // Wait for the post-cheat snapshot: a kind-tagged hazard is in flight.
+  await page.waitForFunction((kind) => {
     const s = (window as any).__game.getState();
-    return s && (s.hazards.length > 0 || s.lives < 3);
-  }, null, { timeout: 8000 });
+    return s && s.hazards.some((h: any) => h.kind === kind);
+  }, expectedKind, { timeout: 8000 });
   await page.screenshot({ path: path.join(SHOTS, name) });
 }
 
-test("Hell ball-spawner emits hazards at the paddle", async ({ page }) => {
-  await emitsHazard(page, "hell-2", "enemy-hell-spawner.png");
+test("Hell ball-spawner emits hellball missiles at the paddle", async ({ page }) => {
+  await emitsHazard(page, "hell-2", "enemy-hell-spawner.png", "hellball");
 });
 
-test("Witchland beholder fires at the ball", async ({ page }) => {
-  await emitsHazard(page, "village-2", "enemy-beholder.png");
+test("Witchland beholder fires beholder missiles at the ball", async ({ page }) => {
+  await emitsHazard(page, "village-2", "enemy-beholder.png", "beholdermissile");
 });
 
-test("Heaven melee statue fires", async ({ page }) => {
-  await emitsHazard(page, "heaven-1", "enemy-heaven-statue.png");
+test("Heaven melee statue fires heaven missiles", async ({ page }) => {
+  await emitsHazard(page, "heaven-1", "enemy-heaven-statue.png", "heavenmissile");
 });
 
-test("Heaven boss finale renders", async ({ page }) => {
+test("Heaven boss finale renders with the Heaven rig (not a fallback)", async ({ page }) => {
   await openBattle(page, "heaven-boss");
   const s = await page.evaluate(() => (window as any).__game.getState());
   expect(s.bossActive).toBeTruthy();
+  // The renderer must build the Heaven rig (HeavenBoss + Globe art), not the Demon fallback.
+  await page.waitForFunction(() => (window as any).__bossRigType === "Heaven", null, { timeout: 8000 });
   await page.screenshot({ path: path.join(SHOTS, "enemy-heaven-boss.png") });
+});
+
+test("Witchland bat grabs the ball, then a flyaway bat departs upward", async ({ page }) => {
+  await openBattle(page, "village-1");
+  // Drive the ball into the first bat block (public collision path via cheat).
+  const batId = await page.evaluate(() => {
+    const s = (window as any).__game.getState();
+    return s.blocks.find((b: any) => b.sprite === "BatSleeping")?.id;
+  });
+  expect(batId, "village-1 must contain a bat block").toBeTruthy();
+  await cheat(page, "ballToBlock", batId);
+  await cheat(page, "fastForward", 10); // collide + grab
+  // Hold expires (BatHoldTime 2s @120Hz) → harmless flyaway hazard kind="bat" appears.
+  await cheat(page, "fastForward", 260);
+  await page.waitForFunction(() => {
+    const s = (window as any).__game.getState();
+    return s && s.hazards.some((h: any) => h.kind === "bat");
+  }, null, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-bat-flyaway.png") });
 });
 
 test("Witch boss casts magic bolts (witchmagic hazards)", async ({ page }) => {

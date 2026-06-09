@@ -167,6 +167,46 @@ public class EnemyTests
         Assert.True(g.Balls[0].GrabbedTimer <= 0);
     }
 
+    [Fact]
+    public void BatRelease_SpawnsHarmlessFlyaway_ThatDespawnsAboveBoard()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"bat\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"v.k\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}");
+        var bat   = g.Blocks[0];
+        int lives = g.Lives;
+
+        BallHit(g, bat);
+        for (int i = 0; i < (int)(SimConfig.Default.BatHoldTime / SimConfig.Default.FixedDt) + 3; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+
+        // Release spawned the visual flyaway: harmless, flying upward.
+        var fly = g.Hazards.FirstOrDefault(h => h.Kind == "bat");
+        Assert.NotNull(fly);
+        Assert.Equal(0, fly!.Damage);
+        Assert.True(fly.Vel.Y < 0, "flyaway bat drifts upward");
+
+        // It despawns above the board without ever costing HP.
+        for (int i = 0; i < 600; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.DoesNotContain(g.Hazards, h => h.Kind == "bat");
+        Assert.Equal(lives, g.Lives);
+    }
+
+    // ── Emitter missile kinds (renderer draws real art from these tags) ───────
+
+    [Fact]
+    public void Emitter_TagsHazard_WithConfiguredMissileKind()
+    {
+        var g = Make(
+            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.5,\"emitAim\":\"down\",\"missileKind\":\"beholdermissile\"}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".E.\",\"...\",\"...\"],\"legend\":{\"E\":\"e\"}}");
+        for (int i = 0; i < 40; i++) g.Tick(0.016);
+        Assert.NotEmpty(g.Hazards);
+        Assert.All(g.Hazards, h => Assert.Equal("beholdermissile", h.Kind));
+    }
+
     // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
 
     [Fact]

@@ -62,6 +62,24 @@ internal static class CheatHandler
             case "loseBall":
                 foreach (var b in g.Balls) b.Alive = false;
                 break;
+            case "ballToBlock":
+                // Drive the first ball into the block with id == value (collision next tick
+                // via the public path) — used by tests to trigger contact behaviours (bat grab).
+                var target = g.Blocks.FirstOrDefault(b => !b.Dead && b.Id == (int)value);
+                if (target != null)
+                {
+                    if (g.Phase == GamePhase.Serving) g.Phase = GamePhase.Playing;
+                    var tc = g.Level.Grid.CellCenter(target.Col, target.Row);
+                    var ball = g.Balls.FirstOrDefault(b => b.Alive);
+                    if (ball != null)
+                    {
+                        // Place slightly overlapping so the contact registers on the next
+                        // tick even if a later fastForward freezes the ball's velocity.
+                        ball.Pos = new Vec2(tc.X, tc.Y + g.Config.CellSize / 2 + ball.Radius - 1);
+                        ball.Vel = new Vec2(0, -g.Config.BallSpeed);
+                    }
+                }
+                break;
             case "parkBallAbovePaddle":
                 if (g.Phase == GamePhase.Serving) g.Phase = GamePhase.Playing;
                 foreach (var b in g.Balls)

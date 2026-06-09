@@ -64,13 +64,14 @@ const EXPLOSION_FPS = 18;
 
 // ── Type definitions ──────────────────────────────────────────────────────────
 
-export type BossType = "Demon" | "Goblin" | "Witch" | "Unknown";
+export type BossType = "Demon" | "Goblin" | "Witch" | "Heaven" | "Unknown";
 
 /** Infer the boss type from the sprite key on a boss block. */
 export function inferBossType(spriteKey: string): BossType {
   if (spriteKey.includes("Demon")) return "Demon";
   if (spriteKey.includes("Goblin")) return "Goblin";
   if (spriteKey.includes("Witch")) return "Witch";
+  if (spriteKey.includes("Heaven")) return "Heaven";
   return "Unknown";
 }
 
@@ -80,6 +81,7 @@ export function bossLabel(type: BossType): string {
     case "Demon":  return "DEMON LORD";
     case "Goblin": return "GOBLIN KING";
     case "Witch":  return "THE WITCH";
+    case "Heaven": return "THE SERAPH";
     default:       return "BOSS";
   }
 }
@@ -135,6 +137,7 @@ export class BossRig {
       case "Demon":  this._buildDemon();  break;
       case "Goblin": this._buildGoblin(); break;
       case "Witch":  this._buildWitch();  break;
+      case "Heaven": this._buildHeaven(); break;
       default:       this._buildFallback(); break;
     }
   }
@@ -199,6 +202,24 @@ export class BossRig {
     this._addPart("village/enemies/WitchLeg1",  -0.18,  0.65, 0.28, true,  false); // left leg
     this._addPart("village/enemies/WitchLeg2",   0.18,  0.65, 0.28, true,  false); // right leg
     this._addPart("village/enemies/WitchMetla",  0.52,  0.18, 0.35, true,  true);  // broom
+  }
+
+  /**
+   * Heaven rig: the Seraph statue with its additive globe halo and two orbiting
+   * holy balls (the finale boss — uses the original HeavenBoss/Globe/HolyBall art).
+   * Total: 4 sprites.
+   */
+  private _buildHeaven() {
+    this._addPart("heaven/HeavenBossGlobe", 0.0, -0.05, 1.05, false, true); // halo behind
+    this._addPart("heaven/HeavenBoss",      0.0,  0.0,  0.90, false, true); // statue body
+    this._addPart("heaven/HolyBall",       -0.55, -0.10, 0.22, true,  true); // left orb
+    this._addPart("heaven/HolyBall",        0.55, -0.10, 0.22, true,  true); // right orb
+    // The globe is a glow layer — render it additive like the Demon's face glow.
+    const globe = this.parts[0];
+    if (globe) {
+      globe.sprite.blendMode = BLEND_MODES.ADD;
+      globe.sprite.alpha = 0.7;
+    }
   }
 
   /** Fallback: single body sprite when type is unknown. */

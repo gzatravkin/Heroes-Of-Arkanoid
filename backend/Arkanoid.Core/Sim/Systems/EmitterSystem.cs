@@ -76,9 +76,10 @@ internal static class EmitterSystem
             Damage = g.Config.EnemyHazardDamage,
             Radius = g.Config.EnemyHazardRadius,
             Alive  = true,
+            Kind   = blk.MissileKind,
         });
         g.RaiseEvent("enemyShot", origin.X, origin.Y);
-        g._log.Log(g.TickCount, "emitter", "fired", $"id={blk.Id} aim={blk.EmitAim}");
+        g._log.Log(g.TickCount, "emitter", "fired", $"id={blk.Id} aim={blk.EmitAim} kind={blk.MissileKind}");
     }
 
     private static Vec2 AimTarget(GameInstance g, Block blk, Vec2 origin)

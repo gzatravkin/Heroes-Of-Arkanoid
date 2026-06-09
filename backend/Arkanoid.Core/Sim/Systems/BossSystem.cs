@@ -142,9 +142,17 @@ internal static class BossSystem
     {
         var pattern = (BossPattern)patternInt;
 
-        // The Witchland boss casts her magic — every bolt is tagged "witchmagic" so the
-        // renderer cycles the WitchMagic1-4 sprites (port of WitchController's action list).
-        var kind = g.Level.Biome == "village" ? "witchmagic" : "";
+        // Every boss bolt carries a biome kind so the renderer draws the correct missile
+        // art (WitchMagic1-4 cycle, HellBallMissile, heaven Missile, falling stalactites)
+        // instead of a generic dot.
+        var kind = g.Level.Biome switch
+        {
+            "village" => "witchmagic",
+            "hell"    => "hellball",
+            "heaven"  => "heavenmissile",
+            "caverns" => "stalactite",
+            _         => "",
+        };
 
         foreach (var boss in bossBlocks)
         {

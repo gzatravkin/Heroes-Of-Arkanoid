@@ -42,6 +42,7 @@ public static class LevelLoader
                     TeleportColor = t.TeleportColor,
                     EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
                     ExplodeRadius = t.ExplodeRadius,
+                    MissileKind = t.MissileKind,
                     FlipX = t.FlipX, FlipY = t.FlipY
                 });
             }

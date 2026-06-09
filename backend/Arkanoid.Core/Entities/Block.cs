@@ -74,6 +74,8 @@ public sealed class Block
     public double EmitAccumulator { get; set; }
     /// <summary>Bomb: explosion radius in cells.</summary>
     public int    ExplodeRadius   { get; init; }
+    /// <summary>Emitter: hazard kind tag — tells the renderer which missile art to use.</summary>
+    public string MissileKind     { get; init; } = "";
     /// <summary>Shield: seconds of remaining damage-immunity granted to this block (mutable).</summary>
     public double ShieldTimer     { get; set; }
     /// <summary>Statue: seconds remaining pacified (allied) by an Altar/Vase — emits/shields nothing (mutable).</summary>

@@ -176,6 +176,8 @@ public sealed class SimConfig
     public double ShieldDuration       { get; init; } = 2.5;
     /// <summary>Seconds a Witchland bat holds the ball before releasing it.</summary>
     public double BatHoldTime          { get; init; } = 2.0;
+    /// <summary>Upward speed of the released bat's harmless flyaway hazard (units/sec).</summary>
+    public double BatFlyAwaySpeed      { get; init; } = 140;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

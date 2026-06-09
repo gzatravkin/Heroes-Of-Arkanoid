@@ -104,6 +104,39 @@ public class BossTests
     }
 
     // -----------------------------------------------------------------------
+    // 1c. Boss bolts carry a biome missile kind (hell → "hellball") so the
+    //     renderer draws real missile art instead of a generic dot.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void HellBoss_TagsHazardsAsHellball()
+    {
+        var cfg = new SimConfig
+        {
+            BossAttackInterval    = 0.05,
+            BossTelegraphDuration = 0.02,
+        };
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}
+            """,
+            """
+            {"id":"t","biome":"hell","cols":12,"rows":8,
+             "rows_data":["BBBBBBBBBBBB","............","............","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss"}}
+            """,
+            cfg);
+        g.Serve();
+
+        g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
+        g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+
+        Assert.NotEmpty(g.Hazards);
+        Assert.All(g.Hazards, h => Assert.Equal("hellball", h.Kind));
+    }
+
+    // -----------------------------------------------------------------------
     // 2. Hazard_HittingPaddle_DamagesPlayerHP (legacy, adapted)
     // -----------------------------------------------------------------------
 

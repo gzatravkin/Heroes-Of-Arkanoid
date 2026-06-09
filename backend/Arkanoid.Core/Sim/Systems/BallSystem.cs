@@ -28,9 +28,25 @@ internal static class BallSystem
                 var lean = g.Rng.Range(-0.3, 0.3);
                 b.Vel = new Vec2(lean, -1).Normalized() * g.Config.BallSpeed;
                 var bat = g.Blocks.FirstOrDefault(x => x.Id == b.GrabberId);
-                if (bat != null) bat.Dead = true; // flies away
+                if (bat != null)
+                {
+                    bat.Dead = true;
+                    // Visual flyaway: a harmless (Damage=0) "bat" hazard drifts up and
+                    // off-screen so the player sees the bat leave instead of vanishing.
+                    g.Hazards.Add(new Projectile
+                    {
+                        Id     = g._nextHazardId++,
+                        Pos    = b.GrabPos,
+                        Vel    = new Vec2(lean * g.Config.BatFlyAwaySpeed * 0.4, -g.Config.BatFlyAwaySpeed),
+                        Damage = 0,
+                        Radius = g.Config.EnemyHazardRadius,
+                        Alive  = true,
+                        Kind   = "bat",
+                    });
+                }
                 b.GrabberId = 0;
                 g.RaiseEvent("batRelease", b.Pos.X, b.Pos.Y);
+                g._log.Log(g.TickCount, "bat", "released ball + flyaway", $"ball={b.Id}");
             }
             return; // no movement/collision while grabbed
         }

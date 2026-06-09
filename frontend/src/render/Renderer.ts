@@ -16,6 +16,7 @@ import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
 import { Vignette } from "./Vignette";
 import { BossRig, TelegraphWarning, inferBossType } from "./Boss";
+import { log } from "../log";
 
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
 // this flag so that Playwright's headless software-WebGL never pays the cost.
@@ -342,6 +343,9 @@ export class Renderer {
         this._bossRig = new BossRig(bossType);
         this._bossRigType = bossTypeStr;
         this._bossLayer.addChildAt(this._bossRig.container, 0);
+        // Audit log + test hook: which rig art is actually shown for this boss block.
+        log("boss", `rig created type=${bossType} sprite=${bossTypeStr}`);
+        (window as unknown as { __bossRigType?: string }).__bossRigType = bossType;
       }
 
       // Hide the plain boss-block sprites while the rig is showing.
@@ -399,7 +403,7 @@ export class Renderer {
     this.ballLayer.update(s.balls, this._tick, s.cellSize, _ballSpriteKey);
 
     // --- hazards (falling/rolling enemy projectiles) ---
-    this.hazardLayer.update(s.hazards ?? [], this._tick, s.biome);
+    this.hazardLayer.update(s.hazards ?? [], this._tick);
 
     // --- bonus pickups (falling icons from Bonus/ art) ---
     this.bonusLayer.update(s.bonuses ?? [], this._tick);
