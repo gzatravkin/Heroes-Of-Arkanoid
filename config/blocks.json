@@ -12,7 +12,7 @@
   { "id": "village_basic",   "biome": "village", "hp": 2, "sprite": "VillageStandart",     "needToKill": true  },
   { "id": "village_tough",   "biome": "village", "hp": 3, "sprite": "VillageStandart2",    "needToKill": true  },
   { "id": "village_ghost",   "biome": "village", "hp": 2, "sprite": "VillageStandart2Ghost","needToKill": true, "ballPhases": true },
-  { "id": "heaven_basic",    "biome": "heaven",  "hp": 2, "sprite": "StandartHaven",       "needToKill": true  },
-  { "id": "heaven_tough",    "biome": "heaven",  "hp": 3, "sprite": "Standart2Haven",      "needToKill": true  },
+  { "id": "heaven_basic",    "biome": "heaven",  "hp": 3, "sprite": "StandartHaven",       "needToKill": true  },
+  { "id": "heaven_tough",    "biome": "heaven",  "hp": 5, "sprite": "Standart2Haven",      "needToKill": true  },
   { "id": "heaven_statue",   "biome": "heaven",  "hp": 1, "sprite": "InvulnerableHaven",   "needToKill": false, "indestructible": true }
 ]}

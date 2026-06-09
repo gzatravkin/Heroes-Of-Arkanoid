@@ -31,15 +31,20 @@ public static class ProfileEndpoints
             return Results.Json(new { nodes }, jsonOpts);
         });
 
-        // POST /complete?level=<id> → grant completion reward, save, return {profile, reward}
+        // POST /complete?level=<id>[&treasureBonus=<n>] → grant completion reward, save, return {profile, reward}
+        // treasureBonus: extra crystals from equipped treasure items (passed by the frontend from the snapshot).
         app.MapPost("/complete", (HttpContext ctx) =>
         {
             var levelId = ctx.Request.Query["level"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(levelId))
                 return Results.BadRequest("level query parameter required");
 
+            var treasureBonus = 0;
+            if (int.TryParse(ctx.Request.Query["treasureBonus"].FirstOrDefault(), out var tb) && tb > 0)
+                treasureBonus = tb;
+
             var profile = profileStore.Load();
-            var reward  = Rewards.GrantLevelCompletion(profile, levelId, progressionConfig);
+            var reward  = Rewards.GrantLevelCompletion(profile, levelId, progressionConfig, treasureBonus);
             profileStore.Save(profile);
             return Results.Json(new { profile, reward }, jsonOpts);
         });

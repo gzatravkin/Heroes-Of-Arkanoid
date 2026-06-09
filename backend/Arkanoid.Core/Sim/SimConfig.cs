@@ -25,18 +25,18 @@ public sealed class SimConfig
     public int BallDamage { get; init; } = 1;
 
     public double ManaMax { get; init; } = 100;
-    public double ManaRegenPerSec { get; init; } = 12;
+    public double ManaRegenPerSec { get; init; } = 14;  // bumped 12→14 to keep flow with higher spell costs
     public double ManaPerKill { get; init; } = 4;
     public double ManaPerfectDeflectBonus { get; init; } = 8;
     public double PerfectDeflectBand { get; init; } = 0.18; // |t| < band counts as "perfect"
 
     public double IgniteCost { get; init; } = 0;     // imbue is cheap/free (anti-Wizorb)
     public int    IgniteHits { get; init; } = 4;
-    public double FireballCost { get; init; } = 20;
+    public double FireballCost { get; init; } = 25;  // bumped 20→25 to prevent spam
     public double FireballSpeed { get; init; } = 420;
     public int    FireballDamage { get; init; } = 2;
 
-    public double FireWallCost { get; init; } = 30;
+    public double FireWallCost { get; init; } = 35;  // bumped 30→35; long AoE should cost more
     public double FireWallRiseSpeed { get; init; } = 90;   // units/sec upward
     public double FireWallLifetime { get; init; } = 3.0;   // seconds
     public double FireWallDamageInterval { get; init; } = 0.4; // seconds between damage ticks

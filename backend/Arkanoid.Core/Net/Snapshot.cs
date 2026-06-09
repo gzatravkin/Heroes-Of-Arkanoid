@@ -117,6 +117,8 @@ public sealed class Snapshot
     [JsonPropertyName("zones")]           public List<ZoneDto>    Zones    { get; set; } = new();
     [JsonPropertyName("skeletonActive")]  public bool SkeletonActive  { get; set; }
     [JsonPropertyName("drainActive")]     public bool DrainActive     { get; set; }
+    /// <summary>Extra crystals to be awarded at level completion (treasure-item bonus).</summary>
+    [JsonPropertyName("treasureBonus")]   public int  TreasureBonus   { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -170,8 +172,9 @@ public sealed class Snapshot
             s.Barriers.Add(new BarrierDto { Y = br.Y, CenterX = br.CenterX, Width = br.Width });
         foreach (var zn in g.Zones)
             s.Zones.Add(new ZoneDto { X = zn.X, Y = zn.Y, Radius = zn.Radius });
-        s.SkeletonActive = g.SkeletonActive;
-        s.DrainActive    = g.DrainActive;
+        s.SkeletonActive  = g.SkeletonActive;
+        s.DrainActive     = g.DrainActive;
+        s.TreasureBonus   = g.ItemTreasureBonus;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

@@ -168,7 +168,8 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 export const metaApi = {
   getProfile: ()                 => get<Profile>("/profile"),
   getCampaign: ()                => get<CampaignData>("/campaign"),
-  complete: (level: string)      => post<CompleteResult>(`/complete?level=${encodeURIComponent(level)}`),
+  complete: (level: string, treasureBonus = 0) =>
+    post<CompleteResult>(`/complete?level=${encodeURIComponent(level)}&treasureBonus=${treasureBonus}`),
   upgrade: (spell: string)       => post<UpgradeResult>(`/upgrade?spell=${encodeURIComponent(spell)}`),
   reset: ()                      => post<unknown>("/reset"),
   getDungeons: ()                => get<DungeonsResult>("/dungeons"),

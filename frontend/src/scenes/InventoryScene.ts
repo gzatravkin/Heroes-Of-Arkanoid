@@ -122,10 +122,10 @@ function updateEquippedRow(equippedRow: HTMLElement, equipped: string[], items: 
 
       const tier = def.ownedTier;
       const img = document.createElement("img");
-      img.src = `/Sprites/Items/${def.icon}${tier > 1 ? String(tier) : ""}.png`;
+      img.src = `/items/${def.icon}${tier > 1 ? String(tier) : ""}.png`;
       img.alt = def.name;
       img.className = "inv-slot-sprite";
-      img.onerror = () => { img.src = `/Sprites/Items/${def.icon}.png`; img.onerror = null; };
+      img.onerror = () => { img.src = `/items/${def.icon}.png`; img.onerror = null; };
       slot.appendChild(img);
 
       const label = document.createElement("div");
@@ -210,15 +210,15 @@ function buildCard(item: ItemDef, equipped: string[], crystals: number): HTMLEle
   if (tier > 0) {
     const img = document.createElement("img");
     const suffix = tier > 1 ? String(tier) : "";
-    img.src = `/Sprites/Items/${item.icon}${suffix}.png`;
+    img.src = `/items/${item.icon}${suffix}.png`;
     img.alt = item.name;
     img.className = "inv-item-sprite";
-    img.onerror = () => { img.src = `/Sprites/Items/${item.icon}.png`; img.onerror = null; };
+    img.onerror = () => { img.src = `/items/${item.icon}.png`; img.onerror = null; };
     spriteWrap.appendChild(img);
   } else {
     // Not owned — show locked icon
     const img = document.createElement("img");
-    img.src = `/Sprites/Items/LockedItem.png`;
+    img.src = `/items/LockedItem.png`;
     img.alt = "Locked";
     img.className = "inv-item-sprite inv-item-locked";
     img.onerror = () => { img.style.display = "none"; spriteWrap.textContent = "🔒"; };

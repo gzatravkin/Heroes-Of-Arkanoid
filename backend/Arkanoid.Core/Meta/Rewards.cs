@@ -17,7 +17,12 @@ public static class Rewards
     /// Idempotent: subsequent calls with the same levelId return FirstClear=false and grant nothing.
     /// Mutates <paramref name="p"/> in-place.
     /// </summary>
-    public static RewardResult GrantLevelCompletion(Profile p, string levelId, ProgressionConfig cfg)
+    /// <param name="treasureBonus">
+    /// Extra crystals from equipped treasure items (from GameInstance.ItemTreasureBonus).
+    /// Only applied on first clear.
+    /// </param>
+    public static RewardResult GrantLevelCompletion(Profile p, string levelId, ProgressionConfig cfg,
+                                                     int treasureBonus = 0)
     {
         if (p.CompletedLevels.Contains(levelId))
         {
@@ -32,10 +37,12 @@ public static class Rewards
             };
         }
 
+        var totalCrystals = cfg.CrystalsRewardPerLevel + treasureBonus;
+
         p.CompletedLevels.Add(levelId);
         p.Exp      += cfg.ExpRewardPerLevel;
         p.Points   += cfg.PointsRewardPerLevel;
-        p.Crystals += cfg.CrystalsRewardPerLevel;
+        p.Crystals += totalCrystals;
 
         int startingLevel = p.Level;
         int totalPointsFromLevelUps = 0;
@@ -55,7 +62,7 @@ public static class Rewards
             FirstClear     = true,
             ExpGained      = cfg.ExpRewardPerLevel,
             PointsGained   = cfg.PointsRewardPerLevel + totalPointsFromLevelUps,
-            CrystalsGained = cfg.CrystalsRewardPerLevel,
+            CrystalsGained = totalCrystals,
             NewLevel       = p.Level,
             LeveledUp      = p.Level > startingLevel,
         };

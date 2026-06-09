@@ -1,3 +1,5 @@
+import { navigateTo } from "../ui/transition";
+
 const LEVELS: { id: string; label: string }[] = [
   { id: "hell-1",        label: "Hell I" },
   { id: "hell-teleport", label: "Hell — Teleporters" },
@@ -50,7 +52,7 @@ export function mountMenu(host: HTMLElement) {
   playBtn.className = "menu-art-btn menu-btn-play";
   playBtn.innerHTML = `<span class="menu-btn-label">Play</span>`;
   playBtn.addEventListener("click", () => {
-    location.search = `?scene=battle&level=hell-1`;
+    navigateTo(`/?scene=battle&level=hell-1`);
   });
   navSection.appendChild(playBtn);
 
@@ -59,7 +61,7 @@ export function mountMenu(host: HTMLElement) {
   campaignBtn.id = "btn-campaign";
   campaignBtn.className = "menu-art-btn menu-btn-campaign";
   campaignBtn.innerHTML = `<span class="menu-btn-label">Campaign</span>`;
-  campaignBtn.addEventListener("click", () => { location.href = "/?scene=campaign"; });
+  campaignBtn.addEventListener("click", () => { navigateTo("/?scene=campaign"); });
   navSection.appendChild(campaignBtn);
 
   // Characters
@@ -67,7 +69,7 @@ export function mountMenu(host: HTMLElement) {
   charactersBtn.id = "btn-characters";
   charactersBtn.className = "menu-art-btn menu-btn-characters";
   charactersBtn.innerHTML = `<span class="menu-btn-label">Characters</span>`;
-  charactersBtn.addEventListener("click", () => { location.href = "/?scene=characters"; });
+  charactersBtn.addEventListener("click", () => { navigateTo("/?scene=characters"); });
   navSection.appendChild(charactersBtn);
 
   // Dungeons
@@ -75,7 +77,7 @@ export function mountMenu(host: HTMLElement) {
   dungeonsBtn.id = "btn-dungeons";
   dungeonsBtn.className = "menu-art-btn menu-btn-dungeons";
   dungeonsBtn.innerHTML = `<span class="menu-btn-label">Dungeons</span>`;
-  dungeonsBtn.addEventListener("click", () => { location.href = "/?scene=dungeons"; });
+  dungeonsBtn.addEventListener("click", () => { navigateTo("/?scene=dungeons"); });
   navSection.appendChild(dungeonsBtn);
 
   // Inventory / Items
@@ -83,7 +85,7 @@ export function mountMenu(host: HTMLElement) {
   inventoryBtn.id = "btn-inventory";
   inventoryBtn.className = "menu-art-btn menu-btn-inventory";
   inventoryBtn.innerHTML = `<span class="menu-btn-label">Items</span>`;
-  inventoryBtn.addEventListener("click", () => { location.href = "/?scene=inventory"; });
+  inventoryBtn.addEventListener("click", () => { navigateTo("/?scene=inventory"); });
   navSection.appendChild(inventoryBtn);
 
   // Editor
@@ -91,7 +93,7 @@ export function mountMenu(host: HTMLElement) {
   editorBtn.id = "btn-editor";
   editorBtn.className = "menu-art-btn menu-btn-editor";
   editorBtn.innerHTML = `<span class="menu-btn-label">Level Editor</span>`;
-  editorBtn.addEventListener("click", () => { location.href = "/?scene=editor"; });
+  editorBtn.addEventListener("click", () => { navigateTo("/?scene=editor"); });
   navSection.appendChild(editorBtn);
 
   col.appendChild(navSection);
@@ -107,7 +109,7 @@ export function mountMenu(host: HTMLElement) {
     btn.className = "menu-quick-btn";
     btn.textContent = lvl.label;
     btn.addEventListener("click", () => {
-      location.search = `?scene=battle&level=${lvl.id}`;
+      navigateTo(`/?scene=battle&level=${lvl.id}`);
     });
     quickGrid.appendChild(btn);
   });

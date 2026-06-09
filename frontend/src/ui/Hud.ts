@@ -7,19 +7,20 @@ import { tex as atlasTex } from "../render/assets";
 // ---------------------------------------------------------------------------
 // Spell cost constants (mirrored from backend; used for affordability dimming).
 // ---------------------------------------------------------------------------
+// Mirrored from backend SimConfig — update here whenever SimConfig spell costs change.
 const SPELL_COSTS: Record<string, number> = {
   ignite:    0,
-  fireball:  20,
-  firewall:  30,
+  fireball:  25,  // bumped 20→25 (P7a balance pass)
+  firewall:  35,  // bumped 30→35 (P7a balance pass)
   turret:    25,
   shield:    20,
-  spear:     25,
-  duplicate: 30,
+  spear:     15,
+  duplicate: 25,
   lightning: 20,
-  rocket:    30,
-  radiation: 35,
+  rocket:    25,
+  radiation: 30,
   decay:     0,
-  skeleton:  30,
+  skeleton:  25,
   drain:     20,
 };
 
@@ -215,10 +216,10 @@ export class Hud {
       const tier = item.ownedTier;
       const suffix = tier > 1 ? String(tier) : "";
       const img = document.createElement("img");
-      img.src = `/Sprites/Items/${item.icon}${suffix}.png`;
+      img.src = `/items/${item.icon}${suffix}.png`;
       img.alt = item.name;
       img.style.cssText = "width:22px;height:22px;object-fit:contain;image-rendering:pixelated;";
-      img.onerror = () => { img.src = `/Sprites/Items/${item.icon}.png`; img.onerror = null; };
+      img.onerror = () => { img.src = `/items/${item.icon}.png`; img.onerror = null; };
       tile.appendChild(img);
       this._itemsRowEl.appendChild(tile);
     }

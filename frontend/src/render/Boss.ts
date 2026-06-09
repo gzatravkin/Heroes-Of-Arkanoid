@@ -107,6 +107,9 @@ export class BossRig {
   private type: BossType;
   private _attackLunge = -1;  // ms elapsed into lunge anim, -1=inactive
   private _animSys: AnimSystem;
+  // Stored region (set by setRegion each snapshot, read by update each tick).
+  _regionW = 0;
+  _regionH = 0;
 
   constructor(type: BossType) {
     this.type = type;
@@ -229,8 +232,8 @@ export class BossRig {
   get bossType(): BossType { return this.type; }
 
   /**
-   * Position and scale the rig to fit over a boss-block region.
-   * Call every frame (cheap — just sets position/scale on existing sprites).
+   * Advance animation state and position the rig.
+   * Called from the Pixi ticker with real delta-ms so animations play at true speed.
    *
    * @param cx   World-space center X of the boss region
    * @param cy   World-space center Y of the boss region
@@ -238,7 +241,7 @@ export class BossRig {
    * @param h    World-space height of the boss region
    * @param hpFrac 0..1 HP fraction (1 = full, 0 = dead)
    * @param tick  Ticker frame counter for animations
-   * @param dtMs  Delta in ms (for lunge timer)
+   * @param dtMs  Real delta-time in ms (must be >0 for animations to move)
    */
   update(cx: number, cy: number, w: number, h: number, hpFrac: number, tick: number, dtMs: number) {
     this.container.position.set(cx, cy);
@@ -299,16 +302,32 @@ export class BossRig {
       }
     }
 
-    // Resize flash gfx to cover rig.
+    // Resize flash gfx to cover rig — use an ellipse for a natural body-glow shape.
     this.flashGfx.clear();
     if (this.flashGfx.alpha > 0.01) {
-      this.flashGfx.beginFill(0xff2200, 1)
-        .drawRect(-w * 0.7, -rigH * 0.7, w * 1.4, rigH * 1.4)
+      // Outer halo ring (additive ellipse — looks like a pulsing energy burst).
+      this.flashGfx.beginFill(0xff2200, 0.55)
+        .drawEllipse(0, 0, w * 0.75, rigH * 0.7)
+        .endFill();
+      // Inner core: brighter, smaller.
+      this.flashGfx.beginFill(0xff8844, 0.65)
+        .drawEllipse(0, 0, w * 0.42, rigH * 0.42)
         .endFill();
     }
 
     // Drive AnimSystem.
     this._animSys.update(dtMs);
+  }
+
+  /**
+   * Update the region the rig is anchored to (called from draw() per snapshot).
+   * Does NOT advance animation time — the ticker calls update() for that.
+   */
+  setRegion(cx: number, cy: number, w: number, h: number) {
+    this.container.position.set(cx, cy);
+    // Store for use when the ticker calls update().
+    this._regionW = w;
+    this._regionH = h;
   }
 
   /** Call on bossTelegraph or bossAttack event — triggers the lunge + flash. */
@@ -386,13 +405,25 @@ export class TelegraphWarning {
   private _redraw(size: number, alpha: number) {
     const r = size * 0.55;
     this.gfx.clear();
-    // Outer ring.
-    this.gfx.lineStyle(3, 0xff2200, alpha * 0.9)
+
+    // Soft outer glow halo (wide, low-alpha additive fill).
+    this.gfx.lineStyle(0).beginFill(0xff2200, alpha * 0.18)
+      .drawCircle(0, 0, r * 1.5)
+      .endFill();
+
+    // Outer ring — double-stroked for readability.
+    this.gfx.lineStyle(5, 0xff0000, alpha * 0.45)
       .drawCircle(0, 0, r);
-    // Inner exclamation mark.
-    this.gfx.lineStyle(0).beginFill(0xff4400, alpha * 0.8)
-      .drawRect(-r * 0.1, -r * 0.55, r * 0.2, r * 0.45)
-      .drawCircle(0, r * 0.3, r * 0.12)
+    this.gfx.lineStyle(2.5, 0xff8800, alpha * 0.9)
+      .drawCircle(0, 0, r);
+
+    // Exclamation shaft (tall rect).
+    this.gfx.lineStyle(0).beginFill(0xffcc00, alpha * 0.95)
+      .drawRoundedRect(-r * 0.1, -r * 0.60, r * 0.2, r * 0.52, r * 0.05)
+      .endFill();
+    // Exclamation dot.
+    this.gfx.beginFill(0xffcc00, alpha * 0.95)
+      .drawCircle(0, r * 0.36, r * 0.13)
       .endFill();
   }
 }

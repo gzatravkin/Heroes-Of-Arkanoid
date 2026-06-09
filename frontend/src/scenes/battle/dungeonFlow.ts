@@ -1,6 +1,7 @@
 import type { Snapshot } from "../../net/Connection";
 import { metaApi } from "../../net/metaApi";
 import { buildPickOverlay, buildDungeonClearOverlay, buildDungeonFailOverlay } from "./overlays";
+import { navigateTo } from "../../ui/transition";
 
 export function createDungeonFlow() {
   let completeCalled = false;
@@ -15,7 +16,7 @@ export function createDungeonFlow() {
       try {
         const data = await metaApi.floorCleared();
         if (data.isLastFloor) {
-          const el = buildDungeonClearOverlay(data, () => { location.href = "/?scene=dungeons"; });
+          const el = buildDungeonClearOverlay(data, () => { navigateTo("/?scene=dungeons"); });
           document.body.appendChild(el);
         } else {
           const el = buildPickOverlay(
@@ -23,7 +24,7 @@ export function createDungeonFlow() {
             async (choiceId) => {
               try {
                 await metaApi.pick(choiceId);
-                location.href = "/?scene=dungeon";
+                navigateTo("/?scene=dungeon");
               } catch (e) {
                 console.error("dungeon pick failed", e);
               }
@@ -45,7 +46,7 @@ export function createDungeonFlow() {
       } catch (e) {
         console.error("dungeon fail failed", e);
       }
-      const el = buildDungeonFailOverlay(() => { location.href = "/?scene=dungeons"; });
+      const el = buildDungeonFailOverlay(() => { navigateTo("/?scene=dungeons"); });
       document.body.appendChild(el);
       return true;
     }

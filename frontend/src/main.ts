@@ -7,6 +7,7 @@ import { mountDungeon } from "./scenes/DungeonScene";
 import { mountCharacters } from "./scenes/CharacterScene";
 import { mountEditor } from "./scenes/EditorScene";
 import { mountInventory } from "./scenes/InventoryScene";
+import { fadeInOnLoad } from "./ui/transition";
 
 const host = document.getElementById("app")!;
 const q = new URLSearchParams(location.search);
@@ -26,6 +27,8 @@ host.appendChild(loading);
 loadAtlas()
   .then(() => {
     loading.remove();
+    // Fade in after atlas loads so every scene entry feels smooth.
+    fadeInOnLoad();
     if (scene === "battle") mountBattle(host, level, seed, run, from);
     else if (scene === "campaign") mountCampaign(host);
     else if (scene === "dungeons") mountDungeons(host);

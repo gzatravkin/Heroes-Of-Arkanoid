@@ -22,3 +22,4 @@ Thumbs.db
 
 # Editor test levels
 config/levels/test-*.json
+frontend/public/Sprites

@@ -222,6 +222,8 @@ export class Renderer {
   private _telegraphWarning = new TelegraphWarning();
   // Boss region bounding box (updated each frame).
   private _bossRegion = { cx: 0, cy: 0, w: 0, h: 0 };
+  // Latest boss HP fraction — kept so the ticker can drive boss animation.
+  private _bossHpFrac = 1.0;
   // Boss rig container layer (sits above blocks).
   private _bossLayer = new Container();
 
@@ -340,6 +342,16 @@ export class Renderer {
 
       // Telegraph warning update (runs regardless of hit-stop for clarity).
       this._telegraphWarning.update(dtMs, this._bossRegion.w * 0.5);
+
+      // Boss rig animation: drive with real dt so idle bob/lunge/flash animate.
+      // draw() calls setRegion() to reposition; the ticker drives animation timing.
+      if (this._bossRig) {
+        this._bossRig.update(
+          this._bossRegion.cx, this._bossRegion.cy,
+          this._bossRegion.w, this._bossRegion.h,
+          this._bossHpFrac, this._tick, dtMs,
+        );
+      }
 
       this.screenShake.update(dtMs);
       // Apply screen-shake offset on top of the fit position calculated last draw().
@@ -617,11 +629,12 @@ export class Renderer {
         if (entry) entry.sp.alpha = 0;
       }
 
-      // Compute HP fraction.
-      const hpFrac = s.bossMaxHp > 0 ? s.bossHp / s.bossMaxHp : 1;
+      // Compute HP fraction (stored so the ticker can animate the rig).
+      this._bossHpFrac = s.bossMaxHp > 0 ? s.bossHp / s.bossMaxHp : 1;
 
-      // Update rig transform / animation.
-      this._bossRig.update(regionCx, regionCy, regionW, regionH, hpFrac, this._tick, 0);
+      // Reposition the rig to match the current boss-block region.
+      // Animation (bob/lunge/flash) is driven by the Pixi ticker above with real dt.
+      this._bossRig.setRegion(regionCx, regionCy, regionW, regionH);
     }
 
     // Boss-active → inactive transition: defeat flourish.

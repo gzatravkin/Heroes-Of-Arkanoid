@@ -1,5 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import type { CampaignNode, Profile } from "../net/metaApi";
+import { navigateTo } from "../ui/transition";
 
 const SPELL_NAMES: Record<string, string> = {
   ignite: "Ignite",
@@ -319,7 +320,7 @@ export function mountCampaign(host: HTMLElement) {
 
       if (state !== "locked") {
         btn.addEventListener("click", () => {
-          location.href = `/?scene=battle&level=${node.id}&from=campaign`;
+          navigateTo(`/?scene=battle&level=${node.id}&from=campaign`);
         });
         lastUnlockedBtn = btn;
       }

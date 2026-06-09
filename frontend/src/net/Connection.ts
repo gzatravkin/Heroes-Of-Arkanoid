@@ -24,6 +24,9 @@ export interface Snapshot {
   zones: { x: number; y: number; radius: number }[];
   skeletonActive: boolean;
   drainActive: boolean;
+  // P7 additions
+  /** Extra crystals to add to the level-completion reward (from equipped treasure items). */
+  treasureBonus?: number;
 }
 
 export class Connection {

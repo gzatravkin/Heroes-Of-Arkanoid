@@ -1,6 +1,7 @@
 import type { Snapshot } from "../../net/Connection";
 import { metaApi } from "../../net/metaApi";
 import { buildRewardOverlay, buildDefeatOverlay } from "./overlays";
+import { navigateTo } from "../../ui/transition";
 
 export function createCampaignFlow(level: string) {
   let completeCalled = false;
@@ -14,12 +15,12 @@ export function createCampaignFlow(level: string) {
       overlayShown = true;
       let reward = null;
       try {
-        const data = await metaApi.complete(level);
+        const data = await metaApi.complete(level, s.treasureBonus ?? 0);
         reward = data.reward;
       } catch (e) {
         console.error("Failed to complete level", e);
       }
-      const el = buildRewardOverlay(reward, () => { location.href = "/?scene=campaign"; });
+      const el = buildRewardOverlay(reward, () => { navigateTo("/?scene=campaign"); });
       document.body.appendChild(el);
       return true;
     }
@@ -27,8 +28,8 @@ export function createCampaignFlow(level: string) {
     if (s.phase === "Lost") {
       overlayShown = true;
       const el = buildDefeatOverlay(
-        () => { location.href = `/?scene=battle&level=${encodeURIComponent(level)}&from=campaign`; },
-        () => { location.href = "/?scene=campaign"; },
+        () => { navigateTo(`/?scene=battle&level=${encodeURIComponent(level)}&from=campaign`); },
+        () => { navigateTo("/?scene=campaign"); },
       );
       document.body.appendChild(el);
       return true;
