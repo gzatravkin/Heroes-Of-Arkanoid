@@ -7,8 +7,8 @@ import { openBattle, getState, cheat, waitForPhase } from "./helpers/game";
 // is the safety net for hand- or AI-generated levels.
 const LEVELS = [
   "hell-1", "hell-2", "hell-teleport", "hell-boss",
-  "caverns-1", "caverns-2",
-  "village-1", "village-2", "village-ghost",
+  "caverns-1", "caverns-2", "caverns-boss",
+  "village-1", "village-2", "village-ghost", "village-boss",
   "heaven-1", "heaven-2",
   "hell-winnable",
 ];

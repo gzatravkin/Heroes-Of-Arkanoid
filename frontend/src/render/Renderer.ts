@@ -2,12 +2,13 @@ import { Application, Container, Graphics, Sprite, AnimatedSprite, BLEND_MODES, 
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
-import { bg as biomedBg, hellParallaxFrames, anim as animFrames } from "./assets";
+import { bg as biomedBg, hellParallaxFrames, anim as animFrames, tex as atlasTex } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
 import { Vignette } from "./Vignette";
 import { AnimSystem } from "./AnimSystem";
+import { BossRig, TelegraphWarning, inferBossType } from "./Boss";
 
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
 // this flag so that Playwright's headless software-WebGL never pays the cost.
@@ -98,6 +99,9 @@ const BOSS_AURA_ALPHA  = 0.55;
 const BOSS_AURA_PULSE_SPEED = 0.06;
 const BOSS_AURA_ALPHA_AMP  = 0.25;
 
+// How long to keep the boss rig visible after defeat (for the explosion burst to play).
+const BOSS_DEFEAT_CLEANUP_MS = 1500;
+
 // Hazard (falling enemy projectile) rendering constants.
 const HAZARD_RADIUS    = 6;         // px in world space (scaled later)
 const HAZARD_COLOR     = 0xdd1111; // crimson
@@ -156,8 +160,21 @@ export class Renderer {
   private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics; auraId?: number }>();
   // Separate AnimSystem for ball aura effects (looping per-ball fire aura).
   private _ballAnimSys: AnimSystem;
-  // Hazard pool: each entry is { halo, core }.
-  private _hazardPool: { halo: Graphics; core: Graphics }[] = [];
+  // Hazard pool: each entry is { halo, core, bat? }.
+  private _hazardPool: { halo: Graphics; core: Graphics; bat?: Sprite }[] = [];
+
+  // Boss rig: one BossRig instance while bossActive, destroyed when boss dies.
+  private _bossRig: BossRig | null = null;
+  // The boss type inferred from boss block sprites (set when rig is created).
+  private _bossRigType = "";
+  // Whether the boss was active in the previous frame (for defeat detection).
+  private _prevBossActive = false;
+  // Telegraph warning glyph (reusable).
+  private _telegraphWarning = new TelegraphWarning();
+  // Boss region bounding box (updated each frame).
+  private _bossRegion = { cx: 0, cy: 0, w: 0, h: 0 };
+  // Boss rig container layer (sits above blocks).
+  private _bossLayer = new Container();
 
   // Paddle squash/stretch state.
   private _paddleSquashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
@@ -224,12 +241,16 @@ export class Renderer {
       this.balls.filters = [ballGlow];
     }
 
-    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → effects → ballAuras → balls → paddleSprite → turret → hazards
+    // Add telegraph warning container to boss layer.
+    this._bossLayer.addChild(this._telegraphWarning.container);
+
+    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → bossLayer → effects → ballAuras → balls → paddleSprite → turret → hazards
     this.world.addChild(
       this.ballTrail.container,
       this.blocks,
       this.fireWalls,
       this._wallAnimSys.container,
+      this._bossLayer,
       this.effectsLayer.container,
       this._ballAnimSys.container,
       this.balls,
@@ -261,6 +282,9 @@ export class Renderer {
         this._ballAnimSys.update(dtMs);
         this._wallAnimSys.update(dtMs);
       }
+
+      // Telegraph warning update (runs regardless of hit-stop for clarity).
+      this._telegraphWarning.update(dtMs, this._bossRegion.w * 0.5);
 
       this.screenShake.update(dtMs);
       // Apply screen-shake offset on top of the fit position calculated last draw().
@@ -497,6 +521,81 @@ export class Renderer {
 
         this.blocks.addChild(sp);
         this._blockPool.set(b.id, { sp, aura, ring });
+      }
+    }
+
+    // --- boss rig: assemble / update / destroy animated multi-part boss ---
+    // Compute the boss-block bounding region this frame.
+    const bossBlocks = s.blocks.filter(b => b.boss);
+    if (bossBlocks.length > 0) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const b of bossBlocks) {
+        minX = Math.min(minX, b.x - brickSize / 2);
+        maxX = Math.max(maxX, b.x + brickSize / 2);
+        minY = Math.min(minY, b.y - brickSize / 2);
+        maxY = Math.max(maxY, b.y + brickSize / 2);
+      }
+      const regionCx = (minX + maxX) / 2;
+      const regionCy = (minY + maxY) / 2;
+      const regionW  = maxX - minX;
+      const regionH  = maxY - minY;
+      this._bossRegion = { cx: regionCx, cy: regionCy, w: regionW, h: regionH };
+
+      // Infer boss type from first boss block sprite.
+      const bossType = inferBossType(bossBlocks[0].sprite);
+      const bossTypeStr = bossBlocks[0].sprite;
+
+      // Create or recreate rig if type changed.
+      if (!this._bossRig || this._bossRigType !== bossTypeStr) {
+        if (this._bossRig) {
+          this._bossLayer.removeChild(this._bossRig.container);
+          this._bossRig.destroy();
+        }
+        this._bossRig = new BossRig(bossType);
+        this._bossRigType = bossTypeStr;
+        this._bossLayer.addChildAt(this._bossRig.container, 0);
+      }
+
+      // Hide the plain boss-block sprites while the rig is showing.
+      for (const b of bossBlocks) {
+        const entry = this._blockPool.get(b.id);
+        if (entry) entry.sp.alpha = 0;
+      }
+
+      // Compute HP fraction.
+      const hpFrac = s.bossMaxHp > 0 ? s.bossHp / s.bossMaxHp : 1;
+
+      // Update rig transform / animation.
+      this._bossRig.update(regionCx, regionCy, regionW, regionH, hpFrac, this._tick, 0);
+    }
+
+    // Boss-active → inactive transition: defeat flourish.
+    if (this._prevBossActive && !s.bossActive) {
+      if (this._bossRig) {
+        this._bossRig.onDefeat(s.cellSize);
+        // Animate defeat in-place for a beat, then clean up.
+        setTimeout(() => {
+          if (this._bossRig) {
+            this._bossLayer.removeChild(this._bossRig.container);
+            this._bossRig.destroy();
+            this._bossRig = null;
+            this._bossRigType = "";
+          }
+        }, BOSS_DEFEAT_CLEANUP_MS);
+      }
+    }
+    this._prevBossActive = s.bossActive;
+
+    // Boss events: telegraph warning + lunge.
+    for (const ev of s.events) {
+      if (ev.type === "bossTelegraph") {
+        if (this._bossRig) this._bossRig.onTelegraph();
+        this._telegraphWarning.trigger(
+          this._bossRegion.cx, this._bossRegion.cy,
+          this._bossRegion.w,
+        );
+      } else if (ev.type === "bossAttack") {
+        if (this._bossRig) this._bossRig.onTelegraph(); // also lunge on actual attack
       }
     }
 
@@ -756,31 +855,59 @@ export class Renderer {
     // --- hazards (falling enemy projectiles) — pool by array index ---
     // Hazards have no stable id; use a fixed-size ring buffer keyed by index.
     const hazards = s.hazards ?? [];
+    // Bat sprite texture for summon-type hazards (village boss phase 3).
+    const batTex = atlasTex("village/enemies/BatFlyAnimation");
 
     // Grow pool if more hazards than pooled entries.
     while (this._hazardPool.length < hazards.length) {
       const halo = new Graphics();
       halo.blendMode = BLEND_MODES.ADD;
       const core = new Graphics();
+      // Bat sprite: only shown when bat texture is available and biome is village.
+      const bat = new Sprite(Texture.WHITE);
+      bat.anchor.set(0.5);
+      bat.visible = false;
       this.hazardsLayer.addChild(halo);
       this.hazardsLayer.addChild(core);
-      this._hazardPool.push({ halo, core });
+      this.hazardsLayer.addChild(bat);
+      this._hazardPool.push({ halo, core, bat });
     }
+
+    // Check if we should show bat sprites (village biome + bat texture loaded).
+    const showBats = (s.biome === "village" || s.biome === "village-boss") && batTex !== Texture.WHITE;
 
     // Update visible entries.
     for (let i = 0; i < this._hazardPool.length; i++) {
-      const { halo, core } = this._hazardPool[i];
+      const { halo, core, bat } = this._hazardPool[i];
       if (i < hazards.length) {
         const hz = hazards[i];
-        halo.visible = true;
-        core.visible = true;
-        halo.clear().beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
-          .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT).endFill();
-        core.clear().beginFill(HAZARD_COLOR, 1)
-          .drawCircle(hz.x, hz.y, HAZARD_RADIUS).endFill();
+        if (showBats && bat) {
+          // Show bat sprite instead of circle for village hazards.
+          halo.visible = false;
+          core.visible = false;
+          bat.texture  = batTex;
+          bat.visible  = true;
+          const batSize = HAZARD_RADIUS * 3.5;
+          bat.width  = batSize * 2;
+          bat.height = batSize * 2;
+          bat.x = hz.x;
+          bat.y = hz.y;
+          bat.tint = 0x9988ff; // purple tint for bat
+          bat.rotation = (this._tick * 0.08 + i * 0.5); // slow flutter
+        } else {
+          // Standard crimson hazard circle.
+          if (bat) bat.visible = false;
+          halo.visible = true;
+          core.visible = true;
+          halo.clear().beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
+            .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT).endFill();
+          core.clear().beginFill(HAZARD_COLOR, 1)
+            .drawCircle(hz.x, hz.y, HAZARD_RADIUS).endFill();
+        }
       } else {
         halo.visible = false;
         core.visible = false;
+        if (bat) bat.visible = false;
       }
     }
 

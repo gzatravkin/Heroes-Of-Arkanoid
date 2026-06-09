@@ -11,6 +11,9 @@ export interface Snapshot {
   walls: { y: number; width: number }[];
   turretActive: boolean;
   activeRelics: { id: string; name: string; icon: string }[];
+  bossActive: boolean;
+  bossHp: number;
+  bossMaxHp: number;
 }
 
 export class Connection {

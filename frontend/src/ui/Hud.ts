@@ -1,5 +1,6 @@
 import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
+import { inferBossType, bossLabel } from "../render/Boss";
 
 // ---------------------------------------------------------------------------
 // Spell cost constants (mirrored from backend; used for affordability dimming).
@@ -43,6 +44,10 @@ export class Hud {
   private spellSlots: Map<string, HTMLElement> = new Map();
   private banner: HTMLElement;
   private relicsEl: HTMLElement;
+  // Boss HP bar elements.
+  private bossBarEl: HTMLElement;
+  private bossBarFill: HTMLElement;
+  private bossNameEl: HTMLElement;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -106,6 +111,12 @@ export class Hud {
     bottomCenter.appendChild(this.manaOuter);
     bottomCenter.appendChild(hotbar);
 
+    // ---- boss HP bar (top center, only visible when bossActive) ----
+    const bossBar = this.buildBossBar();
+    this.bossBarEl   = bossBar.outer;
+    this.bossBarFill = bossBar.fill;
+    this.bossNameEl  = bossBar.name;
+
     // ---- banner (center) ----
     this.banner = this.createElement("div", "hud-banner");
     this.banner.id = "hud-banner";
@@ -119,6 +130,7 @@ export class Hud {
 
     this.root.appendChild(topLeft);
     this.root.appendChild(topRight);
+    this.root.appendChild(this.bossBarEl);
     this.root.appendChild(bottomCenter);
     this.root.appendChild(this.banner);
 
@@ -173,6 +185,27 @@ export class Hud {
     // -- relics --
     this.updateRelics(s.activeRelics ?? []);
 
+    // -- boss HP bar --
+    if (s.bossActive && s.bossMaxHp > 0) {
+      this.bossBarEl.style.display = "flex";
+      const hpPct = Math.min(1, Math.max(0, s.bossHp / s.bossMaxHp)) * 100;
+      this.bossBarFill.style.width = `${hpPct}%`;
+      // Infer boss name from the first boss block's sprite.
+      const bossBlock = s.blocks.find(b => b.boss);
+      const bossType = bossBlock ? inferBossType(bossBlock.sprite) : "Unknown";
+      this.bossNameEl.textContent = bossLabel(bossType);
+      // Tint fill bar based on HP level.
+      if (hpPct < 33) {
+        this.bossBarFill.style.background = "linear-gradient(to right,#cc2200,#ff4422)";
+      } else if (hpPct < 66) {
+        this.bossBarFill.style.background = "linear-gradient(to right,#cc6600,#ff9933)";
+      } else {
+        this.bossBarFill.style.background = "linear-gradient(to right,#880000,#cc2222)";
+      }
+    } else {
+      this.bossBarEl.style.display = "none";
+    }
+
     // -- banner --
     if (s.phase === "Won") {
       this.banner.style.display = "block";
@@ -218,6 +251,59 @@ export class Hud {
 
       this.relicsEl.appendChild(tile);
     }
+  }
+
+  private buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: HTMLElement } {
+    const outer = this.createElement("div");
+    outer.id = "hud-boss-hp";
+    outer.style.cssText = [
+      "display:none",
+      "position:absolute",
+      "top:8px", "left:50%",
+      "transform:translateX(-50%)",
+      "flex-direction:column",
+      "align-items:center",
+      "gap:3px",
+      "pointer-events:none",
+      "z-index:20",
+      "min-width:min(260px,72vw)",
+    ].join(";");
+
+    // Boss name label.
+    const name = this.createElement("div");
+    name.id = "hud-boss-name";
+    name.style.cssText = [
+      "font-size:10px", "font-weight:900",
+      "color:#ff6644", "letter-spacing:2px",
+      "text-shadow:0 0 6px #ff3300,0 1px 3px #000",
+      "text-align:center", "white-space:nowrap",
+    ].join(";");
+    outer.appendChild(name);
+
+    // Bar container.
+    const barWrap = this.createElement("div");
+    barWrap.style.cssText = [
+      "position:relative",
+      "width:100%", "height:14px",
+      "background:rgba(0,0,0,0.7)",
+      "border:1px solid #aa1111",
+      "border-radius:3px",
+      "overflow:hidden",
+    ].join(";");
+    outer.appendChild(barWrap);
+
+    // Fill.
+    const fill = this.createElement("div");
+    fill.id = "hud-boss-hp-fill";
+    fill.style.cssText = [
+      "position:absolute", "left:0", "top:0", "bottom:0",
+      "width:100%",
+      "background:linear-gradient(to right,#880000,#cc2222)",
+      "transition:width 0.15s linear",
+    ].join(";");
+    barWrap.appendChild(fill);
+
+    return { outer, fill, name };
   }
 
   private buildManaBar(): HTMLElement {
