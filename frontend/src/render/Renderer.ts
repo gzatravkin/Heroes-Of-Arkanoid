@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Sprite, AnimatedSprite, BLEND_MODES, 
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
+import { HazardLayer } from "./HazardLayer";
 import { bg as biomedBg, hellParallaxFrames, anim as animFrames, tex as atlasTex } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
@@ -262,11 +263,6 @@ const BLOCK_DAMAGED: Record<string, string> = {
 };
 
 // Hazard (falling enemy projectile) rendering constants.
-const HAZARD_RADIUS    = 6;         // px in world space (scaled later)
-const HAZARD_COLOR     = 0xdd1111; // crimson
-const HAZARD_GLOW_COLOR = 0xff3333; // additive glow
-const HAZARD_GLOW_ALPHA = 0.45;
-const HAZARD_GLOW_RADIUS_MULT = 1.9;
 
 // Bonus pickup rendering constants.
 const BONUS_SPRITE_SIZE    = 28;   // logical px (world-space) for bonus icon sprites
@@ -296,7 +292,7 @@ export class Renderer {
   private blocks = new Container();
   private effectsLayer: Effects;
   private fireWalls = new Container();
-  private hazardsLayer = new Container();
+  private hazardLayer = new HazardLayer();
   // Paddle rendered as a sprite; Graphics kept as invisible fallback.
   private paddleSprite = new Sprite();
   private turretSprite = new Sprite();
@@ -326,7 +322,6 @@ export class Renderer {
   // Separate AnimSystem for ball aura effects (looping per-ball fire aura).
   private _ballAnimSys: AnimSystem;
   // Hazard pool: each entry is { halo, core, bat? }.
-  private _hazardPool: { halo: Graphics; core: Graphics; bat?: Sprite; stal?: Sprite }[] = [];
 
   // Bonus pickups layer and pool.
   private bonusesLayer = new Container();
@@ -469,7 +464,7 @@ export class Renderer {
       this.paddleSprite,
       this.turretSprite,
       this._skeletonAnimSys.container,
-      this.hazardsLayer,
+      this.hazardLayer.container,
       this.bonusesLayer,
     );
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
@@ -1161,86 +1156,8 @@ export class Renderer {
       }
     }
 
-    // --- hazards (falling enemy projectiles) — pool by array index ---
-    // Hazards have no stable id; use a fixed-size ring buffer keyed by index.
-    const hazards = s.hazards ?? [];
-    // Bat sprite texture for summon-type hazards (village boss phase 3).
-    const batTex = atlasTex("village/enemies/BatFlyAnimation");
-
-    // Grow pool if more hazards than pooled entries.
-    while (this._hazardPool.length < hazards.length) {
-      const halo = new Graphics();
-      halo.blendMode = BLEND_MODES.ADD;
-      const core = new Graphics();
-      // Bat sprite: only shown when bat texture is available and biome is village.
-      const bat = new Sprite(Texture.WHITE);
-      bat.anchor.set(0.5);
-      bat.visible = false;
-      const stal = new Sprite(tex("Stalactite"));
-      stal.anchor.set(0.5);
-      stal.visible = false;
-      this.hazardsLayer.addChild(halo);
-      this.hazardsLayer.addChild(core);
-      this.hazardsLayer.addChild(bat);
-      this.hazardsLayer.addChild(stal);
-      this._hazardPool.push({ halo, core, bat, stal });
-    }
-
-    // Check if we should show bat sprites (village biome + bat texture loaded).
-    const showBats = (s.biome === "village" || s.biome === "village-boss") && batTex !== Texture.WHITE;
-
-    // Update visible entries.
-    for (let i = 0; i < this._hazardPool.length; i++) {
-      const { halo, core, bat, stal } = this._hazardPool[i];
-      if (i < hazards.length) {
-        const hz = hazards[i];
-        if ((hz.kind === "stalactite" || hz.kind === "cart") && stal) {
-          halo.visible = false;
-          core.visible = false;
-          if (bat) bat.visible = false;
-          stal.visible = true;
-          if (hz.kind === "cart") {
-            stal.texture = tex("DungeonCart");
-            const cs = HAZARD_RADIUS * 4;
-            stal.width = cs * 1.4; stal.height = cs;
-          } else {
-            stal.texture = tex("Stalactite");
-            const ss = HAZARD_RADIUS * 3.2;
-            stal.width = ss; stal.height = ss * 1.6;
-          }
-          stal.x = hz.x; stal.y = hz.y;
-        } else if (showBats && bat) {
-          if (stal) stal.visible = false;
-          // Show bat sprite instead of circle for village hazards.
-          halo.visible = false;
-          core.visible = false;
-          bat.texture  = batTex;
-          bat.visible  = true;
-          const batSize = HAZARD_RADIUS * 3.5;
-          bat.width  = batSize * 2;
-          bat.height = batSize * 2;
-          bat.x = hz.x;
-          bat.y = hz.y;
-          bat.tint = 0x9988ff; // purple tint for bat
-          bat.rotation = (this._tick * 0.08 + i * 0.5); // slow flutter
-        } else {
-          // Standard crimson hazard circle.
-          if (bat) bat.visible = false;
-          if (stal) stal.visible = false;
-          halo.visible = true;
-          core.visible = true;
-          halo.clear().beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
-            .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT).endFill();
-          core.clear().beginFill(HAZARD_COLOR, 1)
-            .drawCircle(hz.x, hz.y, HAZARD_RADIUS).endFill();
-        }
-      } else {
-        halo.visible = false;
-        core.visible = false;
-        if (bat) bat.visible = false;
-        if (stal) stal.visible = false;
-      }
-    }
+    // --- hazards (falling/rolling enemy projectiles) ---
+    this.hazardLayer.update(s.hazards ?? [], this._tick, s.biome);
 
     // --- bonus pickups (falling icons from Bonus/ art) ---
     const bonuses = s.bonuses ?? [];
