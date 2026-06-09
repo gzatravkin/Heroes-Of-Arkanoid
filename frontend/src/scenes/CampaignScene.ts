@@ -1,28 +1,5 @@
-const API = "http://localhost:5080";
-
-interface CampaignNode {
-  id: string;
-  label: string;
-  biome: string;
-  x: number;
-  y: number;
-  unlocked: boolean;
-  completed: boolean;
-}
-
-interface Profile {
-  level: number;
-  exp: number;
-  points: number;
-  crystals: number;
-  completedLevels: string[];
-  unlockedRelics: string[];
-  spellLevels: Record<string, number>;
-}
-
-interface CampaignData {
-  nodes: CampaignNode[];
-}
+import { metaApi } from "../net/metaApi";
+import type { CampaignNode, Profile } from "../net/metaApi";
 
 const SPELL_NAMES: Record<string, string> = {
   ignite: "Ignite",
@@ -257,8 +234,7 @@ export function mountCampaign(host: HTMLElement) {
       });
       if (p.points === 0) btnPlus.disabled = true;
       btnPlus.addEventListener("click", async () => {
-        const res = await fetch(`${API}/upgrade?spell=${spellId}`, { method: "POST" });
-        const data = await res.json();
+        const data = await metaApi.upgrade(spellId);
         if (data.ok) renderProfile(data.profile);
       });
       row.appendChild(btnPlus);
@@ -362,12 +338,10 @@ export function mountCampaign(host: HTMLElement) {
 
   // Load data
   async function loadAll() {
-    const [campRes, profRes] = await Promise.all([
-      fetch(`${API}/campaign`),
-      fetch(`${API}/profile`),
+    const [camp, prof] = await Promise.all([
+      metaApi.getCampaign(),
+      metaApi.getProfile(),
     ]);
-    const camp: CampaignData = await campRes.json();
-    const prof: Profile = await profRes.json();
     renderProfile(prof);
     renderNodes(camp.nodes);
   }

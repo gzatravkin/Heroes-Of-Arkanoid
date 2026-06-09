@@ -1,17 +1,5 @@
-const API = "http://localhost:5080";
-
-interface CharacterDef {
-  id: string;
-  name: string;
-  passive: string;
-  icon: string;
-}
-
-interface CharactersResponse {
-  characters: CharacterDef[];
-  selected: string;
-  unlocked: string[];
-}
+import { metaApi } from "../net/metaApi";
+import { css } from "./battle/overlays";
 
 // Icon filenames in public/art/ that correspond to the icon keys from the backend.
 const ICON_FILES: Record<string, string> = {
@@ -23,19 +11,6 @@ const ICON_FILES: Record<string, string> = {
 
 function iconSrc(key: string): string {
   return ICON_FILES[key] ?? "/art/ItemGem.png";
-}
-
-function css(el: HTMLElement, styles: Record<string, string>) {
-  Object.assign(el.style, styles);
-}
-
-async function fetchCharacters(): Promise<CharactersResponse> {
-  const res = await fetch(`${API}/characters`);
-  return res.json();
-}
-
-async function selectCharacter(id: string): Promise<void> {
-  await fetch(`${API}/character/select?id=${encodeURIComponent(id)}`, { method: "POST" });
 }
 
 export function mountCharacters(host: HTMLElement) {
@@ -91,7 +66,7 @@ export function mountCharacters(host: HTMLElement) {
   host.appendChild(root);
 
   async function render() {
-    const data = await fetchCharacters();
+    const data = await metaApi.getCharacters();
     // If unlocked is empty, treat ALL catalog characters as selectable.
     const selectable = data.unlocked.length === 0
       ? data.characters.map(c => c.id)
@@ -170,7 +145,7 @@ export function mountCharacters(host: HTMLElement) {
         });
         card.addEventListener("click", async () => {
           if (char.id === data.selected) return; // already selected
-          await selectCharacter(char.id);
+          await metaApi.selectCharacter(char.id);
           await render(); // re-render with new selection
         });
       }

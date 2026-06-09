@@ -1,53 +1,6 @@
-const API = "http://localhost:5080";
-
-function css(el: HTMLElement, styles: Record<string, string>) {
-  Object.assign(el.style, styles);
-}
-
-interface DungeonRunState {
-  dungeonId?: string;
-  floors?: string[];
-  floorIndex?: number;
-  relics?: string[];
-  ballCores?: string[];
-  pendingChoices?: string[];
-  active?: boolean;
-  cleared?: boolean;
-}
-
-const RELIC_NAMES: Record<string, string> = {
-  glass_cannon: "Glass Cannon",
-  flint_core: "Flint Core",
-  pyroclasm: "Pyroclasm",
-  mana_battery: "Mana Battery",
-};
-
-const RELIC_ICONS: Record<string, string> = {
-  glass_cannon: "/art/ItemHummer.png",
-  flint_core: "/art/ItemDrill.png",
-  pyroclasm: "/art/ItemTorch.png",
-  mana_battery: "/art/ItemGem.png",
-};
-
-const BALL_CORE_NAMES: Record<string, string> = {
-  heavy: "Heavy Core",
-  split: "Split Core",
-  ember: "Ember Core",
-};
-
-const BALL_CORE_ICONS: Record<string, string> = {
-  heavy: "/art/BonusRock.png",
-  split: "/art/BonusSplit.png",
-  ember: "/art/BonusFire.png",
-};
-
-function buffName(id: string): string {
-  return RELIC_NAMES[id] ?? BALL_CORE_NAMES[id] ?? id;
-}
-
-function buffIcon(id: string): string {
-  return RELIC_ICONS[id] ?? BALL_CORE_ICONS[id] ?? "/art/ItemGem.png";
-}
+import { metaApi } from "../net/metaApi";
+import type { DungeonRunState } from "../net/metaApi";
+import { css, buffName, buffIcon } from "./battle/overlays";
 
 /** Capitalise first letter; replace dashes with spaces for raw level ids. */
 function levelLabel(id: string): string {
@@ -73,8 +26,7 @@ export function mountDungeon(host: HTMLElement) {
   async function load() {
     let state: DungeonRunState = {};
     try {
-      const res = await fetch(`${API}/dungeon/state`);
-      state = await res.json();
+      state = await metaApi.getDungeonState();
     } catch (e) {
       renderError("Failed to load dungeon state.");
       return;

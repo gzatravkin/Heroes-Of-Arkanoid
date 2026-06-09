@@ -1,16 +1,6 @@
-const API = "http://localhost:5080";
-
-function css(el: HTMLElement, styles: Record<string, string>) {
-  Object.assign(el.style, styles);
-}
-
-interface DungeonDef {
-  id: string;
-  name: string;
-  floors: string[];
-  rewardRelic: string;
-  rewardCrystals: number;
-}
+import { metaApi } from "../net/metaApi";
+import type { DungeonDef } from "../net/metaApi";
+import { css } from "./battle/overlays";
 
 const RELIC_NAMES: Record<string, string> = {
   glass_cannon: "Glass Cannon",
@@ -94,8 +84,7 @@ export function mountDungeons(host: HTMLElement) {
   async function load() {
     let dungeons: DungeonDef[] = [];
     try {
-      const res = await fetch(`${API}/dungeons`);
-      const data = await res.json();
+      const data = await metaApi.getDungeons();
       dungeons = data.dungeons ?? [];
     } catch (e) {
       const err = document.createElement("div");
@@ -175,7 +164,7 @@ export function mountDungeons(host: HTMLElement) {
         descBtn.disabled = true;
         descBtn.textContent = "Starting…";
         try {
-          await fetch(`${API}/dungeon/start?id=${encodeURIComponent(d.id)}`, { method: "POST" });
+          await metaApi.startDungeon(d.id);
           location.href = "/?scene=dungeon";
         } catch (e) {
           descBtn.disabled = false;
