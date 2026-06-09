@@ -2,12 +2,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace Arkanoid.Core.Meta;
 
+public sealed class SpellSlotDef
+{
+    [JsonPropertyName("id")]   public string Id   { get; set; } = "";
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+    [JsonPropertyName("icon")] public string Icon { get; set; } = "";
+}
+
 public sealed class CharacterDef
 {
     [JsonPropertyName("id")]      public string Id      { get; set; } = "";
     [JsonPropertyName("name")]    public string Name    { get; set; } = "";
     [JsonPropertyName("passive")] public string Passive { get; set; } = "";
     [JsonPropertyName("icon")]    public string Icon    { get; set; } = "";
+    [JsonPropertyName("spells")]  public List<SpellSlotDef> Spells { get; set; } = new();
 }
 
 public sealed class CharacterCatalog

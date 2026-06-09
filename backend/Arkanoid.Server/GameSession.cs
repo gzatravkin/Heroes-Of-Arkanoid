@@ -89,6 +89,7 @@ public sealed class GameSession
             case InputKind.CastFireball: _game.CastFireball(); break;
             case InputKind.CastFireWall: _game.CastFireWall(); break;
             case InputKind.CastTurret: _game.CastTurret(); break;
+            case InputKind.CastSlot:  _game.CastSlot(c.Slot);  break;
             case InputKind.Cheat: _game.ApplyCheat(c.Cheat ?? "", c.Value); break;
         }
     }

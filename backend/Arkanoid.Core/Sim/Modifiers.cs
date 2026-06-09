@@ -35,9 +35,10 @@ internal static class Modifiers
         return mult;
     }
 
-    /// <summary>Mana granted when a block is killed (base × necromancer multiplier).</summary>
+    /// <summary>Mana granted when a block is killed (base × necromancer multiplier + drain bonus).</summary>
     internal static double KillManaGain(GameInstance g)
-        => g.Config.ManaPerKill * (g.Character == "necromancer" ? g.Config.NecromancerKillManaMult : 1.0);
+        => g.Config.ManaPerKill * (g.Character == "necromancer" ? g.Config.NecromancerKillManaMult : 1.0)
+           + Systems.SpellSystem.DrainBonusMana(g);
 
     // -----------------------------------------------------------------------
     // Fire spread

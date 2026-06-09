@@ -25,7 +25,31 @@ internal static class BallSystem
         if (Arkanoid.Core.Physics.BallPhysics.ResolvePaddle(b, g.Paddle, g.Config, out var t))
             SpellSystem.OnPaddleHit(g, b, t);
 
+        ResolveBarriers(g, b);
         ResolveBlocks(g, b);
+    }
+
+    /// <summary>
+    /// Paladin Shield barrier: if ball is moving downward and crosses a barrier's Y within its X-span,
+    /// reflect it upward. Mirrors the same logic used for paddle deflection (simplified).
+    /// </summary>
+    private static void ResolveBarriers(GameInstance g, Ball b)
+    {
+        foreach (var barrier in g.Barriers)
+        {
+            if (!barrier.Alive) continue;
+            // Only trigger for downward-moving ball crossing the barrier line
+            if (b.Vel.Y <= 0) continue;
+            double halfW = barrier.Width / 2.0;
+            if (b.Pos.X < barrier.CenterX - halfW || b.Pos.X > barrier.CenterX + halfW) continue;
+            // Check if ball's circle crossed the barrier this tick
+            if (b.Pos.Y + b.Radius >= barrier.Y && b.Pos.Y - b.Radius <= barrier.Y + 4)
+            {
+                b.Vel = new Vec2(b.Vel.X, -System.Math.Abs(b.Vel.Y));
+                g._log.Log(g.TickCount, "barrier", "reflected ball", $"ballId={b.Id} y={barrier.Y:F1}");
+                g.RaiseEvent("barrierHit", barrier.CenterX, barrier.Y);
+            }
+        }
     }
 
     private static void ResolveBlocks(GameInstance g, Ball b)
@@ -73,9 +97,12 @@ internal static class BallSystem
             else
                 b.Vel = new Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
 
-            BlockDamage.DamageBlock(g, blk, Modifiers.BallDamage(g, blk, b.IgniteHitsLeft > 0),
-                                    igniteSource: b.IgniteHitsLeft > 0);
-            if (b.IgniteHitsLeft > 0) b.IgniteHitsLeft--;
+            bool ignited = b.IgniteHitsLeft > 0;
+            bool decayed = b.DecayHitsLeft  > 0;
+            BlockDamage.DamageBlock(g, blk, Modifiers.BallDamage(g, blk, ignited),
+                                    igniteSource: ignited, decaySource: decayed);
+            if (ignited) b.IgniteHitsLeft--;
+            if (decayed) b.DecayHitsLeft--;
             break; // one block per tick keeps it deterministic
         }
     }

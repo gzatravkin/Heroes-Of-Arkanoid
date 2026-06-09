@@ -28,6 +28,14 @@ public sealed class GameInstance
     internal int _nextWallId = 1;
     public List<FireWall> FireWalls { get; } = new();
 
+    internal int _nextBarrierId = 1;
+    /// <summary>Paladin Shield barriers — reflect downward balls upward.</summary>
+    public List<Arkanoid.Core.Entities.Barrier> Barriers { get; } = new();
+
+    internal int _nextZoneId = 1;
+    /// <summary>Engineer Radiation AoE damage zones.</summary>
+    public List<Arkanoid.Core.Entities.Zone> Zones { get; } = new();
+
     internal int _nextHazardId = 1;
     /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
     public List<Projectile> Hazards { get; } = new();
@@ -59,6 +67,15 @@ public sealed class GameInstance
     internal double _turretRemaining;
     internal double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
+
+    // --- Necromancer: Skeleton summon ---
+    internal double _skeletonRemaining;
+    internal double _skeletonAccumulator;
+    public bool SkeletonActive => _skeletonRemaining > 0;
+
+    // --- Necromancer: Drain ---
+    internal double _drainRemaining;
+    public bool DrainActive => _drainRemaining > 0;
     internal readonly ISimLog _log;
     public RelicCatalog?  RelicCatalog  { get; }
     public BonusCatalog?  BonusCatalog  { get; }
@@ -77,10 +94,19 @@ public sealed class GameInstance
 
     public Dictionary<string, int> SpellLevels { get; } = new()
     {
-        ["ignite"]   = 1,
-        ["fireball"] = 1,
-        ["firewall"] = 1,
-        ["turret"]   = 1,
+        ["ignite"]    = 1,
+        ["fireball"]  = 1,
+        ["firewall"]  = 1,
+        ["turret"]    = 1,
+        ["shield"]    = 1,
+        ["spear"]     = 1,
+        ["duplicate"] = 1,
+        ["lightning"] = 1,
+        ["rocket"]    = 1,
+        ["radiation"] = 1,
+        ["decay"]     = 1,
+        ["skeleton"]  = 1,
+        ["drain"]     = 1,
     };
 
     /// <summary>Overwrites spell levels from the given dictionary (unknown keys ignored; missing keys keep their current value).</summary>
@@ -89,6 +115,50 @@ public sealed class GameInstance
         foreach (var (k, v) in levels)
             if (SpellLevels.ContainsKey(k))
                 SpellLevels[k] = v;
+    }
+
+    /// <summary>
+    /// Per-class spell kits (slot index → spell id), keyed by character id.
+    /// Must stay in sync with characters.json.
+    /// </summary>
+    private static readonly Dictionary<string, string[]> SpellKits = new()
+    {
+        ["fire_mage"]   = new[] { "ignite",   "fireball",  "firewall",  "turret"    },
+        ["paladin"]     = new[] { "shield",   "spear",     "duplicate"              },
+        ["engineer"]    = new[] { "lightning","rocket",    "radiation"              },
+        ["necromancer"] = new[] { "decay",    "skeleton",  "drain"                 },
+    };
+
+    /// <summary>
+    /// Dispatch the spell in slot <paramref name="slot"/> (0-based) for the active character.
+    /// No-ops if the character has no spell at that slot.
+    /// </summary>
+    public void CastSlot(int slot)
+    {
+        if (!SpellKits.TryGetValue(Character, out var kit)) return;
+        if (slot < 0 || slot >= kit.Length) return;
+        var spellId = kit[slot];
+        SpellDispatch(spellId);
+    }
+
+    private void SpellDispatch(string spellId)
+    {
+        switch (spellId)
+        {
+            case "ignite":    CastIgnite();    break;
+            case "fireball":  CastFireball();  break;
+            case "firewall":  CastFireWall();  break;
+            case "turret":    CastTurret();    break;
+            case "shield":    Arkanoid.Core.Sim.Systems.SpellSystem.CastShield(this);    break;
+            case "spear":     Arkanoid.Core.Sim.Systems.SpellSystem.CastSpear(this);     break;
+            case "duplicate": Arkanoid.Core.Sim.Systems.SpellSystem.CastDuplicate(this); break;
+            case "lightning": Arkanoid.Core.Sim.Systems.SpellSystem.CastLightning(this); break;
+            case "rocket":    Arkanoid.Core.Sim.Systems.SpellSystem.CastRocket(this);    break;
+            case "radiation": Arkanoid.Core.Sim.Systems.SpellSystem.CastRadiation(this); break;
+            case "decay":     Arkanoid.Core.Sim.Systems.SpellSystem.CastDecay(this);     break;
+            case "skeleton":  Arkanoid.Core.Sim.Systems.SpellSystem.CastSkeleton(this);  break;
+            case "drain":     Arkanoid.Core.Sim.Systems.SpellSystem.CastDrain(this);     break;
+        }
     }
 
     public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null, BonusCatalog? bonuses = null)
@@ -135,6 +205,7 @@ public sealed class GameInstance
             Alive = true
         });
         _igniteArmed = false;   // discard any unused arm so it doesn't leak to the next life
+        _decayArmed  = false;
         Phase = GamePhase.Serving;
     }
 
@@ -198,6 +269,10 @@ public sealed class GameInstance
         SpellSystem.UpdateProjectiles(this, dt);
         SpellSystem.UpdateFireWalls(this, dt);
         SpellSystem.UpdateTurret(this, dt);
+        SpellSystem.UpdateBarriers(this, dt);
+        SpellSystem.UpdateZones(this, dt);
+        SpellSystem.UpdateSkeleton(this, dt);
+        SpellSystem.UpdateDrain(this, dt);
         BossSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
@@ -220,6 +295,7 @@ public sealed class GameInstance
     public void DamagePlayer(int dmg) => CombatSystem.DamagePlayer(this, dmg);
 
     internal bool _igniteArmed = false;
+    internal bool _decayArmed  = false;
 
     public void ApplyCheat(string op, double value) => CheatHandler.Apply(this, op, value);
 }

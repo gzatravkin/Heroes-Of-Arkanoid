@@ -81,6 +81,64 @@ public sealed class SimConfig
     /// <summary>Multiplier on ManaPerKill applied when the active character is "necromancer".</summary>
     public double NecromancerKillManaMult { get; init; } = 2.0;
 
+    // --- Paladin spell: Shield ---
+    public double ShieldCost           { get; init; } = 20;
+    public double ShieldLifetime       { get; init; } = 4.0;   // seconds
+    /// <summary>Shield width as a multiple of PaddleWidth.</summary>
+    public double ShieldWidthMult      { get; init; } = 1.2;
+
+    // --- Paladin spell: Spear ---
+    public double SpearCost            { get; init; } = 15;
+    public double SpearSpeed           { get; init; } = 500;
+    public int    SpearDamage          { get; init; } = 3;
+    public int    SpearPiercingHits    { get; init; } = 4;    // hits through this many blocks
+
+    // --- Paladin spell: Duplicate ---
+    public double DuplicateCost        { get; init; } = 25;
+    public int    DuplicateExtraBalls  { get; init; } = 1;    // balls added
+
+    // --- Engineer spell: Lightning ---
+    public double LightningCost        { get; init; } = 20;
+    public int    LightningDamage      { get; init; } = 2;
+    public int    LightningChainJumps  { get; init; } = 4;    // max blocks hit
+    /// <summary>Maximum distance (world units) for a chain jump between blocks.</summary>
+    public double LightningChainRadius { get; init; } = 80;
+
+    // --- Engineer spell: Rocket ---
+    public double RocketCost           { get; init; } = 25;
+    public double RocketSpeed          { get; init; } = 300;
+    public int    RocketDamage         { get; init; } = 4;
+    public double RocketAoeRadius      { get; init; } = 48;   // world units
+    public int    RocketAoeDamage      { get; init; } = 2;
+    public double RocketHomingStrength { get; init; } = 400;  // accel units/sec²
+
+    // --- Engineer spell: Radiation ---
+    public double RadiationCost           { get; init; } = 30;
+    public double RadiationLifetime       { get; init; } = 4.0;
+    public double RadiationRadius         { get; init; } = 80;
+    public int    RadiationDamage         { get; init; } = 1;
+    public double RadiationDamageInterval { get; init; } = 0.5;
+
+    // --- Necromancer spell: Decay ---
+    public double DecayCost          { get; init; } = 0;   // free imbue like Ignite
+    public int    DecayHits          { get; init; } = 4;
+    /// <summary>Number of cardinal neighbours chipped by a decay kill.</summary>
+    public int    DecaySpreadChip    { get; init; } = 2;
+    public int    DecaySpreadRange   { get; init; } = 2;   // Manhattan distance for spread
+
+    // --- Necromancer spell: Skeleton ---
+    public double SkeletonCost          { get; init; } = 25;
+    public double SkeletonDuration      { get; init; } = 5.0;   // seconds
+    public double SkeletonFireInterval  { get; init; } = 0.4;
+    public int    SkeletonBulletDamage  { get; init; } = 1;
+    public double SkeletonBulletSpeed   { get; init; } = 420;
+
+    // --- Necromancer spell: Drain ---
+    public double DrainCost          { get; init; } = 20;
+    public double DrainDuration      { get; init; } = 6.0;   // seconds
+    /// <summary>Additional mana gained per kill while drain is active (stacks with base).</summary>
+    public double DrainBonusManaPerKill { get; init; } = 6.0;
+
     // --- Boss enemy (legacy single-pattern; kept for backward-compat; BossSystem reads these per-phase) ---
     /// <summary>Seconds between boss hazard shots per live boss block (phase 1 baseline).</summary>
     public double BossAttackInterval { get; init; } = 1.6;

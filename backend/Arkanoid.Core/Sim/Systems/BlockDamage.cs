@@ -9,15 +9,15 @@ internal static class BlockDamage
 {
     /// <summary>
     /// Apply <paramref name="dmg"/> to <paramref name="blk"/>.  If the block dies and
-    /// <paramref name="igniteSource"/> is true, fire may spread to neighbours (depends
-    /// on character/relic via <see cref="Modifiers"/>).
+    /// <paramref name="igniteSource"/> is true, fire may spread to neighbours.
+    /// If <paramref name="decaySource"/> is true, necromancer decay spread applies instead.
     /// </summary>
-    internal static void DamageBlock(GameInstance g, Block blk, int dmg, bool igniteSource)
+    internal static void DamageBlock(GameInstance g, Block blk, int dmg, bool igniteSource, bool decaySource = false)
     {
         if (blk.Indestructible) return;
         blk.Hp -= dmg;
         g._log.Log(g.TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
-                   $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource}");
+                   $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource} decay={decaySource}");
         if (blk.Hp <= 0 && !blk.Dead)
         {
             blk.Dead = true;
@@ -27,6 +27,34 @@ internal static class BlockDamage
             BonusSystem.TrySpawnBonus(g, c.X, c.Y);
             if (igniteSource && Modifiers.ShouldSpreadFire(g))
                 SpreadFire(g, blk);
+            if (decaySource)
+                SpreadDecay(g, blk);
+        }
+    }
+
+    /// <summary>
+    /// Spread necromancer decay from a killed block to neighbours within
+    /// Manhattan distance ≤ DecaySpreadRange, chipping each by DecaySpreadChip.
+    /// </summary>
+    internal static void SpreadDecay(GameInstance g, Block origin)
+    {
+        int range = g.Config.DecaySpreadRange;
+        int chip  = g.Config.DecaySpreadChip;
+        foreach (var nb in g.Blocks)
+        {
+            if (nb.Dead || nb == origin) continue;
+            int dist = System.Math.Abs(nb.Col - origin.Col) + System.Math.Abs(nb.Row - origin.Row);
+            if (dist > range) continue;
+            nb.Hp -= chip;
+            var c = g.Level.Grid.CellCenter(nb.Col, nb.Row);
+            g.RaiseEvent("decay", c.X, c.Y);
+            g._log.Log(g.TickCount, "decay", "spread chip", $"id={nb.Id} hp={nb.Hp} chip={chip}");
+            if (nb.Hp <= 0 && !nb.Dead)
+            {
+                nb.Dead = true;
+                g.RaiseEvent("blockDestroyed", c.X, c.Y);
+                g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + Modifiers.KillManaGain(g));
+            }
         }
     }
 

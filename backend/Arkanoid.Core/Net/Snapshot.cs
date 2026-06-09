@@ -5,10 +5,19 @@ namespace Arkanoid.Core.Net;
 
 public sealed class BallDto
 {
-    [JsonPropertyName("id")] public int Id { get; set; }
-    [JsonPropertyName("x")] public double X { get; set; }
-    [JsonPropertyName("y")] public double Y { get; set; }
-    [JsonPropertyName("ignited")] public bool Ignited { get; set; }
+    [JsonPropertyName("id")]      public int    Id      { get; set; }
+    [JsonPropertyName("x")]       public double X       { get; set; }
+    [JsonPropertyName("y")]       public double Y       { get; set; }
+    [JsonPropertyName("ignited")] public bool   Ignited { get; set; }
+    [JsonPropertyName("decayed")] public bool   Decayed { get; set; }
+}
+
+public sealed class ProjectileDto
+{
+    [JsonPropertyName("id")]   public int    Id   { get; set; }
+    [JsonPropertyName("x")]    public double X    { get; set; }
+    [JsonPropertyName("y")]    public double Y    { get; set; }
+    [JsonPropertyName("kind")] public string Kind { get; set; } = "";
 }
 
 public sealed class BlockDto
@@ -35,6 +44,20 @@ public sealed class WallDto
 {
     [JsonPropertyName("y")] public double Y { get; set; }
     [JsonPropertyName("width")] public double Width { get; set; }
+}
+
+public sealed class BarrierDto
+{
+    [JsonPropertyName("y")]       public double Y       { get; set; }
+    [JsonPropertyName("centerX")] public double CenterX { get; set; }
+    [JsonPropertyName("width")]   public double Width   { get; set; }
+}
+
+public sealed class ZoneDto
+{
+    [JsonPropertyName("x")]      public double X      { get; set; }
+    [JsonPropertyName("y")]      public double Y      { get; set; }
+    [JsonPropertyName("radius")] public double Radius { get; set; }
 }
 
 public sealed class EventDto
@@ -90,6 +113,10 @@ public sealed class Snapshot
     [JsonPropertyName("widePaddleTimer")]  public double WidePaddleTimer  { get; set; }
     [JsonPropertyName("slowBallActive")]   public bool SlowBallActive   { get; set; }
     [JsonPropertyName("slowBallTimer")]    public double SlowBallTimer    { get; set; }
+    [JsonPropertyName("barriers")]        public List<BarrierDto> Barriers { get; set; } = new();
+    [JsonPropertyName("zones")]           public List<ZoneDto>    Zones    { get; set; } = new();
+    [JsonPropertyName("skeletonActive")]  public bool SkeletonActive  { get; set; }
+    [JsonPropertyName("drainActive")]     public bool DrainActive     { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -103,9 +130,10 @@ public sealed class Snapshot
             CellSize = g.Config.CellSize
         };
         foreach (var b in g.Balls)
-            s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0 });
+            s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0, Decayed = b.DecayHitsLeft > 0 });
+        // Legacy: projectiles also appear in Balls list for backwards compat (id offset)
         foreach (var pr in g.Projectiles)
-            s.Balls.Add(new BallDto { Id = 10000 + pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Ignited = true });
+            s.Balls.Add(new BallDto { Id = 10000 + pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Ignited = pr.Kind is "fireball" or ""});
         foreach (var blk in g.Blocks)
         {
             if (blk.Dead) continue;
@@ -138,6 +166,12 @@ public sealed class Snapshot
         s.WidePaddleTimer  = g._widePaddleTimer;
         s.SlowBallActive   = g._slowBallActive;
         s.SlowBallTimer    = g._slowBallTimer;
+        foreach (var br in g.Barriers)
+            s.Barriers.Add(new BarrierDto { Y = br.Y, CenterX = br.CenterX, Width = br.Width });
+        foreach (var zn in g.Zones)
+            s.Zones.Add(new ZoneDto { X = zn.X, Y = zn.Y, Radius = zn.Radius });
+        s.SkeletonActive = g.SkeletonActive;
+        s.DrainActive    = g.DrainActive;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

@@ -6,6 +6,7 @@ public readonly struct Vec2
     public readonly double Y;
     public Vec2(double x, double y) { X = x; Y = y; }
 
+    public double LengthSquared => X * X + Y * Y;
     public double Length => System.Math.Sqrt(X * X + Y * Y);
 
     public Vec2 Normalized()

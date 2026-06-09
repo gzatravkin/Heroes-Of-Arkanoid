@@ -8,4 +8,6 @@ public sealed class Rng
     public Rng(int seed) { Seed = seed; _r = new System.Random(seed); }
     public double NextDouble() => _r.NextDouble();
     public double Range(double min, double max) => min + (max - min) * _r.NextDouble();
+    /// <summary>Returns a random int in [0, count). Deterministic.</summary>
+    public int Range(int count) => count <= 0 ? 0 : _r.Next(count);
 }

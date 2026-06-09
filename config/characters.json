@@ -1,6 +1,47 @@
 { "characters": [
-  { "id": "fire_mage",   "name": "Fire Mage",   "passive": "Ignited kills spread fire to neighbors.",   "icon": "FireHeroBall" },
-  { "id": "paladin",     "name": "Paladin",     "passive": "Once per level, a lost ball is saved.",      "icon": "HPFull" },
-  { "id": "engineer",    "name": "Engineer",    "passive": "Mana regenerates faster.",                   "icon": "FireTurretIco" },
-  { "id": "necromancer", "name": "Necromancer", "passive": "Killing blocks grants extra mana (souls).",  "icon": "MPFull" }
+  {
+    "id": "fire_mage",
+    "name": "Fire Mage",
+    "passive": "Ignited kills spread fire to neighbors.",
+    "icon": "FireHeroBall",
+    "spells": [
+      { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall" },
+      { "id": "fireball", "name": "Fireball", "icon": "FireTurretIco" },
+      { "id": "firewall", "name": "Fire Wall","icon": "FireHeroBall" },
+      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco" }
+    ]
+  },
+  {
+    "id": "paladin",
+    "name": "Paladin",
+    "passive": "Once per level, a lost ball is saved.",
+    "icon": "HPFull",
+    "spells": [
+      { "id": "shield",    "name": "Shield",    "icon": "HPFull" },
+      { "id": "spear",     "name": "Spear",     "icon": "HPFull" },
+      { "id": "duplicate", "name": "Duplicate", "icon": "HPFull" }
+    ]
+  },
+  {
+    "id": "engineer",
+    "name": "Engineer",
+    "passive": "Mana regenerates faster.",
+    "icon": "FireTurretIco",
+    "spells": [
+      { "id": "lightning", "name": "Lightning", "icon": "FireTurretIco" },
+      { "id": "rocket",    "name": "Rocket",    "icon": "FireTurretIco" },
+      { "id": "radiation", "name": "Radiation", "icon": "FireTurretIco" }
+    ]
+  },
+  {
+    "id": "necromancer",
+    "name": "Necromancer",
+    "passive": "Killing blocks grants extra mana (souls).",
+    "icon": "MPFull",
+    "spells": [
+      { "id": "decay",    "name": "Decay",    "icon": "MPFull" },
+      { "id": "skeleton", "name": "Skeleton", "icon": "MPFull" },
+      { "id": "drain",    "name": "Drain",    "icon": "MPFull" }
+    ]
+  }
 ]}
