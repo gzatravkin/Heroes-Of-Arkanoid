@@ -81,8 +81,8 @@ public sealed class SimConfig
     /// <summary>Multiplier on ManaPerKill applied when the active character is "necromancer".</summary>
     public double NecromancerKillManaMult { get; init; } = 2.0;
 
-    // --- Boss enemy ---
-    /// <summary>Seconds between boss hazard shots per live boss block.</summary>
+    // --- Boss enemy (legacy single-pattern; kept for backward-compat; BossSystem reads these per-phase) ---
+    /// <summary>Seconds between boss hazard shots per live boss block (phase 1 baseline).</summary>
     public double BossAttackInterval { get; init; } = 1.6;
     /// <summary>Downward speed of a boss hazard (units/sec).</summary>
     public double BossHazardSpeed { get; init; } = 240;
@@ -92,6 +92,33 @@ public sealed class SimConfig
     public double BossHazardRadius { get; init; } = 9;
     /// <summary>How strongly a hazard aims toward the paddle (0 = straight down, 1 = full tracking).</summary>
     public double BossHazardAimStrength { get; init; } = 0.35;
+
+    // --- Boss multi-pattern phases ---
+    /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>
+    public double BossPhase2Threshold { get; init; } = 0.60;
+    /// <summary>HP fraction threshold below which the boss enters phase 3 / enrage (fastest + summon).</summary>
+    public double BossPhase3Threshold { get; init; } = 0.30;
+
+    /// <summary>Seconds between attacks in phase 2 (shorter = faster).</summary>
+    public double BossPhase2AttackInterval { get; init; } = 1.2;
+    /// <summary>Seconds between attacks in phase 3 (enrage).</summary>
+    public double BossPhase3AttackInterval { get; init; } = 0.75;
+
+    /// <summary>Seconds of telegraph warning before each attack fires.</summary>
+    public double BossTelegraphDuration { get; init; } = 0.5;
+
+    /// <summary>Number of hazards in a spread fan (phase 2+).</summary>
+    public int    BossSpreadCount { get; init; } = 4;
+    /// <summary>Half-angle (degrees) of the spread fan.</summary>
+    public double BossSpreadHalfAngleDeg { get; init; } = 35.0;
+
+    /// <summary>Number of rain hazards spawned across random top-X positions (phase 1+).</summary>
+    public int    BossRainCount { get; init; } = 3;
+
+    /// <summary>Additional downward speed multiplier for summon/minion hazards (phase 3).</summary>
+    public double BossSummonSpeedMult { get; init; } = 1.6;
+    /// <summary>How strongly summon minions track the paddle X (stronger than aimedShot).</summary>
+    public double BossSummonAimStrength { get; init; } = 0.65;
 
     public static SimConfig Default { get; } = new();
 }

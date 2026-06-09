@@ -1,0 +1,27 @@
+{
+  "id": "village-boss",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "..ABBA..",
+    ".ABBBBA.",
+    ".AB.WBA.",
+    ".ABWWBA.",
+    ".ABBBBA.",
+    "..ABBA..",
+    ".ABBBBA.",
+    ".ABBBBA.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "village_basic",
+    "B": "village_tough",
+    "W": "village_witch_boss"
+  }
+}

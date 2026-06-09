@@ -73,6 +73,9 @@ public sealed class Snapshot
     [JsonPropertyName("activeRelics")]  public List<RelicDto> ActiveRelics { get; set; } = new();
     [JsonPropertyName("hazards")] public List<HazardDto> Hazards { get; set; } = new();
     [JsonPropertyName("events")] public List<EventDto> Events { get; set; } = new();
+    [JsonPropertyName("bossActive")] public bool BossActive { get; set; }
+    [JsonPropertyName("bossHp")]     public int  BossHp     { get; set; }
+    [JsonPropertyName("bossMaxHp")]  public int  BossMaxHp  { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -100,6 +103,10 @@ public sealed class Snapshot
         foreach (var hz in g.Hazards)
             s.Hazards.Add(new HazardDto { X = hz.Pos.X, Y = hz.Pos.Y });
         s.TurretActive = g.TurretActive;
+        var aliveBossBlocks = g.Blocks.Where(b => !b.Dead && b.Boss).ToList();
+        s.BossActive = aliveBossBlocks.Count > 0;
+        s.BossHp     = aliveBossBlocks.Sum(b => b.Hp);
+        s.BossMaxHp  = aliveBossBlocks.Sum(b => b.MaxHp);
         foreach (var id in g.ActiveRelics)
         {
             // catalog may not be present in unit test contexts; fall back to id

@@ -3,46 +3,11 @@ using Arkanoid.Core.Math;
 namespace Arkanoid.Core.Sim.Systems;
 
 /// <summary>
-/// Boss hazard spawning (UpdateBoss), hazard movement + paddle collision (UpdateHazards),
-/// and direct player HP damage (DamagePlayer).
+/// Hazard movement + paddle collision (UpdateHazards) and direct player HP damage (DamagePlayer).
+/// Boss hazard spawning has moved to BossSystem.
 /// </summary>
 internal static class CombatSystem
 {
-    // -----------------------------------------------------------------------
-    // Boss
-    // -----------------------------------------------------------------------
-
-    internal static void UpdateBoss(GameInstance g, double dt)
-    {
-        var bossBlocks = g.Blocks.Where(b => !b.Dead && b.Boss).ToList();
-        if (bossBlocks.Count == 0) return;
-
-        g._bossAttackAccumulator += dt;
-        while (g._bossAttackAccumulator >= g.Config.BossAttackInterval)
-        {
-            foreach (var boss in bossBlocks)
-            {
-                var origin = g.Level.Grid.CellCenter(boss.Col, boss.Row);
-                // Deterministic horizontal lean toward the paddle (limited by aim strength)
-                var dx   = g.Paddle.Center.X - origin.X;
-                var aimX = dx * g.Config.BossHazardAimStrength;
-                // Keep the downward component fixed at full speed for predictable dodging.
-                var vel = new Vec2(aimX, g.Config.BossHazardSpeed);
-                g.Hazards.Add(new Projectile {
-                    Id     = g._nextHazardId++,
-                    Pos    = origin,
-                    Vel    = vel,
-                    Damage = g.Config.BossHazardDamage,
-                    Radius = g.Config.BossHazardRadius
-                });
-                g.RaiseEvent("bossAttack", origin.X, origin.Y);
-                g._log.Log(g.TickCount, "boss", "hazard spawned",
-                    $"bossId={boss.Id} paddleX={g.Paddle.Center.X:F1}");
-            }
-            g._bossAttackAccumulator -= g.Config.BossAttackInterval;
-        }
-    }
-
     // -----------------------------------------------------------------------
     // Hazards
     // -----------------------------------------------------------------------

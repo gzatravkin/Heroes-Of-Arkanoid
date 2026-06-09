@@ -30,7 +30,17 @@ public sealed class GameInstance
     internal int _nextHazardId = 1;
     /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
     public List<Projectile> Hazards { get; } = new();
+
+    // --- Boss multi-pattern state ---
     internal double _bossAttackAccumulator;
+    /// <summary>Current boss phase (1/2/3). 0 = not yet computed.</summary>
+    internal int    _bossPhase = 0;
+    /// <summary>True while we are in the telegraph window before the next attack fires.</summary>
+    internal bool   _bossTelegraphPending;
+    /// <summary>Seconds remaining in the current telegraph window.</summary>
+    internal double _bossTelegraphTimer;
+    /// <summary>Encoded pattern index queued to fire when the telegraph expires.</summary>
+    internal int    _bossPendingPattern;
 
     internal double _turretRemaining;
     internal double _turretAccumulator;
@@ -172,7 +182,7 @@ public sealed class GameInstance
         SpellSystem.UpdateProjectiles(this, dt);
         SpellSystem.UpdateFireWalls(this, dt);
         SpellSystem.UpdateTurret(this, dt);
-        CombatSystem.UpdateBoss(this, dt);
+        BossSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);
     }
