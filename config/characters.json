@@ -6,8 +6,8 @@
     "icon": "FireHeroBall",
     "spells": [
       { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall" },
-      { "id": "fireball", "name": "Fireball", "icon": "FireTurretIco" },
-      { "id": "firewall", "name": "Fire Wall","icon": "FireHeroBall" },
+      { "id": "fireball", "name": "Fireball", "icon": "FireBallIco" },
+      { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco" },
       { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco" }
     ]
   },
@@ -17,9 +17,9 @@
     "passive": "Once per level, a lost ball is saved.",
     "icon": "HPFull",
     "spells": [
-      { "id": "shield",    "name": "Shield",    "icon": "HPFull" },
-      { "id": "spear",     "name": "Spear",     "icon": "HPFull" },
-      { "id": "duplicate", "name": "Duplicate", "icon": "HPFull" }
+      { "id": "shield",    "name": "Shield",    "icon": "paladin/spell_passiveshield/SpellShieldLargeIco" },
+      { "id": "spear",     "name": "Spear",     "icon": "paladin/spell_spear/SpearLargeLargeIco" },
+      { "id": "duplicate", "name": "Duplicate", "icon": "paladin/spell_duplication/SplitLargeIco" }
     ]
   },
   {
@@ -28,9 +28,9 @@
     "passive": "Mana regenerates faster.",
     "icon": "FireTurretIco",
     "spells": [
-      { "id": "lightning", "name": "Lightning", "icon": "FireTurretIco" },
-      { "id": "rocket",    "name": "Rocket",    "icon": "FireTurretIco" },
-      { "id": "radiation", "name": "Radiation", "icon": "FireTurretIco" }
+      { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/LightingLargeIco" },
+      { "id": "rocket",    "name": "Rocket",    "icon": "engineer/spell_rocket/RocketLargeIco" },
+      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco" }
     ]
   },
   {
@@ -39,9 +39,9 @@
     "passive": "Killing blocks grants extra mana (souls).",
     "icon": "MPFull",
     "spells": [
-      { "id": "decay",    "name": "Decay",    "icon": "MPFull" },
-      { "id": "skeleton", "name": "Skeleton", "icon": "MPFull" },
-      { "id": "drain",    "name": "Drain",    "icon": "MPFull" }
+      { "id": "decay",    "name": "Decay",    "icon": "necromancer/spell_passiveshield/SpellShieldLargeIco" },
+      { "id": "skeleton", "name": "Skeleton", "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon" },
+      { "id": "drain",    "name": "Drain",    "icon": "necromancer/spell_lastday/LastJudgmentLargeIco" }
     ]
   }
 ]}

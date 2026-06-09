@@ -3,6 +3,7 @@ import { Connection } from "../net/Connection";
 import { attachPaddleInput } from "../input/PaddleInput";
 import { installTestHooks } from "../testhooks";
 import { Hud } from "../ui/Hud";
+import { metaApi } from "../net/metaApi";
 import { createCampaignFlow } from "./battle/campaignFlow";
 import { createDungeonFlow } from "./battle/dungeonFlow";
 
@@ -26,8 +27,20 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
     if (flow) flow.handlePhase(s);
   };
 
-  // Wire the connection so HUD spell buttons can cast spells on tap/click.
-  hud.wireConn(conn);
+  // Fetch selected character's spell kit and load into HUD.
+  // Wire conn after (wireConn also handles the fallback path if fetch fails).
+  metaApi.getCharacters()
+    .then((data) => {
+      const selected = data.characters.find(c => c.id === data.selected);
+      if (selected && selected.spells?.length > 0) {
+        hud.loadSpells(selected.spells);
+      }
+      hud.wireConn(conn);
+    })
+    .catch(() => {
+      // Network/backend error: fall back to default hotbar.
+      hud.wireConn(conn);
+    });
 
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);

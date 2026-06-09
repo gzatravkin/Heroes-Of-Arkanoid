@@ -1,38 +1,41 @@
 import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
+import type { SpellDef } from "../net/metaApi";
 import { inferBossType, bossLabel } from "../render/Boss";
+import { tex as atlasTex } from "../render/assets";
 
 // ---------------------------------------------------------------------------
 // Spell cost constants (mirrored from backend; used for affordability dimming).
-// Ignite is free (costs 0 mana); Fireball costs 20.
 // ---------------------------------------------------------------------------
 const SPELL_COSTS: Record<string, number> = {
-  ignite: 0,
-  fireball: 20,
-  firewall: 30,
-  turret: 25,
+  ignite:    0,
+  fireball:  20,
+  firewall:  30,
+  turret:    25,
+  shield:    20,
+  spear:     25,
+  duplicate: 30,
+  lightning: 20,
+  rocket:    30,
+  radiation: 35,
+  decay:     0,
+  skeleton:  30,
+  drain:     20,
 };
 
-interface SpellDef {
-  id: string;
-  key: string;
-  label: string;
-  icon: string | null; // path relative to / (public/art/...) or null for emoji
-  emoji: string;       // fallback when icon fails to load
-  cast: (conn: Connection) => void;
-}
+// Key labels by slot index (0→Q, 1→E, 2→W, 3→R).
+const SLOT_KEYS = ["Q", "E", "W", "R"];
 
-const SPELLS: SpellDef[] = [
-  { id: "ignite",   key: "Q", label: "Ignite",   icon: "/art/FireHeroBall.png",  emoji: "🔥", cast: (c) => c.castIgnite()   },
-  { id: "fireball", key: "E", label: "Fireball", icon: "/art/FireBallIco.png",   emoji: "💥", cast: (c) => c.castFireball() },
-  { id: "firewall", key: "W", label: "Fire Wall", icon: "/art/FireWallIco.png",  emoji: "🧱", cast: (c) => c.castFireWall() },
-  { id: "turret",   key: "R", label: "Turret",   icon: "/art/FireTurretIco.png", emoji: "🔫", cast: (c) => c.castTurret()   },
-];
+// Legacy per-spell DOM ids for Fire Mage (required for existing tests).
+const FIRE_MAGE_SLOT_IDS: Record<string, string> = {
+  ignite:   "hud-spell-ignite",
+  fireball: "hud-spell-fireball",
+  firewall: "hud-spell-firewall",
+  turret:   "hud-spell-turret",
+};
 
 // ---------------------------------------------------------------------------
 // Hud — a DOM overlay mounted on top of the Pixi canvas.
-// Spell slots are tappable buttons (pointer-events:auto) that cast the spell.
-// Other elements are pointer-events:none so mouse/touch pass through to canvas.
 // ---------------------------------------------------------------------------
 export class Hud {
   private root: HTMLElement;
@@ -42,6 +45,7 @@ export class Hud {
   private manaFill: HTMLElement;
   private manaText: HTMLElement;
   private spellSlots: Map<string, HTMLElement> = new Map();
+  private hotbarEl: HTMLElement;
   private banner: HTMLElement;
   private relicsEl: HTMLElement;
   // Boss HP bar elements.
@@ -50,6 +54,10 @@ export class Hud {
   private bossNameEl: HTMLElement;
   // Active bonus effects indicator row.
   private effectsEl: HTMLElement;
+
+  // Active spells for the current class (populated by loadSpells).
+  private _spells: SpellDef[] = [];
+  private _conn: Connection | null = null;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -67,7 +75,6 @@ export class Hud {
     this.injectStyles();
 
     // ---- top-left panel: lives + balls ----
-    // Framed with the HP/life bar arts from Battle Interface
     const topLeft = this.createElement("div", "hud-top-left");
     topLeft.style.cssText = "position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:5px;";
 
@@ -108,10 +115,12 @@ export class Hud {
     this.manaFill  = this.manaOuter.querySelector("#hud-mana-fill")!;
     this.manaText  = this.manaOuter.querySelector("#hud-mana-text")!;
 
-    const hotbar = this.buildHotbar();
+    this.hotbarEl = this.createElement("div");
+    this.hotbarEl.id = "hud-hotbar";
+    this.hotbarEl.style.cssText = "display:flex;gap:6px;pointer-events:none;";
 
     bottomCenter.appendChild(this.manaOuter);
-    bottomCenter.appendChild(hotbar);
+    bottomCenter.appendChild(this.hotbarEl);
 
     // ---- boss HP bar (top center, only visible when bossActive) ----
     const bossBar = this.buildBossBar();
@@ -151,15 +160,25 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
+  /**
+   * Call on battle start to load the selected character's spell kit.
+   * Rebuilds the hotbar DOM and wires cast handlers if conn is already set.
+   */
+  loadSpells(spells: SpellDef[]) {
+    this._spells = spells;
+    this.rebuildHotbar();
+    if (this._conn) this.wireConnHandlers(this._conn);
+  }
+
   wireConn(conn: Connection) {
-    for (const spell of SPELLS) {
-      const el = this.spellSlots.get(spell.id);
-      if (!el) continue;
-      el.addEventListener("pointerdown", (e) => {
-        e.stopPropagation();
-        const cost = SPELL_COSTS[spell.id] ?? 0;
-        if (this._mana >= cost) spell.cast(conn);
-      });
+    this._conn = conn;
+    // If spells are already loaded (loadSpells was called first), wire immediately.
+    // Otherwise wire after loadSpells is called.
+    if (this._spells.length > 0) {
+      this.wireConnHandlers(conn);
+    } else {
+      // Fall back: build Fire Mage hotbar so the HUD is usable even if fetch fails.
+      this.loadFireMageFallback(conn);
     }
   }
 
@@ -185,7 +204,7 @@ export class Hud {
     this.manaText.textContent = `${Math.round(mana)} / ${Math.round(manaMax)}`;
 
     // -- spell affordability --
-    for (const spell of SPELLS) {
+    for (const spell of this._spells) {
       const el = this.spellSlots.get(spell.id);
       if (!el) continue;
       const cost = SPELL_COSTS[spell.id] ?? 0;
@@ -202,11 +221,9 @@ export class Hud {
       this.bossBarEl.style.display = "flex";
       const hpPct = Math.min(1, Math.max(0, s.bossHp / s.bossMaxHp)) * 100;
       this.bossBarFill.style.width = `${hpPct}%`;
-      // Infer boss name from the first boss block's sprite.
       const bossBlock = s.blocks.find(b => b.boss);
       const bossType = bossBlock ? inferBossType(bossBlock.sprite) : "Unknown";
       this.bossNameEl.textContent = bossLabel(bossType);
-      // Tint fill bar based on HP level.
       if (hpPct < 33) {
         this.bossBarFill.style.background = "linear-gradient(to right,#cc2200,#ff4422)";
       } else if (hpPct < 66) {
@@ -237,6 +254,140 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
+  private loadFireMageFallback(_conn: Connection) {
+    // Default spell kit matching Fire Mage from characters.json
+    const fallback: SpellDef[] = [
+      { id: "ignite",   name: "Ignite",    icon: "FireHeroBall" },
+      { id: "fireball", name: "Fireball",  icon: "FireBallIco" },
+      { id: "firewall", name: "Fire Wall", icon: "FireWallIco" },
+      { id: "turret",   name: "Turret",    icon: "FireTurretIco" },
+    ];
+    this.loadSpells(fallback);
+  }
+
+  private rebuildHotbar() {
+    // Clear existing slots.
+    this.spellSlots.clear();
+    this.hotbarEl.innerHTML = "";
+
+    for (let i = 0; i < this._spells.length; i++) {
+      const spell = this._spells[i];
+      const key = SLOT_KEYS[i] ?? String(i + 1);
+
+      const slot = this.createElement("div");
+      // Use legacy id for Fire Mage spells (for test backwards-compatibility).
+      slot.id = FIRE_MAGE_SLOT_IDS[spell.id] ?? `hud-spell-${spell.id}`;
+      slot.className = "hud-spell-slot affordable";
+
+      // key badge
+      const keyBadge = this.createElement("div", "hud-spell-key");
+      keyBadge.textContent = key;
+
+      // icon area
+      const iconWrap = this.createElement("div", "hud-spell-icon");
+      this.buildSpellIcon(iconWrap, spell);
+
+      // name
+      const name = this.createElement("div", "hud-spell-name");
+      name.textContent = spell.name;
+
+      slot.appendChild(keyBadge);
+      slot.appendChild(iconWrap);
+      slot.appendChild(name);
+
+      this.spellSlots.set(spell.id, slot);
+      this.hotbarEl.appendChild(slot);
+    }
+  }
+
+  /**
+   * Resolve icon for a spell.
+   * Priority: atlas frame (long key) → /art/<key>.png legacy path → emoji fallback.
+   */
+  private buildSpellIcon(wrap: HTMLElement, spell: SpellDef) {
+    const iconKey = spell.icon;
+    if (!iconKey) {
+      wrap.textContent = "✨";
+      return;
+    }
+
+    // Try atlas tex (for full atlas paths like "paladin/spell_passiveshield/SpellShieldLargeIco").
+    // atlasTex returns Texture.WHITE for unknown keys; check width > 1 to detect valid.
+    const atlasFrame = atlasTex(iconKey);
+    if (atlasFrame && atlasFrame.width > 1) {
+      // Build an img from the atlas texture using its source image + UV.
+      // Easiest cross-browser way: render to a canvas and use as dataURL.
+      // But since we're in DOM, we can use the sprite canvas extraction.
+      // Instead, construct a canvas-based icon.
+      const canvas = document.createElement("canvas");
+      canvas.width  = 28;
+      canvas.height = 28;
+      const ctx = canvas.getContext("2d");
+      if (ctx && (atlasFrame as any).baseTexture?.resource?.source) {
+        const src = (atlasFrame as any).baseTexture.resource.source as HTMLImageElement | HTMLCanvasElement;
+        const fr = (atlasFrame as any).frame;
+        if (fr) {
+          ctx.drawImage(src, fr.x, fr.y, fr.width, fr.height, 0, 0, 28, 28);
+          const img = document.createElement("img");
+          img.src = canvas.toDataURL();
+          img.alt = spell.name;
+          img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
+          wrap.appendChild(img);
+          return;
+        }
+      }
+    }
+
+    // Legacy /art/ path fallback.
+    const legacyPaths: Record<string, string> = {
+      FireHeroBall:  "/art/FireHeroBall.png",
+      FireBallIco:   "/art/FireBallIco.png",
+      FireWallIco:   "/art/FireWallIco.png",
+      FireTurretIco: "/art/FireTurretIco.png",
+    };
+    const legacySrc = legacyPaths[iconKey];
+    if (legacySrc) {
+      const img = document.createElement("img");
+      img.src = legacySrc;
+      img.alt = spell.name;
+      img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
+      const emoji = getSpellEmoji(spell.id);
+      img.onerror = () => { img.style.display = "none"; wrap.textContent = emoji; };
+      wrap.appendChild(img);
+      return;
+    }
+
+    // Full atlas key: try /atlas/ path (may work if build pipeline exposes frames).
+    // Fall through to emoji.
+    wrap.textContent = getSpellEmoji(spell.id);
+  }
+
+  private wireConnHandlers(conn: Connection) {
+    for (let i = 0; i < this._spells.length; i++) {
+      const spell = this._spells[i];
+      const el = this.spellSlots.get(spell.id);
+      if (!el) continue;
+      const slotIndex = i;
+      el.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        const cost = SPELL_COSTS[spell.id] ?? 0;
+        if (this._mana >= cost) conn.castSlot(slotIndex);
+      });
+    }
+
+    // Desktop keyboard bindings: Q→slot0, E→slot1, W→slot2, R→slot3.
+    document.addEventListener("keydown", (e) => {
+      if (e.repeat) return;
+      const keyMap: Record<string, number> = { q: 0, e: 1, w: 2, r: 3 };
+      const slotIdx = keyMap[e.key.toLowerCase()];
+      if (slotIdx === undefined || slotIdx >= this._spells.length) return;
+      const spell = this._spells[slotIdx];
+      const cost = SPELL_COSTS[spell.id] ?? 0;
+      if (this._mana >= cost) conn.castSlot(slotIdx);
+    });
+  }
+
+  // -----------------------------------------------------------------------
   private updateEffects(s: Snapshot) {
     const chips: string[] = [];
     if (s.widePaddleActive) chips.push(`↔️ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
@@ -258,7 +409,6 @@ export class Hud {
       const tile = this.createElement("div");
       tile.dataset.relicId = relic.id;
       tile.title = relic.name;
-      // Use SpellBarActive as frame for relic tiles
       tile.style.cssText = [
         "width:36px", "height:36px",
         "background:url('/ui/BattleSpellBarActive.png') no-repeat center/cover",
@@ -294,7 +444,6 @@ export class Hud {
       "min-width:min(260px,72vw)",
     ].join(";");
 
-    // Boss name label.
     const name = this.createElement("div");
     name.id = "hud-boss-name";
     name.style.cssText = [
@@ -305,7 +454,6 @@ export class Hud {
     ].join(";");
     outer.appendChild(name);
 
-    // Bar container.
     const barWrap = this.createElement("div");
     barWrap.style.cssText = [
       "position:relative",
@@ -317,7 +465,6 @@ export class Hud {
     ].join(";");
     outer.appendChild(barWrap);
 
-    // Fill.
     const fill = this.createElement("div");
     fill.id = "hud-boss-hp-fill";
     fill.style.cssText = [
@@ -334,14 +481,12 @@ export class Hud {
   private buildManaBar(): HTMLElement {
     const outer = this.createElement("div");
     outer.id = "hud-mana";
-    // Use MPFull art as a visual frame reference; overlay custom fill on top
     outer.style.cssText = [
       "position:relative",
       "width:min(220px,80vw)",
       "height:20px",
     ].join(";");
 
-    // Background: empty mana bar art
     const bg = this.createElement("div");
     bg.style.cssText = [
       "position:absolute", "inset:0",
@@ -349,7 +494,6 @@ export class Hud {
     ].join(";");
     outer.appendChild(bg);
 
-    // Fill: full mana bar art, clipped by percentage
     const fill = this.createElement("div");
     fill.id = "hud-mana-fill";
     fill.style.cssText = [
@@ -373,49 +517,7 @@ export class Hud {
     return outer;
   }
 
-  private buildHotbar(): HTMLElement {
-    const bar = this.createElement("div");
-    bar.style.cssText = "display:flex;gap:6px;pointer-events:none;";
-
-    for (const spell of SPELLS) {
-      const slot = this.createElement("div");
-      slot.id = `hud-spell-${spell.id}`;
-      slot.className = "hud-spell-slot affordable";
-
-      // key badge
-      const keyBadge = this.createElement("div", "hud-spell-key");
-      keyBadge.textContent = spell.key;
-
-      // icon area — use SpellBar art as the slot frame
-      const iconWrap = this.createElement("div", "hud-spell-icon");
-      if (spell.icon) {
-        const img = document.createElement("img");
-        img.src = spell.icon;
-        img.alt = spell.label;
-        img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
-        img.onerror = () => { img.style.display = "none"; iconWrap.textContent = spell.emoji; };
-        iconWrap.appendChild(img);
-      } else {
-        iconWrap.textContent = spell.emoji;
-      }
-
-      // name
-      const name = this.createElement("div", "hud-spell-name");
-      name.textContent = spell.label;
-
-      slot.appendChild(keyBadge);
-      slot.appendChild(iconWrap);
-      slot.appendChild(name);
-
-      this.spellSlots.set(spell.id, slot);
-      bar.appendChild(slot);
-    }
-
-    return bar;
-  }
-
-  /** Render a row of icon images (or emoji fallback) with a count.
-   *  uiSrc is tried first (battle-interface art), artSrc is fallback. */
+  /** Render a row of icon images (or emoji fallback) with a count. */
   private renderStatRow(count: number, uiSrc: string, artSrc: string, emoji: string, label: string): string {
     const iconHtml = `<img
       src="${uiSrc}" alt="${label}"
@@ -538,4 +640,23 @@ export class Hud {
     `;
     document.head.appendChild(style);
   }
+}
+
+function getSpellEmoji(id: string): string {
+  const map: Record<string, string> = {
+    ignite:    "🔥",
+    fireball:  "💥",
+    firewall:  "🧱",
+    turret:    "🔫",
+    shield:    "🛡️",
+    spear:     "🗡️",
+    duplicate: "✂️",
+    lightning: "⚡",
+    rocket:    "🚀",
+    radiation: "☢️",
+    decay:     "💀",
+    skeleton:  "🦴",
+    drain:     "🩸",
+  };
+  return map[id] ?? "✨";
 }

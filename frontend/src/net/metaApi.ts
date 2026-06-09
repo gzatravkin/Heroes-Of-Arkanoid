@@ -93,11 +93,18 @@ export interface FloorClearedResult {
   profile?: Profile;
 }
 
+export interface SpellDef {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export interface CharacterDef {
   id: string;
   name: string;
   passive: string;
   icon: string;
+  spells: SpellDef[];
 }
 
 export interface CharactersResponse {

@@ -4,7 +4,7 @@ export interface Snapshot {
   tick: number; phase: string; lives: number; spareBalls: number;
   mana: number; manaMax: number; boardW: number; boardH: number; biome: string;
   paddleX: number; paddleW: number; paddleH: number; cellSize: number;
-  balls: { id: number; x: number; y: number; ignited: boolean }[];
+  balls: { id: number; x: number; y: number; ignited: boolean; decayed?: boolean }[];
   blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string; ballPhases: boolean; teleporter: boolean; indestructible: boolean; boss?: boolean }[];
   hazards: { x: number; y: number }[];
   events: { type: string; x: number; y: number }[];
@@ -19,6 +19,11 @@ export interface Snapshot {
   widePaddleTimer: number;
   slowBallActive: boolean;
   slowBallTimer: number;
+  // P6 additions
+  barriers: { y: number; centerX: number; width: number }[];
+  zones: { x: number; y: number; radius: number }[];
+  skeletonActive: boolean;
+  drainActive: boolean;
 }
 
 export class Connection {
@@ -52,6 +57,7 @@ export class Connection {
   castFireball() { this.send({ kind: "CastFireball" }); }
   castFireWall() { this.send({ kind: "CastFireWall" }); }
   castTurret() { this.send({ kind: "CastTurret" }); }
+  castSlot(slot: number) { this.send({ kind: "CastSlot", slot }); }
   cheat(op: string, value = 0) { this.send({ kind: "Cheat", cheat: op, value }); }
   whenReady(cb: () => void) {
     if (this.ws.readyState === 1) cb(); else this.ws.addEventListener("open", cb, { once: true });

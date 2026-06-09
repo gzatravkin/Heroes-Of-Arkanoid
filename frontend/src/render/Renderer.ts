@@ -60,6 +60,33 @@ const TURRET_BARREL_WIDTH_MULT  = 0.45;
 // Projectile id threshold: turret bullets + fireballs use id >= this value.
 const PROJECTILE_ID_THRESHOLD = 10000;
 
+// ---------------------------------------------------------------------------
+// Per-class spell visual constants
+// ---------------------------------------------------------------------------
+
+// Paladin barrier: shield bar rendered per entry in barriers[].
+const BARRIER_HEIGHT_FRAC  = 0.18; // fraction of cellSize for bar thickness
+const BARRIER_GLOW_ALPHA   = 0.55;
+const BARRIER_FILL_COLOR   = 0x88ccff; // steel-blue core
+const BARRIER_GLOW_COLOR   = 0x4499ff; // cooler blue additive glow
+const BARRIER_GLOW_W_EXTRA = 16;       // extra px each side for glow halo
+
+// Engineer radiation zone: pulsing AoE circle.
+const ZONE_FILL_COLOR      = 0x22ff44;  // toxic green
+const ZONE_GLOW_COLOR      = 0x44ff88;
+const ZONE_FILL_ALPHA_BASE = 0.12;
+const ZONE_FILL_ALPHA_AMP  = 0.06;
+const ZONE_RING_ALPHA      = 0.6;
+const ZONE_PULSE_SPEED     = 0.09;
+
+// Necromancer decay aura on ball (sickly green, distinct from ignite orange).
+const DECAY_HALO_COLOR      = 0x22cc44;
+const DECAY_HALO_ALPHA      = 0.38;
+const DECAY_HALO_RADIUS_MULT = 1.8;
+
+// Skeleton summon position (top of board, centered).
+const SKELETON_Y_FRAC = 0.08; // fraction of boardH from top
+
 // Turret: atlas art keys for the barrel sprite and missile bullets.
 const TURRET_SPRITE_KEY   = "firemage/spell_fireturret/FireHeroTurret";
 const TURRET_MISSILE_KEY  = "firemage/spell_fireturret/FireHeroTurretMissile";
@@ -174,6 +201,17 @@ export class Renderer {
   // Pool keyed by bonus id: { sp: Sprite, baseY: number }
   private _bonusPool = new Map<number, { sp: Sprite; baseY: number }>();
 
+  // ── P6 per-class spell effect layers ──────────────────────────────────────
+  // Paladin shield barriers layer (drawn above blocks, behind balls).
+  private barriersLayer = new Container();
+  // Engineer radiation zones layer.
+  private zonesLayer = new Container();
+  // Necromancer skeleton summon sprite.
+  private _skeletonSprite: Sprite | null = null;
+  private _skeletonAnimSys: AnimSystem;
+  // Skeleton aura looping handle id.
+  private _skeletonAuraId: number | undefined;
+
   // Boss rig: one BossRig instance while bossActive, destroyed when boss dies.
   private _bossRig: BossRig | null = null;
   // The boss type inferred from boss block sprites (set when rig is created).
@@ -205,6 +243,7 @@ export class Renderer {
     this.screenShake = new ScreenShake();
     this._wallAnimSys = new AnimSystem();
     this._ballAnimSys = new AnimSystem();
+    this._skeletonAnimSys = new AnimSystem();
 
     // Background: full-stage sprite (behind world container).
     this.bgSprite.anchor.set(0);
@@ -255,18 +294,21 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → bossLayer → effects → ballAuras → balls → paddleSprite → turret → hazards → bonuses
+    // Layer order: ballTrail → zones → blocks → fireWalls → wallAnimSys → barriers → bossLayer → effects → ballAuras → balls → paddleSprite → turret → skeletonAnimSys → hazards → bonuses
     this.world.addChild(
       this.ballTrail.container,
+      this.zonesLayer,
       this.blocks,
       this.fireWalls,
       this._wallAnimSys.container,
+      this.barriersLayer,
       this._bossLayer,
       this.effectsLayer.container,
       this._ballAnimSys.container,
       this.balls,
       this.paddleSprite,
       this.turretSprite,
+      this._skeletonAnimSys.container,
       this.hazardsLayer,
       this.bonusesLayer,
     );
@@ -293,6 +335,7 @@ export class Renderer {
         this.effectsLayer.update(dtMs);
         this._ballAnimSys.update(dtMs);
         this._wallAnimSys.update(dtMs);
+        this._skeletonAnimSys.update(dtMs);
       }
 
       // Telegraph warning update (runs regardless of hit-stop for clarity).
@@ -964,6 +1007,196 @@ export class Renderer {
       if (ev.type === "bonusCaught") {
         this.effectsLayer.consume([{ type: "blockDestroyed", x: ev.x, y: ev.y }], s.cellSize, s.biome);
       }
+    }
+
+    // ── P6 per-class spell effects ─────────────────────────────────────────
+
+    // --- barriers (Paladin shield bars) ---
+    const barriers = s.barriers ?? [];
+    this.barriersLayer.removeChildren();
+    for (const br of barriers) {
+      const barH = s.cellSize * BARRIER_HEIGHT_FRAC;
+      // Glow halo (additive, wider than fill).
+      const glow = new Graphics();
+      glow.blendMode = BLEND_MODES.ADD;
+      glow.beginFill(BARRIER_GLOW_COLOR, BARRIER_GLOW_ALPHA)
+        .drawRoundedRect(
+          br.centerX - br.width / 2 - BARRIER_GLOW_W_EXTRA,
+          br.y - barH * 1.4,
+          br.width + BARRIER_GLOW_W_EXTRA * 2,
+          barH * 2.8,
+          barH,
+        )
+        .endFill();
+      // Core fill.
+      const fill = new Graphics();
+      fill.beginFill(BARRIER_FILL_COLOR, 0.92)
+        .drawRoundedRect(
+          br.centerX - br.width / 2,
+          br.y - barH / 2,
+          br.width,
+          barH,
+          barH / 2,
+        )
+        .endFill();
+
+      // Optionally overlay atlas shield art if available.
+      const shieldTex = tex("paladin/spell_passiveshield/KnightShield");
+      if (shieldTex !== Texture.WHITE) {
+        // Tile the shield art across the barrier width.
+        const tileSize = barH * 3.5;
+        const count = Math.max(1, Math.round(br.width / tileSize));
+        for (let i = 0; i < count; i++) {
+          const sp = new Sprite(shieldTex);
+          sp.anchor.set(0.5);
+          sp.width  = tileSize;
+          sp.height = tileSize;
+          sp.x = br.centerX - br.width / 2 + tileSize / 2 + i * tileSize;
+          sp.y = br.y;
+          sp.alpha = 0.85;
+          sp.tint = BARRIER_FILL_COLOR;
+          this.barriersLayer.addChild(sp);
+        }
+      }
+
+      this.barriersLayer.addChild(glow);
+      this.barriersLayer.addChild(fill);
+    }
+
+    // --- zones (Engineer radiation AoE) ---
+    const zones = s.zones ?? [];
+    this.zonesLayer.removeChildren();
+    const radiationTex = tex("engineer/spell_raditation/Radiation");
+    for (const zn of zones) {
+      const fillAlpha = ZONE_FILL_ALPHA_BASE
+        + ZONE_FILL_ALPHA_AMP * Math.sin(this._tick * ZONE_PULSE_SPEED);
+      // Additive glow ring.
+      const ring = new Graphics();
+      ring.blendMode = BLEND_MODES.ADD;
+      ring.beginFill(ZONE_GLOW_COLOR, fillAlpha * 1.5)
+        .drawCircle(zn.x, zn.y, zn.radius * 1.05)
+        .endFill();
+      // Inner fill.
+      const fill = new Graphics();
+      fill.beginFill(ZONE_FILL_COLOR, fillAlpha)
+        .drawCircle(zn.x, zn.y, zn.radius)
+        .endFill();
+      // Border ring.
+      const border = new Graphics();
+      border.blendMode = BLEND_MODES.ADD;
+      border.lineStyle(2, ZONE_GLOW_COLOR, ZONE_RING_ALPHA)
+        .drawCircle(zn.x, zn.y, zn.radius);
+
+      this.zonesLayer.addChild(ring);
+      this.zonesLayer.addChild(fill);
+      this.zonesLayer.addChild(border);
+
+      // Overlay radiation art in center if available.
+      if (radiationTex !== Texture.WHITE) {
+        const sp = new Sprite(radiationTex);
+        sp.anchor.set(0.5);
+        const iconSize = zn.radius * 0.6;
+        sp.width  = iconSize * 2;
+        sp.height = iconSize * 2;
+        sp.x = zn.x;
+        sp.y = zn.y;
+        sp.alpha = 0.7 + 0.15 * Math.sin(this._tick * ZONE_PULSE_SPEED * 1.3);
+        sp.tint = ZONE_FILL_COLOR;
+        this.zonesLayer.addChild(sp);
+      }
+    }
+
+    // --- skeleton summon (Necromancer) ---
+    {
+      const skeletonActive = s.skeletonActive ?? false;
+      // SkeletalMage is a single static frame; Skeleton2BirthAnimation is an animated strip.
+      const skeletonFrames = animFrames("necromancer/spell_skeleton/SkeletalMage");
+      // Use the static SkeletalMage frame repeated to form a "loop" (single frame is fine).
+      const skFrameArr = skeletonFrames.length > 0
+        ? skeletonFrames
+        : [tex("necromancer/spell_skeleton/SkeletalMage")].filter(t => t !== Texture.WHITE);
+
+      if (skeletonActive) {
+        const skX = s.boardW / 2;
+        const skY = s.boardH * SKELETON_Y_FRAC + s.cellSize;
+
+        if (this._skeletonAuraId === undefined) {
+          // Spawn looping skeleton aura display.
+          if (skFrameArr.length > 0) {
+            const h = this._skeletonAnimSys.looping(
+              skFrameArr, 12,
+              skX, skY,
+              s.cellSize * 2.8,
+              false, 0xaaaaff,
+            );
+            this._skeletonAuraId = h.id;
+          }
+          // Glow circle behind the skeleton sprite.
+          if (!this._skeletonSprite) {
+            const skGlow = new Graphics();
+            skGlow.blendMode = BLEND_MODES.ADD;
+            skGlow.beginFill(0x8888ff, 0.35)
+              .drawCircle(skX, skY, s.cellSize * 1.8)
+              .endFill();
+            this._skeletonAnimSys.container.addChildAt(skGlow, 0);
+            // Store in _skeletonSprite field (cast) to clean up later.
+            this._skeletonSprite = skGlow as unknown as Sprite;
+          }
+        } else {
+          // Update position of existing looping handle.
+          this._skeletonAnimSys.moveTo({ id: this._skeletonAuraId }, skX, skY);
+        }
+      } else {
+        // Skeleton no longer active — remove.
+        if (this._skeletonAuraId !== undefined) {
+          this._skeletonAnimSys.remove({ id: this._skeletonAuraId });
+          this._skeletonAuraId = undefined;
+        }
+        if (this._skeletonSprite) {
+          this._skeletonSprite.parent?.removeChild(this._skeletonSprite);
+          this._skeletonSprite = null;
+        }
+      }
+    }
+
+    // --- decay aura on balls (Necromancer) ---
+    // decay balls get a sickly green halo instead of the ignite orange.
+    // This is handled inside the ball pool loop above, but we need to add the
+    // green halo for decayed balls that don't have the ignite halo drawn.
+    // We walk the ball pool again to add/update decay halos.
+    for (const ball of s.balls) {
+      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue;
+      const entry = this._ballPool.get(ball.id);
+      if (!entry) continue;
+      const ballRadius = s.cellSize * 0.25;
+      // If decayed, repaint the halo green (overrides ignite orange if both somehow set).
+      if ((ball as any).decayed) {
+        entry.haloGfx.clear();
+        entry.haloGfx.blendMode = BLEND_MODES.ADD;
+        entry.haloGfx.beginFill(DECAY_HALO_COLOR, DECAY_HALO_ALPHA)
+          .drawCircle(ball.x, ball.y, ballRadius * DECAY_HALO_RADIUS_MULT)
+          .endFill();
+      }
+    }
+
+    // --- P6 events: lightning, explosion (rocket), radiation, decay ---
+    // These are remapped to existing effect types so they reuse the existing
+    // atlas art and Effects pipeline without requiring new Effects methods.
+    const remappedEvents: Snapshot["events"] = [];
+    for (const ev of s.events) {
+      if (ev.type === "lightning") {
+        // Lightning: use spellCast (phoenix flourish) for a bright flash.
+        remappedEvents.push({ type: "spellCast", x: ev.x, y: ev.y });
+      } else if (ev.type === "explosion") {
+        // Rocket explosion: full blockDestroyed blast at impact.
+        remappedEvents.push({ type: "blockDestroyed", x: ev.x, y: ev.y });
+      } else if (ev.type === "radiation" || ev.type === "decay") {
+        // Radiation / decay: smaller burn flash.
+        remappedEvents.push({ type: "burn", x: ev.x, y: ev.y });
+      }
+    }
+    if (remappedEvents.length > 0) {
+      this.effectsLayer.consume(remappedEvents, s.cellSize, s.biome);
     }
 
     // --- effects: consume snapshot events ---
