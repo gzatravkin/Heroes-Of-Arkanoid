@@ -27,6 +27,17 @@ test("menu is one journey: Continue + Campaign Map + docked icons, no Play/Dunge
   await expect(page.locator(".menu-quick-grid")).toHaveCount(0);
 });
 
+test("menu → Campaign Map → unlocked node navigates into a battle", async ({ page }) => {
+  await page.goto("/?scene=menu");
+  // Campaign Map is the level navigation now (the loose grid is gone).
+  await page.locator("#btn-campaign").click();
+  await page.waitForSelector('#campaign-map [data-level="hell-1"]');
+  await page.locator('[data-level="hell-1"]').click();
+  await page.waitForFunction(() => !!(window as any).__game?.getState());
+  const s = await page.evaluate(() => (window as any).__game.getState());
+  expect(s.blocks.length).toBeGreaterThan(0);
+});
+
 test("clicking Continue enters a battle", async ({ page }) => {
   await page.goto("/?scene=menu");
   await page.locator("#btn-continue").click();
