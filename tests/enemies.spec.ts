@@ -29,6 +29,13 @@ test("Heaven melee statue fires", async ({ page }) => {
   await emitsHazard(page, "heaven-1", "enemy-heaven-statue.png");
 });
 
+test("Heaven boss finale renders", async ({ page }) => {
+  await openBattle(page, "heaven-boss");
+  const s = await page.evaluate(() => (window as any).__game.getState());
+  expect(s.bossActive).toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-heaven-boss.png") });
+});
+
 test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await openBattle(page, "caverns-2");
   const s = await page.evaluate(() => (window as any).__game.getState());

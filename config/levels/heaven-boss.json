@@ -1,0 +1,28 @@
+{
+  "id": "heaven-boss",
+  "biome": "heaven",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "S.HHHH.S",
+    ".HTTTTH.",
+    ".HTXXTH.",
+    ".HTXXTH.",
+    ".HTTTTH.",
+    "S.HHHH.S",
+    "S......S",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "H": "heaven_basic",
+    "T": "heaven_tough",
+    "S": "heaven_statue",
+    "X": "heaven_angel_boss"
+  }
+}

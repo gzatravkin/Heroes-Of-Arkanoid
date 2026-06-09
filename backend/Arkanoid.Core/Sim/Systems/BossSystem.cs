@@ -184,9 +184,14 @@ internal static class BossSystem
         AddHazard(g, origin, vel);
     }
 
-    /// <summary>Rain — BossRainCount hazards at random X positions across the board width.</summary>
+    /// <summary>Rain — BossRainCount hazards at random X. The Caverns Goblin rains stalactites.</summary>
     private static void SpawnRain(GameInstance g, Vec2 origin)
     {
+        if (g.Level.Biome == "caverns")
+        {
+            StalactiteSystem.BossDrop(g, g.Config.BossRainCount);
+            return;
+        }
         double boardW = g.Level.Grid.Width;
         for (int i = 0; i < g.Config.BossRainCount; i++)
         {

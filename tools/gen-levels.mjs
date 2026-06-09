@@ -17,7 +17,7 @@ const DESTRUCTIBLE = new Set([
   "hell_basic", "hell_tough", "hell_demon_boss", "hell_ballspawner",
   "cavern_basic", "cavern_tough", "cavern_goblin_boss", "cavern_bomb",
   "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder", "village_necromant",
-  "heaven_basic", "heaven_tough", "heaven_melee_statue", "heaven_windmaster", "heaven_shield_statue",
+  "heaven_basic", "heaven_tough", "heaven_melee_statue", "heaven_windmaster", "heaven_shield_statue", "heaven_angel_boss",
 ]);
 // Non-needToKill special blocks that are allowed to exist (don't satisfy winnability alone).
 const NON_KILL = new Set(["cavern_stalactite"]);
@@ -151,6 +151,16 @@ const LEVELS = [
     ".H.TT.H.",
     "HS.TT.SH",
     "H.STTS.H",
+  ]},
+  // The campaign finale: the Heaven angel boss, flanked by defender statues.
+  { id: "heaven-boss", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", X: "heaven_angel_boss" }, rows: [
+    "S.HHHH.S",
+    ".HTTTTH.",
+    ".HTXXTH.",
+    ".HTXXTH.",
+    ".HTTTTH.",
+    "S.HHHH.S",
+    "S......S",
   ]},
 ];
 

@@ -11,5 +11,6 @@
   { "id": "village-ghost", "label": "Witchland — Ghosts", "biome": "village", "x": 9,  "y": 0, "requires": ["village-2"] },
   { "id": "village-boss",  "label": "Witchland — Witch",  "biome": "village", "x": 10, "y": 0, "requires": ["village-ghost"] },
   { "id": "heaven-1",      "label": "Heaven I",           "biome": "heaven",  "x": 11, "y": 0, "requires": ["village-boss"] },
-  { "id": "heaven-2",      "label": "Heaven II",          "biome": "heaven",  "x": 12, "y": 0, "requires": ["heaven-1"] }
+  { "id": "heaven-2",      "label": "Heaven II",          "biome": "heaven",  "x": 12, "y": 0, "requires": ["heaven-1"] },
+  { "id": "heaven-boss",   "label": "Heaven — Seraph",    "biome": "heaven",  "x": 13, "y": 0, "requires": ["heaven-2"] }
 ]}
