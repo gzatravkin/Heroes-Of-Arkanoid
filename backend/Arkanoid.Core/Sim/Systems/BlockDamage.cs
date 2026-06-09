@@ -25,7 +25,12 @@ internal static class BlockDamage
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             g.RaiseEvent("blockDestroyed", c.X, c.Y);
             g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + Modifiers.KillManaGain(g));
-            BonusSystem.TrySpawnBonus(g, c.X, c.Y);
+            // Danger pays (docs/11 R4): killing an enemy-behaviour block always drops
+            // a bonus; plain bricks keep the random roll. Bosses pay via level rewards.
+            if (blk.Behavior != BlockBehavior.None && !blk.Boss)
+                BonusSystem.SpawnGuaranteed(g, c.X, c.Y);
+            else
+                BonusSystem.TrySpawnBonus(g, c.X, c.Y);
             if (igniteSource && Modifiers.ShouldSpreadFire(g))
                 SpreadFire(g, blk);
             if (decaySource)

@@ -30,7 +30,7 @@ internal static class EmitterSystem
 
             if (!blk.Emitter) continue;
             if (blk.AllyTimer > 0) continue; // pacified by an Altar/Vase — holds fire
-            var interval = blk.EmitInterval > 0 ? blk.EmitInterval : 2.5;
+            var interval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
             blk.EmitAccumulator += dt;
             if (blk.EmitAccumulator < interval) continue;
             blk.EmitAccumulator -= interval;

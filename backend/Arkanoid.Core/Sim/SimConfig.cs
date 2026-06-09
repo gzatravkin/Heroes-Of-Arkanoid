@@ -152,6 +152,10 @@ public sealed class SimConfig
     public double BossHazardAimStrength { get; init; } = 0.35;
 
     // --- Enemy emitter blocks (Hell spawner / Beholder / Melee statue) ---
+    /// <summary>Fallback seconds between emitted hazards when a block def omits emitInterval.</summary>
+    public double DefaultEmitInterval { get; init; } = 2.5;
+    /// <summary>Seconds before an emitter fires during which the snapshot flags it as charging (the visual tell — docs/11 R2).</summary>
+    public double EmitTelegraphWindow { get; init; } = 0.5;
     /// <summary>Speed of a hazard fired by an emitter block (units/sec).</summary>
     public double EnemyHazardSpeed  { get; init; } = 210;
     /// <summary>HP damage an emitter hazard deals on paddle contact.</summary>

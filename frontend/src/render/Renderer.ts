@@ -311,7 +311,7 @@ export class Renderer {
     // --- blocks (pooled: damage states, mirror, boss aura, teleporter ring, ghost, shield) ---
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
-    this.blockLayer.update(s.blocks, this._tick, brickSize);
+    this.blockLayer.update(s.blocks, this._tick, brickSize, s.windRadius ?? 0);
 
     // --- boss rig: assemble / update / destroy animated multi-part boss ---
     // Compute the boss-block bounding region this frame.

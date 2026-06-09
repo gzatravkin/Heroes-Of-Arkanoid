@@ -143,6 +143,93 @@ public class EnemyTests
         Assert.Empty(g.Hazards);
     }
 
+    // ── Danger pays (docs/11 R4): enemy kills always drop a bonus ─────────────
+
+    [Fact]
+    public void EnemyBlockKill_AlwaysDropsBonus_PlainBrickStaysRandom()
+    {
+        var blocksJson =
+            "{\"types\":[" +
+            "{\"id\":\"e\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":99,\"emitAim\":\"down\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+        var levelJson =
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"e.k\",\"...\",\"...\"],\"legend\":{\"e\":\"e\",\"k\":\"k\"}}";
+        var catalog = BlockCatalog.FromJson(blocksJson);
+        var level   = LevelLoader.FromJson(levelJson, catalog);
+        var bonuses = Arkanoid.Core.Bonuses.BonusCatalog.FromJson(
+            "{\"bonuses\":[{\"id\":\"coins\",\"name\":\"Treasure\",\"icon\":\"i\",\"effect\":\"coins\"}]}");
+        // BonusDropChance 0 → any drop from the enemy must come from the guaranteed path.
+        var g = new GameInstance(level, new SimConfig { BonusDropChance = 0 }, seed: 1, bonuses: bonuses);
+        g.Serve();
+
+        BallHit(g, g.Blocks[0]); // kill the emitter
+        Assert.True(g.Blocks[0].Dead);
+        Assert.Single(g.Bonuses); // guaranteed drop
+
+        BallHit(g, g.Blocks[1]); // kill the plain brick
+        Assert.True(g.Blocks[1].Dead);
+        Assert.Single(g.Bonuses); // still 1 — plain bricks keep the random roll (chance 0 here)
+    }
+
+    // ── Telegraph (docs/11 R2): snapshot flags an emitter about to fire ────────
+
+    [Fact]
+    public void Snapshot_FlagsEmitterCharging_OnlyInsideTelegraphWindow()
+    {
+        var g = Make(
+            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":1.0,\"emitAim\":\"down\"}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".E.\",\"...\",\"...\"],\"legend\":{\"E\":\"e\"}}");
+        Park(g);
+
+        // 0.3s into a 1.0s interval (0.5s window) → not charging yet.
+        for (int i = 0; i < 18; i++) g.Tick(1.0 / 60);
+        Assert.False(Arkanoid.Core.Net.Snapshot.From(g, 0).Blocks[0].Charging);
+
+        // 0.7s in → inside the 0.5s telegraph window.
+        for (int i = 0; i < 24; i++) g.Tick(1.0 / 60);
+        Assert.True(Arkanoid.Core.Net.Snapshot.From(g, 0).Blocks[0].Charging);
+    }
+
+    [Fact]
+    public void Snapshot_FlagsAlliedStatue_AfterAltarHit()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"a\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"altar\"}," +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.5,\"emitAim\":\"paddle\"}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"a.m\",\"...\",\"...\"],\"legend\":{\"a\":\"a\",\"m\":\"m\"}}");
+        Assert.False(Arkanoid.Core.Net.Snapshot.From(g, 0).Blocks[1].Allied);
+        BallHit(g, g.Blocks[0]);
+        Assert.True(Arkanoid.Core.Net.Snapshot.From(g, 0).Blocks[1].Allied);
+    }
+
+    // ── Revive cancelled: killing the necromant clears pending death-marks ─────
+
+    [Fact]
+    public void NecromantKilled_BeforeReviveTimer_RaisesReviveCancelled()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"necromant\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            // third needToKill block keeps the level un-won so the sim keeps ticking
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"n.k\",\"..k\",\"...\"],\"legend\":{\"n\":\"n\",\"k\":\"k\"}}");
+        var necro = g.Blocks[0];
+        var brick = g.Blocks[1];
+
+        BallHit(g, brick);                 // dies, gets death-marked
+        Assert.True(brick.Dead);
+        BallHit(g, necro);                 // kill the necromant before the revive fires
+        Assert.True(necro.Dead);
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 3; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+
+        Assert.True(brick.Dead, "block stays dead once the necromant is gone");
+        var events = Arkanoid.Core.Net.Snapshot.From(g, 0).Events;
+        Assert.Contains(events, e => e.Type == "reviveCancelled");
+    }
+
     // ── Bat (grabs the ball, then releases + flies away) ──────────────────────
 
     [Fact]

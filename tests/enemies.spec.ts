@@ -122,6 +122,77 @@ test("Witchland necromant present (revives destroyed blocks)", async ({ page }) 
   await page.screenshot({ path: path.join(SHOTS, "enemy-necromant.png") });
 });
 
+// ── Slice 1 (docs/11 §6 item 1): readability + danger-pays ────────────────────
+
+test("emitter telegraphs before firing (charging flag + flash)", async ({ page }) => {
+  await openBattle(page, "hell-2");
+  // Spawner interval 1.8s, telegraph window 0.5s → charging from 1.3s (78 ticks @60Hz).
+  await cheat(page, "fastForward", 85);
+  const charging = await page.evaluate(() =>
+    (window as any).__game.getState().blocks.some((b: any) => b.sprite === "HellBallSpawner" && b.charging));
+  expect(charging, "spawner must flag charging inside the telegraph window").toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-telegraph-charging.png") });
+});
+
+test("altar allies the statues — Active art state + held fire", async ({ page }) => {
+  await openBattle(page, "heaven-1");
+  const altarId = await page.evaluate(() => {
+    const s = (window as any).__game.getState();
+    return s.blocks.find((b: any) => b.sprite === "HeavenAltarV2")?.id;
+  });
+  expect(altarId, "heaven-1 must contain an altar").toBeTruthy();
+  await cheat(page, "ballToBlock", altarId);
+  await cheat(page, "fastForward", 5);
+  await page.waitForFunction(() =>
+    (window as any).__game.getState().blocks.some((b: any) => b.allied), null, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-statues-allied.png") });
+});
+
+test("windmaster aura radius is exposed and drawn", async ({ page }) => {
+  await openBattle(page, "heaven-2");
+  const s = await page.evaluate(() => (window as any).__game.getState());
+  expect(s.windRadius, "snapshot must carry the wind radius for the aura").toBeGreaterThan(0);
+  expect(s.blocks.some((b: any) => b.sprite === "WindMaster2")).toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-windmaster-aura.png") });
+});
+
+test("necromant marks and revives a killed block (end-to-end)", async ({ page }) => {
+  await openBattle(page, "village-ghost");
+  const brickId = await page.evaluate(() =>
+    (window as any).__game.getState().blocks.find((b: any) => b.sprite === "VillageStandart")?.id);
+  expect(brickId).toBeTruthy();
+  // Kill the brick (hp 2). A driven ball can resolve against a NEIGHBOUR first
+  // (list-order collision), so loop driven hits until the target id is gone.
+  let dead = false;
+  for (let i = 0; i < 12 && !dead; i++) {
+    await cheat(page, "ballToBlock", brickId);
+    await cheat(page, "fastForward", 3);
+    dead = await page.evaluate((id) =>
+      !(window as any).__game.getState().blocks.some((b: any) => b.id === id), brickId);
+  }
+  expect(dead, "target brick must die within 12 driven hits").toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-deathmark.png") }); // sphere over the corpse
+  // The necromant revives it (delay default → fast-forward well past it).
+  await cheat(page, "fastForward", 400);
+  await page.waitForFunction((id) =>
+    (window as any).__game.getState().blocks.some((b: any) => b.id === id), brickId, { timeout: 8000 });
+});
+
+test("killing an enemy block always drops a bonus (danger pays)", async ({ page }) => {
+  await openBattle(page, "hell-2");
+  const spawnerId = await page.evaluate(() =>
+    (window as any).__game.getState().blocks.find((b: any) => b.sprite === "HellBallSpawner")?.id);
+  expect(spawnerId).toBeTruthy();
+  // Spawner has 6 HP — drive six hits into it.
+  for (let i = 0; i < 6; i++) {
+    await cheat(page, "ballToBlock", spawnerId);
+    await cheat(page, "fastForward", 3);
+  }
+  await page.waitForFunction(() =>
+    (window as any).__game.getState().bonuses.length > 0, null, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-danger-pays.png") });
+});
+
 test("Caverns stalactites fall as hazards", async ({ page }) => {
   await openBattle(page, "caverns-1");
   await cheat(page, "dropStalactites", 4);

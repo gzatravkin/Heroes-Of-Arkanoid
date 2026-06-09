@@ -22,8 +22,18 @@ internal static class BonusSystem
     /// </summary>
     internal static void TrySpawnBonus(GameInstance g, double x, double y)
     {
-        if (g.BonusCatalog == null) return;
+        if (g.BonusCatalog == null) return; // null-check before the roll: keeps RNG sequence stable in catalog-less tests
         if (g.Rng.NextDouble() >= g.Config.BonusDropChance) return;
+        SpawnGuaranteed(g, x, y);
+    }
+
+    /// <summary>
+    /// Danger pays (docs/11 R4): enemy-behaviour blocks always drop a bonus, so
+    /// threats are opportunities, not just friction. Also the no-roll spawn path.
+    /// </summary>
+    internal static void SpawnGuaranteed(GameInstance g, double x, double y)
+    {
+        if (g.BonusCatalog == null) return;
 
         var defs = g.BonusCatalog.Defs;
         var idx  = (int)(g.Rng.NextDouble() * defs.Count) % defs.Count;

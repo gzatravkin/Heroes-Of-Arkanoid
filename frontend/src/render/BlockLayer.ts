@@ -34,20 +34,68 @@ const BLOCK_DAMAGED: Record<string, string> = {
   VillageStandart2: "village/blocks/VillageStandart2Destroyed",
   StandartHaven:    "heaven/StandartHavenDestroyed",
   Standart2Haven:   "heaven/Standart2HavenDestroyed",
+  // Enemy blocks crack too (docs/11 polish):
+  ColumnTop:        "heaven/ColumnTopDestroyed",
+  Column:           "heaven/ColumnDamaged",
+  ColumnBottom:     "heaven/ColumnBottomDestroyed",
+  WindMaster2:      "heaven/WindMaster2Destroyed",
 };
+
+// Beholder shows its damage through the original 3-tier art (docs/11: beholder tiers).
+const BEHOLDER_TIER2 = "village/enemies/Beholder2"; // below 2/3 HP
+const BEHOLDER_TIER3 = "village/enemies/Beholder3"; // below 1/3 HP
+const BEHOLDER_T2_FRAC = 2 / 3;
+const BEHOLDER_T3_FRAC = 1 / 3;
+
+// Pacified statues/altar swap to the original *Active art (docs/11 R5 — convert is visible).
+const ALLIED_VARIANT: Record<string, string> = {
+  HeavenMeleeStatue: "heaven/HeavenMeleeStatueActive",
+  HeavenDefender:    "heaven/HeavenDefenderActive",
+};
+const ALTAR_SPRITE        = "HeavenAltarV2";
+const ALTAR_ACTIVE        = "heaven/HeavenAltarV2Active";
+
+// Telegraph flash (docs/11 R2): emitter about to fire pulses warm.
+const CHARGE_TINT        = 0xffdd66;
+const CHARGE_PULSE_TICKS = 8; // tint toggles every N ticks
+
+// WindMaster aura (docs/11: the push radius must be visible).
+const WIND_AURA_KEY        = "heaven/WindMasterV2Circle";
+const WIND_SPRITE          = "WindMaster2";
+const WIND_AURA_ALPHA_BASE = 0.22;
+const WIND_AURA_ALPHA_AMP  = 0.10;
+const WIND_AURA_PULSE      = 0.05;
 
 interface BlockDto {
   id: number; x: number; y: number; hp: number; maxHp: number; sprite: string;
   boss?: boolean; ballPhases: boolean; indestructible: boolean; teleporter: boolean;
   flipX?: boolean; flipY?: boolean; shielded?: boolean;
+  charging?: boolean; allied?: boolean;
 }
 
 export class BlockLayer {
   readonly container = new Container();
-  private pool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics }>();
+  private pool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics; wind?: Sprite }>();
 
-  /** Block texture with damage states: swaps to the cracked frame near death. */
-  private blockTex(b: { sprite: string; hp: number; maxHp: number }): Texture {
+  /** Block texture: allied *Active art, beholder damage tiers, cracked frames near death. */
+  private blockTex(b: BlockDto, anyAllied: boolean): Texture {
+    // Pacified statues (and the altar, while its blessing holds) show the Active art.
+    const activeKey = b.allied ? ALLIED_VARIANT[b.sprite]
+      : (anyAllied && b.sprite === ALTAR_SPRITE) ? ALTAR_ACTIVE : undefined;
+    if (activeKey) {
+      const t = atlasTex(activeKey);
+      if (t !== Texture.WHITE) return t;
+    }
+    // Beholder communicates damage through its 3-tier art.
+    if (b.sprite === "Beholder1" && b.maxHp > 0) {
+      const frac = b.hp / b.maxHp;
+      const tierKey = frac < BEHOLDER_T3_FRAC ? BEHOLDER_TIER3
+        : frac < BEHOLDER_T2_FRAC ? BEHOLDER_TIER2 : undefined;
+      if (tierKey) {
+        const t = atlasTex(tierKey);
+        if (t !== Texture.WHITE) return t;
+      }
+    }
     const dmgKey = BLOCK_DAMAGED[b.sprite];
     if (dmgKey && b.maxHp > 0 && b.hp / b.maxHp < DAMAGE_THRESHOLD) {
       const t = atlasTex(dmgKey);
@@ -62,15 +110,20 @@ export class BlockLayer {
     if (e) e.sp.alpha = 0;
   }
 
-  update(blocks: BlockDto[], tick: number, brickSize: number): void {
+  update(blocks: BlockDto[], tick: number, brickSize: number, windRadius = 0): void {
     const live = new Set<number>();
-    for (const b of blocks) live.add(b.id);
+    let anyAllied = false;
+    for (const b of blocks) {
+      live.add(b.id);
+      if (b.allied) anyAllied = true;
+    }
 
     // Remove sprites for blocks that no longer exist.
     for (const [id, entry] of this.pool) {
       if (!live.has(id)) {
         if (entry.aura) this.container.removeChild(entry.aura);
         if (entry.ring) this.container.removeChild(entry.ring);
+        if (entry.wind) this.container.removeChild(entry.wind);
         this.container.removeChild(entry.sp);
         this.pool.delete(id);
       }
@@ -81,12 +134,20 @@ export class BlockLayer {
       const existing = this.pool.get(b.id);
 
       if (existing) {
-        const { sp, aura, ring } = existing;
-        sp.texture = this.blockTex(b);
+        const { sp, aura, ring, wind } = existing;
+        sp.texture = this.blockTex(b, anyAllied);
         sp.width = size; sp.height = size;
         sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
         sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
         sp.position.set(b.x, b.y);
+
+        if (wind) {
+          const wa = WIND_AURA_ALPHA_BASE + WIND_AURA_ALPHA_AMP * Math.sin(tick * WIND_AURA_PULSE);
+          wind.alpha = wa;
+          wind.width = wind.height = windRadius * 2;
+          wind.position.set(b.x, b.y);
+          wind.rotation = tick * WIND_AURA_PULSE;
+        }
 
         if (b.boss) {
           sp.alpha = 1.0;
@@ -107,11 +168,15 @@ export class BlockLayer {
           }
         } else {
           sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-          sp.tint = b.shielded ? 0x66ddff : 0xffffff; // cyan flash while shielded
+          // Telegraph pulse beats shield flash beats neutral.
+          sp.tint = b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS
+            ? CHARGE_TINT
+            : b.shielded ? 0x66ddff : 0xffffff;
         }
       } else {
         let aura: Graphics | undefined;
         let ring: Graphics | undefined;
+        let wind: Sprite | undefined;
 
         if (b.boss) {
           const a = BOSS_AURA_ALPHA + BOSS_AURA_ALPHA_AMP * Math.sin(tick * BOSS_AURA_PULSE_SPEED);
@@ -127,8 +192,20 @@ export class BlockLayer {
           ring.beginFill(TELEPORTER_RING_COLOR, a).drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
           this.container.addChild(ring);
         }
+        if (b.sprite === WIND_SPRITE && windRadius > 0) {
+          const auraTex = atlasTex(WIND_AURA_KEY);
+          if (auraTex !== Texture.WHITE) {
+            wind = new Sprite(auraTex);
+            wind.anchor.set(0.5);
+            wind.blendMode = BLEND_MODES.ADD;
+            wind.alpha = WIND_AURA_ALPHA_BASE;
+            wind.width = wind.height = windRadius * 2;
+            wind.position.set(b.x, b.y);
+            this.container.addChild(wind);
+          }
+        }
 
-        const sp = new Sprite(this.blockTex(b));
+        const sp = new Sprite(this.blockTex(b, anyAllied));
         sp.anchor.set(0.5);
         sp.width = size; sp.height = size;
         sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
@@ -143,7 +220,7 @@ export class BlockLayer {
         else sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
 
         this.container.addChild(sp);
-        this.pool.set(b.id, { sp, aura, ring });
+        this.pool.set(b.id, { sp, aura, ring, wind });
       }
     }
   }

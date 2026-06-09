@@ -58,10 +58,22 @@ const _HEAVEN_VAZA_REF = "heaven/HeavenVazaDeathAnimation"; // used in getBiomeS
 const _HELL_BALL_REF = "hell/HellBallDeathAnimation"; // used in getBiomeSecondaryStrip
 void _HEAVEN_VAZA_REF; void _HELL_BALL_REF; // suppress lint — actual keys are in the function below
 
+// Necromant death-mark: a DeathSphere hovers over the marked corpse until the
+// revive fires (or is cancelled by killing the necromant). docs/11 — makes the
+// race visible and tells the player WHICH cells are coming back.
+const DEATH_SPHERE_KEY        = "village/enemies/DeathSphere";
+const DEATH_SPHERE_SIZE_FRAC  = 0.8;  // of cellSize
+const DEATH_SPHERE_ALPHA_BASE = 0.65;
+const DEATH_SPHERE_ALPHA_AMP  = 0.25;
+const DEATH_SPHERE_PULSE_HZ   = 2.5;
+
 export class Effects {
   readonly container: Container;
   private animSys: AnimSystem;
   private particles: Particle[] = [];
+  // Death-mark spheres keyed by rounded cell position.
+  private deathMarks = new Map<string, Sprite>();
+  private _markClock = 0;
 
   // Cached sliced frames (built lazily so atlas is fully loaded when first event fires)
   private _explosionFrames = () => animStrip(EXPLOSION_KEY, EXPLOSION_FPS);
@@ -100,8 +112,43 @@ export class Effects {
         case "skeletonDeath":
           this.spawnSkeletonDeath(ev.x, ev.y, cellSize);
           break;
+        case "deathMark":
+          this.addDeathMark(ev.x, ev.y, cellSize);
+          break;
+        case "revive":
+        case "reviveCancelled":
+          this.removeDeathMark(ev.x, ev.y);
+          break;
       }
     }
+  }
+
+  // ── Necromant death-mark spheres ──────────────────────────────────────────
+
+  private static markKey(x: number, y: number) { return `${Math.round(x)},${Math.round(y)}`; }
+
+  private addDeathMark(x: number, y: number, cellSize: number) {
+    const key = Effects.markKey(x, y);
+    if (this.deathMarks.has(key)) return;
+    const texture = tex(DEATH_SPHERE_KEY); // direct atlas key via the legacy resolver
+    const sp = new Sprite(texture);
+    sp.anchor.set(0.5);
+    sp.blendMode = BLEND_MODES.ADD;
+    sp.position.set(x, y);
+    const size = cellSize * DEATH_SPHERE_SIZE_FRAC;
+    const dim = Math.max(sp.texture.width, sp.texture.height, 1);
+    sp.scale.set(size / dim);
+    sp.alpha = DEATH_SPHERE_ALPHA_BASE;
+    this.container.addChild(sp);
+    this.deathMarks.set(key, sp);
+  }
+
+  private removeDeathMark(x: number, y: number) {
+    const key = Effects.markKey(x, y);
+    const sp = this.deathMarks.get(key);
+    if (!sp) return;
+    this.container.removeChild(sp);
+    this.deathMarks.delete(key);
   }
 
   // ── Block destruction ────────────────────────────────────────────────────
@@ -233,6 +280,12 @@ export class Effects {
   update(dtMs: number) {
     this.animSys.update(dtMs);
 
+    // Pulse the death-mark spheres so they read as "pending", not debris.
+    this._markClock += dtMs / 1000;
+    const markAlpha = DEATH_SPHERE_ALPHA_BASE
+      + DEATH_SPHERE_ALPHA_AMP * Math.sin(this._markClock * Math.PI * DEATH_SPHERE_PULSE_HZ);
+    for (const sp of this.deathMarks.values()) sp.alpha = markAlpha;
+
     const dead: Particle[] = [];
     for (const p of this.particles) {
       p.elapsed += dtMs;
@@ -253,6 +306,8 @@ export class Effects {
     this.animSys.clear();
     for (const p of this.particles) this.container.removeChild(p.sprite);
     this.particles = [];
+    for (const sp of this.deathMarks.values()) this.container.removeChild(sp);
+    this.deathMarks.clear();
   }
 }
 

@@ -36,6 +36,10 @@ public sealed class BlockDto
     [JsonPropertyName("flipX")] public bool FlipX { get; set; }
     [JsonPropertyName("flipY")] public bool FlipY { get; set; }
     [JsonPropertyName("shielded")] public bool Shielded { get; set; }
+    /// <summary>Emitter about to fire — the renderer shows the attack tell (docs/11 R2).</summary>
+    [JsonPropertyName("charging")] public bool Charging { get; set; }
+    /// <summary>Statue pacified by an Altar/Vase — renderer swaps to the *Active art.</summary>
+    [JsonPropertyName("allied")] public bool Allied { get; set; }
 }
 
 public sealed class HazardDto
@@ -124,6 +128,8 @@ public sealed class Snapshot
     [JsonPropertyName("drainActive")]     public bool DrainActive     { get; set; }
     /// <summary>Extra crystals to be awarded at level completion (treasure-item bonus).</summary>
     [JsonPropertyName("treasureBonus")]   public int  TreasureBonus   { get; set; }
+    /// <summary>WindMaster push radius in world units — the renderer draws the aura circle at this size.</summary>
+    [JsonPropertyName("windRadius")]      public double WindRadius    { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -145,7 +151,10 @@ public sealed class Snapshot
         {
             if (blk.Dead) continue;
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ShieldTimer > 0 });
+            var emitInterval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
+            var charging = blk.Emitter && blk.AllyTimer <= 0
+                && emitInterval - blk.EmitAccumulator <= g.Config.EmitTelegraphWindow;
+            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ShieldTimer > 0, Charging = charging, Allied = blk.AllyTimer > 0 });
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });
@@ -180,6 +189,7 @@ public sealed class Snapshot
         s.SkeletonActive  = g.SkeletonActive;
         s.DrainActive     = g.DrainActive;
         s.TreasureBonus   = g.ItemTreasureBonus;
+        s.WindRadius      = g.Config.WindMasterRadius;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

@@ -31,14 +31,20 @@ internal static class NecromantSystem
             if (t > 0) { g._reviveQueue[i] = (blk, t); continue; }
 
             g._reviveQueue.RemoveAt(i);
+            var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             // Only revive if a Necromant is still alive and the block is still dead.
             if (blk.Dead && AnyNecromantAlive(g))
             {
                 blk.Dead = false;
                 blk.Hp   = blk.MaxHp;
-                var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
                 g.RaiseEvent("revive", c.X, c.Y);
                 g._log.Log(g.TickCount, "necromant", "revived", $"id={blk.Id} col={blk.Col} row={blk.Row}");
+            }
+            else
+            {
+                // Necromant died first — the renderer clears the death-mark sphere.
+                g.RaiseEvent("reviveCancelled", c.X, c.Y);
+                g._log.Log(g.TickCount, "necromant", "revive cancelled", $"id={blk.Id}");
             }
         }
     }
