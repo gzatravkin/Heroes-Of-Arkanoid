@@ -44,6 +44,9 @@ public sealed class GameInstance
     /// <summary>Falling bonus pickups dropped by destroyed blocks.</summary>
     public List<Bonus> Bonuses { get; } = new();
 
+    /// <summary>Blocks queued for Necromant revival: (block, seconds remaining).</summary>
+    internal readonly List<(Entities.Block Block, double Timer)> _reviveQueue = new();
+
     // --- Temp-effect state (wide_paddle / slow_ball) ---
     internal bool   _widePaddleActive = false;
     internal double _widePaddleTimer  = 0;
@@ -290,6 +293,7 @@ public sealed class GameInstance
         BossSystem.Update(this, dt);
         EmitterSystem.Update(this, dt);
         StalactiteSystem.Update(this, dt);
+        NecromantSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);

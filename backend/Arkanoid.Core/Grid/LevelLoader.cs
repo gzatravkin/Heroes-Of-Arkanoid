@@ -42,7 +42,7 @@ public static class LevelLoader
                     Boss = t.Boss,
                     Emitter = t.Emitter, EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
                     Bomb = t.Bomb, ExplodeRadius = t.ExplodeRadius,
-                    Stalactite = t.Stalactite,
+                    Stalactite = t.Stalactite, Necromant = t.Necromant,
                     FlipX = t.FlipX, FlipY = t.FlipY
                 });
             }

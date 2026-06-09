@@ -162,6 +162,8 @@ public sealed class SimConfig
     public int    BombDamage { get; init; } = 3;
     /// <summary>Downward speed of a dropped stalactite hazard (units/sec).</summary>
     public double StalactiteFallSpeed { get; init; } = 260;
+    /// <summary>Seconds before a Necromant revives a destroyed normal block.</summary>
+    public double NecromantReviveDelay { get; init; } = 4.0;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>

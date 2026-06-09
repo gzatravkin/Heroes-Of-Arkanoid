@@ -20,6 +20,13 @@ public class EnemyTests
         return g;
     }
 
+    /// <summary>Park the ball motionless near the paddle so it can't hit blocks during a wait.</summary>
+    private static void Park(GameInstance g)
+    {
+        g.Balls[0].Pos = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Balls[0].Radius - 2);
+        g.Balls[0].Vel = new Vec2(0, 0);
+    }
+
     /// <summary>Drive the ball into a specific block from below and tick once (public path).</summary>
     private static void BallHit(GameInstance g, Block target)
     {
@@ -79,6 +86,42 @@ public class EnemyTests
         Assert.True(bomb.Dead);
         Assert.True(left.Hp  < leftBefore,  "left neighbour took explosion damage");
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
+    }
+
+    // ── Necromant (revives destroyed blocks) ──────────────────────────────────
+
+    [Fact]
+    public void Necromant_RevivesDestroyedBlock_AfterDelay_AndStopsWhenDead()
+    {
+        // Necromant 'N' (col0) + a normal block 'p' (col2). Kill p → it revives while N lives.
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"necromant\":true}," +
+            "{\"id\":\"p\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"n.p\",\"...\",\"...\"],\"legend\":{\"n\":\"n\",\"p\":\"p\"}}");
+
+        var necro = g.Blocks[0];
+        var plain = g.Blocks[1];
+
+        // Kill the plain block via the ball, then park the ball so it can't chew the Necromant.
+        BallHit(g, plain);
+        Assert.True(plain.Dead, "plain block destroyed");
+        Park(g);
+
+        // Before the delay elapses it stays dead; after it, the Necromant revives it.
+        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.False(plain.Dead, "Necromant should have revived the block");
+        Assert.Equal(plain.MaxHp, plain.Hp);
+
+        // Kill the Necromant, then destroy the (revived) block again via the ball → it must NOT revive.
+        necro.Hp = 0; necro.Dead = true;
+        BallHit(g, plain);
+        Assert.True(plain.Dead, "block destroyed again");
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(plain.Dead, "no revival once the Necromant is dead");
     }
 
     // ── Stalactite (drops when a ball passes beneath) ─────────────────────────

@@ -31,6 +31,7 @@ internal static class BlockDamage
                 SpreadDecay(g, blk);
             if (blk.Bomb)
                 Explode(g, blk);
+            NecromantSystem.OnBlockDestroyed(g, blk);
         }
     }
 

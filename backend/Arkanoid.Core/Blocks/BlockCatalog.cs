@@ -33,6 +33,9 @@ public sealed class BlockType
     /// <summary>Hangs from the ceiling; drops into a falling hazard when a ball passes beneath.</summary>
     [JsonPropertyName("stalactite")] public bool Stalactite { get; set; } = false;
 
+    /// <summary>While alive, revives destroyed normal blocks after a delay (Witchland Necromant).</summary>
+    [JsonPropertyName("necromant")] public bool Necromant { get; set; } = false;
+
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
     [JsonPropertyName("flipY")] public bool FlipY { get; set; } = false;

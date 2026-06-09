@@ -49,6 +49,7 @@ const ALIAS: Record<string, string> = {
   HellBallSpawner:       "hell/HellBallSpawner",
   Bomb:                  "dungeon/Bomb",
   Beholder1:             "village/enemies/Beholder1",
+  VillageDeath:          "village/enemies/VillageDeath",
   HeavenMeleeStatue:     "heaven/HeavenMeleeStatue",
 
   // ── Game objects ─────────────────────────────────────────────────────────

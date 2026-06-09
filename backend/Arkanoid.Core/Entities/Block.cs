@@ -40,6 +40,9 @@ public sealed class Block
     //     passes beneath its column (Caverns hazard; the Goblin boss also drops these). ---
     public bool Stalactite { get; init; }
 
+    // --- Necromant: while alive, revives destroyed normal blocks after a delay. ---
+    public bool Necromant { get; init; }
+
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }
     public bool FlipY { get; init; }

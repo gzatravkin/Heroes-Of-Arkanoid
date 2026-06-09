@@ -7,7 +7,7 @@
     ".AAAAAA.",
     ".AGGGGA.",
     ".AGGGGA.",
-    "AGGGGGGA",
+    "AGGNGGGA",
     "AGGGGGGA",
     ".AGGGGA.",
     ".AGGGGA.",
@@ -21,6 +21,7 @@
   ],
   "legend": {
     "A": "village_basic",
-    "G": "village_ghost"
+    "G": "village_ghost",
+    "N": "village_necromant"
   }
 }

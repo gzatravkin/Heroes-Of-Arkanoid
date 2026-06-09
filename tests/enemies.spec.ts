@@ -36,6 +36,14 @@ test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await page.screenshot({ path: path.join(SHOTS, "enemy-caverns-bombs.png") });
 });
 
+test("Witchland necromant present (revives destroyed blocks)", async ({ page }) => {
+  await openBattle(page, "village-ghost");
+  const s = await page.evaluate(() => (window as any).__game.getState());
+  expect(s.blocks.some((b: any) => b.sprite === "VillageDeath"),
+    "necromant block should be in the level").toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-necromant.png") });
+});
+
 test("Caverns stalactites fall as hazards", async ({ page }) => {
   await openBattle(page, "caverns-1");
   await cheat(page, "dropStalactites", 4);
