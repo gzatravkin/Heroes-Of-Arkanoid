@@ -174,6 +174,8 @@ public sealed class SimConfig
     public int    ShieldStatueRadius   { get; init; } = 2;
     /// <summary>Seconds a block stays damage-immune after being shielded.</summary>
     public double ShieldDuration       { get; init; } = 2.5;
+    /// <summary>Seconds a Witchland bat holds the ball before releasing it.</summary>
+    public double BatHoldTime          { get; init; } = 2.0;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>

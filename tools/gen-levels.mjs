@@ -93,9 +93,9 @@ const LEVELS = [
   ]},
 
   // ── WITCHLAND — ghost blocks phase the ball through; force spell use ───────
-  { id: "village-1", biome: "village", legend: { A: "village_basic" }, rows: [
+  { id: "village-1", biome: "village", legend: { A: "village_basic", B: "village_bat" }, rows: [
     ".AA..AA.",
-    ".AA..AA.",
+    ".AABBAA.",
     "AA.AA.AA",
     "AA.AA.AA",
     ".AA..AA.",

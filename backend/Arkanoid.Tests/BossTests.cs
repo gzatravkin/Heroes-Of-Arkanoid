@@ -31,7 +31,7 @@ public class BossTests
     private static GameInstance MakeBossGame(SimConfig? cfg = null)
         => MakeGame(
             """
-            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"boss":true},
+            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"behavior":"boss"},
             {"id":"fill","biome":"hell","hp":1, "sprite":"s",         "needToKill":true}
             """,
             """
@@ -172,7 +172,7 @@ public class BossTests
     {
         var g = MakeGame(
             """
-            {"id":"boss","biome":"hell","hp":1,"sprite":"DemonBody","needToKill":true,"boss":true}
+            {"id":"boss","biome":"hell","hp":1,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}
             """,
             """
             {"id":"t","biome":"hell","cols":3,"rows":3,
@@ -218,7 +218,7 @@ public class BossTests
         // Single boss block for simple counting.
         var g = MakeGame(
             """
-            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"boss":true},
+            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"behavior":"boss"},
             {"id":"fill","biome":"hell","hp":1,"sprite":"s","needToKill":true}
             """,
             """
@@ -323,7 +323,7 @@ public class BossTests
         // One boss block with HP 10 so fractions are clean.
         var g = MakeGame(
             """
-            {"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"boss":true}
+            {"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}
             """,
             """
             {"id":"t","biome":"hell","cols":3,"rows":3,
@@ -379,7 +379,7 @@ public class BossTests
             StartLives               = 9999,
         };
         var g1 = MakeGame(
-            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"boss":true}""",
+            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}""",
             """{"id":"t","biome":"hell","cols":3,"rows":3,"rows_data":["B..","...","..."],"legend":{"B":"boss"}}""",
             cfg1);
         g1.Serve();
@@ -398,7 +398,7 @@ public class BossTests
             StartLives               = 9999,
         };
         var g3 = MakeGame(
-            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"boss":true}""",
+            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}""",
             """{"id":"t","biome":"hell","cols":3,"rows":3,"rows_data":["B..","...","..."],"legend":{"B":"boss"}}""",
             cfg3);
         g3.Serve();
@@ -433,7 +433,7 @@ public class BossTests
 
         // One boss block hp=10
         var g = MakeGame(
-            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"boss":true}""",
+            """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}""",
             """{"id":"t","biome":"hell","cols":3,"rows":3,"rows_data":["B..","...","..."],"legend":{"B":"boss"}}""",
             cfg);
         g.Serve();

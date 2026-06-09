@@ -158,7 +158,7 @@ public class BiomeBlockTests
         // Two teleporter blocks at different positions, plus a normal needToKill block
         var g = MakeGame(
             """
-            {"id":"tp","biome":"test","hp":1,"sprite":"s","needToKill":false,"indestructible":true,"teleporter":true},
+            {"id":"tp","biome":"test","hp":1,"sprite":"s","needToKill":false,"indestructible":true,"behavior":"teleporter"},
             {"id":"normal","biome":"test","hp":1,"sprite":"s","needToKill":true}
             """,
             """
@@ -203,7 +203,7 @@ public class BiomeBlockTests
         var cfg = new SimConfig(); // TeleportCooldownTicks = 18 (default)
         var g = MakeGame(
             """
-            {"id":"tp","biome":"test","hp":1,"sprite":"s","needToKill":false,"indestructible":true,"teleporter":true},
+            {"id":"tp","biome":"test","hp":1,"sprite":"s","needToKill":false,"indestructible":true,"behavior":"teleporter"},
             {"id":"normal","biome":"test","hp":1,"sprite":"s","needToKill":true}
             """,
             """

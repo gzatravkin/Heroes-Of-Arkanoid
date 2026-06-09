@@ -42,7 +42,7 @@ public class EnemyTests
     public void EmitterBlock_FiresHazard_AfterItsInterval()
     {
         var g = Make(
-            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"emitter\":true,\"emitInterval\":1.0,\"emitAim\":\"paddle\"}]}",
+            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":1.0,\"emitAim\":\"paddle\"}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".E.\",\"...\",\"...\"],\"legend\":{\"E\":\"e\"}}");
 
         Assert.Empty(g.Hazards);
@@ -58,7 +58,7 @@ public class EnemyTests
     public void EmitterHazard_FallsDownward()
     {
         var g = Make(
-            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"emitter\":true,\"emitInterval\":0.5,\"emitAim\":\"down\"}]}",
+            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.5,\"emitAim\":\"down\"}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".E.\",\"...\",\"...\"],\"legend\":{\"E\":\"e\"}}");
         for (int i = 0; i < 40; i++) g.Tick(0.016);
         Assert.NotEmpty(g.Hazards);
@@ -73,7 +73,7 @@ public class EnemyTests
         // Row of: bomb at (1,0), plain blocks around it. Killing the bomb should hurt neighbours.
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"bomb\":true,\"explodeRadius\":1}," +
+            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"bomb\",\"explodeRadius\":1}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":5,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"pbp\",\"...\",\"...\"],\"legend\":{\"b\":\"b\",\"p\":\"p\"}}");
 
@@ -88,6 +88,30 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Bat (grabs the ball, then releases + flies away) ──────────────────────
+
+    [Fact]
+    public void Bat_GrabsBall_ThenReleasesAndFliesAway()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"bat\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"v.k\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}");
+        var bat = g.Blocks[0];
+
+        BallHit(g, bat);
+        Assert.True(g.Balls[0].GrabbedTimer > 0, "ball is held by the bat");
+        Assert.Equal(0, g.Balls[0].Vel.Length, 3); // pinned
+
+        // Hold elapses → ball released (moving again) and the bat flew away.
+        for (int i = 0; i < (int)(SimConfig.Default.BatHoldTime / SimConfig.Default.FixedDt) + 3; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(bat.Dead, "bat flew away after releasing the ball");
+        Assert.True(g.Balls[0].Vel.Length > 0, "ball is moving again after release");
+        Assert.True(g.Balls[0].GrabbedTimer <= 0);
+    }
+
     // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
 
     [Fact]
@@ -95,7 +119,7 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"portal\":true}," +
+            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"portal\"}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}," +
             "{\"id\":\"x\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"ballPhases\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"r.p\",\"x..\",\"...\"],\"legend\":{\"r\":\"r\",\"p\":\"p\",\"x\":\"x\"}}");
@@ -126,7 +150,7 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"d\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"shieldStatue\":true}," +
+            "{\"id\":\"d\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"shieldStatue\"}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"d.p\",\"...\",\"...\"],\"legend\":{\"d\":\"d\",\"p\":\"p\"}}");
         var plain = g.Blocks[1];
@@ -157,7 +181,7 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"w\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true,\"windMaster\":true}," +
+            "{\"id\":\"w\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"windMaster\"}," +
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"w.k\",\"...\",\"...\"],\"legend\":{\"w\":\"w\",\"k\":\"k\"}}");
 
@@ -182,7 +206,7 @@ public class EnemyTests
         // Necromant 'N' (col0) + a normal block 'p' (col2). Kill p → it revives while N lives.
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"necromant\":true}," +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"necromant\"}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"n.p\",\"...\",\"...\"],\"legend\":{\"n\":\"n\",\"p\":\"p\"}}");
 
@@ -217,7 +241,7 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"l\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"stalactite\":true}," +
+            "{\"id\":\"l\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"stalactite\"}," +
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\".L.\",\"...\",\"...\",\"..k\"],\"legend\":{\"L\":\"l\",\"k\":\"k\"}}");
 
@@ -248,8 +272,8 @@ public class EnemyTests
         // OTHER red (col 2), never the blue.
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"teleporter\":true,\"teleportColor\":0}," +
-            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"teleporter\":true,\"teleportColor\":1}," +
+            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"teleporter\",\"teleportColor\":0}," +
+            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"teleporter\",\"teleportColor\":1}," +
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\"rbr\",\"...\",\"...\",\"..k\"],\"legend\":{\"r\":\"r\",\"b\":\"b\",\"k\":\"k\"}}");
 
@@ -273,7 +297,7 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"bomb\":true,\"explodeRadius\":1}," +
+            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"bomb\",\"explodeRadius\":1}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"bbp\",\"...\",\"...\"],\"legend\":{\"b\":\"b\",\"p\":\"p\"}}");
         var bomb1 = g.Blocks[0];

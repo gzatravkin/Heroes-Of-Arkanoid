@@ -38,12 +38,10 @@ public static class LevelLoader
                     Sprite = t.Sprite, NeedToKill = t.NeedToKill,
                     Indestructible = t.Indestructible,
                     BallPhases = t.BallPhases,
-                    Teleporter = t.Teleporter, TeleportColor = t.TeleportColor,
-                    Boss = t.Boss,
-                    Emitter = t.Emitter, EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
-                    Bomb = t.Bomb, ExplodeRadius = t.ExplodeRadius,
-                    Stalactite = t.Stalactite, Necromant = t.Necromant, WindMaster = t.WindMaster,
-                    ShieldStatue = t.ShieldStatue, Portal = t.Portal,
+                    Behavior = t.Behavior,
+                    TeleportColor = t.TeleportColor,
+                    EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
+                    ExplodeRadius = t.ExplodeRadius,
                     FlipX = t.FlipX, FlipY = t.FlipY
                 });
             }

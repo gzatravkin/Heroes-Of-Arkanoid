@@ -15,4 +15,9 @@ public sealed class Ball
     /// <summary>Ghost phase (Witchland portal): a ghost ball passes through normal blocks and
     /// instead collides with ghost (ballPhases) blocks. Toggled by a Portal block.</summary>
     public bool Ghost = false;
+
+    // --- Bat grab (Witchland): a bat holds the ball motionless, then releases + flies off. ---
+    public double GrabbedTimer = 0;   // >0 while held by a bat
+    public int    GrabberId    = 0;   // the bat block's Id
+    public Vec2   GrabPos;            // pinned position while grabbed
 }

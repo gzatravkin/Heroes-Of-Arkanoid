@@ -16,6 +16,25 @@ internal static class BallSystem
         // Decrement teleport cooldown once per tick (min 0)
         if (b.TeleportCooldown > 0) b.TeleportCooldown--;
 
+        // Held by a Witchland bat: pinned in place until the timer expires, then released
+        // upward with a small lean and the bat flies away (block removed).
+        if (b.GrabbedTimer > 0)
+        {
+            b.GrabbedTimer -= dt;
+            b.Pos = b.GrabPos;
+            b.Vel = new Vec2(0, 0);
+            if (b.GrabbedTimer <= 0)
+            {
+                var lean = g.Rng.Range(-0.3, 0.3);
+                b.Vel = new Vec2(lean, -1).Normalized() * g.Config.BallSpeed;
+                var bat = g.Blocks.FirstOrDefault(x => x.Id == b.GrabberId);
+                if (bat != null) bat.Dead = true; // flies away
+                b.GrabberId = 0;
+                g.RaiseEvent("batRelease", b.Pos.X, b.Pos.Y);
+            }
+            return; // no movement/collision while grabbed
+        }
+
         b.Pos += b.Vel * dt;
         if (g._log.Verbose)
             g._log.Log(g.TickCount, "ball", "move", $"id={b.Id} x={b.Pos.X:F1} y={b.Pos.Y:F1}");
@@ -97,6 +116,18 @@ internal static class BallSystem
                     g._log.Log(g.TickCount, "portal", "phase toggled", $"ball={b.Id} ghost={b.Ghost}");
                 }
                 continue; // always pass through the portal block itself
+            }
+
+            // Bat: grab the ball, holding it in place for a moment, then it flies off.
+            if (blk.Bat)
+            {
+                b.GrabbedTimer = g.Config.BatHoldTime;
+                b.GrabberId    = blk.Id;
+                b.GrabPos      = c;
+                b.Vel          = new Vec2(0, 0);
+                g.RaiseEvent("batGrab", c.X, c.Y);
+                g._log.Log(g.TickCount, "bat", "grabbed ball", $"ball={b.Id} bat={blk.Id}");
+                return; // ball is now held
             }
 
             // Phase interaction: a NORMAL ball passes through ghost (ballPhases) blocks; a GHOST

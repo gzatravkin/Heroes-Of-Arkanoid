@@ -34,6 +34,7 @@ const ALIAS: Record<string, string> = {
   VillageStandart:       "village/blocks/VillageStandart",
   VillageStandart2:      "village/blocks/VillageStandart2",
   VillageStandart2Ghost: "village/blocks/VillageStandart2Ghost",
+  BatSleeping:           "village/enemies/BatSleeping",
 
   // ── Heaven biome blocks ──────────────────────────────────────────────────
   StandartHaven:         "heaven/StandartHaven",

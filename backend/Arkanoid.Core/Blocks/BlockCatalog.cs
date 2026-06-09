@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Arkanoid.Core.Entities;
 namespace Arkanoid.Core.Blocks;
 
 public sealed class BlockType
@@ -13,37 +14,24 @@ public sealed class BlockType
     [JsonPropertyName("indestructible")] public bool Indestructible { get; set; } = false;
     /// <summary>Ball passes through with no collision/damage, but projectiles and firewalls still hit it.</summary>
     [JsonPropertyName("ballPhases")] public bool BallPhases { get; set; } = false;
-    /// <summary>On ball overlap, warps the ball to the next teleporter cyclically (Hell signature mechanic).</summary>
-    [JsonPropertyName("teleporter")] public bool Teleporter { get; set; } = false;
+
+    /// <summary>
+    /// The block's single special behaviour: "boss" | "teleporter" | "emitter" | "bomb" |
+    /// "stalactite" | "necromant" | "windMaster" | "shieldStatue" | "portal" | "bat" | "none".
+    /// </summary>
+    [JsonPropertyName("behavior")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public BlockBehavior Behavior { get; set; } = BlockBehavior.None;
+
+    // --- Parametric fields for the relevant behaviour ---
     /// <summary>Teleporter colour group (0 red / 1 blue / 2 green) — warps pair within a colour.</summary>
     [JsonPropertyName("teleportColor")] public int TeleportColor { get; set; } = 0;
-    /// <summary>Boss block: periodically fires falling hazards that damage player HP on paddle contact.</summary>
-    [JsonPropertyName("boss")] public bool Boss { get; set; } = false;
-
-    /// <summary>Enemy emitter — periodically fires a hazard (Hell spawner / Beholder / Melee statue).</summary>
-    [JsonPropertyName("emitter")]      public bool   Emitter      { get; set; } = false;
+    /// <summary>Emitter: seconds between emitted hazards.</summary>
     [JsonPropertyName("emitInterval")] public double EmitInterval { get; set; } = 2.5;
-    /// <summary>"down" | "paddle" | "ball".</summary>
+    /// <summary>Emitter aim: "down" | "paddle" | "ball".</summary>
     [JsonPropertyName("emitAim")]      public string EmitAim      { get; set; } = "down";
-
-    /// <summary>Explodes on death, damaging blocks within explodeRadius cells (chains into other bombs).</summary>
-    [JsonPropertyName("bomb")]          public bool Bomb          { get; set; } = false;
+    /// <summary>Bomb: explosion radius in cells (chains into other bombs).</summary>
     [JsonPropertyName("explodeRadius")] public int  ExplodeRadius { get; set; } = 1;
-
-    /// <summary>Hangs from the ceiling; drops into a falling hazard when a ball passes beneath.</summary>
-    [JsonPropertyName("stalactite")] public bool Stalactite { get; set; } = false;
-
-    /// <summary>While alive, revives destroyed normal blocks after a delay (Witchland Necromant).</summary>
-    [JsonPropertyName("necromant")] public bool Necromant { get; set; } = false;
-
-    /// <summary>Pushes nearby balls away (deflects aim) within a radius (Heaven WindMaster).</summary>
-    [JsonPropertyName("windMaster")] public bool WindMaster { get; set; } = false;
-
-    /// <summary>Periodically grants nearby blocks a temporary damage shield (Heaven Shield Statue).</summary>
-    [JsonPropertyName("shieldStatue")] public bool ShieldStatue { get; set; } = false;
-
-    /// <summary>On ball overlap, toggles the ball's ghost phase (Witchland Ghost Portal).</summary>
-    [JsonPropertyName("portal")] public bool Portal { get; set; } = false;
 
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
