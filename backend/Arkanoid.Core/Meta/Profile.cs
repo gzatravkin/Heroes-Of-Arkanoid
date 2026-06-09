@@ -23,6 +23,14 @@ public sealed class Profile
     [JsonPropertyName("unlockedCharacters")]
     public List<string> UnlockedCharacters { get; set; } = new();
 
+    /// <summary>Persistent item ownership. Key = item id, value = owned tier (1–maxTier). Missing key ≡ not owned.</summary>
+    [JsonPropertyName("ownedItems")]
+    public Dictionary<string, int> OwnedItems { get; set; } = new();
+
+    /// <summary>Up to 3 equipped item ids. Must be a subset of OwnedItems keys.</summary>
+    [JsonPropertyName("equippedItems")]
+    public List<string> EquippedItems { get; set; } = new();
+
     public static Profile NewDefault()
     {
         return new Profile
@@ -36,6 +44,8 @@ public sealed class Profile
             },
             SelectedCharacter  = "fire_mage",
             UnlockedCharacters = new List<string> { "fire_mage", "paladin", "engineer", "necromancer" },
+            OwnedItems         = new Dictionary<string, int>(),
+            EquippedItems      = new List<string>(),
         };
     }
 }

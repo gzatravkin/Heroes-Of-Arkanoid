@@ -12,7 +12,7 @@ internal static class Modifiers
     // Ball / block damage
     // -----------------------------------------------------------------------
 
-    /// <summary>Total damage dealt by a ball hit (base + ignite bonus + relics + ball-core).</summary>
+    /// <summary>Total damage dealt by a ball hit (base + ignite bonus + relics + ball-core + items).</summary>
     internal static int BallDamage(GameInstance g, Block target, bool ignited)
     {
         var igniteBonus   = ignited ? 1 : 0;
@@ -20,24 +20,31 @@ internal static class Modifiers
                           + (g.HasRelic("flint_core") && target.MaxHp >= g.Config.FlintToughThreshold
                               ? g.Config.FlintBonus : 0);
         var ballCoreBonus = g.BallCores.Contains("heavy") ? g.Config.HeavyBallDamageBonus : 0;
-        return g.Config.BallDamage + igniteBonus + relicBonus + ballCoreBonus;
+        // item: ball_damage adds a flat per-hit bonus; crit_tough adds only vs tough blocks
+        var itemBonus     = g.ItemBallDamageBonus
+                          + (target.MaxHp >= g.Config.FlintToughThreshold ? g.ItemCritToughBonus : 0);
+        return g.Config.BallDamage + igniteBonus + relicBonus + ballCoreBonus + itemBonus;
     }
 
     // -----------------------------------------------------------------------
     // Mana
     // -----------------------------------------------------------------------
 
-    /// <summary>Effective mana-regen multiplier (mana_battery × engineer stacks).</summary>
+    /// <summary>Effective mana-regen multiplier (mana_battery × engineer stacks × item bonuses).</summary>
     internal static double ManaRegenMult(GameInstance g)
     {
         var mult = g.HasRelic("mana_battery") ? g.Config.ManaBatteryRegenMult : 1.0;
         mult *= (g.Character == "engineer" ? g.Config.EngineerRegenMult : 1.0);
+        // item: mana_regen is an additive bonus to the multiplier (e.g. +0.20 per tier)
+        mult *= (1.0 + g.ItemManaRegenMultBonus);
         return mult;
     }
 
-    /// <summary>Mana granted when a block is killed (base × necromancer multiplier + drain bonus).</summary>
+    /// <summary>Mana granted when a block is killed (base × necromancer multiplier × item kill_mana bonus + drain).</summary>
     internal static double KillManaGain(GameInstance g)
-        => g.Config.ManaPerKill * (g.Character == "necromancer" ? g.Config.NecromancerKillManaMult : 1.0)
+        => g.Config.ManaPerKill
+           * (g.Character == "necromancer" ? g.Config.NecromancerKillManaMult : 1.0)
+           * (1.0 + g.ItemKillManaMultBonus)
            + Systems.SpellSystem.DrainBonusMana(g);
 
     // -----------------------------------------------------------------------

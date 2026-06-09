@@ -20,6 +20,7 @@ if (!Directory.Exists(configRoot))
 var campaignCatalog   = CampaignCatalog.FromFile(Path.Combine(configRoot, "campaign.json"));
 var dungeonCatalog    = DungeonCatalog.FromFile(Path.Combine(configRoot, "dungeons.json"));
 var characterCatalog  = CharacterCatalog.FromFile(Path.Combine(configRoot, "characters.json"));
+var itemCatalog       = ItemCatalog.FromFile(Path.Combine(configRoot, "items.json"));
 var progressionConfig = ProgressionConfig.Default;
 var profileStore      = new ProfileStore();
 var dungeonStore      = new DungeonStore();
@@ -31,6 +32,7 @@ app.MapGet("/", () => "Arkanoid server up");
 ProfileEndpoints.Map(app, profileStore, campaignCatalog, progressionConfig, jsonOpts);
 DungeonEndpoints.Map(app, dungeonStore, dungeonCatalog, profileStore, progressionConfig, jsonOpts);
 CharacterEndpoints.Map(app, characterCatalog, profileStore, jsonOpts);
+ItemEndpoints.Map(app, itemCatalog, profileStore, jsonOpts);
 EditorEndpoints.Map(app, configRoot, jsonOpts);
 
 app.Map("/ws", async context =>
@@ -40,7 +42,7 @@ app.Map("/ws", async context =>
     var seed = int.TryParse(context.Request.Query["seed"].FirstOrDefault(), out var s) ? s : 1;
     var runId = context.Request.Query["run"].FirstOrDefault() ?? $"sess-{DateTime.UtcNow:HHmmss-fff}";
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var session = new GameSession(socket, configRoot, profileStore, dungeonStore);
+    var session = new GameSession(socket, configRoot, profileStore, dungeonStore, itemCatalog);
     await session.RunAsync(levelId, seed, runId, context.RequestAborted);
 });
 

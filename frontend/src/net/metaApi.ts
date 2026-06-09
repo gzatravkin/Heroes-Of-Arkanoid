@@ -113,6 +113,37 @@ export interface CharactersResponse {
   unlocked: string[];
 }
 
+// ── Items ────────────────────────────────────────────────────────────────────
+
+export interface ItemDef {
+  id: string;
+  name: string;
+  icon: string;
+  maxTier: number;
+  cost: number[];
+  effect: string;
+  description: string;
+  ownedTier: number;
+  equipped: boolean;
+}
+
+export interface ItemsResponse {
+  items: ItemDef[];
+  crystals: number;
+  equipped: string[];
+}
+
+export interface ItemBuyResult {
+  ok: boolean;
+  crystals: number;
+  ownedTier: number;
+}
+
+export interface ItemEquipResult {
+  ok: boolean;
+  equipped: string[];
+}
+
 // ── Client ───────────────────────────────────────────────────────────────────
 
 async function get<T>(path: string): Promise<T> {
@@ -148,6 +179,11 @@ export const metaApi = {
   fail: ()                       => post<unknown>("/dungeon/fail"),
   getCharacters: ()              => get<CharactersResponse>("/characters"),
   selectCharacter: (id: string)  => post<unknown>(`/character/select?id=${encodeURIComponent(id)}`),
+  // Items
+  getItems: ()                   => get<ItemsResponse>("/items"),
+  buyItem: (id: string)          => post<ItemBuyResult>(`/item/buy?id=${encodeURIComponent(id)}`),
+  equipItem: (id: string)        => post<ItemEquipResult>(`/item/equip?id=${encodeURIComponent(id)}`),
+  unequipItem: (id: string)      => post<ItemEquipResult>(`/item/unequip?id=${encodeURIComponent(id)}`),
   // Editor
   getBlockTypes: ()                   => get<BlockTypeDef[]>("/editor/blocktypes"),
   loadLevel: (id: string)             => get<LevelData>(`/editor/load?id=${encodeURIComponent(id)}`),

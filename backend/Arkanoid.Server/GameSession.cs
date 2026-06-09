@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using Arkanoid.Core.Blocks;
 using Arkanoid.Core.Bonuses;
 using Arkanoid.Core.Grid;
+using Arkanoid.Core.Meta;
 using Arkanoid.Core.Net;
 using Arkanoid.Core.Relics;
 using Arkanoid.Core.Sim;
@@ -19,13 +20,14 @@ public sealed class GameSession
     private readonly string _configRoot;
     private readonly ProfileStore _profileStore;
     private readonly DungeonStore _dungeonStore;
+    private readonly ItemCatalog? _itemCatalog;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
     private FileSimLog _log = null!;
     private long _tick;
 
-    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore, DungeonStore dungeonStore)
-    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; _dungeonStore = dungeonStore; }
+    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore, DungeonStore dungeonStore, ItemCatalog? itemCatalog = null)
+    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; _dungeonStore = dungeonStore; _itemCatalog = itemCatalog; }
 
     public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
@@ -66,6 +68,13 @@ public sealed class GameSession
         var profile = _profileStore.Load();
         _game.SetSpellLevels(profile.SpellLevels);
         _game.SetCharacter(profile.SelectedCharacter);
+
+        // Apply equipped persistent-item passives before battle starts.
+        if (_itemCatalog != null && profile.EquippedItems.Count > 0)
+        {
+            ItemEffects.Apply(profile.EquippedItems, profile.OwnedItems, _itemCatalog, _game);
+            ItemEffects.Commit(_game);
+        }
 
         // Apply dungeon run buffs if there is an active run for this level.
         var run = _dungeonStore.Load();

@@ -78,6 +78,14 @@ export function mountMenu(host: HTMLElement) {
   dungeonsBtn.addEventListener("click", () => { location.href = "/?scene=dungeons"; });
   navSection.appendChild(dungeonsBtn);
 
+  // Inventory / Items
+  const inventoryBtn = document.createElement("button");
+  inventoryBtn.id = "btn-inventory";
+  inventoryBtn.className = "menu-art-btn menu-btn-inventory";
+  inventoryBtn.innerHTML = `<span class="menu-btn-label">Items</span>`;
+  inventoryBtn.addEventListener("click", () => { location.href = "/?scene=inventory"; });
+  navSection.appendChild(inventoryBtn);
+
   // Editor
   const editorBtn = document.createElement("button");
   editorBtn.id = "btn-editor";
@@ -246,6 +254,18 @@ function injectMenuStyles() {
       width: 38px;
       height: 38px;
       background: url('/ui/InterfaceSkillsButton.png') no-repeat center / contain;
+    }
+
+    /* Inventory / Items — uses InventoryButton art as icon */
+    .menu-btn-inventory::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      background: url('/ui/InventoryButton.png') no-repeat center / contain;
     }
 
     /* Editor — uses new+ button as icon */

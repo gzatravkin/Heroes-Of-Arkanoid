@@ -6,6 +6,7 @@ import { mountDungeons } from "./scenes/DungeonsScene";
 import { mountDungeon } from "./scenes/DungeonScene";
 import { mountCharacters } from "./scenes/CharacterScene";
 import { mountEditor } from "./scenes/EditorScene";
+import { mountInventory } from "./scenes/InventoryScene";
 
 const host = document.getElementById("app")!;
 const q = new URLSearchParams(location.search);
@@ -31,6 +32,7 @@ loadAtlas()
     else if (scene === "dungeon") mountDungeon(host);
     else if (scene === "characters") mountCharacters(host);
     else if (scene === "editor") mountEditor(host);
+    else if (scene === "inventory") mountInventory(host);
     else mountMenu(host);
   })
   .catch((err) => {

@@ -198,5 +198,33 @@ public sealed class SimConfig
     /// <summary>Crystal count awarded by the coins bonus pickup.</summary>
     public int    CoinsBonus          { get; init; } = 10;
 
+    // --- Persistent item equip effect magnitudes (per tier) ---
+    /// <summary>Ball damage bonus added per tier of a ball_damage item.</summary>
+    public int    ItemBallDamageBonusPerTier  { get; init; } = 1;
+    /// <summary>Max mana added per tier of a max_mana item.</summary>
+    public double ItemMaxManaBonusPerTier     { get; init; } = 20;
+    /// <summary>Max mana added per tier of a torch-type max_mana item (smaller increment).</summary>
+    public double ItemMaxManaBonusSmallPerTier { get; init; } = 15;
+    /// <summary>Mana-regen multiplier per tier of a mana_regen item (tome type).</summary>
+    public double ItemManaRegenMultPerTier    { get; init; } = 0.20;  // additive; total mult = 1 + tier*0.20
+    /// <summary>Mana-regen multiplier per tier of a staff-type mana_regen item (smaller).</summary>
+    public double ItemManaRegenMultSmallPerTier { get; init; } = 0.15;
+    /// <summary>Extra starting lives granted per tier of a start_life item.</summary>
+    public int    ItemStartLifeBonusPerTier   { get; init; } = 1;
+    /// <summary>Extra crystals awarded at level clear per tier of a treasure item (ring).</summary>
+    public int    ItemTreasureBonusPerTier    { get; init; } = 5;
+    /// <summary>Extra crystals per tier of a clover-type treasure item (slightly more).</summary>
+    public int    ItemTreasureBonusLargePerTier { get; init; } = 8;
+    /// <summary>Bonus damage vs tough blocks per tier of a crit_tough item.</summary>
+    public int    ItemCritToughBonusPerTier   { get; init; } = 1;
+    /// <summary>Kill-mana multiplier per tier of a kill_mana item (gem type).</summary>
+    public double ItemKillManaMultPerTier     { get; init; } = 0.20;  // additive; total mult = 1 + tier*0.20
+    /// <summary>Kill-mana multiplier per tier of an orb-type kill_mana item (smaller).</summary>
+    public double ItemKillManaMultSmallPerTier { get; init; } = 0.15;
+    /// <summary>Extra paddle width per tier of a paddle_width item (jadeball type).</summary>
+    public double ItemPaddleWidthBonusPerTier { get; init; } = 12;
+    /// <summary>Extra paddle width per tier of an hourglass-type paddle_width item.</summary>
+    public double ItemPaddleWidthBonusSmallPerTier { get; init; } = 10;
+
     public static SimConfig Default { get; } = new();
 }

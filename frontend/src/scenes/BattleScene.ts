@@ -42,6 +42,11 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
       hud.wireConn(conn);
     });
 
+  // Fetch equipped items and show small HUD row.
+  metaApi.getItems()
+    .then((data) => { hud.loadEquippedItems(data.items.filter(it => it.equipped)); })
+    .catch(() => { /* non-fatal */ });
+
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);
   // auto-serve shortly after connect so the ball is live for tests/play

@@ -88,9 +88,23 @@ public sealed class GameInstance
     public HashSet<string> ActiveRelics { get; } = new();
     public bool HasRelic(string id) => ActiveRelics.Contains(id);
 
+    // --- Equipped-item passive bonuses (set by ItemEffects.Apply before first tick) ---
+    /// <summary>Extra ball damage from equipped items (ball_damage effect, accumulated).</summary>
+    public int    ItemBallDamageBonus    { get; set; } = 0;
+    /// <summary>Extra max mana from equipped items (max_mana effect, accumulated). Applied by ItemEffects.Commit.</summary>
+    public double ItemMaxManaBonus       { get; set; } = 0;
+    /// <summary>Additive bonus to the mana-regen multiplier from equipped items (mana_regen effect).</summary>
+    public double ItemManaRegenMultBonus { get; set; } = 0;
+    /// <summary>Bonus damage vs tough blocks from equipped items (crit_tough effect).</summary>
+    public int    ItemCritToughBonus     { get; set; } = 0;
+    /// <summary>Extra crystals awarded at level clear from equipped items (treasure effect).</summary>
+    public int    ItemTreasureBonus      { get; set; } = 0;
+    /// <summary>Additive bonus to the kill-mana multiplier from equipped items (kill_mana effect).</summary>
+    public double ItemKillManaMultBonus  { get; set; } = 0;
+
     public HashSet<string> BallCores { get; } = new();
     public void AddBallCore(string id) => BallCores.Add(id);
-    public double ManaMaxValue { get; private set; }
+    public double ManaMaxValue { get; internal set; }
 
     public Dictionary<string, int> SpellLevels { get; } = new()
     {

@@ -1,6 +1,6 @@
 import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
-import type { SpellDef } from "../net/metaApi";
+import type { SpellDef, ItemDef } from "../net/metaApi";
 import { inferBossType, bossLabel } from "../render/Boss";
 import { tex as atlasTex } from "../render/assets";
 
@@ -58,6 +58,7 @@ export class Hud {
   // Active spells for the current class (populated by loadSpells).
   private _spells: SpellDef[] = [];
   private _conn: Connection | null = null;
+  private _itemsRowEl: HTMLElement | null = null;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -179,6 +180,47 @@ export class Hud {
     } else {
       // Fall back: build Fire Mage hotbar so the HUD is usable even if fetch fails.
       this.loadFireMageFallback(conn);
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  /** Show a compact row of equipped item icons in the top-right area (below relics). */
+  loadEquippedItems(items: ItemDef[]) {
+    if (items.length === 0) return;
+
+    // Create row if not yet present.
+    if (!this._itemsRowEl) {
+      this._itemsRowEl = this.createElement("div", "hud-items-row");
+      this._itemsRowEl.id = "hud-equipped-items";
+      this._itemsRowEl.style.cssText = [
+        "position:absolute", "top:52px", "right:8px",
+        "display:flex", "flex-direction:row", "gap:4px",
+        "align-items:center", "pointer-events:none",
+      ].join(";");
+      this.root.appendChild(this._itemsRowEl);
+    }
+
+    this._itemsRowEl.innerHTML = "";
+    for (const item of items) {
+      const tile = this.createElement("div");
+      tile.title = item.name;
+      tile.style.cssText = [
+        "width:28px", "height:28px",
+        "background:rgba(20,14,6,0.75)",
+        "border:1px solid rgba(200,150,30,0.5)",
+        "border-radius:4px",
+        "display:flex", "align-items:center", "justify-content:center",
+      ].join(";");
+
+      const tier = item.ownedTier;
+      const suffix = tier > 1 ? String(tier) : "";
+      const img = document.createElement("img");
+      img.src = `/Sprites/Items/${item.icon}${suffix}.png`;
+      img.alt = item.name;
+      img.style.cssText = "width:22px;height:22px;object-fit:contain;image-rendering:pixelated;";
+      img.onerror = () => { img.src = `/Sprites/Items/${item.icon}.png`; img.onerror = null; };
+      tile.appendChild(img);
+      this._itemsRowEl.appendChild(tile);
     }
   }
 
