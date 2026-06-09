@@ -1,37 +1,54 @@
 import { navigateTo } from "../ui/transition";
+import { metaApi } from "../net/metaApi";
+import type { CampaignNode } from "../net/metaApi";
+import { log } from "../log";
 
-const LEVELS: { id: string; label: string }[] = [
-  { id: "hell-1",        label: "Hell I" },
-  { id: "hell-teleport", label: "Hell — Teleporters" },
-  { id: "caverns-1",     label: "Caverns I" },
-  { id: "village-1",     label: "Witchland I" },
-  { id: "village-ghost", label: "Witchland — Ghosts" },
-  { id: "heaven-1",      label: "Heaven I" },
+// The home screen is ONE journey: a primary "Continue" that resumes the furthest
+// playable campaign node, a "Campaign Map" entry into the node graph, and a docked
+// bar of secondary destinations. No Play/Dungeons/Editor buttons, no level-chip grid.
+
+const FALLBACK_LEVEL = "hell-1";
+
+interface DockEntry { id: string; label: string; scene: string; icon: string; }
+
+const DOCK: DockEntry[] = [
+  { id: "btn-characters",   label: "Heroes",   scene: "characters",   icon: "/ui/InterfaceProfilButtonENG.png" },
+  { id: "btn-inventory",    label: "Items",    scene: "inventory",    icon: "/ui/InventoryButton.png" },
+  { id: "btn-skills",       label: "Skills",   scene: "skills",       icon: "/ui/InterfaceSkillsButton.png" },
+  { id: "btn-achievements", label: "Awards",   scene: "achievements", icon: "/achievements/achievementLvl2Eng.png" },
+  { id: "btn-settings",     label: "Settings", scene: "settings",     icon: "/ui/InterfaceNewButton2.png" },
 ];
 
+/** Furthest *playable* node = the deepest node still unlocked (the campaign frontier). */
+function furthestNode(nodes: CampaignNode[]): CampaignNode | null {
+  const playable = nodes.filter((n) => n.unlocked);
+  if (playable.length) return playable[playable.length - 1];
+  return nodes[0] ?? null;
+}
+
 export function mountMenu(host: HTMLElement) {
-  // Inject menu styles
   injectMenuStyles();
+  // NOTE: do NOT install a window.__game stub here. Battle pages install the real
+  // __game (with getState); a partial stub would make the standard
+  // `__game?.getState()` poll throw during the navigation fade. Menu logs are
+  // captured via console mirroring (see log.ts) and attached by the test fixture.
 
   const el = document.createElement("div");
   el.id = "menu";
   el.className = "menu-root";
 
-  // Background fill
   const bg = document.createElement("div");
   bg.className = "menu-bg";
   el.appendChild(bg);
 
-  // Character art (left side decoration)
   const charArt = document.createElement("div");
   charArt.className = "menu-char-art";
   el.appendChild(charArt);
 
-  // Main content column
   const col = document.createElement("div");
   col.className = "menu-col";
 
-  // Logo image (visual) + screen-reader / test h1
+  // Screen-reader / test title.
   const h1 = document.createElement("h1");
   h1.textContent = "ARKANOID RPG";
   h1.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;";
@@ -41,98 +58,65 @@ export function mountMenu(host: HTMLElement) {
   logo.className = "menu-logo";
   col.appendChild(logo);
 
-  // Nav buttons (big art buttons)
-  const navSection = document.createElement("div");
-  navSection.className = "menu-nav";
-
-  // Play button — styled with PlayButton art, keeps id="btn-play" + data-level="hell-1"
+  // ── Primary: Continue (resumes the furthest playable node) ──────────────────
   const playBtn = document.createElement("button");
-  playBtn.id = "btn-play";
-  playBtn.setAttribute("data-level", "hell-1");
-  playBtn.className = "menu-art-btn menu-btn-play";
-  playBtn.innerHTML = `<span class="menu-btn-label">Play</span>`;
+  playBtn.id = "btn-continue";
+  playBtn.setAttribute("data-level", FALLBACK_LEVEL); // updated once campaign loads
+  playBtn.className = "menu-art-btn menu-btn-continue";
+  playBtn.innerHTML = `
+    <span class="menu-btn-kicker">Continue</span>
+    <span class="menu-btn-node" id="continue-node-label">Hell I</span>`;
   playBtn.addEventListener("click", () => {
-    navigateTo(`/?scene=battle&level=hell-1`);
+    const level = playBtn.getAttribute("data-level") || FALLBACK_LEVEL;
+    log("menu", "continue", { level });
+    navigateTo(`/?scene=battle&level=${level}&from=campaign`);
   });
-  navSection.appendChild(playBtn);
+  col.appendChild(playBtn);
 
-  // Campaign
-  const campaignBtn = document.createElement("button");
-  campaignBtn.id = "btn-campaign";
-  campaignBtn.className = "menu-art-btn menu-btn-campaign";
-  campaignBtn.innerHTML = `<span class="menu-btn-label">Campaign</span>`;
-  campaignBtn.addEventListener("click", () => { navigateTo("/?scene=campaign"); });
-  navSection.appendChild(campaignBtn);
+  // ── Secondary: Campaign Map (the node-graph navigation) ─────────────────────
+  const mapBtn = document.createElement("button");
+  mapBtn.id = "btn-campaign";
+  mapBtn.className = "menu-art-btn menu-btn-map";
+  mapBtn.innerHTML = `<span class="menu-btn-label">Campaign Map</span>`;
+  mapBtn.addEventListener("click", () => {
+    log("menu", "open-map");
+    navigateTo("/?scene=campaign");
+  });
+  col.appendChild(mapBtn);
 
-  // Characters
-  const charactersBtn = document.createElement("button");
-  charactersBtn.id = "btn-characters";
-  charactersBtn.className = "menu-art-btn menu-btn-characters";
-  charactersBtn.innerHTML = `<span class="menu-btn-label">Characters</span>`;
-  charactersBtn.addEventListener("click", () => { navigateTo("/?scene=characters"); });
-  navSection.appendChild(charactersBtn);
-
-  // Dungeons
-  const dungeonsBtn = document.createElement("button");
-  dungeonsBtn.id = "btn-dungeons";
-  dungeonsBtn.className = "menu-art-btn menu-btn-dungeons";
-  dungeonsBtn.innerHTML = `<span class="menu-btn-label">Dungeons</span>`;
-  dungeonsBtn.addEventListener("click", () => { navigateTo("/?scene=dungeons"); });
-  navSection.appendChild(dungeonsBtn);
-
-  // Inventory / Items
-  const inventoryBtn = document.createElement("button");
-  inventoryBtn.id = "btn-inventory";
-  inventoryBtn.className = "menu-art-btn menu-btn-inventory";
-  inventoryBtn.innerHTML = `<span class="menu-btn-label">Items</span>`;
-  inventoryBtn.addEventListener("click", () => { navigateTo("/?scene=inventory"); });
-  navSection.appendChild(inventoryBtn);
-
-  // Editor
-  const editorBtn = document.createElement("button");
-  editorBtn.id = "btn-editor";
-  editorBtn.className = "menu-art-btn menu-btn-editor";
-  editorBtn.innerHTML = `<span class="menu-btn-label">Level Editor</span>`;
-  editorBtn.addEventListener("click", () => { navigateTo("/?scene=editor"); });
-  navSection.appendChild(editorBtn);
-
-  // Achievements
-  const achBtn = document.createElement("button");
-  achBtn.id = "btn-achievements";
-  achBtn.className = "menu-art-btn menu-btn-achievements";
-  achBtn.innerHTML = `<span class="menu-btn-label">Achievements</span>`;
-  achBtn.addEventListener("click", () => { navigateTo("/?scene=achievements"); });
-  navSection.appendChild(achBtn);
-
-  // Settings
-  const settingsBtn = document.createElement("button");
-  settingsBtn.id = "btn-settings";
-  settingsBtn.className = "menu-art-btn menu-btn-settings";
-  settingsBtn.innerHTML = `<span class="menu-btn-label">Settings</span>`;
-  settingsBtn.addEventListener("click", () => { navigateTo("/?scene=settings"); });
-  navSection.appendChild(settingsBtn);
-
-  col.appendChild(navSection);
-
-  // Quick-level grid (hidden below main nav, preserves all [data-level] for tests)
-  const quickGrid = document.createElement("div");
-  quickGrid.className = "menu-quick-grid";
-
-  LEVELS.forEach((lvl, i) => {
-    if (i === 0) return; // hell-1 is already the Play button above
+  // ── Docked secondary destinations (icons along the bottom edge) ─────────────
+  const dock = document.createElement("div");
+  dock.className = "menu-dock";
+  DOCK.forEach((entry) => {
     const btn = document.createElement("button");
-    btn.setAttribute("data-level", lvl.id);
-    btn.className = "menu-quick-btn";
-    btn.textContent = lvl.label;
+    btn.id = entry.id;
+    btn.className = "menu-dock-btn";
+    btn.setAttribute("aria-label", entry.label);
+    btn.innerHTML = `
+      <span class="menu-dock-ico" style="background-image:url('${entry.icon}')"></span>
+      <span class="menu-dock-label">${entry.label}</span>`;
     btn.addEventListener("click", () => {
-      navigateTo(`/?scene=battle&level=${lvl.id}`);
+      log("menu", "open-scene", { scene: entry.scene });
+      navigateTo(`/?scene=${entry.scene}`);
     });
-    quickGrid.appendChild(btn);
+    dock.appendChild(btn);
   });
+  col.appendChild(dock);
 
-  col.appendChild(quickGrid);
   el.appendChild(col);
   host.appendChild(el);
+
+  // Resolve the furthest playable node and point Continue at it.
+  metaApi.getCampaign()
+    .then((camp) => {
+      const node = furthestNode(camp.nodes);
+      if (!node) return;
+      playBtn.setAttribute("data-level", node.id);
+      const lbl = document.getElementById("continue-node-label");
+      if (lbl) lbl.textContent = node.label;
+      log("menu", "furthest-node", { level: node.id, label: node.label });
+    })
+    .catch((err) => log("menu", "campaign-load-failed", { err: String(err) }));
 }
 
 function injectMenuStyles() {
@@ -151,7 +135,6 @@ function injectMenuStyles() {
       font-family: sans-serif;
     }
 
-    /* Dark gradient background with parchment-brown tint matching the game art palette */
     .menu-bg {
       position: absolute;
       inset: 0;
@@ -161,7 +144,6 @@ function injectMenuStyles() {
       z-index: 0;
     }
 
-    /* Character art positioned right side */
     .menu-char-art {
       position: absolute;
       right: -20px;
@@ -169,7 +151,7 @@ function injectMenuStyles() {
       width: min(260px, 60vw);
       height: 70vh;
       background: url('/ui/MainCharacter.png') no-repeat bottom right / contain;
-      opacity: 0.18;
+      opacity: 0.16;
       z-index: 1;
       pointer-events: none;
     }
@@ -181,38 +163,25 @@ function injectMenuStyles() {
       flex-direction: column;
       align-items: center;
       width: 100%;
-      padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 16px) 0;
-      padding-top: max(env(safe-area-inset-top, 0px), 28px);
+      padding: max(env(safe-area-inset-top, 0px), 28px) 0 env(safe-area-inset-bottom, 16px) 0;
       gap: 0;
     }
 
-    /* Logo — the real Heroes of Arkanoid II title image */
     .menu-logo {
       width: min(340px, 88vw);
       height: 80px;
       background: url('/ui/LogoArkanoid.png') no-repeat center / contain;
-      margin-bottom: 28px;
+      margin-bottom: 36px;
     }
 
-    .menu-nav {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 0 24px;
-      box-sizing: border-box;
-    }
-
-    /* Art button base — uses InterfaceButton (blue-gold pill) as the bg */
     .menu-art-btn {
       position: relative;
       width: min(320px, 88vw);
-      height: 56px;
       border: none;
       background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       transition: filter 0.15s, transform 0.1s;
@@ -222,106 +191,32 @@ function injectMenuStyles() {
     .menu-art-btn:hover  { filter: brightness(1.15); }
     .menu-art-btn:active { transform: scale(0.97); filter: brightness(0.9); }
 
-    /* Play button — has the PlayButton art icon on the left */
-    .menu-btn-play {
-      background-image: url('/ui/InterfaceButton.png');
+    /* Primary Continue button — largest, two-line (kicker + node name) */
+    .menu-btn-continue {
+      height: 76px;
+      gap: 2px;
+      margin-bottom: 14px;
     }
-    .menu-btn-play::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
-      background: url('/ui/PlayButtonEng.png') no-repeat center / contain;
+    .menu-btn-kicker {
+      color: #ffe9b0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     }
-
-    /* Campaign — uses the Campaign text art as icon label */
-    .menu-btn-campaign::before {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      height: 80%;
-      background: url('/ui/InterfaceCampaignENG.png') no-repeat center / contain;
-    }
-    .menu-btn-campaign .menu-btn-label { opacity: 0; }
-
-    /* Characters — uses Inventory helmet button as icon */
-    .menu-btn-characters::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      background: url('/ui/InventoryButton.png') no-repeat center / contain;
+    .menu-btn-node {
+      color: #fff6e0;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 10px rgba(255,180,60,0.4);
     }
 
-    /* Dungeons — uses skill-arrows button as icon */
-    .menu-btn-dungeons::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      background: url('/ui/InterfaceSkillsButton.png') no-repeat center / contain;
+    /* Secondary Campaign Map button */
+    .menu-btn-map {
+      height: 54px;
     }
-
-    /* Inventory / Items — uses InventoryButton art as icon */
-    .menu-btn-inventory::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      background: url('/ui/InventoryButton.png') no-repeat center / contain;
-    }
-
-    /* Editor — uses new+ button as icon */
-    .menu-btn-editor::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      background: url('/ui/InterfaceNewButton.png') no-repeat center / contain;
-    }
-
-    /* Achievements — uses achievement badge as icon */
-    .menu-btn-achievements::before {
-      content: '';
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
-      background: url('/achievements/achievementLvl2Eng.png') no-repeat center / contain;
-    }
-
-    /* Settings — uses close/gear icon */
-    .menu-btn-settings::before {
-      content: '';
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 36px;
-      height: 36px;
-      background: url('/ui/InterfaceNewButton2.png') no-repeat center / contain;
-    }
-
     .menu-btn-label {
       color: #f0e0b8;
       font-size: 17px;
@@ -331,31 +226,49 @@ function injectMenuStyles() {
       pointer-events: none;
     }
 
-    /* Quick-level grid — compact, secondary */
-    .menu-quick-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      width: min(320px, 88vw);
-      margin-top: 16px;
-      padding: 0 0 24px 0;
+    /* ── Docked secondary destinations ── */
+    .menu-dock {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      width: min(360px, 94vw);
+      margin-top: auto;
+      padding: 18px 8px calc(env(safe-area-inset-bottom, 0px) + 10px) 8px;
     }
-    .menu-quick-btn {
-      padding: 10px 8px;
-      background: rgba(30,20,10,0.75);
-      color: #c8b888;
-      border: 1px solid rgba(160,120,50,0.45);
-      border-radius: 6px;
+    .menu-dock-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 56px;
+      min-height: 64px;
+      padding: 6px 2px;
+      background: url('/ui/Button1.png') no-repeat center / 100% 100%;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 12px;
-      font-family: sans-serif;
-      letter-spacing: 0.04em;
-      transition: background 0.15s, border-color 0.15s;
-      min-height: 44px;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: filter 0.15s, transform 0.1s;
     }
-    .menu-quick-btn:hover  { background: rgba(50,35,15,0.85); border-color: rgba(200,160,80,0.7); }
-    .menu-quick-btn:active { filter: brightness(0.85); }
+    .menu-dock-btn:hover  { filter: brightness(1.18); }
+    .menu-dock-btn:active { transform: scale(0.94); }
+    .menu-dock-ico {
+      width: 32px;
+      height: 32px;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      image-rendering: pixelated;
+    }
+    .menu-dock-label {
+      color: #d8c598;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
   `;
   document.head.appendChild(style);
 }

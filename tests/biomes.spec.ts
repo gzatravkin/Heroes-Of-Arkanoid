@@ -19,11 +19,13 @@ for (const level of BATTLE_LEVELS) {
   });
 }
 
-test("menu: level-select grid has caverns-1 button and navigates to battle", async ({ page }) => {
+test("menu → Campaign Map → unlocked node navigates into a battle", async ({ page }) => {
+  await page.request.post("http://localhost:5080/reset");
   await page.goto("/?scene=menu");
-  const cavernsBtn = page.locator('[data-level="caverns-1"]');
-  await expect(cavernsBtn).toBeVisible();
-  await cavernsBtn.click();
+  // Campaign Map is the level navigation now (the loose grid is gone).
+  await page.locator("#btn-campaign").click();
+  await page.waitForSelector('#campaign-map [data-level="hell-1"]');
+  await page.locator('[data-level="hell-1"]').click();
   await page.waitForFunction(() => !!(window as any).__game?.getState());
   const s = await page.evaluate(() => (window as any).__game.getState());
   expect(s.blocks.length).toBeGreaterThan(0);
