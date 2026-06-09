@@ -7,7 +7,7 @@
     "GA.AA.AG",
     "A.AGGA.A",
     ".AA..AA.",
-    "GA....AG",
+    "GA.EE.AG",
     ".AA..AA.",
     "A.AGGA.A",
     "GA.AA.AG",
@@ -21,6 +21,7 @@
   ],
   "legend": {
     "A": "village_basic",
-    "G": "village_ghost"
+    "G": "village_ghost",
+    "E": "village_beholder"
   }
 }

@@ -32,6 +32,8 @@ public sealed class BlockDto
     [JsonPropertyName("teleporter")] public bool Teleporter { get; set; }
     [JsonPropertyName("indestructible")] public bool Indestructible { get; set; }
     [JsonPropertyName("boss")] public bool Boss { get; set; }
+    [JsonPropertyName("flipX")] public bool FlipX { get; set; }
+    [JsonPropertyName("flipY")] public bool FlipY { get; set; }
 }
 
 public sealed class HazardDto
@@ -140,7 +142,7 @@ public sealed class Snapshot
         {
             if (blk.Dead) continue;
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss });
+            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY });
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });

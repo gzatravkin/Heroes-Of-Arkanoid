@@ -37,6 +37,14 @@ internal static class CheatHandler
             case "setBalls":
                 g.SpareBalls = System.Math.Max(0, (int)value);
                 break;
+            case "fastForward":
+                // Deterministic time-travel for testing time-based mechanics (emitters,
+                // boss cadence). Freeze balls so they don't drain, then advance N ticks.
+                if (g.Phase == GamePhase.Serving) g.Phase = GamePhase.Playing;
+                foreach (var b in g.Balls) b.Vel = new Vec2(0, 0);
+                int ffN = System.Math.Clamp((int)value, 0, 2000);
+                for (int i = 0; i < ffN; i++) g.Tick(g.Config.FixedDt);
+                break;
             case "setBossHp":
                 // value = percent (0..100) of each live boss block's max HP.
                 var bossFrac = System.Math.Clamp(value / 100.0, 0, 1);

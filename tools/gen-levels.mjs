@@ -14,10 +14,10 @@ const COLS = 8, ROWS = 14;
 
 // Block ids that count as needToKill (winnable). Used for validation.
 const DESTRUCTIBLE = new Set([
-  "hell_basic", "hell_tough", "hell_demon_boss",
-  "cavern_basic", "cavern_tough", "cavern_goblin_boss",
-  "village_basic", "village_tough", "village_ghost", "village_witch_boss",
-  "heaven_basic", "heaven_tough",
+  "hell_basic", "hell_tough", "hell_demon_boss", "hell_ballspawner",
+  "cavern_basic", "cavern_tough", "cavern_goblin_boss", "cavern_bomb",
+  "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder",
+  "heaven_basic", "heaven_tough", "heaven_melee_statue",
 ]);
 
 /** Each level: id, biome, legend (char→block id), and block rows (top-down). */
@@ -31,9 +31,9 @@ const LEVELS = [
     "..AAAA..",
     "...AA...",
   ]},
-  { id: "hell-2", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian" }, rows: [
+  { id: "hell-2", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", S: "hell_ballspawner" }, rows: [
     "O.AAAA.O",
-    "O.ABBA.O",
+    "O.ASSA.O",
     "O.ABBA.O",
     "O.ABBA.O",
     "O.AAAA.O",
@@ -69,11 +69,11 @@ const LEVELS = [
     "A...C...",
     "C.......",
   ]},
-  { id: "caverns-2", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock" }, rows: [
+  { id: "caverns-2", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock", X: "cavern_bomb" }, rows: [
     "RR.AA.RR",
-    "R..CC..R",
-    "R..CC..R",
-    "A..AA..A",
+    "R..XX..R",
+    "R.CCCC.R",
+    "A..XX..A",
     "A.RAAR.A",
     "A.R..R.A",
     "AAA..AAA",
@@ -99,11 +99,11 @@ const LEVELS = [
     ".AA..AA.",
     "AA.AA.AA",
   ]},
-  { id: "village-2", biome: "village", legend: { A: "village_basic", G: "village_ghost" }, rows: [
+  { id: "village-2", biome: "village", legend: { A: "village_basic", G: "village_ghost", E: "village_beholder" }, rows: [
     "GA.AA.AG",
     "A.AGGA.A",
     ".AA..AA.",
-    "GA....AG",
+    "GA.EE.AG",
     ".AA..AA.",
     "A.AGGA.A",
     "GA.AA.AG",
@@ -130,10 +130,10 @@ const LEVELS = [
   ]},
 
   // ── HEAVEN — statue mirror-mazes (strict left↔right symmetry) ──────────────
-  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue" }, rows: [
+  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue" }, rows: [
     "HHH..HHH",
     "H.H..H.H",
-    "H.HHHH.H",
+    "H.HMMH.H",
     "H.HTTH.H",
     "H......H",
     "S.HHHH.S",

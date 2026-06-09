@@ -39,6 +39,14 @@ const ALIAS: Record<string, string> = {
 
   // ── Boss blocks ──────────────────────────────────────────────────────────
   DemonBody:             "hell/DemonBody",
+  GoblinBody:            "dungeon/GoblinBody",
+  WitchChest:            "village/enemies/WitchChest",
+
+  // ── Enemy blocks (ported originals) ──────────────────────────────────────
+  HellBallSpawner:       "hell/HellBallSpawner",
+  Bomb:                  "dungeon/Bomb",
+  Beholder1:             "village/enemies/Beholder1",
+  HeavenMeleeStatue:     "heaven/HeavenMeleeStatue",
 
   // ── Game objects ─────────────────────────────────────────────────────────
   // "Ball" and "Paddle" were placeholder art not present in Sprites/ — the game

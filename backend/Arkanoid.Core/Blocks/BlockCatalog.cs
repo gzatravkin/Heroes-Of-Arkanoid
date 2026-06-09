@@ -17,6 +17,20 @@ public sealed class BlockType
     [JsonPropertyName("teleporter")] public bool Teleporter { get; set; } = false;
     /// <summary>Boss block: periodically fires falling hazards that damage player HP on paddle contact.</summary>
     [JsonPropertyName("boss")] public bool Boss { get; set; } = false;
+
+    /// <summary>Enemy emitter — periodically fires a hazard (Hell spawner / Beholder / Melee statue).</summary>
+    [JsonPropertyName("emitter")]      public bool   Emitter      { get; set; } = false;
+    [JsonPropertyName("emitInterval")] public double EmitInterval { get; set; } = 2.5;
+    /// <summary>"down" | "paddle" | "ball".</summary>
+    [JsonPropertyName("emitAim")]      public string EmitAim      { get; set; } = "down";
+
+    /// <summary>Explodes on death, damaging blocks within explodeRadius cells (chains into other bombs).</summary>
+    [JsonPropertyName("bomb")]          public bool Bomb          { get; set; } = false;
+    [JsonPropertyName("explodeRadius")] public int  ExplodeRadius { get; set; } = 1;
+
+    /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
+    [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
+    [JsonPropertyName("flipY")] public bool FlipY { get; set; } = false;
 }
 
 public sealed class BlockCatalog

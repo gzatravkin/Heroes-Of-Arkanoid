@@ -5,9 +5,9 @@
   "rows": 14,
   "rows_data": [
     "RR.AA.RR",
-    "R..CC..R",
-    "R..CC..R",
-    "A..AA..A",
+    "R..XX..R",
+    "R.CCCC.R",
+    "A..XX..A",
     "A.RAAR.A",
     "A.R..R.A",
     "AAA..AAA",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "cavern_basic",
     "C": "cavern_tough",
-    "R": "cavern_rock"
+    "R": "cavern_rock",
+    "X": "cavern_bomb"
   }
 }

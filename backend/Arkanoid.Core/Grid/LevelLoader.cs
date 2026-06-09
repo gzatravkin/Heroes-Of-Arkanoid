@@ -39,7 +39,10 @@ public static class LevelLoader
                     Indestructible = t.Indestructible,
                     BallPhases = t.BallPhases,
                     Teleporter = t.Teleporter,
-                    Boss = t.Boss
+                    Boss = t.Boss,
+                    Emitter = t.Emitter, EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
+                    Bomb = t.Bomb, ExplodeRadius = t.ExplodeRadius,
+                    FlipX = t.FlipX, FlipY = t.FlipY
                 });
             }
         }

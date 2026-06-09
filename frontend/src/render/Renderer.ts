@@ -728,6 +728,8 @@ export class Renderer {
         sp.texture = tex(b.sprite);
         sp.width   = bossRenderSize;
         sp.height  = bossRenderSize;
+        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
+        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
         sp.position.set(b.x, b.y);
 
         if (b.boss) {
@@ -783,6 +785,8 @@ export class Renderer {
         sp.anchor.set(0.5);
         sp.width  = bossRenderSize;
         sp.height = bossRenderSize;
+        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
+        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
         sp.position.set(b.x, b.y);
 
         if (b.boss) {

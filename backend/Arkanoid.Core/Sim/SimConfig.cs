@@ -151,6 +151,16 @@ public sealed class SimConfig
     /// <summary>How strongly a hazard aims toward the paddle (0 = straight down, 1 = full tracking).</summary>
     public double BossHazardAimStrength { get; init; } = 0.35;
 
+    // --- Enemy emitter blocks (Hell spawner / Beholder / Melee statue) ---
+    /// <summary>Speed of a hazard fired by an emitter block (units/sec).</summary>
+    public double EnemyHazardSpeed  { get; init; } = 210;
+    /// <summary>HP damage an emitter hazard deals on paddle contact.</summary>
+    public int    EnemyHazardDamage { get; init; } = 1;
+    /// <summary>Collision radius of an emitter hazard.</summary>
+    public double EnemyHazardRadius { get; init; } = 8;
+    /// <summary>Bomb explosion damage applied to each block in radius.</summary>
+    public int    BombDamage { get; init; } = 3;
+
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>
     public double BossPhase2Threshold { get; init; } = 0.60;

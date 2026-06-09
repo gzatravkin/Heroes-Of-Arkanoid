@@ -5,7 +5,7 @@
   "rows": 14,
   "rows_data": [
     "O.AAAA.O",
-    "O.ABBA.O",
+    "O.ASSA.O",
     "O.ABBA.O",
     "O.ABBA.O",
     "O.AAAA.O",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "hell_basic",
     "B": "hell_tough",
-    "O": "hell_obsidian"
+    "O": "hell_obsidian",
+    "S": "hell_ballspawner"
   }
 }

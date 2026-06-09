@@ -19,4 +19,22 @@ public sealed class Block
     public bool Teleporter { get; init; }
     /// <summary>Boss block: periodically fires falling hazards that damage player HP on paddle contact.</summary>
     public bool Boss { get; init; }
+
+    // --- Enemy emitter (Hell ball-spawner / Witchland beholder / Heaven melee statue) ---
+    /// <summary>Periodically fires a hazard. Aim controlled by <see cref="EmitAim"/>.</summary>
+    public bool   Emitter      { get; init; }
+    /// <summary>Seconds between emitted hazards.</summary>
+    public double EmitInterval { get; init; }
+    /// <summary>"down" | "paddle" | "ball" — what the emitted hazard aims at.</summary>
+    public string EmitAim      { get; init; } = "down";
+    /// <summary>Runtime cadence accumulator (mutable).</summary>
+    public double EmitAccumulator { get; set; }
+
+    // --- Bomb: explodes on death, damaging blocks within ExplodeRadius cells (chains). ---
+    public bool Bomb          { get; init; }
+    public int  ExplodeRadius { get; init; }
+
+    // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
+    public bool FlipX { get; init; }
+    public bool FlipY { get; init; }
 }

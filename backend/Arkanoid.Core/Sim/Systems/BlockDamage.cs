@@ -29,7 +29,29 @@ internal static class BlockDamage
                 SpreadFire(g, blk);
             if (decaySource)
                 SpreadDecay(g, blk);
+            if (blk.Bomb)
+                Explode(g, blk);
         }
+    }
+
+    /// <summary>
+    /// Bomb block detonation: damage every block within ExplodeRadius cells (Chebyshev),
+    /// chaining into other bombs the same frame (a freshly-killed bomb re-enters DamageBlock).
+    /// </summary>
+    internal static void Explode(GameInstance g, Block origin)
+    {
+        int radius = origin.ExplodeRadius > 0 ? origin.ExplodeRadius : 1;
+        var c = g.Level.Grid.CellCenter(origin.Col, origin.Row);
+        g.RaiseEvent("explosion", c.X, c.Y);
+        g._log.Log(g.TickCount, "bomb", "exploded", $"id={origin.Id} radius={radius}");
+        // Snapshot the neighbour set first so chained deaths don't mutate the loop.
+        var victims = g.Blocks.Where(nb =>
+            !nb.Dead && nb != origin &&
+            System.Math.Max(System.Math.Abs(nb.Col - origin.Col), System.Math.Abs(nb.Row - origin.Row)) <= radius
+        ).ToList();
+        foreach (var nb in victims)
+            if (!nb.Dead)
+                DamageBlock(g, nb, g.Config.BombDamage, igniteSource: false);
     }
 
     /// <summary>

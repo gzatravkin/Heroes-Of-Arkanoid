@@ -6,7 +6,7 @@
   "rows_data": [
     "HHH..HHH",
     "H.H..H.H",
-    "H.HHHH.H",
+    "H.HMMH.H",
     "H.HTTH.H",
     "H......H",
     "S.HHHH.S",
@@ -22,6 +22,7 @@
   "legend": {
     "H": "heaven_basic",
     "T": "heaven_tough",
-    "S": "heaven_statue"
+    "S": "heaven_statue",
+    "M": "heaven_melee_statue"
   }
 }
