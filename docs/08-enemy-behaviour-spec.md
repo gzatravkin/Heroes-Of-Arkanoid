@@ -133,10 +133,12 @@ by hitting an **Altar**, or **level them up** (stronger) by destroying a **Vase*
 
 - [x] **Wave 1** (`7f177b1`): shared emitter system → **H1** Hell spawner, **W1** Beholder, **He1** Melee statue (data-driven), **C2** bombs, + per-cell mirror flags (§F). 4 xUnit + 4 Playwright.
 - [x] **Wave 2** (`56eaa2d`): **H2** colour-paired teleporters. +1 xUnit.
-- [ ] **Wave 3** — Caverns **C1** stalactites (falling hazard + Goblin boss drop).
-- [ ] **Wave 4** — Witchland **W4** ghost-portal (ball phase toggle), **W2** bat (ball-grabber), **W3** necromant (block reviver).
-- [ ] **Wave 5** — Heaven **He2** shield statue, **He3** windmaster, **He5/He6** altar/vase ally+levelup, **He4** columns.
-- [ ] **Wave 6** — Hell **H3** lava; Caverns **C3** cart; bosses: Goblin stalactite pattern, Witch magic, **heaven-boss** level.
+- [x] **Wave 3** (`587ff63`): Caverns **C1** stalactites (column-trigger fall + Goblin BossDrop path + dropStalactites cheat).
+- [x] **Wave 4a** (`f24d8f4`): Witchland **W3** necromant (block reviver + revive queue).
+- [ ] **Wave 4b** — Witchland **W4** ghost-portal (ball phase toggle), **W2** bat (ball-grabber).
+- [x] **Wave 5** (`8d10c9f`): Heaven **He3** windmaster (ball deflector).
+- [ ] **Wave 5b** — Heaven **He2** shield statue, **He5/He6** altar/vase ally+levelup, **He4** columns.
+- [ ] **Wave 6** — Hell **H3** lava; Caverns **C3** cart; bosses: wire Goblin stalactite pattern, Witch magic, **heaven-boss** level.
 - [ ] Then the §07 polish: block **damage-state sprites** (A3), UI fixes (inventory padlocks I1, blank Fire-Mage hotbar I2, Russian badges D2, dev watermark D3), balls-bar contrast (B1), emojis→sprites (G), stretched-art→9-slice (H).
 
 Each wave: SimConfig tunables, snapshot fields, frontend render, xUnit + Playwright proof + screenshot.
