@@ -11,15 +11,19 @@ internal static class ShieldSystem
 {
     internal static void Update(GameInstance g, double dt)
     {
-        // Tick down existing shields.
+        // Tick down existing shields + statue pacification (central decrement for AllyTimer).
         foreach (var b in g.Blocks)
+        {
             if (b.ShieldTimer > 0) b.ShieldTimer = System.Math.Max(0, b.ShieldTimer - dt);
+            if (b.AllyTimer  > 0) b.AllyTimer  = System.Math.Max(0, b.AllyTimer  - dt);
+        }
 
         var statues = g.Blocks.Where(b => !b.Dead && b.ShieldStatue).ToList();
         if (statues.Count == 0) return;
 
         foreach (var st in statues)
         {
+            if (st.AllyTimer > 0) continue; // pacified — no shielding
             st.EmitAccumulator += dt; // reuse the cadence accumulator (statues aren't emitters)
             if (st.EmitAccumulator < g.Config.ShieldStatueInterval) continue;
             st.EmitAccumulator -= g.Config.ShieldStatueInterval;

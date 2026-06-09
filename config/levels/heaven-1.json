@@ -8,7 +8,7 @@
     "C.H..H.C",
     "B.HMMH.B",
     "H.HTTH.H",
-    "H......H",
+    "H.R..V.H",
     "S.HDDH.S",
     "S.HTTH.S",
     "S......S",
@@ -27,6 +27,8 @@
     "D": "heaven_shield_statue",
     "P": "heaven_column_top",
     "C": "heaven_column_mid",
-    "B": "heaven_column_bottom"
+    "B": "heaven_column_bottom",
+    "R": "heaven_altar",
+    "V": "heaven_vase"
   }
 }

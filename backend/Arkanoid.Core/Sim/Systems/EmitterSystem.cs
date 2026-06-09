@@ -17,6 +17,7 @@ internal static class EmitterSystem
         foreach (var blk in g.Blocks)
         {
             if (blk.Dead || !blk.Emitter) continue;
+            if (blk.AllyTimer > 0) continue; // pacified by an Altar/Vase — holds fire
             var interval = blk.EmitInterval > 0 ? blk.EmitInterval : 2.5;
             blk.EmitAccumulator += dt;
             if (blk.EmitAccumulator < interval) continue;

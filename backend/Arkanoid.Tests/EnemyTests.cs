@@ -88,6 +88,43 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Lava (deadly block drains the ball) ───────────────────────────────────
+
+    [Fact]
+    public void Lava_DrainsBall_OnContact()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"l\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"lava\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"l.k\",\"...\",\"...\"],\"legend\":{\"l\":\"l\",\"k\":\"k\"}}");
+        int sparesBefore = g.SpareBalls;
+        BallHit(g, g.Blocks[0]); // the lava block drains the ball → a spare is consumed on re-serve
+        Assert.True(g.SpareBalls < sparesBefore, "lava drained the ball (a spare was consumed)");
+    }
+
+    // ── Altar / Vase pacify the Heaven statues ────────────────────────────────
+
+    [Fact]
+    public void Altar_PacifiesStatues_SoEmitterHoldsFire()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"a\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"altar\"}," +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.5,\"emitAim\":\"paddle\"}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"a.m\",\"...\",\"...\"],\"legend\":{\"a\":\"a\",\"m\":\"m\"}}");
+        var statue = g.Blocks[1];
+
+        // Hit the altar → statue is pacified.
+        BallHit(g, g.Blocks[0]);
+        Assert.True(statue.AllyTimer > 0, "statue pacified by the altar");
+
+        // While pacified, the statue emits no hazards even past its interval.
+        Park(g);
+        for (int i = 0; i < 60; i++) g.Tick(SimConfig.Default.FixedDt); // ~1s > 0.5s interval
+        Assert.Empty(g.Hazards);
+    }
+
     // ── Bat (grabs the ball, then releases + flies away) ──────────────────────
 
     [Fact]

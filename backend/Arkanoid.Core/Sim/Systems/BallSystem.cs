@@ -71,6 +71,13 @@ internal static class BallSystem
         }
     }
 
+    /// <summary>Altar/Vase: pacify (ally) every Heaven statue so it stops attacking/shielding.</summary>
+    internal static void PacifyStatues(GameInstance g)
+    {
+        foreach (var s in g.Blocks)
+            if (!s.Dead && s.IsStatue) s.AllyTimer = g.Config.AltarAllyDuration;
+    }
+
     private static void ResolveBlocks(GameInstance g, Ball b)
     {
         var cell = g.Config.CellSize;
@@ -128,6 +135,23 @@ internal static class BallSystem
                 g.RaiseEvent("batGrab", c.X, c.Y);
                 g._log.Log(g.TickCount, "bat", "grabbed ball", $"ball={b.Id} bat={blk.Id}");
                 return; // ball is now held
+            }
+
+            // Lava: a deadly block — touching it drains the ball (Hell hazard).
+            if (blk.Lava)
+            {
+                b.Alive = false;
+                g.RaiseEvent("lava", c.X, c.Y);
+                g._log.Log(g.TickCount, "lava", "ball drained", $"ball={b.Id}");
+                return;
+            }
+
+            // Altar: hitting it pacifies the Heaven statues; then bounce off as a solid block.
+            if (blk.Altar)
+            {
+                PacifyStatues(g);
+                g.RaiseEvent("altar", c.X, c.Y);
+                // fall through to normal reflection
             }
 
             // Phase interaction: a NORMAL ball passes through ghost (ballPhases) blocks; a GHOST

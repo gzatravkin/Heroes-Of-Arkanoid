@@ -19,6 +19,9 @@ public enum BlockBehavior
     ShieldStatue,  // periodically shields nearby blocks
     Portal,        // toggles the ball's ghost phase
     Bat,           // grabs the ball, then flies away
+    Lava,          // deadly block — drains the ball on contact
+    Altar,         // ball-hit pacifies (allies) the Heaven statues for a while
+    Vase,          // on death, pacifies the Heaven statues
 }
 
 public sealed class Block
@@ -52,6 +55,11 @@ public sealed class Block
     public bool ShieldStatue => Behavior == BlockBehavior.ShieldStatue;
     public bool Portal       => Behavior == BlockBehavior.Portal;
     public bool Bat          => Behavior == BlockBehavior.Bat;
+    public bool Lava         => Behavior == BlockBehavior.Lava;
+    public bool Altar        => Behavior == BlockBehavior.Altar;
+    public bool Vase         => Behavior == BlockBehavior.Vase;
+    /// <summary>True for Heaven statues that the Altar/Vase can pacify.</summary>
+    public bool IsStatue     => Emitter && EmitAim == "paddle" || ShieldStatue;
 
     // --- Parametric fields (read by the relevant system for the matching behaviour) ---
     /// <summary>Teleporter colour group (0 red / 1 blue / 2 green). Warps pair within a colour.</summary>
@@ -66,6 +74,8 @@ public sealed class Block
     public int    ExplodeRadius   { get; init; }
     /// <summary>Shield: seconds of remaining damage-immunity granted to this block (mutable).</summary>
     public double ShieldTimer     { get; set; }
+    /// <summary>Statue: seconds remaining pacified (allied) by an Altar/Vase — emits/shields nothing (mutable).</summary>
+    public double AllyTimer        { get; set; }
 
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }

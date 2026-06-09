@@ -32,6 +32,8 @@ internal static class BlockDamage
                 SpreadDecay(g, blk);
             if (blk.Bomb)
                 Explode(g, blk);
+            if (blk.Vase)
+                BallSystem.PacifyStatues(g); // breaking the vase pacifies the statues
             NecromantSystem.OnBlockDestroyed(g, blk);
         }
     }

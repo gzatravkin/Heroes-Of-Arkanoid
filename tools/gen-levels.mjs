@@ -18,7 +18,7 @@ const DESTRUCTIBLE = new Set([
   "cavern_basic", "cavern_tough", "cavern_goblin_boss", "cavern_bomb",
   "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder", "village_necromant",
   "heaven_basic", "heaven_tough", "heaven_melee_statue", "heaven_windmaster", "heaven_shield_statue", "heaven_angel_boss",
-  "heaven_column_top", "heaven_column_mid", "heaven_column_bottom",
+  "heaven_column_top", "heaven_column_mid", "heaven_column_bottom", "heaven_vase",
 ]);
 // Non-needToKill special blocks that are allowed to exist (don't satisfy winnability alone).
 const NON_KILL = new Set(["cavern_stalactite"]);
@@ -27,13 +27,16 @@ void NON_KILL;
 /** Each level: id, biome, legend (char→block id), and block rows (top-down). */
 const LEVELS = [
   // ── HELL — obsidian channels funnel the ball + teleporter routing ──────────
-  { id: "hell-1", biome: "hell", legend: { A: "hell_basic", B: "hell_tough" }, rows: [
+  { id: "hell-1", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", L: "hell_lava" }, rows: [
     "AAAAAAAA",
     "AAAAAAAA",
     ".ABBBBA.",
     ".AAAAAA.",
     "..AAAA..",
     "...AA...",
+    "........",
+    "........",
+    "L......L",
   ]},
   { id: "hell-2", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", S: "hell_ballspawner" }, rows: [
     "O.AAAA.O",
@@ -134,12 +137,12 @@ const LEVELS = [
   ]},
 
   // ── HEAVEN — statue mirror-mazes (strict left↔right symmetry) ──────────────
-  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom" }, rows: [
+  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom", R: "heaven_altar", V: "heaven_vase" }, rows: [
     "PHH..HHP",
     "C.H..H.C",
     "B.HMMH.B",
     "H.HTTH.H",
-    "H......H",
+    "H.R..V.H",
     "S.HDDH.S",
     "S.HTTH.S",
     "S......S",

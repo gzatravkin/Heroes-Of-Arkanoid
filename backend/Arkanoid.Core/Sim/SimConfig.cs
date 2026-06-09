@@ -176,6 +176,8 @@ public sealed class SimConfig
     public double ShieldDuration       { get; init; } = 2.5;
     /// <summary>Seconds a Witchland bat holds the ball before releasing it.</summary>
     public double BatHoldTime          { get; init; } = 2.0;
+    /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
+    public double AltarAllyDuration    { get; init; } = 8.0;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>
