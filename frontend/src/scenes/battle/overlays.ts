@@ -107,14 +107,16 @@ function injectOverlayStyles() {
       font-size: 1.1rem;
     }
 
-    /* Art button — InterfaceButton pill */
+    /* Art button — InterfaceButton pill, 9-sliced (fixed rounded ends + stretched middle) */
     .ov-btn {
       margin-top: 12px;
-      padding: 0 32px;
+      padding: 0 16px;
       height: 52px;
       min-width: min(200px, 70vw);
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
-      border: none;
+      background: none;
+      border-style: solid;
+      border-width: 8px 30px;
+      border-image: url('/ui/InterfaceButton.png') 26 92 26 92 fill stretch;
       cursor: pointer;
       font-size: 16px;
       font-family: sans-serif;
