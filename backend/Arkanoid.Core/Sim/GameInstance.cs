@@ -166,20 +166,16 @@ public sealed class GameInstance
         TickCount++;
         if (_log.Verbose)
             _log.Log(TickCount, "tick", "", $"balls={Balls.Count(b=>b.Alive)} mana={ManaValue:F0} blocks={Blocks.Count(b=>!b.Dead)}");
-        RegenMana(dt);
+        SpellSystem.RegenMana(this, dt);
         foreach (var b in Balls)
             BallSystem.UpdateBall(this, b, dt);
-        UpdateProjectiles(dt);
-        UpdateFireWalls(dt);
-        UpdateTurret(dt);
-        UpdateBoss(dt);
-        UpdateHazards(dt);
-        ResolveDrainAndWin();
+        SpellSystem.UpdateProjectiles(this, dt);
+        SpellSystem.UpdateFireWalls(this, dt);
+        SpellSystem.UpdateTurret(this, dt);
+        CombatSystem.UpdateBoss(this, dt);
+        CombatSystem.UpdateHazards(this, dt);
+        WinLoseSystem.ResolveDrainAndWin(this);
     }
-
-    private void RegenMana(double dt) => SpellSystem.RegenMana(this, dt);
-
-    private void ResolveDrainAndWin() => WinLoseSystem.ResolveDrainAndWin(this);
 
     // --- resources/events surface ---
     public double ManaValue { get; set; } = 0;
@@ -194,13 +190,7 @@ public sealed class GameInstance
     public void CastFireWall()  => SpellSystem.CastFireWall(this);
     public void CastTurret()    => SpellSystem.CastTurret(this);
 
-    private void UpdateProjectiles(double dt) => SpellSystem.UpdateProjectiles(this, dt);
-    private void UpdateFireWalls(double dt)   => SpellSystem.UpdateFireWalls(this, dt);
-    private void UpdateTurret(double dt)      => SpellSystem.UpdateTurret(this, dt);
-
-    private void UpdateBoss(double dt)    => CombatSystem.UpdateBoss(this, dt);
-    private void UpdateHazards(double dt) => CombatSystem.UpdateHazards(this, dt);
-    public void DamagePlayer(int dmg)     => CombatSystem.DamagePlayer(this, dmg);
+    public void DamagePlayer(int dmg) => CombatSystem.DamagePlayer(this, dmg);
 
     internal bool _igniteArmed = false;
 
