@@ -1,0 +1,656 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-26.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "firemage/spell_phonex/PhoenixBirthAnimPic13": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic14": {
+      "frame": {
+        "x": 0,
+        "y": 330,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic15": {
+      "frame": {
+        "x": 0,
+        "y": 660,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic16": {
+      "frame": {
+        "x": 551,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic17": {
+      "frame": {
+        "x": 551,
+        "y": 330,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic18": {
+      "frame": {
+        "x": 551,
+        "y": 660,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic19": {
+      "frame": {
+        "x": 1102,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic2": {
+      "frame": {
+        "x": 1102,
+        "y": 330,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic20": {
+      "frame": {
+        "x": 1102,
+        "y": 660,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic3": {
+      "frame": {
+        "x": 0,
+        "y": 990,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic4": {
+      "frame": {
+        "x": 0,
+        "y": 1320,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic5": {
+      "frame": {
+        "x": 0,
+        "y": 1650,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic6": {
+      "frame": {
+        "x": 551,
+        "y": 990,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic7": {
+      "frame": {
+        "x": 1102,
+        "y": 990,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic8": {
+      "frame": {
+        "x": 551,
+        "y": 1320,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic9": {
+      "frame": {
+        "x": 551,
+        "y": 1650,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixGlow": {
+      "frame": {
+        "x": 1102,
+        "y": 1320,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "necromancer/spell_lastday/KnightLightSpellBuffed": {
+      "frame": {
+        "x": 1653,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 1223
+      }
+    },
+    "necromancer/spell_lastday/BoneGolemBirth": {
+      "frame": {
+        "x": 1102,
+        "y": 1650,
+        "w": 944,
+        "h": 166
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 944,
+        "h": 166
+      },
+      "sourceSize": {
+        "w": 944,
+        "h": 166
+      }
+    },
+    "engineer/spell_lighting/LightArea": {
+      "frame": {
+        "x": 1102,
+        "y": 1818,
+        "w": 904,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 904,
+        "h": 162
+      },
+      "sourceSize": {
+        "w": 904,
+        "h": 162
+      }
+    },
+    "firemage/ui/FireHeroIco": {
+      "frame": {
+        "x": 1653,
+        "y": 1225,
+        "w": 381,
+        "h": 381
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 381,
+        "h": 381
+      },
+      "sourceSize": {
+        "w": 381,
+        "h": 381
+      }
+    },
+    "hints/HintsScreen3": {
+      "frame": {
+        "x": 1785,
+        "y": 0,
+        "w": 222,
+        "h": 326
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 222,
+        "h": 326
+      },
+      "sourceSize": {
+        "w": 222,
+        "h": 326
+      }
+    },
+    "firemage/spell_passivefireball/ChoseFireBallIco": {
+      "frame": {
+        "x": 1785,
+        "y": 328,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "firemage/spell_fireturret/ChoseFireTurretIco": {
+      "frame": {
+        "x": 1785,
+        "y": 586,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "firemage/spell_firering/ChoseFireRingIco": {
+      "frame": {
+        "x": 1785,
+        "y": 844,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "firemage/spell_firering/FireRingIco": {
+      "frame": {
+        "x": 1785,
+        "y": 1102,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "village/blocks/Village2StandartDestroyed": {
+      "frame": {
+        "x": 0,
+        "y": 1982,
+        "w": 241,
+        "h": 57
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 241,
+        "h": 57
+      },
+      "sourceSize": {
+        "w": 241,
+        "h": 57
+      }
+    },
+    "dungeon/Dungeon2StandartDestroyed": {
+      "frame": {
+        "x": 243,
+        "y": 1982,
+        "w": 230,
+        "h": 56
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 230,
+        "h": 56
+      },
+      "sourceSize": {
+        "w": 230,
+        "h": 56
+      }
+    },
+    "heaven/animcol": {
+      "frame": {
+        "x": 475,
+        "y": 1980,
+        "w": 192,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 192,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 192,
+        "h": 67
+      }
+    },
+    "ui/menu_main/InterfaceLanguagePalet": {
+      "frame": {
+        "x": 669,
+        "y": 1982,
+        "w": 164,
+        "h": 65
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 164,
+        "h": 65
+      },
+      "sourceSize": {
+        "w": 164,
+        "h": 65
+      }
+    },
+    "ui/battle_ui/MPFull": {
+      "frame": {
+        "x": 835,
+        "y": 1982,
+        "w": 220,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 41
+      }
+    },
+    "heaven/Standart2Haven2Destroyed": {
+      "frame": {
+        "x": 1057,
+        "y": 1982,
+        "w": 192,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 192,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 192,
+        "h": 41
+      }
+    }
+  },
+  "animations": {}
+}

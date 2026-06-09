@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-12.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 4080,
+      "h": 299
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "hell/HellBallSpawnerDeathAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 4080,
+        "h": 299
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 4080,
+        "h": 299
+      },
+      "sourceSize": {
+        "w": 4080,
+        "h": 299
+      }
+    }
+  },
+  "animations": {}
+}

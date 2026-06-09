@@ -1,0 +1,666 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-27.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "firemage/bars/v2firehero": 10
+    }
+  },
+  "frames": {
+    "hell/HellFon3": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 350,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 350,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 350,
+        "h": 442
+      }
+    },
+    "firemage/skill_size/FireHeroSizeLargeLvl1Ico": {
+      "frame": {
+        "x": 352,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/skill_size/FireHeroSizeLvl2LargeIco": {
+      "frame": {
+        "x": 352,
+        "y": 250,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/skill_size/FireHeroSizeLvl3LargeIco": {
+      "frame": {
+        "x": 951,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/spell_passivefireball/ChoseFireBallLargeIco": {
+      "frame": {
+        "x": 951,
+        "y": 250,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/spell_fireturret/ChoseFireTurretLargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/spell_firering/ChoseFireRingLargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/spell_firewall/ChoseFireWallLargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/spell_phonex/ChosePhoenixLargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/skill_size/KnightHeroSizeLvl1LargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/skill_size/KnightHeroSizeLvl2LargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/skill_size/KnightHeroSizeLvl3LargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 1000,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/spell_passiveshield/SpellShieldLargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 1250,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/spell_spear/SpearLargeLargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 1500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/spell_duplication/SplitLargeIco": {
+      "frame": {
+        "x": 0,
+        "y": 1750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/spell_penteration/MightyStrikeLargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 1000,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "paladin/spell_lastday/LastJudgmentLargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 1000,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/skill_size/TechnoHeroSizeLvl1LargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 1250,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/skill_size/TechnoHeroSizeLvl2LargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 1250,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/skill_size/TechnoHeroSizeLvl3LargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 1500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/spell_passiveshield/UtilityLargeIco": {
+      "frame": {
+        "x": 599,
+        "y": 1750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/spell_lighting/LightingLargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 1500,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "engineer/spell_magnet/MagnetLargeIco": {
+      "frame": {
+        "x": 1198,
+        "y": 1750,
+        "w": 597,
+        "h": 248
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 597,
+        "h": 248
+      },
+      "sourceSize": {
+        "w": 597,
+        "h": 248
+      }
+    },
+    "firemage/ui/FireHeroIcoInActive": {
+      "frame": {
+        "x": 1550,
+        "y": 0,
+        "w": 381,
+        "h": 381
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 381,
+        "h": 381
+      },
+      "sourceSize": {
+        "w": 381,
+        "h": 381
+      }
+    },
+    "ui/rewards/GemBlue": {
+      "frame": {
+        "x": 1797,
+        "y": 383,
+        "w": 245,
+        "h": 252
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 245,
+        "h": 252
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 252
+      }
+    },
+    "ui/rewards/GemGreen": {
+      "frame": {
+        "x": 1797,
+        "y": 637,
+        "w": 245,
+        "h": 252
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 245,
+        "h": 252
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 252
+      }
+    },
+    "ui/rewards/GemRed": {
+      "frame": {
+        "x": 1797,
+        "y": 891,
+        "w": 245,
+        "h": 252
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 245,
+        "h": 252
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 252
+      }
+    },
+    "ui/rewards/GemYellow": {
+      "frame": {
+        "x": 1797,
+        "y": 1145,
+        "w": 245,
+        "h": 252
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 245,
+        "h": 252
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 252
+      }
+    },
+    "ui/missionselect/Mission_Demon": {
+      "frame": {
+        "x": 1797,
+        "y": 1399,
+        "w": 238,
+        "h": 227
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 227
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 227
+      }
+    },
+    "ui/missionselect/Mission_Goblin": {
+      "frame": {
+        "x": 1797,
+        "y": 1628,
+        "w": 238,
+        "h": 227
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 238,
+        "h": 227
+      },
+      "sourceSize": {
+        "w": 238,
+        "h": 227
+      }
+    },
+    "firemage/bars/v2FireHero1": {
+      "frame": {
+        "x": 1797,
+        "y": 1857,
+        "w": 240,
+        "h": 171
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 240,
+        "h": 171
+      },
+      "sourceSize": {
+        "w": 240,
+        "h": 171
+      }
+    },
+    "firemage/spell_passivefireball/FireBallIco": {
+      "frame": {
+        "x": 1550,
+        "y": 383,
+        "w": 199,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 199,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 199,
+        "h": 112
+      }
+    }
+  },
+  "animations": {
+    "firemage/bars/v2firehero": [
+      "firemage/bars/v2FireHero1",
+      "firemage/bars/v2FireHero2",
+      "firemage/bars/v2FireHero3",
+      "firemage/bars/v2FireHero4"
+    ]
+  }
+}

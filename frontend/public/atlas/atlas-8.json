@@ -1,0 +1,674 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-8.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "paladin/spell_spear/knightchain": 10,
+      "village/blocks/village2standart": 8,
+      "village/blocks/villagestandart": 8
+    }
+  },
+  "frames": {
+    "fons/3Village": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 1223
+      }
+    },
+    "paladin/spell_lastday/LustJudgmentClouds": {
+      "frame": {
+        "x": 0,
+        "y": 1225,
+        "w": 1920,
+        "h": 290
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 290
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 290
+      }
+    },
+    "necromancer/spell_lastday/LustJudgmentClouds": {
+      "frame": {
+        "x": 0,
+        "y": 1517,
+        "w": 1920,
+        "h": 290
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 290
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 290
+      }
+    },
+    "village/enemies/BatGhostFlyAnimation3": {
+      "frame": {
+        "x": 0,
+        "y": 1809,
+        "w": 1524,
+        "h": 220
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1524,
+        "h": 220
+      },
+      "sourceSize": {
+        "w": 1524,
+        "h": 220
+      }
+    },
+    "firemage/ui/ClassChoiceMage": {
+      "frame": {
+        "x": 1526,
+        "y": 1809,
+        "w": 504,
+        "h": 178
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 504,
+        "h": 178
+      },
+      "sourceSize": {
+        "w": 504,
+        "h": 178
+      }
+    },
+    "necromancer/spell_skeleton/Skeleton2BirthAnimation": {
+      "frame": {
+        "x": 1526,
+        "y": 1989,
+        "w": 384,
+        "h": 46
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 384,
+        "h": 46
+      },
+      "sourceSize": {
+        "w": 384,
+        "h": 46
+      }
+    },
+    "app/ico96": {
+      "frame": {
+        "x": 1922,
+        "y": 0,
+        "w": 96,
+        "h": 96
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 96
+      },
+      "sourceSize": {
+        "w": 96,
+        "h": 96
+      }
+    },
+    "hell/LavaSpowner": {
+      "frame": {
+        "x": 1922,
+        "y": 98,
+        "w": 95,
+        "h": 92
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 92
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 92
+      }
+    },
+    "hell/LavaSpownerActive": {
+      "frame": {
+        "x": 1922,
+        "y": 192,
+        "w": 95,
+        "h": 92
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 92
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 92
+      }
+    },
+    "heaven/GraalHaven": {
+      "frame": {
+        "x": 1922,
+        "y": 286,
+        "w": 123,
+        "h": 70
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 123,
+        "h": 70
+      },
+      "sourceSize": {
+        "w": 123,
+        "h": 70
+      }
+    },
+    "paladin/spell_spear/KnightChain2": {
+      "frame": {
+        "x": 1922,
+        "y": 358,
+        "w": 67,
+        "h": 121
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 121
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 121
+      }
+    },
+    "ui/menu_main/RandomIco": {
+      "frame": {
+        "x": 1922,
+        "y": 481,
+        "w": 89,
+        "h": 88
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 88
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 88
+      }
+    },
+    "heaven/HeavenVaza": {
+      "frame": {
+        "x": 1922,
+        "y": 571,
+        "w": 73,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 73,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 73,
+        "h": 104
+      }
+    },
+    "village/enemies/WitchChest": {
+      "frame": {
+        "x": 1922,
+        "y": 677,
+        "w": 86,
+        "h": 87
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 86,
+        "h": 87
+      },
+      "sourceSize": {
+        "w": 86,
+        "h": 87
+      }
+    },
+    "heaven/WindMasterV2FromCircle": {
+      "frame": {
+        "x": 1922,
+        "y": 766,
+        "w": 82,
+        "h": 84
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 82,
+        "h": 84
+      },
+      "sourceSize": {
+        "w": 82,
+        "h": 84
+      }
+    },
+    "dungeon/GoblinLeg2V2": {
+      "frame": {
+        "x": 1922,
+        "y": 852,
+        "w": 60,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 60,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 60,
+        "h": 110
+      }
+    },
+    "heaven/ColumnBottom": {
+      "frame": {
+        "x": 1922,
+        "y": 964,
+        "w": 100,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 100,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 100,
+        "h": 64
+      }
+    },
+    "firemage/spell_fireturret/FireHeroTurretMissile": {
+      "frame": {
+        "x": 1991,
+        "y": 358,
+        "w": 55,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 55,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 55,
+        "h": 114
+      }
+    },
+    "heaven/Cloud": {
+      "frame": {
+        "x": 1922,
+        "y": 1030,
+        "w": 91,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 68
+      }
+    },
+    "dungeon/Dungeon2Standart": {
+      "frame": {
+        "x": 1922,
+        "y": 1100,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "dungeon/DungeonStandart": {
+      "frame": {
+        "x": 1922,
+        "y": 1170,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart2": {
+      "frame": {
+        "x": 1922,
+        "y": 1240,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart2Damaged 1": {
+      "frame": {
+        "x": 1922,
+        "y": 1310,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart2Damaged": {
+      "frame": {
+        "x": 1922,
+        "y": 1380,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart2Ghost": {
+      "frame": {
+        "x": 1922,
+        "y": 1450,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart2GhostDamaged": {
+      "frame": {
+        "x": 1922,
+        "y": 1520,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/Village2Standart3": {
+      "frame": {
+        "x": 1922,
+        "y": 1590,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageCorrupt": {
+      "frame": {
+        "x": 1922,
+        "y": 1660,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageStandart2": {
+      "frame": {
+        "x": 1922,
+        "y": 1730,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "heaven/HeavenStatueWings": {
+      "frame": {
+        "x": 1912,
+        "y": 1989,
+        "w": 134,
+        "h": 44
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 134,
+        "h": 44
+      },
+      "sourceSize": {
+        "w": 134,
+        "h": 44
+      }
+    },
+    "village/blocks/VillagePotion 1": {
+      "frame": {
+        "x": 1984,
+        "y": 852,
+        "w": 62,
+        "h": 90
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 62,
+        "h": 90
+      },
+      "sourceSize": {
+        "w": 62,
+        "h": 90
+      }
+    },
+    "ui/menu_main/PlayButton3": {
+      "frame": {
+        "x": 1997,
+        "y": 571,
+        "w": 46,
+        "h": 23
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 46,
+        "h": 23
+      },
+      "sourceSize": {
+        "w": 46,
+        "h": 23
+      }
+    }
+  },
+  "animations": {
+    "paladin/spell_spear/knightchain": [
+      "paladin/spell_spear/KnightChain2",
+      "paladin/spell_spear/KnightChain3"
+    ],
+    "village/blocks/village2standart": [
+      "village/blocks/Village2Standart2",
+      "village/blocks/Village2Standart3"
+    ],
+    "village/blocks/villagestandart": [
+      "village/blocks/VillageStandart2",
+      "village/blocks/VillageStandart3"
+    ]
+  }
+}

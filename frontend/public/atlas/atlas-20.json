@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-20.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2244,
+      "h": 209
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "village/enemies/VillageDeathGhostCastAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 2244,
+        "h": 209
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 2244,
+        "h": 209
+      },
+      "sourceSize": {
+        "w": 2244,
+        "h": 209
+      }
+    }
+  },
+  "animations": {}
+}

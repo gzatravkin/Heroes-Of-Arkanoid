@@ -1,0 +1,13 @@
+{
+  "name": "arkanoid-art-pipeline",
+  "version": "1.0.0",
+  "description": "Sprite atlas builder for Arkanoid game",
+  "type": "module",
+  "scripts": {
+    "build": "node build-atlas.mjs"
+  },
+  "dependencies": {
+    "maxrects-packer": "^2.7.3",
+    "sharp": "^0.34.5"
+  }
+}

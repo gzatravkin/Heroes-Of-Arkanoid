@@ -1,0 +1,756 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-9.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "fons/5Heaven": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 1223
+      }
+    },
+    "engineer/spell_rocket/RocketFire": {
+      "frame": {
+        "x": 0,
+        "y": 1225,
+        "w": 1152,
+        "h": 416
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1152,
+        "h": 416
+      },
+      "sourceSize": {
+        "w": 1152,
+        "h": 416
+      }
+    },
+    "engineer/spell_rocket/RocketFireTop": {
+      "frame": {
+        "x": 0,
+        "y": 1643,
+        "w": 1068,
+        "h": 405
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1068,
+        "h": 405
+      },
+      "sourceSize": {
+        "w": 1068,
+        "h": 405
+      }
+    },
+    "firemage/spell_phonex/PhoenicsBody": {
+      "frame": {
+        "x": 1154,
+        "y": 1225,
+        "w": 778,
+        "h": 553
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 778,
+        "h": 553
+      },
+      "sourceSize": {
+        "w": 778,
+        "h": 553
+      }
+    },
+    "ui/menu_main/PlayButtonEng": {
+      "frame": {
+        "x": 1070,
+        "y": 1780,
+        "w": 818,
+        "h": 201
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 818,
+        "h": 201
+      },
+      "sourceSize": {
+        "w": 818,
+        "h": 201
+      }
+    },
+    "heaven/WindMasterV2Glow2": {
+      "frame": {
+        "x": 1890,
+        "y": 1780,
+        "w": 140,
+        "h": 262
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 262
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 262
+      }
+    },
+    "necromancer/spell_skeleton/Skeleton2DeathAnimation": {
+      "frame": {
+        "x": 1070,
+        "y": 1983,
+        "w": 384,
+        "h": 46
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 384,
+        "h": 46
+      },
+      "sourceSize": {
+        "w": 384,
+        "h": 46
+      }
+    },
+    "heaven/StandartHavenDestroyed": {
+      "frame": {
+        "x": 1456,
+        "y": 1983,
+        "w": 320,
+        "h": 52
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 52
+      },
+      "sourceSize": {
+        "w": 320,
+        "h": 52
+      }
+    },
+    "village/blocks/VillageStandart2Damaged": {
+      "frame": {
+        "x": 1934,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageStandart2Ghost": {
+      "frame": {
+        "x": 1934,
+        "y": 70,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageStandart2GhostDamaged": {
+      "frame": {
+        "x": 1934,
+        "y": 140,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageStandart3": {
+      "frame": {
+        "x": 1934,
+        "y": 210,
+        "w": 90,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 68
+      }
+    },
+    "hell/Standart2Hell": {
+      "frame": {
+        "x": 1934,
+        "y": 280,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "hell/Standart2Hell2": {
+      "frame": {
+        "x": 1934,
+        "y": 349,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "hell/Standart2Hell2Damaged": {
+      "frame": {
+        "x": 1934,
+        "y": 418,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "hell/Standart2HellDamaged": {
+      "frame": {
+        "x": 1934,
+        "y": 487,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "hell/StandartHell": {
+      "frame": {
+        "x": 1934,
+        "y": 556,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "hell/StandartHell2": {
+      "frame": {
+        "x": 1934,
+        "y": 625,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "dungeon/Dungeon2Standart2": {
+      "frame": {
+        "x": 1934,
+        "y": 694,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "dungeon/Dungeon2Standart2Damaged": {
+      "frame": {
+        "x": 1934,
+        "y": 763,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/Standart2Haven": {
+      "frame": {
+        "x": 1934,
+        "y": 832,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/Standart2Haven2": {
+      "frame": {
+        "x": 1934,
+        "y": 901,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/StandartDamagedHaven": {
+      "frame": {
+        "x": 1934,
+        "y": 970,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/StandartDamagedHaven2": {
+      "frame": {
+        "x": 1934,
+        "y": 1039,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/StandartHaven": {
+      "frame": {
+        "x": 1934,
+        "y": 1108,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "heaven/StandartHaven2": {
+      "frame": {
+        "x": 1934,
+        "y": 1177,
+        "w": 91,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 67
+      }
+    },
+    "village/blocks/VillageChest": {
+      "frame": {
+        "x": 1934,
+        "y": 1246,
+        "w": 89,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 68
+      }
+    },
+    "village/blocks/VillageChestGhost": {
+      "frame": {
+        "x": 1934,
+        "y": 1316,
+        "w": 89,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 68
+      }
+    },
+    "dungeon/DungeonStandart2": {
+      "frame": {
+        "x": 1934,
+        "y": 1386,
+        "w": 90,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 67
+      }
+    },
+    "dungeon/DungeonStandart2Damaged": {
+      "frame": {
+        "x": 1934,
+        "y": 1455,
+        "w": 90,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 67
+      }
+    },
+    "dungeon/ChestDungeon 1": {
+      "frame": {
+        "x": 1934,
+        "y": 1524,
+        "w": 89,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 67
+      }
+    },
+    "dungeon/ChestDungeon": {
+      "frame": {
+        "x": 1934,
+        "y": 1593,
+        "w": 89,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 67
+      }
+    },
+    "village/blocks/Village2Standart 1": {
+      "frame": {
+        "x": 1934,
+        "y": 1662,
+        "w": 89,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 89,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 89,
+        "h": 67
+      }
+    },
+    "heaven/HeavenMeleeStatueBottomGlowing": {
+      "frame": {
+        "x": 1070,
+        "y": 1643,
+        "w": 81,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 81,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 81,
+        "h": 73
+      }
+    },
+    "village/enemies/WitchChest2": {
+      "frame": {
+        "x": 1778,
+        "y": 1983,
+        "w": 93,
+        "h": 57
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 93,
+        "h": 57
+      },
+      "sourceSize": {
+        "w": 93,
+        "h": 57
+      }
+    },
+    "necromancer/spell_skeleton/skeleton2": {
+      "frame": {
+        "x": 1934,
+        "y": 1731,
+        "w": 96,
+        "h": 46
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 46
+      },
+      "sourceSize": {
+        "w": 96,
+        "h": 46
+      }
+    },
+    "dungeon/DungeonInvulnerable": {
+      "frame": {
+        "x": 1070,
+        "y": 1718,
+        "w": 82,
+        "h": 42
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 82,
+        "h": 42
+      },
+      "sourceSize": {
+        "w": 82,
+        "h": 42
+      }
+    }
+  },
+  "animations": {}
+}

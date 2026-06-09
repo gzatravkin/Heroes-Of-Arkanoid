@@ -1,0 +1,305 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-11.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "hell/demonhand": 10
+    }
+  },
+  "frames": {
+    "fons/ValHav": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1326,
+        "h": 1217
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1326,
+        "h": 1217
+      },
+      "sourceSize": {
+        "w": 1326,
+        "h": 1217
+      }
+    },
+    "fons/CavVil": {
+      "frame": {
+        "x": 1328,
+        "y": 0,
+        "w": 663,
+        "h": 1217
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 663,
+        "h": 1217
+      },
+      "sourceSize": {
+        "w": 663,
+        "h": 1217
+      }
+    },
+    "ui/menu_main/MainCharacter": {
+      "frame": {
+        "x": 0,
+        "y": 1219,
+        "w": 830,
+        "h": 483
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 830,
+        "h": 483
+      },
+      "sourceSize": {
+        "w": 830,
+        "h": 483
+      }
+    },
+    "ui/menu_skill/LvlUpInterfaceHeroPanel": {
+      "frame": {
+        "x": 832,
+        "y": 1219,
+        "w": 1216,
+        "h": 262
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1216,
+        "h": 262
+      },
+      "sourceSize": {
+        "w": 1216,
+        "h": 262
+      }
+    },
+    "ui/unclassified/WingsOfVictory": {
+      "frame": {
+        "x": 0,
+        "y": 1704,
+        "w": 1099,
+        "h": 271
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1099,
+        "h": 271
+      },
+      "sourceSize": {
+        "w": 1099,
+        "h": 271
+      }
+    },
+    "hell/DemonHand1": {
+      "frame": {
+        "x": 1101,
+        "y": 1483,
+        "w": 634,
+        "h": 432
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 634,
+        "h": 432
+      },
+      "sourceSize": {
+        "w": 634,
+        "h": 432
+      }
+    },
+    "ui/bonus/SecretKey": {
+      "frame": {
+        "x": 1737,
+        "y": 1483,
+        "w": 266,
+        "h": 534
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 534
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 534
+      }
+    },
+    "necromancer/spell_skeleton/SkeletonBirth": {
+      "frame": {
+        "x": 1101,
+        "y": 1917,
+        "w": 500,
+        "h": 122
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 500,
+        "h": 122
+      },
+      "sourceSize": {
+        "w": 500,
+        "h": 122
+      }
+    },
+    "engineer/bars/TechnoHero2": {
+      "frame": {
+        "x": 832,
+        "y": 1483,
+        "w": 263,
+        "h": 197
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 263,
+        "h": 197
+      },
+      "sourceSize": {
+        "w": 263,
+        "h": 197
+      }
+    },
+    "heaven/ColumnDamagedAnim": {
+      "frame": {
+        "x": 0,
+        "y": 1977,
+        "w": 748,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 748,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 748,
+        "h": 67
+      }
+    },
+    "ui/menu_skill/SbrositNaviky": {
+      "frame": {
+        "x": 750,
+        "y": 1977,
+        "w": 339,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 339,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 339,
+        "h": 67
+      }
+    },
+    "village/enemies/Beholder3": {
+      "frame": {
+        "x": 1603,
+        "y": 1917,
+        "w": 127,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 127,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 127,
+        "h": 131
+      }
+    },
+    "hell/StandartHell2Destroyed": {
+      "frame": {
+        "x": 1732,
+        "y": 2019,
+        "w": 262,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 262,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 262,
+        "h": 28
+      }
+    },
+    "village/enemies/WitchLeg3": {
+      "frame": {
+        "x": 1993,
+        "y": 0,
+        "w": 55,
+        "h": 68
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 55,
+        "h": 68
+      },
+      "sourceSize": {
+        "w": 55,
+        "h": 68
+      }
+    }
+  },
+  "animations": {
+    "hell/demonhand": [
+      "hell/DemonHand1",
+      "hell/DemonHand2",
+      "hell/DemonHand3"
+    ]
+  }
+}

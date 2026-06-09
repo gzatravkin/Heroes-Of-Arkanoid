@@ -1,0 +1,606 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-13.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "firemage/spell_phonex/phoenixdeathanimpic": 12,
+      "engineer/spell_lighting/lighting": 15
+    }
+  },
+  "frames": {
+    "hell/DemonBody": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 846,
+        "h": 1128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 846,
+        "h": 1128
+      },
+      "sourceSize": {
+        "w": 846,
+        "h": 1128
+      }
+    },
+    "heaven/HeavenBoss": {
+      "frame": {
+        "x": 848,
+        "y": 0,
+        "w": 852,
+        "h": 1114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 852,
+        "h": 1114
+      },
+      "sourceSize": {
+        "w": 852,
+        "h": 1114
+      }
+    },
+    "firemage/spell_phonex/Phoenics": {
+      "frame": {
+        "x": 0,
+        "y": 1130,
+        "w": 1039,
+        "h": 848
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1039,
+        "h": 848
+      },
+      "sourceSize": {
+        "w": 1039,
+        "h": 848
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic1": {
+      "frame": {
+        "x": 1041,
+        "y": 1116,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "hell/DemonFace": {
+      "frame": {
+        "x": 1041,
+        "y": 1599,
+        "w": 681,
+        "h": 396
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 681,
+        "h": 396
+      },
+      "sourceSize": {
+        "w": 681,
+        "h": 396
+      }
+    },
+    "engineer/spell_lighting/Lighting": {
+      "frame": {
+        "x": 1724,
+        "y": 0,
+        "w": 266,
+        "h": 670
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 670
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 670
+      }
+    },
+    "engineer/spell_lighting/Lighting2": {
+      "frame": {
+        "x": 1724,
+        "y": 672,
+        "w": 266,
+        "h": 670
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 670
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 670
+      }
+    },
+    "engineer/spell_lighting/Lighting3": {
+      "frame": {
+        "x": 1724,
+        "y": 1344,
+        "w": 266,
+        "h": 670
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 670
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 670
+      }
+    },
+    "heaven/Clouds": {
+      "frame": {
+        "x": 0,
+        "y": 1980,
+        "w": 360,
+        "h": 67
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 360,
+        "h": 67
+      },
+      "sourceSize": {
+        "w": 360,
+        "h": 67
+      }
+    },
+    "heaven/ColumnTopDestroyed": {
+      "frame": {
+        "x": 362,
+        "y": 1997,
+        "w": 342,
+        "h": 44
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 342,
+        "h": 44
+      },
+      "sourceSize": {
+        "w": 342,
+        "h": 44
+      }
+    },
+    "dungeon/DungeonStandartDestroyed": {
+      "frame": {
+        "x": 706,
+        "y": 1980,
+        "w": 265,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 265,
+        "h": 54
+      },
+      "sourceSize": {
+        "w": 265,
+        "h": 54
+      }
+    },
+    "hell/LavaSpownerDestroyed": {
+      "frame": {
+        "x": 973,
+        "y": 1997,
+        "w": 273,
+        "h": 49
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 273,
+        "h": 49
+      },
+      "sourceSize": {
+        "w": 273,
+        "h": 49
+      }
+    },
+    "village/blocks/VillageStandart2Destroyed": {
+      "frame": {
+        "x": 1248,
+        "y": 1997,
+        "w": 291,
+        "h": 45
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 291,
+        "h": 45
+      },
+      "sourceSize": {
+        "w": 291,
+        "h": 45
+      }
+    },
+    "village/blocks/Village2Standart2Destroyed": {
+      "frame": {
+        "x": 1541,
+        "y": 1997,
+        "w": 167,
+        "h": 48
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 167,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 167,
+        "h": 48
+      }
+    },
+    "heaven/ColumnDestroyed": {
+      "frame": {
+        "x": 1710,
+        "y": 2016,
+        "w": 233,
+        "h": 23
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 233,
+        "h": 23
+      },
+      "sourceSize": {
+        "w": 233,
+        "h": 23
+      }
+    },
+    "necromancer/spell_skeleton/SkeletalMageMissile": {
+      "frame": {
+        "x": 1607,
+        "y": 1116,
+        "w": 64,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 64,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 64,
+        "h": 64
+      }
+    },
+    "ui/unclassified/LvlPanel": {
+      "frame": {
+        "x": 1607,
+        "y": 1182,
+        "w": 64,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 64,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 64,
+        "h": 64
+      }
+    },
+    "dungeon/DungeonInvulnerable2": {
+      "frame": {
+        "x": 1607,
+        "y": 1248,
+        "w": 82,
+        "h": 42
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 82,
+        "h": 42
+      },
+      "sourceSize": {
+        "w": 82,
+        "h": 42
+      }
+    },
+    "hell/HellInvulnerableActive": {
+      "frame": {
+        "x": 1607,
+        "y": 1292,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "village/blocks/VillageInvulnerable": {
+      "frame": {
+        "x": 1607,
+        "y": 1333,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "village/blocks/VillageInvulnerableActive": {
+      "frame": {
+        "x": 1607,
+        "y": 1374,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "village/blocks/VillageInvulnerableGhost": {
+      "frame": {
+        "x": 1607,
+        "y": 1415,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "village/blocks/VillageInvulnerableGhostActive": {
+      "frame": {
+        "x": 1607,
+        "y": 1456,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "village/enemies/WitchMagic4": {
+      "frame": {
+        "x": 1607,
+        "y": 1497,
+        "w": 57,
+        "h": 57
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 57,
+        "h": 57
+      },
+      "sourceSize": {
+        "w": 57,
+        "h": 57
+      }
+    },
+    "heaven/InvulnerableHaven": {
+      "frame": {
+        "x": 1607,
+        "y": 1556,
+        "w": 91,
+        "h": 34
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 34
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 34
+      }
+    },
+    "ui/menu_skill/shkatulka/shkatulka4": {
+      "frame": {
+        "x": 1945,
+        "y": 2016,
+        "w": 85,
+        "h": 31
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 85,
+        "h": 31
+      },
+      "sourceSize": {
+        "w": 85,
+        "h": 31
+      }
+    },
+    "hell/LavaMainPart": {
+      "frame": {
+        "x": 1666,
+        "y": 1497,
+        "w": 56,
+        "h": 45
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 45
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 45
+      }
+    },
+    "hell/LavaEnd": {
+      "frame": {
+        "x": 1992,
+        "y": 0,
+        "w": 56,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 38
+      }
+    }
+  },
+  "animations": {
+    "firemage/spell_phonex/phoenixdeathanimpic": [
+      "firemage/spell_phonex/PhoenixDeathAnimPic1",
+      "firemage/spell_phonex/PhoenixDeathAnimPic2",
+      "firemage/spell_phonex/PhoenixDeathAnimPic3",
+      "firemage/spell_phonex/PhoenixDeathAnimPic4",
+      "firemage/spell_phonex/PhoenixDeathAnimPic5",
+      "firemage/spell_phonex/PhoenixDeathAnimPic6",
+      "firemage/spell_phonex/PhoenixDeathAnimPic7",
+      "firemage/spell_phonex/PhoenixDeathAnimPic8",
+      "firemage/spell_phonex/PhoenixDeathAnimPic9",
+      "firemage/spell_phonex/PhoenixDeathAnimPic10",
+      "firemage/spell_phonex/PhoenixDeathAnimPic11",
+      "firemage/spell_phonex/PhoenixDeathAnimPic12",
+      "firemage/spell_phonex/PhoenixDeathAnimPic13",
+      "firemage/spell_phonex/PhoenixDeathAnimPic14",
+      "firemage/spell_phonex/PhoenixDeathAnimPic15",
+      "firemage/spell_phonex/PhoenixDeathAnimPic16",
+      "firemage/spell_phonex/PhoenixDeathAnimPic17",
+      "firemage/spell_phonex/PhoenixDeathAnimPic18"
+    ],
+    "engineer/spell_lighting/lighting": [
+      "engineer/spell_lighting/Lighting2",
+      "engineer/spell_lighting/Lighting3",
+      "engineer/spell_lighting/Lighting4"
+    ]
+  }
+}

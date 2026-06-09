@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-25.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2200,
+      "h": 114
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "village/blocks/Kotelok3Death": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 2200,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 2200,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 2200,
+        "h": 114
+      }
+    }
+  },
+  "animations": {}
+}

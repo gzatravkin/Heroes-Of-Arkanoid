@@ -1,0 +1,685 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-7.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "hell/hellballlvl": 10
+    }
+  },
+  "frames": {
+    "fons/2Dungeon": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 1223
+      }
+    },
+    "ui/achievements/AchievmentPanel": {
+      "frame": {
+        "x": 0,
+        "y": 1225,
+        "w": 866,
+        "h": 693
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 866,
+        "h": 693
+      },
+      "sourceSize": {
+        "w": 866,
+        "h": 693
+      }
+    },
+    "ui/menu_skill/LvlUpInterfacePanel": {
+      "frame": {
+        "x": 868,
+        "y": 1225,
+        "w": 616,
+        "h": 785
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 616,
+        "h": 785
+      },
+      "sourceSize": {
+        "w": 616,
+        "h": 785
+      }
+    },
+    "effects/RangeAreaActive": {
+      "frame": {
+        "x": 1486,
+        "y": 1225,
+        "w": 524,
+        "h": 524
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 524,
+        "h": 524
+      },
+      "sourceSize": {
+        "w": 524,
+        "h": 524
+      }
+    },
+    "ui/bonus/LightingStrikeAnimation": {
+      "frame": {
+        "x": 1486,
+        "y": 1751,
+        "w": 512,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 256
+      }
+    },
+    "ui/buttons/NameBlock": {
+      "frame": {
+        "x": 0,
+        "y": 1920,
+        "w": 826,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 826,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 826,
+        "h": 110
+      }
+    },
+    "dungeon/Bomb": {
+      "frame": {
+        "x": 1922,
+        "y": 0,
+        "w": 114,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 114,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 114,
+        "h": 114
+      }
+    },
+    "dungeon/BombStand": {
+      "frame": {
+        "x": 1922,
+        "y": 116,
+        "w": 114,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 114,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 114,
+        "h": 114
+      }
+    },
+    "dungeon/GrateBomb": {
+      "frame": {
+        "x": 1922,
+        "y": 232,
+        "w": 114,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 114,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 114,
+        "h": 114
+      }
+    },
+    "dungeon/GrateBombStand": {
+      "frame": {
+        "x": 1922,
+        "y": 348,
+        "w": 114,
+        "h": 114
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 114,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 114,
+        "h": 114
+      }
+    },
+    "hell/HellBallLvl1": {
+      "frame": {
+        "x": 1922,
+        "y": 464,
+        "w": 111,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 111,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 111,
+        "h": 107
+      }
+    },
+    "dungeon/GoblinBody": {
+      "frame": {
+        "x": 1922,
+        "y": 573,
+        "w": 106,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 106,
+        "h": 112
+      },
+      "sourceSize": {
+        "w": 106,
+        "h": 112
+      }
+    },
+    "firemage/spell_fireturret/FireHeroTurretV2": {
+      "frame": {
+        "x": 828,
+        "y": 2012,
+        "w": 375,
+        "h": 31
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 375,
+        "h": 31
+      },
+      "sourceSize": {
+        "w": 375,
+        "h": 31
+      }
+    },
+    "firemage/spell_fireturret/FireHeroTurret": {
+      "frame": {
+        "x": 1205,
+        "y": 2012,
+        "w": 359,
+        "h": 31
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 359,
+        "h": 31
+      },
+      "sourceSize": {
+        "w": 359,
+        "h": 31
+      }
+    },
+    "ui/menu_main/InterfaceLanguageImg": {
+      "frame": {
+        "x": 1922,
+        "y": 687,
+        "w": 101,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 101,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 101,
+        "h": 107
+      }
+    },
+    "village/enemies/BatSleeping": {
+      "frame": {
+        "x": 1922,
+        "y": 796,
+        "w": 63,
+        "h": 170
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 63,
+        "h": 170
+      },
+      "sourceSize": {
+        "w": 63,
+        "h": 170
+      }
+    },
+    "heaven/ColumnTop": {
+      "frame": {
+        "x": 1922,
+        "y": 968,
+        "w": 102,
+        "h": 98
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 102,
+        "h": 98
+      },
+      "sourceSize": {
+        "w": 102,
+        "h": 98
+      }
+    },
+    "village/enemies/WitchLeg2": {
+      "frame": {
+        "x": 1922,
+        "y": 1068,
+        "w": 103,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 103,
+        "h": 93
+      },
+      "sourceSize": {
+        "w": 103,
+        "h": 93
+      }
+    },
+    "heaven/ColumnBottomDestroyed": {
+      "frame": {
+        "x": 1566,
+        "y": 2009,
+        "w": 357,
+        "h": 25
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 357,
+        "h": 25
+      },
+      "sourceSize": {
+        "w": 357,
+        "h": 25
+      }
+    },
+    "dungeon/GoblinLeg2": {
+      "frame": {
+        "x": 1987,
+        "y": 796,
+        "w": 60,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 60,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 60,
+        "h": 110
+      }
+    },
+    "ui/rewards/PyadisyatProcentov": {
+      "frame": {
+        "x": 1922,
+        "y": 1163,
+        "w": 113,
+        "h": 56
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 113,
+        "h": 56
+      },
+      "sourceSize": {
+        "w": 113,
+        "h": 56
+      }
+    },
+    "hell/HellInvulnerable": {
+      "frame": {
+        "x": 1925,
+        "y": 2009,
+        "w": 87,
+        "h": 39
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 39
+      },
+      "sourceSize": {
+        "w": 87,
+        "h": 39
+      }
+    },
+    "hints/EducationChance": {
+      "frame": {
+        "x": 1987,
+        "y": 908,
+        "w": 57,
+        "h": 57
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 57,
+        "h": 57
+      },
+      "sourceSize": {
+        "w": 57,
+        "h": 57
+      }
+    },
+    "app/ico48": {
+      "frame": {
+        "x": 2000,
+        "y": 1751,
+        "w": 48,
+        "h": 48
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "ui/menu_skill/shkatulka/shkatulka6": {
+      "frame": {
+        "x": 2000,
+        "y": 1801,
+        "w": 45,
+        "h": 48
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 45,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 45,
+        "h": 48
+      }
+    },
+    "dungeon/GoblinPlecho": {
+      "frame": {
+        "x": 2000,
+        "y": 1851,
+        "w": 44,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 44,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 44,
+        "h": 41
+      }
+    },
+    "engineer/ball/KnightHeroBall": {
+      "frame": {
+        "x": 828,
+        "y": 1920,
+        "w": 38,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 38,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 38,
+        "h": 37
+      }
+    },
+    "necromancer/ball/KnightHeroBall": {
+      "frame": {
+        "x": 828,
+        "y": 1959,
+        "w": 38,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 38,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 38,
+        "h": 37
+      }
+    },
+    "village/BallGhost": {
+      "frame": {
+        "x": 2000,
+        "y": 1894,
+        "w": 38,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 38,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 38,
+        "h": 37
+      }
+    },
+    "heaven/HolyBall": {
+      "frame": {
+        "x": 2000,
+        "y": 1933,
+        "w": 38,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 38,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 38,
+        "h": 37
+      }
+    },
+    "hell/LavaSpownerDamaged": {
+      "frame": {
+        "x": 2000,
+        "y": 1972,
+        "w": 40,
+        "h": 35
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 35
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 35
+      }
+    },
+    "app/ico36": {
+      "frame": {
+        "x": 2012,
+        "y": 1221,
+        "w": 36,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 36,
+        "h": 36
+      },
+      "sourceSize": {
+        "w": 36,
+        "h": 36
+      }
+    },
+    "heaven/Missile": {
+      "frame": {
+        "x": 2014,
+        "y": 2009,
+        "w": 33,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 33,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 33,
+        "h": 37
+      }
+    }
+  },
+  "animations": {
+    "hell/hellballlvl": [
+      "hell/HellBallLvl1",
+      "hell/HellBallLvl2",
+      "hell/HellBallLvl3"
+    ]
+  }
+}

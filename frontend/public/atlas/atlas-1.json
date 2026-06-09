@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-1.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 22100,
+      "h": 643
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "firemage/spell_phonex/PhoenixBirthAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 22100,
+        "h": 643
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 22100,
+        "h": 643
+      },
+      "sourceSize": {
+        "w": 22100,
+        "h": 643
+      }
+    }
+  },
+  "animations": {}
+}

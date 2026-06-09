@@ -1,0 +1,491 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-14.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "hints/hintsscreen": 10,
+      "dungeon/goblinhand": 10
+    }
+  },
+  "frames": {
+    "fons/HellCav": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 663,
+        "h": 1217
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 663,
+        "h": 1217
+      },
+      "sourceSize": {
+        "w": 663,
+        "h": 1217
+      }
+    },
+    "ui/menu_main/InterfaceMainPalet": {
+      "frame": {
+        "x": 665,
+        "y": 0,
+        "w": 517,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 517,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 517,
+        "h": 1223
+      }
+    },
+    "ui/menu_skill/LvlUpInterfaceTopBottomPanel": {
+      "frame": {
+        "x": 0,
+        "y": 1225,
+        "w": 1920,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 1920,
+        "h": 148
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic10": {
+      "frame": {
+        "x": 0,
+        "y": 1375,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic11": {
+      "frame": {
+        "x": 566,
+        "y": 1375,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic12": {
+      "frame": {
+        "x": 1132,
+        "y": 1375,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic13": {
+      "frame": {
+        "x": 1184,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic14": {
+      "frame": {
+        "x": 1184,
+        "y": 483,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "ui/unclassified/WingsOfVictory2": {
+      "frame": {
+        "x": 0,
+        "y": 1858,
+        "w": 1099,
+        "h": 187
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1099,
+        "h": 187
+      },
+      "sourceSize": {
+        "w": 1099,
+        "h": 187
+      }
+    },
+    "engineer/spell_lighting/Lighting4": {
+      "frame": {
+        "x": 1698,
+        "y": 1375,
+        "w": 266,
+        "h": 670
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 670
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 670
+      }
+    },
+    "ui/menu_main/PlayButtonEsp": {
+      "frame": {
+        "x": 1184,
+        "y": 966,
+        "w": 818,
+        "h": 201
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 818,
+        "h": 201
+      },
+      "sourceSize": {
+        "w": 818,
+        "h": 201
+      }
+    },
+    "paladin/ui/ClassChoiceKnight": {
+      "frame": {
+        "x": 1101,
+        "y": 1858,
+        "w": 504,
+        "h": 178
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 504,
+        "h": 178
+      },
+      "sourceSize": {
+        "w": 504,
+        "h": 178
+      }
+    },
+    "engineer/spell_lighting/LightingGlow": {
+      "frame": {
+        "x": 1750,
+        "y": 0,
+        "w": 295,
+        "h": 283
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 295,
+        "h": 283
+      },
+      "sourceSize": {
+        "w": 295,
+        "h": 283
+      }
+    },
+    "hints/HintsScreen1": {
+      "frame": {
+        "x": 1750,
+        "y": 285,
+        "w": 222,
+        "h": 326
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 222,
+        "h": 326
+      },
+      "sourceSize": {
+        "w": 222,
+        "h": 326
+      }
+    },
+    "hints/HintsScreen2": {
+      "frame": {
+        "x": 1750,
+        "y": 613,
+        "w": 222,
+        "h": 326
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 222,
+        "h": 326
+      },
+      "sourceSize": {
+        "w": 222,
+        "h": 326
+      }
+    },
+    "dungeon/Dungeon2Standart2Destroed": {
+      "frame": {
+        "x": 1184,
+        "y": 1169,
+        "w": 219,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 219,
+        "h": 54
+      },
+      "sourceSize": {
+        "w": 219,
+        "h": 54
+      }
+    },
+    "heaven/Standart2HavenDestroyed": {
+      "frame": {
+        "x": 1405,
+        "y": 1169,
+        "w": 246,
+        "h": 42
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 42
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 42
+      }
+    },
+    "ui/battle_ui/HPEmpty": {
+      "frame": {
+        "x": 1653,
+        "y": 1169,
+        "w": 220,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 41
+      }
+    },
+    "hell/Standart2Hell2Destroyed": {
+      "frame": {
+        "x": 1875,
+        "y": 1169,
+        "w": 161,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 161,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 161,
+        "h": 38
+      }
+    },
+    "dungeon/GoblinPants": {
+      "frame": {
+        "x": 1974,
+        "y": 285,
+        "w": 64,
+        "h": 50
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 64,
+        "h": 50
+      },
+      "sourceSize": {
+        "w": 64,
+        "h": 50
+      }
+    },
+    "heaven/InvulnerableHavenAnimation": {
+      "frame": {
+        "x": 1922,
+        "y": 1209,
+        "w": 91,
+        "h": 34
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 91,
+        "h": 34
+      },
+      "sourceSize": {
+        "w": 91,
+        "h": 34
+      }
+    },
+    "dungeon/GoblinHand1": {
+      "frame": {
+        "x": 1607,
+        "y": 1858,
+        "w": 85,
+        "h": 33
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 85,
+        "h": 33
+      },
+      "sourceSize": {
+        "w": 85,
+        "h": 33
+      }
+    },
+    "hell/LavaBegining": {
+      "frame": {
+        "x": 1974,
+        "y": 337,
+        "w": 57,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 57,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 57,
+        "h": 40
+      }
+    }
+  },
+  "animations": {
+    "hints/hintsscreen": [
+      "hints/HintsScreen1",
+      "hints/HintsScreen2",
+      "hints/HintsScreen3"
+    ],
+    "dungeon/goblinhand": [
+      "dungeon/GoblinHand1",
+      "dungeon/GoblinHand2",
+      "dungeon/GoblinHand3"
+    ]
+  }
+}

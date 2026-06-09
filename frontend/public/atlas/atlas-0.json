@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-0.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 19818,
+      "h": 884
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "firemage/spell_phonex/PhoenixDeathAnimation2": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 19818,
+        "h": 884
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 19818,
+        "h": 884
+      },
+      "sourceSize": {
+        "w": 19818,
+        "h": 884
+      }
+    }
+  },
+  "animations": {}
+}

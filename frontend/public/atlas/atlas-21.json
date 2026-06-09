@@ -1,0 +1,436 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-21.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "firemage/spell_phonex/PhoenixDeathAnimPic15": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic16": {
+      "frame": {
+        "x": 0,
+        "y": 483,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic17": {
+      "frame": {
+        "x": 566,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic18": {
+      "frame": {
+        "x": 566,
+        "y": 483,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic2": {
+      "frame": {
+        "x": 1132,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic3": {
+      "frame": {
+        "x": 1132,
+        "y": 483,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic4": {
+      "frame": {
+        "x": 0,
+        "y": 966,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic5": {
+      "frame": {
+        "x": 0,
+        "y": 1449,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic6": {
+      "frame": {
+        "x": 566,
+        "y": 966,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic7": {
+      "frame": {
+        "x": 566,
+        "y": 1449,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic8": {
+      "frame": {
+        "x": 1132,
+        "y": 966,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "firemage/spell_phonex/PhoenixDeathAnimPic9": {
+      "frame": {
+        "x": 1132,
+        "y": 1449,
+        "w": 564,
+        "h": 481
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 564,
+        "h": 481
+      },
+      "sourceSize": {
+        "w": 564,
+        "h": 481
+      }
+    },
+    "paladin/spell_lastday/KnightLightSpell": {
+      "frame": {
+        "x": 1698,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 1223
+      }
+    },
+    "paladin/spell_lastday/KnightLightSpellBuffed": {
+      "frame": {
+        "x": 1830,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 1223
+      }
+    },
+    "fons/HellFon3": {
+      "frame": {
+        "x": 1698,
+        "y": 1225,
+        "w": 350,
+        "h": 442
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 350,
+        "h": 442
+      },
+      "sourceSize": {
+        "w": 350,
+        "h": 442
+      }
+    },
+    "heaven/HeavenBossGlobe": {
+      "frame": {
+        "x": 1698,
+        "y": 1669,
+        "w": 326,
+        "h": 326
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 326,
+        "h": 326
+      },
+      "sourceSize": {
+        "w": 326,
+        "h": 326
+      }
+    },
+    "ui/rewards/ExpBarEmpty": {
+      "frame": {
+        "x": 0,
+        "y": 1932,
+        "w": 1057,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1057,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 1057,
+        "h": 75
+      }
+    },
+    "ui/menu_main/InterfaceProfilButtonENG": {
+      "frame": {
+        "x": 1059,
+        "y": 1932,
+        "w": 519,
+        "h": 101
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 519,
+        "h": 101
+      },
+      "sourceSize": {
+        "w": 519,
+        "h": 101
+      }
+    },
+    "ui/battle_ui/HPFull": {
+      "frame": {
+        "x": 1580,
+        "y": 1997,
+        "w": 220,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 41
+      }
+    },
+    "ui/battle_ui/MPEmpty": {
+      "frame": {
+        "x": 1802,
+        "y": 1997,
+        "w": 220,
+        "h": 41
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 41
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 41
+      }
+    },
+    "heaven/ColumnDamagedDestroyed": {
+      "frame": {
+        "x": 0,
+        "y": 2009,
+        "w": 235,
+        "h": 34
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 235,
+        "h": 34
+      },
+      "sourceSize": {
+        "w": 235,
+        "h": 34
+      }
+    }
+  },
+  "animations": {}
+}

@@ -1,0 +1,1885 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-32.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "ui/missionselect/mission_border": 10
+    }
+  },
+  "frames": {
+    "paladin/spell_penteration/ChoseMightyStrikeIcoInActive": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "paladin/spell_lastday/ChoseLustJudgmentIcoInActive": {
+      "frame": {
+        "x": 185,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/skill_size/ChoseTechnoHeroSizeIcoInActive": {
+      "frame": {
+        "x": 0,
+        "y": 190,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/spell_passiveshield/ChoseUtilityIcoInActive": {
+      "frame": {
+        "x": 185,
+        "y": 190,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/spell_lighting/ChoseLightingcoInActive": {
+      "frame": {
+        "x": 370,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/spell_magnet/ChoseMagnetIcoInActive": {
+      "frame": {
+        "x": 370,
+        "y": 190,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/spell_raditation/ChoseRadiationIcoInActive": {
+      "frame": {
+        "x": 555,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "engineer/spell_rocket/ChoseRocketIcoInActive": {
+      "frame": {
+        "x": 740,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "necromancer/skill_size/ChoseKnightHeroSizeIcoInActive": {
+      "frame": {
+        "x": 555,
+        "y": 190,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "necromancer/spell_passiveshield/ChoseSpellShieldIcoInActive": {
+      "frame": {
+        "x": 740,
+        "y": 190,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "necromancer/spell_lastday/ChoseLustJudgmentIcoInActive": {
+      "frame": {
+        "x": 0,
+        "y": 380,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "comunskills/LifeBonusIcoInActive": {
+      "frame": {
+        "x": 0,
+        "y": 570,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "comunskills/ShieldIcoInActive": {
+      "frame": {
+        "x": 0,
+        "y": 760,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl10Skill": {
+      "frame": {
+        "x": 185,
+        "y": 380,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl1Skill": {
+      "frame": {
+        "x": 185,
+        "y": 570,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl2Skill": {
+      "frame": {
+        "x": 185,
+        "y": 760,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl3Skill": {
+      "frame": {
+        "x": 370,
+        "y": 380,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl4Skill": {
+      "frame": {
+        "x": 370,
+        "y": 570,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl5Skill": {
+      "frame": {
+        "x": 370,
+        "y": 760,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl6Skill": {
+      "frame": {
+        "x": 555,
+        "y": 380,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl7Skill": {
+      "frame": {
+        "x": 740,
+        "y": 380,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl8Skill": {
+      "frame": {
+        "x": 555,
+        "y": 570,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "levelskill/Lvl9Skill": {
+      "frame": {
+        "x": 555,
+        "y": 760,
+        "w": 183,
+        "h": 188
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 183,
+        "h": 188
+      },
+      "sourceSize": {
+        "w": 183,
+        "h": 188
+      }
+    },
+    "necromancer/spell_skeleton/SkeletalMage": {
+      "frame": {
+        "x": 740,
+        "y": 570,
+        "w": 174,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 174,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 174,
+        "h": 153
+      }
+    },
+    "ui/missionselect/new_system/LvlCaveSelected": {
+      "frame": {
+        "x": 740,
+        "y": 725,
+        "w": 158,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 158,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 158,
+        "h": 159
+      }
+    },
+    "ui/missionselect/new_system/LvlHeavenSelected": {
+      "frame": {
+        "x": 900,
+        "y": 725,
+        "w": 158,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 158,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 158,
+        "h": 159
+      }
+    },
+    "ui/missionselect/new_system/LvlHellSelected": {
+      "frame": {
+        "x": 925,
+        "y": 0,
+        "w": 158,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 158,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 158,
+        "h": 159
+      }
+    },
+    "ui/missionselect/new_system/LvlVillageSelected": {
+      "frame": {
+        "x": 925,
+        "y": 161,
+        "w": 158,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 158,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 158,
+        "h": 159
+      }
+    },
+    "paladin/spell_spear/SpearIco": {
+      "frame": {
+        "x": 740,
+        "y": 886,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "paladin/spell_duplication/SplitIco": {
+      "frame": {
+        "x": 949,
+        "y": 886,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "paladin/spell_penteration/MightyStrikeIco": {
+      "frame": {
+        "x": 916,
+        "y": 570,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "paladin/spell_lastday/LustJudgmentIco": {
+      "frame": {
+        "x": 1060,
+        "y": 690,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "engineer/spell_lighting/LightingIco": {
+      "frame": {
+        "x": 1158,
+        "y": 810,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "engineer/spell_magnet/MagnetIco": {
+      "frame": {
+        "x": 925,
+        "y": 322,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "engineer/spell_raditation/RadiationIco": {
+      "frame": {
+        "x": 925,
+        "y": 442,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "engineer/spell_rocket/RocketIco": {
+      "frame": {
+        "x": 1125,
+        "y": 562,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "necromancer/spell_lastday/LustJudgmentIco": {
+      "frame": {
+        "x": 1269,
+        "y": 682,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "village/enemies/BeholderGhostAttackAnimation": {
+      "frame": {
+        "x": 1367,
+        "y": 802,
+        "w": 146,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 146,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 146,
+        "h": 163
+      }
+    },
+    "ui/missionselect/Mission_Border_Selected2": {
+      "frame": {
+        "x": 1085,
+        "y": 0,
+        "w": 152,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 152
+      }
+    },
+    "ui/missionselect/Mission_Border_Selected2_2": {
+      "frame": {
+        "x": 1085,
+        "y": 154,
+        "w": 152,
+        "h": 152
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 152
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 152
+      }
+    },
+    "hell/HellBallLvl2": {
+      "frame": {
+        "x": 1134,
+        "y": 308,
+        "w": 151,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 151,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 151,
+        "h": 148
+      }
+    },
+    "ui/menu_inventory/Equip": {
+      "frame": {
+        "x": 1239,
+        "y": 0,
+        "w": 145,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 145,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 145,
+        "h": 148
+      }
+    },
+    "ui/menu_main/InterfaceNewButton": {
+      "frame": {
+        "x": 1239,
+        "y": 150,
+        "w": 146,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 146,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 146,
+        "h": 146
+      }
+    },
+    "ui/menu_main/InterfaceSkillsButton": {
+      "frame": {
+        "x": 1386,
+        "y": 0,
+        "w": 146,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 146,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 146,
+        "h": 146
+      }
+    },
+    "ui/menu_main/InterfaceSkillsButtonActive": {
+      "frame": {
+        "x": 1287,
+        "y": 298,
+        "w": 146,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 146,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 146,
+        "h": 146
+      }
+    },
+    "app/Ico144": {
+      "frame": {
+        "x": 1387,
+        "y": 148,
+        "w": 144,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 144,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 144,
+        "h": 144
+      }
+    },
+    "hints/EducationGem": {
+      "frame": {
+        "x": 1334,
+        "y": 446,
+        "w": 142,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 142,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 142,
+        "h": 144
+      }
+    },
+    "hell/ChainMainHell": {
+      "frame": {
+        "x": 1435,
+        "y": 294,
+        "w": 136,
+        "h": 149
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 136,
+        "h": 149
+      },
+      "sourceSize": {
+        "w": 136,
+        "h": 149
+      }
+    },
+    "hell/ChainMainHellDamaged": {
+      "frame": {
+        "x": 1534,
+        "y": 0,
+        "w": 136,
+        "h": 149
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 136,
+        "h": 149
+      },
+      "sourceSize": {
+        "w": 136,
+        "h": 149
+      }
+    },
+    "dungeon/Stone": {
+      "frame": {
+        "x": 1533,
+        "y": 151,
+        "w": 154,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 154,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 154,
+        "h": 129
+      }
+    },
+    "ui/missionselect/new_system/LvlBlockMainMenu": {
+      "frame": {
+        "x": 1672,
+        "y": 0,
+        "w": 141,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 141,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 141,
+        "h": 140
+      }
+    },
+    "ui/missionselect/new_system/LvlCave": {
+      "frame": {
+        "x": 1815,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlCaveClosed": {
+      "frame": {
+        "x": 1478,
+        "y": 445,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlHeaven": {
+      "frame": {
+        "x": 1573,
+        "y": 282,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlHeavenClosed": {
+      "frame": {
+        "x": 1478,
+        "y": 588,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlHell": {
+      "frame": {
+        "x": 1515,
+        "y": 731,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlHellClosed": {
+      "frame": {
+        "x": 1515,
+        "y": 874,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlVillage": {
+      "frame": {
+        "x": 1620,
+        "y": 425,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "ui/missionselect/new_system/LvlVillageClosed": {
+      "frame": {
+        "x": 1620,
+        "y": 568,
+        "w": 140,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 141
+      }
+    },
+    "dungeon/StoneLight": {
+      "frame": {
+        "x": 1689,
+        "y": 143,
+        "w": 153,
+        "h": 129
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 153,
+        "h": 129
+      },
+      "sourceSize": {
+        "w": 153,
+        "h": 129
+      }
+    },
+    "village/blocks/Portal": {
+      "frame": {
+        "x": 1715,
+        "y": 274,
+        "w": 137,
+        "h": 134
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 137,
+        "h": 134
+      },
+      "sourceSize": {
+        "w": 137,
+        "h": 134
+      }
+    },
+    "ui/menu_main/InterfaceDeleteButton": {
+      "frame": {
+        "x": 1854,
+        "y": 143,
+        "w": 133,
+        "h": 133
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 133,
+        "h": 133
+      },
+      "sourceSize": {
+        "w": 133,
+        "h": 133
+      }
+    },
+    "ui/menu_main/InterfaceCloseIco": {
+      "frame": {
+        "x": 1854,
+        "y": 278,
+        "w": 133,
+        "h": 131
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 133,
+        "h": 131
+      },
+      "sourceSize": {
+        "w": 133,
+        "h": 131
+      }
+    },
+    "village/enemies/WitchSkirt2": {
+      "frame": {
+        "x": 1134,
+        "y": 458,
+        "w": 169,
+        "h": 97
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 169,
+        "h": 97
+      },
+      "sourceSize": {
+        "w": 169,
+        "h": 97
+      }
+    },
+    "ui/bonus/BonusExp": {
+      "frame": {
+        "x": 1762,
+        "y": 411,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusFire": {
+      "frame": {
+        "x": 1892,
+        "y": 411,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusGem": {
+      "frame": {
+        "x": 1762,
+        "y": 541,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusGemBlue": {
+      "frame": {
+        "x": 1892,
+        "y": 541,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusGemGreen": {
+      "frame": {
+        "x": 1762,
+        "y": 671,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusGemRed": {
+      "frame": {
+        "x": 1892,
+        "y": 671,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusHP": {
+      "frame": {
+        "x": 1657,
+        "y": 801,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusKey": {
+      "frame": {
+        "x": 1787,
+        "y": 801,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusLargerBall": {
+      "frame": {
+        "x": 1917,
+        "y": 801,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusLargerBita": {
+      "frame": {
+        "x": 1158,
+        "y": 930,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusMana": {
+      "frame": {
+        "x": 1288,
+        "y": 967,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusProtection": {
+      "frame": {
+        "x": 1657,
+        "y": 931,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusRandomSpell": {
+      "frame": {
+        "x": 1418,
+        "y": 1017,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusRock": {
+      "frame": {
+        "x": 1787,
+        "y": 931,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/BonusSplit": {
+      "frame": {
+        "x": 1917,
+        "y": 931,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/bonus/LightingBall": {
+      "frame": {
+        "x": 1548,
+        "y": 1061,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/buttons/BackArrow": {
+      "frame": {
+        "x": 1678,
+        "y": 1061,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/MissionLearning": {
+      "frame": {
+        "x": 1808,
+        "y": 1061,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Allies": {
+      "frame": {
+        "x": 0,
+        "y": 950,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Battle": {
+      "frame": {
+        "x": 130,
+        "y": 950,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border": {
+      "frame": {
+        "x": 260,
+        "y": 950,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border2": {
+      "frame": {
+        "x": 390,
+        "y": 950,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border3": {
+      "frame": {
+        "x": 520,
+        "y": 950,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border3_2": {
+      "frame": {
+        "x": 650,
+        "y": 1006,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border4": {
+      "frame": {
+        "x": 780,
+        "y": 1006,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border4_2": {
+      "frame": {
+        "x": 910,
+        "y": 1006,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Border_Selected": {
+      "frame": {
+        "x": 1040,
+        "y": 1060,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Standart": {
+      "frame": {
+        "x": 1170,
+        "y": 1097,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ui/missionselect/Mission_Survival": {
+      "frame": {
+        "x": 1300,
+        "y": 1147,
+        "w": 128,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      }
+    }
+  },
+  "animations": {
+    "ui/missionselect/mission_border": [
+      "ui/missionselect/Mission_Border2",
+      "ui/missionselect/Mission_Border3",
+      "ui/missionselect/Mission_Border4"
+    ]
+  }
+}

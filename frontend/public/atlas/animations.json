@@ -1,0 +1,426 @@
+{
+  "firemage/bars/v2firehero": {
+    "frames": [
+      "firemage/bars/v2FireHero1",
+      "firemage/bars/v2FireHero2",
+      "firemage/bars/v2FireHero3",
+      "firemage/bars/v2FireHero4"
+    ],
+    "fps": 10
+  },
+  "firemage/spell_firewall/firestandannimation": {
+    "frames": [
+      "firemage/spell_firewall/FireStandAnnimation1",
+      "firemage/spell_firewall/FireStandAnnimation2"
+    ],
+    "fps": 8
+  },
+  "firemage/spell_phonex/phoenixbirthanimpic": {
+    "frames": [
+      "firemage/spell_phonex/PhoenixBirthAnimPic1",
+      "firemage/spell_phonex/PhoenixBirthAnimPic2",
+      "firemage/spell_phonex/PhoenixBirthAnimPic3",
+      "firemage/spell_phonex/PhoenixBirthAnimPic4",
+      "firemage/spell_phonex/PhoenixBirthAnimPic5",
+      "firemage/spell_phonex/PhoenixBirthAnimPic6",
+      "firemage/spell_phonex/PhoenixBirthAnimPic7",
+      "firemage/spell_phonex/PhoenixBirthAnimPic8",
+      "firemage/spell_phonex/PhoenixBirthAnimPic9",
+      "firemage/spell_phonex/PhoenixBirthAnimPic10",
+      "firemage/spell_phonex/PhoenixBirthAnimPic11",
+      "firemage/spell_phonex/PhoenixBirthAnimPic12",
+      "firemage/spell_phonex/PhoenixBirthAnimPic13",
+      "firemage/spell_phonex/PhoenixBirthAnimPic14",
+      "firemage/spell_phonex/PhoenixBirthAnimPic15",
+      "firemage/spell_phonex/PhoenixBirthAnimPic16",
+      "firemage/spell_phonex/PhoenixBirthAnimPic17",
+      "firemage/spell_phonex/PhoenixBirthAnimPic18",
+      "firemage/spell_phonex/PhoenixBirthAnimPic19",
+      "firemage/spell_phonex/PhoenixBirthAnimPic20"
+    ],
+    "fps": 12
+  },
+  "firemage/spell_phonex/phoenixdeathanimpic": {
+    "frames": [
+      "firemage/spell_phonex/PhoenixDeathAnimPic1",
+      "firemage/spell_phonex/PhoenixDeathAnimPic2",
+      "firemage/spell_phonex/PhoenixDeathAnimPic3",
+      "firemage/spell_phonex/PhoenixDeathAnimPic4",
+      "firemage/spell_phonex/PhoenixDeathAnimPic5",
+      "firemage/spell_phonex/PhoenixDeathAnimPic6",
+      "firemage/spell_phonex/PhoenixDeathAnimPic7",
+      "firemage/spell_phonex/PhoenixDeathAnimPic8",
+      "firemage/spell_phonex/PhoenixDeathAnimPic9",
+      "firemage/spell_phonex/PhoenixDeathAnimPic10",
+      "firemage/spell_phonex/PhoenixDeathAnimPic11",
+      "firemage/spell_phonex/PhoenixDeathAnimPic12",
+      "firemage/spell_phonex/PhoenixDeathAnimPic13",
+      "firemage/spell_phonex/PhoenixDeathAnimPic14",
+      "firemage/spell_phonex/PhoenixDeathAnimPic15",
+      "firemage/spell_phonex/PhoenixDeathAnimPic16",
+      "firemage/spell_phonex/PhoenixDeathAnimPic17",
+      "firemage/spell_phonex/PhoenixDeathAnimPic18"
+    ],
+    "fps": 12
+  },
+  "paladin/bars/knighthero": {
+    "frames": [
+      "paladin/bars/KnightHero1",
+      "paladin/bars/KnightHero2",
+      "paladin/bars/KnightHero3",
+      "paladin/bars/KnightHero4"
+    ],
+    "fps": 10
+  },
+  "paladin/spell_spear/knightchain": {
+    "frames": [
+      "paladin/spell_spear/KnightChain2",
+      "paladin/spell_spear/KnightChain3"
+    ],
+    "fps": 10
+  },
+  "paladin/spell_lastday/knightlightspell": {
+    "frames": [
+      "paladin/spell_lastday/KnightLightSpell2",
+      "paladin/spell_lastday/KnightLightSpell3"
+    ],
+    "fps": 10
+  },
+  "engineer/bars/technohero": {
+    "frames": [
+      "engineer/bars/TechnoHero1",
+      "engineer/bars/TechnoHero2",
+      "engineer/bars/TechnoHero3",
+      "engineer/bars/TechnoHero4"
+    ],
+    "fps": 10
+  },
+  "engineer/spell_lighting/lighting": {
+    "frames": [
+      "engineer/spell_lighting/Lighting2",
+      "engineer/spell_lighting/Lighting3",
+      "engineer/spell_lighting/Lighting4"
+    ],
+    "fps": 15
+  },
+  "necromancer/bars/necr": {
+    "frames": [
+      "necromancer/bars/Necr1",
+      "necromancer/bars/Necr2",
+      "necromancer/bars/Necr3",
+      "necromancer/bars/Necr4"
+    ],
+    "fps": 10
+  },
+  "necromancer/spell_lastday/knightlightspell": {
+    "frames": [
+      "necromancer/spell_lastday/KnightLightSpell2",
+      "necromancer/spell_lastday/KnightLightSpell3"
+    ],
+    "fps": 10
+  },
+  "hints/hintsscreen": {
+    "frames": [
+      "hints/HintsScreen1",
+      "hints/HintsScreen2",
+      "hints/HintsScreen3"
+    ],
+    "fps": 10
+  },
+  "ui/achievements/achievementll": {
+    "frames": [
+      "ui/achievements/achievementLl4",
+      "ui/achievements/achievementLl5"
+    ],
+    "fps": 10
+  },
+  "ui/achievements/achievementlvl": {
+    "frames": [
+      "ui/achievements/achievementLvl1",
+      "ui/achievements/achievementLvl2",
+      "ui/achievements/achievementLvl3"
+    ],
+    "fps": 10
+  },
+  "ui/menu_main/playbutton": {
+    "frames": [
+      "ui/menu_main/PlayButton2",
+      "ui/menu_main/PlayButton3",
+      "ui/menu_main/PlayButton4"
+    ],
+    "fps": 10
+  },
+  "ui/menu_skill/shkatulka/shkatulka": {
+    "frames": [
+      "ui/menu_skill/shkatulka/Shkatulka2",
+      "ui/menu_skill/shkatulka/Shkatulka3",
+      "ui/menu_skill/shkatulka/shkatulka4",
+      "ui/menu_skill/shkatulka/shkatulka5",
+      "ui/menu_skill/shkatulka/shkatulka6",
+      "ui/menu_skill/shkatulka/shkatulka7",
+      "ui/menu_skill/shkatulka/shkatulka8",
+      "ui/menu_skill/shkatulka/Shkatulka9",
+      "ui/menu_skill/shkatulka/Shkatulka10",
+      "ui/menu_skill/shkatulka/Shkatulka11",
+      "ui/menu_skill/shkatulka/Shkatulka12"
+    ],
+    "fps": 8
+  },
+  "ui/missionselect/mission_border": {
+    "frames": [
+      "ui/missionselect/Mission_Border2",
+      "ui/missionselect/Mission_Border3",
+      "ui/missionselect/Mission_Border4"
+    ],
+    "fps": 10
+  },
+  "ui/unclassified/lvlupanim": {
+    "frames": [
+      "ui/unclassified/LvlUpAnim1",
+      "ui/unclassified/LvlUpAnim2"
+    ],
+    "fps": 10
+  },
+  "items/itembalance": {
+    "frames": [
+      "items/ItemBalance2",
+      "items/ItemBalance3"
+    ],
+    "fps": 10
+  },
+  "items/itemdrill": {
+    "frames": [
+      "items/ItemDrill2",
+      "items/ItemDrill3"
+    ],
+    "fps": 10
+  },
+  "items/itemflask": {
+    "frames": [
+      "items/ItemFlask2",
+      "items/ItemFlask3"
+    ],
+    "fps": 10
+  },
+  "items/itemforcering": {
+    "frames": [
+      "items/ItemForceRing2",
+      "items/ItemForceRing3"
+    ],
+    "fps": 10
+  },
+  "items/itemgem": {
+    "frames": [
+      "items/ItemGem2",
+      "items/ItemGem3"
+    ],
+    "fps": 10
+  },
+  "items/itemhelm": {
+    "frames": [
+      "items/ItemHelm2",
+      "items/ItemHelm3"
+    ],
+    "fps": 10
+  },
+  "items/itemhourglass": {
+    "frames": [
+      "items/ItemHourglass2",
+      "items/ItemHourglass3"
+    ],
+    "fps": 10
+  },
+  "items/itemhummer": {
+    "frames": [
+      "items/ItemHummer2",
+      "items/ItemHummer3"
+    ],
+    "fps": 10
+  },
+  "items/itemjadeball": {
+    "frames": [
+      "items/ItemJadeBall2",
+      "items/ItemJadeBall3"
+    ],
+    "fps": 10
+  },
+  "items/itemmagiccrown": {
+    "frames": [
+      "items/ItemMagicCrown2",
+      "items/ItemMagicCrown3"
+    ],
+    "fps": 10
+  },
+  "items/itemmark": {
+    "frames": [
+      "items/ItemMark2",
+      "items/ItemMark3"
+    ],
+    "fps": 10
+  },
+  "items/itemmotor": {
+    "frames": [
+      "items/ItemMotor2",
+      "items/ItemMotor3"
+    ],
+    "fps": 10
+  },
+  "items/itemorb": {
+    "frames": [
+      "items/ItemOrb2",
+      "items/ItemOrb3"
+    ],
+    "fps": 10
+  },
+  "items/itemphoenix": {
+    "frames": [
+      "items/ItemPhoenix2",
+      "items/ItemPhoenix3"
+    ],
+    "fps": 12
+  },
+  "items/itemstaff": {
+    "frames": [
+      "items/ItemStaff2",
+      "items/ItemStaff3"
+    ],
+    "fps": 10
+  },
+  "items/itemsun": {
+    "frames": [
+      "items/ItemSun2",
+      "items/ItemSun3"
+    ],
+    "fps": 10
+  },
+  "items/itemtomofknowladge": {
+    "frames": [
+      "items/ItemTomOfKnowladge2",
+      "items/ItemTomOfKnowladge3"
+    ],
+    "fps": 10
+  },
+  "items/itemtorch": {
+    "frames": [
+      "items/ItemTorch2",
+      "items/ItemTorch3"
+    ],
+    "fps": 10
+  },
+  "items/itemzfourleafclover": {
+    "frames": [
+      "items/ItemzFourLeafClover1",
+      "items/ItemzFourLeafClover2"
+    ],
+    "fps": 10
+  },
+  "fons/hellfon": {
+    "frames": [
+      "fons/HellFon1",
+      "fons/HellFon2",
+      "fons/HellFon3"
+    ],
+    "fps": 10
+  },
+  "hell/demonhand": {
+    "frames": [
+      "hell/DemonHand1",
+      "hell/DemonHand2",
+      "hell/DemonHand3"
+    ],
+    "fps": 10
+  },
+  "hell/hellballlvl": {
+    "frames": [
+      "hell/HellBallLvl1",
+      "hell/HellBallLvl2",
+      "hell/HellBallLvl3"
+    ],
+    "fps": 10
+  },
+  "hell/hellfon": {
+    "frames": [
+      "hell/HellFon1",
+      "hell/HellFon2",
+      "hell/HellFon3"
+    ],
+    "fps": 10
+  },
+  "dungeon/goblinhand": {
+    "frames": [
+      "dungeon/GoblinHand1",
+      "dungeon/GoblinHand2",
+      "dungeon/GoblinHand3"
+    ],
+    "fps": 10
+  },
+  "dungeon/goblinleg": {
+    "frames": [
+      "dungeon/GoblinLeg1",
+      "dungeon/GoblinLeg2"
+    ],
+    "fps": 10
+  },
+  "village/blocks/kotelok": {
+    "frames": [
+      "village/blocks/Kotelok1",
+      "village/blocks/Kotelok2",
+      "village/blocks/Kotelok3"
+    ],
+    "fps": 10
+  },
+  "village/blocks/village2standart": {
+    "frames": [
+      "village/blocks/Village2Standart2",
+      "village/blocks/Village2Standart3"
+    ],
+    "fps": 8
+  },
+  "village/blocks/villagestandart": {
+    "frames": [
+      "village/blocks/VillageStandart2",
+      "village/blocks/VillageStandart3"
+    ],
+    "fps": 8
+  },
+  "village/enemies/beholder": {
+    "frames": [
+      "village/enemies/Beholder1",
+      "village/enemies/Beholder2",
+      "village/enemies/Beholder3"
+    ],
+    "fps": 10
+  },
+  "village/enemies/witchhand": {
+    "frames": [
+      "village/enemies/WitchHand1",
+      "village/enemies/WitchHand2",
+      "village/enemies/WitchHand3"
+    ],
+    "fps": 10
+  },
+  "village/enemies/witchleg": {
+    "frames": [
+      "village/enemies/WitchLeg1",
+      "village/enemies/WitchLeg2",
+      "village/enemies/WitchLeg3"
+    ],
+    "fps": 10
+  },
+  "village/enemies/witchmagic": {
+    "frames": [
+      "village/enemies/WitchMagic1",
+      "village/enemies/WitchMagic2",
+      "village/enemies/WitchMagic3",
+      "village/enemies/WitchMagic4"
+    ],
+    "fps": 10
+  },
+  "heaven/windmasterv2glow": {
+    "frames": [
+      "heaven/WindMasterV2Glow1",
+      "heaven/WindMasterV2Glow2"
+    ],
+    "fps": 10
+  }
+}

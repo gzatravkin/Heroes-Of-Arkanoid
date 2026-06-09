@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-15.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2189,
+      "h": 235
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "village/enemies/VillageDeathDeathAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 2189,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 2189,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 2189,
+        "h": 235
+      }
+    }
+  },
+  "animations": {}
+}

@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-3.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 7215,
+      "h": 555
+    },
+    "scale": "1"
+  },
+  "frames": {
+    "effects/Explosion": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 7215,
+        "h": 555
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 7215,
+        "h": 555
+      },
+      "sourceSize": {
+        "w": 7215,
+        "h": 555
+      }
+    }
+  },
+  "animations": {}
+}

@@ -1,0 +1,1429 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-29.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "engineer/bars/technohero": 10,
+      "necromancer/bars/necr": 10,
+      "ui/unclassified/lvlupanim": 10,
+      "items/itembalance": 10,
+      "items/itemdrill": 10,
+      "items/itemflask": 10,
+      "items/itemforcering": 10,
+      "items/itemgem": 10,
+      "village/blocks/kotelok": 10
+    }
+  },
+  "frames": {
+    "heaven/WindMasterV2CircleDestroyed": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 707,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 707,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 707,
+        "h": 118
+      }
+    },
+    "ui/bonus/BonusLighting": {
+      "frame": {
+        "x": 0,
+        "y": 120,
+        "w": 640,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 640,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 640,
+        "h": 128
+      }
+    },
+    "ui/bonus/LightingEffect": {
+      "frame": {
+        "x": 0,
+        "y": 250,
+        "w": 640,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 640,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 640,
+        "h": 128
+      }
+    },
+    "ui/rewards/ExpBarFul3l": {
+      "frame": {
+        "x": 709,
+        "y": 0,
+        "w": 1057,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1057,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 1057,
+        "h": 75
+      }
+    },
+    "ui/rewards/ExpBarFull": {
+      "frame": {
+        "x": 709,
+        "y": 77,
+        "w": 1057,
+        "h": 75
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1057,
+        "h": 75
+      },
+      "sourceSize": {
+        "w": 1057,
+        "h": 75
+      }
+    },
+    "engineer/bars/TechnoHero4": {
+      "frame": {
+        "x": 0,
+        "y": 380,
+        "w": 369,
+        "h": 197
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 369,
+        "h": 197
+      },
+      "sourceSize": {
+        "w": 369,
+        "h": 197
+      }
+    },
+    "village/blocks/Kotelok1": {
+      "frame": {
+        "x": 0,
+        "y": 579,
+        "w": 714,
+        "h": 98
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 714,
+        "h": 98
+      },
+      "sourceSize": {
+        "w": 714,
+        "h": 98
+      }
+    },
+    "village/blocks/Kotelok2": {
+      "frame": {
+        "x": 371,
+        "y": 380,
+        "w": 714,
+        "h": 98
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 714,
+        "h": 98
+      },
+      "sourceSize": {
+        "w": 714,
+        "h": 98
+      }
+    },
+    "village/blocks/Kotelok3": {
+      "frame": {
+        "x": 642,
+        "y": 154,
+        "w": 714,
+        "h": 98
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 714,
+        "h": 98
+      },
+      "sourceSize": {
+        "w": 714,
+        "h": 98
+      }
+    },
+    "paladin/skill_size/ChoseKnightHeroSizeIco": {
+      "frame": {
+        "x": 1768,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "paladin/spell_passiveshield/ChoseSpellShieldIco": {
+      "frame": {
+        "x": 0,
+        "y": 679,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "paladin/spell_spear/ChoseSpearIco": {
+      "frame": {
+        "x": 258,
+        "y": 679,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "paladin/spell_duplication/ChoseSplitIco": {
+      "frame": {
+        "x": 516,
+        "y": 679,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "paladin/spell_penteration/ChoseMightyStrikeIco": {
+      "frame": {
+        "x": 1358,
+        "y": 154,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "paladin/spell_lastday/ChoseLustJudgmentIco": {
+      "frame": {
+        "x": 1087,
+        "y": 254,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/skill_size/ChoseTechnoHeroSizeIco": {
+      "frame": {
+        "x": 774,
+        "y": 480,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/spell_passiveshield/ChoseUtilityIco": {
+      "frame": {
+        "x": 774,
+        "y": 738,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/spell_lighting/ChoseLightingIco": {
+      "frame": {
+        "x": 1616,
+        "y": 258,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/spell_magnet/ChoseMagnetIco": {
+      "frame": {
+        "x": 1345,
+        "y": 412,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/spell_raditation/ChoseRadiationIco": {
+      "frame": {
+        "x": 1032,
+        "y": 512,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "engineer/spell_rocket/ChoseRocketIco": {
+      "frame": {
+        "x": 1290,
+        "y": 670,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/skill_size/ChoseNecrHeroSizeIco": {
+      "frame": {
+        "x": 1548,
+        "y": 670,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/spell_passiveshield/ChoseSpellShieldIco": {
+      "frame": {
+        "x": 1032,
+        "y": 770,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/spell_skeleton/SkeletonRise": {
+      "frame": {
+        "x": 1290,
+        "y": 928,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/spell_duplication/SkeletalMageRise": {
+      "frame": {
+        "x": 1548,
+        "y": 928,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/spell_penteration/LongerLife": {
+      "frame": {
+        "x": 0,
+        "y": 937,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "necromancer/spell_lastday/ChoseLustJudgmentIco": {
+      "frame": {
+        "x": 258,
+        "y": 937,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "comunskills/LifeBonusIco": {
+      "frame": {
+        "x": 516,
+        "y": 937,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "comunskills/LockedSpell": {
+      "frame": {
+        "x": 774,
+        "y": 996,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "comunskills/ShieldIco": {
+      "frame": {
+        "x": 1032,
+        "y": 1028,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/unclassified/Circle": {
+      "frame": {
+        "x": 1290,
+        "y": 1186,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/unclassified/CircleExperience": {
+      "frame": {
+        "x": 1548,
+        "y": 1186,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/unclassified/LvlUpAnim1": {
+      "frame": {
+        "x": 0,
+        "y": 1444,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/unclassified/LvlUpAnim2": {
+      "frame": {
+        "x": 0,
+        "y": 1702,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemBalance": {
+      "frame": {
+        "x": 258,
+        "y": 1195,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemBalance2": {
+      "frame": {
+        "x": 516,
+        "y": 1195,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemBalance3": {
+      "frame": {
+        "x": 774,
+        "y": 1254,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemDrill": {
+      "frame": {
+        "x": 1032,
+        "y": 1286,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemDrill2": {
+      "frame": {
+        "x": 258,
+        "y": 1544,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemDrill3": {
+      "frame": {
+        "x": 516,
+        "y": 1453,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemFlask": {
+      "frame": {
+        "x": 774,
+        "y": 1512,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemFlask2": {
+      "frame": {
+        "x": 516,
+        "y": 1711,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemFlask3": {
+      "frame": {
+        "x": 774,
+        "y": 1770,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemForceRing": {
+      "frame": {
+        "x": 1032,
+        "y": 1544,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemForceRing2": {
+      "frame": {
+        "x": 1290,
+        "y": 1444,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemForceRing3": {
+      "frame": {
+        "x": 1290,
+        "y": 1702,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemGem": {
+      "frame": {
+        "x": 1548,
+        "y": 1444,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "items/ItemGem2": {
+      "frame": {
+        "x": 1548,
+        "y": 1702,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/buttons/InterfaceNamePalet": {
+      "frame": {
+        "x": 1032,
+        "y": 1960,
+        "w": 679,
+        "h": 85
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 679,
+        "h": 85
+      },
+      "sourceSize": {
+        "w": 679,
+        "h": 85
+      }
+    },
+    "ui/rewards/Gem": {
+      "frame": {
+        "x": 0,
+        "y": 1195,
+        "w": 256,
+        "h": 221
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 221
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 221
+      }
+    },
+    "necromancer/bars/Necr4": {
+      "frame": {
+        "x": 1603,
+        "y": 516,
+        "w": 370,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 370,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 370,
+        "h": 141
+      }
+    },
+    "hints/EducationHeroIco (1)": {
+      "frame": {
+        "x": 1806,
+        "y": 659,
+        "w": 223,
+        "h": 223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 223,
+        "h": 223
+      },
+      "sourceSize": {
+        "w": 223,
+        "h": 223
+      }
+    },
+    "ui/buttons/Button1": {
+      "frame": {
+        "x": 642,
+        "y": 254,
+        "w": 438,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 438,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 438,
+        "h": 110
+      }
+    },
+    "ui/battle_ui/ClassICO": {
+      "frame": {
+        "x": 1806,
+        "y": 884,
+        "w": 218,
+        "h": 219
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 219
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 219
+      }
+    },
+    "ui/battle_ui/SpellBarEmpty": {
+      "frame": {
+        "x": 1806,
+        "y": 1105,
+        "w": 222,
+        "h": 207
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 222,
+        "h": 207
+      },
+      "sourceSize": {
+        "w": 222,
+        "h": 207
+      }
+    },
+    "ui/battle_ui/SpellBarFull": {
+      "frame": {
+        "x": 1806,
+        "y": 1314,
+        "w": 222,
+        "h": 207
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 222,
+        "h": 207
+      },
+      "sourceSize": {
+        "w": 222,
+        "h": 207
+      }
+    },
+    "hints/EducationSpellBunner": {
+      "frame": {
+        "x": 1806,
+        "y": 1523,
+        "w": 233,
+        "h": 193
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 233,
+        "h": 193
+      },
+      "sourceSize": {
+        "w": 233,
+        "h": 193
+      }
+    },
+    "engineer/bars/TechnoHero1": {
+      "frame": {
+        "x": 1806,
+        "y": 1718,
+        "w": 225,
+        "h": 197
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 225,
+        "h": 197
+      },
+      "sourceSize": {
+        "w": 225,
+        "h": 197
+      }
+    },
+    "village/enemies/VillageDeath": {
+      "frame": {
+        "x": 258,
+        "y": 1802,
+        "w": 204,
+        "h": 209
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 204,
+        "h": 209
+      },
+      "sourceSize": {
+        "w": 204,
+        "h": 209
+      }
+    },
+    "hell/ChaiMainHellDestroyed": {
+      "frame": {
+        "x": 371,
+        "y": 480,
+        "w": 376,
+        "h": 95
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 376,
+        "h": 95
+      },
+      "sourceSize": {
+        "w": 376,
+        "h": 95
+      }
+    },
+    "necromancer/bars/Necr1": {
+      "frame": {
+        "x": 1032,
+        "y": 1802,
+        "w": 240,
+        "h": 141
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 240,
+        "h": 141
+      },
+      "sourceSize": {
+        "w": 240,
+        "h": 141
+      }
+    },
+    "ui/unclassified/LvlUpIco2": {
+      "frame": {
+        "x": 1874,
+        "y": 258,
+        "w": 166,
+        "h": 166
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 166,
+        "h": 166
+      },
+      "sourceSize": {
+        "w": 166,
+        "h": 166
+      }
+    },
+    "firemage/spell_firewall/FireWallIco": {
+      "frame": {
+        "x": 1806,
+        "y": 1917,
+        "w": 207,
+        "h": 118
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 207,
+        "h": 118
+      },
+      "sourceSize": {
+        "w": 207,
+        "h": 118
+      }
+    },
+    "ui/rewards/TextAdvertisingEng": {
+      "frame": {
+        "x": 0,
+        "y": 1960,
+        "w": 234,
+        "h": 84
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 84
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 84
+      }
+    },
+    "ui/rewards/TextAdvertisingRus": {
+      "frame": {
+        "x": 258,
+        "y": 1453,
+        "w": 234,
+        "h": 84
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 84
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 84
+      }
+    },
+    "dungeon/DungeonCart": {
+      "frame": {
+        "x": 1874,
+        "y": 426,
+        "w": 174,
+        "h": 85
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 174,
+        "h": 85
+      },
+      "sourceSize": {
+        "w": 174,
+        "h": 85
+      }
+    },
+    "ui/battle_ui/FullHP": {
+      "frame": {
+        "x": 464,
+        "y": 1969,
+        "w": 167,
+        "h": 73
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 167,
+        "h": 73
+      },
+      "sourceSize": {
+        "w": 167,
+        "h": 73
+      }
+    },
+    "heaven/WindMaster2": {
+      "frame": {
+        "x": 1616,
+        "y": 154,
+        "w": 139,
+        "h": 84
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 139,
+        "h": 84
+      },
+      "sourceSize": {
+        "w": 139,
+        "h": 84
+      }
+    }
+  },
+  "animations": {
+    "engineer/bars/technohero": [
+      "engineer/bars/TechnoHero1",
+      "engineer/bars/TechnoHero2",
+      "engineer/bars/TechnoHero3",
+      "engineer/bars/TechnoHero4"
+    ],
+    "necromancer/bars/necr": [
+      "necromancer/bars/Necr1",
+      "necromancer/bars/Necr2",
+      "necromancer/bars/Necr3",
+      "necromancer/bars/Necr4"
+    ],
+    "ui/unclassified/lvlupanim": [
+      "ui/unclassified/LvlUpAnim1",
+      "ui/unclassified/LvlUpAnim2"
+    ],
+    "items/itembalance": [
+      "items/ItemBalance2",
+      "items/ItemBalance3"
+    ],
+    "items/itemdrill": [
+      "items/ItemDrill2",
+      "items/ItemDrill3"
+    ],
+    "items/itemflask": [
+      "items/ItemFlask2",
+      "items/ItemFlask3"
+    ],
+    "items/itemforcering": [
+      "items/ItemForceRing2",
+      "items/ItemForceRing3"
+    ],
+    "items/itemgem": [
+      "items/ItemGem2",
+      "items/ItemGem3"
+    ],
+    "village/blocks/kotelok": [
+      "village/blocks/Kotelok1",
+      "village/blocks/Kotelok2",
+      "village/blocks/Kotelok3"
+    ]
+  }
+}

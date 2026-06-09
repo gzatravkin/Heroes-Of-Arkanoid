@@ -1,0 +1,494 @@
+{
+  "meta": {
+    "app": "arkanoid-art-pipeline",
+    "version": "1.0",
+    "image": "atlas-22.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "fps": {
+      "firemage/spell_phonex/phoenixbirthanimpic": 12,
+      "fons/hellfon": 10,
+      "hell/hellfon": 10
+    }
+  },
+  "frames": {
+    "hell/DemonFace2": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 681,
+        "h": 396
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 681,
+        "h": 396
+      },
+      "sourceSize": {
+        "w": 681,
+        "h": 396
+      }
+    },
+    "fons/HellFon2": {
+      "frame": {
+        "x": 0,
+        "y": 398,
+        "w": 647,
+        "h": 410
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 647,
+        "h": 410
+      },
+      "sourceSize": {
+        "w": 647,
+        "h": 410
+      }
+    },
+    "hell/HellFon2": {
+      "frame": {
+        "x": 649,
+        "y": 398,
+        "w": 647,
+        "h": 410
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 647,
+        "h": 410
+      },
+      "sourceSize": {
+        "w": 647,
+        "h": 410
+      }
+    },
+    "village/enemies/BatFlyAnimation": {
+      "frame": {
+        "x": 683,
+        "y": 0,
+        "w": 1099,
+        "h": 228
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1099,
+        "h": 228
+      },
+      "sourceSize": {
+        "w": 1099,
+        "h": 228
+      }
+    },
+    "village/enemies/DeathGhostSphere": {
+      "frame": {
+        "x": 1298,
+        "y": 230,
+        "w": 496,
+        "h": 496
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 496,
+        "h": 496
+      },
+      "sourceSize": {
+        "w": 496,
+        "h": 496
+      }
+    },
+    "village/enemies/DeathSphere": {
+      "frame": {
+        "x": 1298,
+        "y": 728,
+        "w": 496,
+        "h": 496
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 496,
+        "h": 496
+      },
+      "sourceSize": {
+        "w": 496,
+        "h": 496
+      }
+    },
+    "fons/HellFon1": {
+      "frame": {
+        "x": 0,
+        "y": 810,
+        "w": 1181,
+        "h": 167
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1181,
+        "h": 167
+      },
+      "sourceSize": {
+        "w": 1181,
+        "h": 167
+      }
+    },
+    "hell/HellFon1": {
+      "frame": {
+        "x": 0,
+        "y": 979,
+        "w": 1181,
+        "h": 167
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1181,
+        "h": 167
+      },
+      "sourceSize": {
+        "w": 1181,
+        "h": 167
+      }
+    },
+    "necromancer/spell_lastday/BoneGolemDeathAnim": {
+      "frame": {
+        "x": 0,
+        "y": 1148,
+        "w": 1180,
+        "h": 166
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1180,
+        "h": 166
+      },
+      "sourceSize": {
+        "w": 1180,
+        "h": 166
+      }
+    },
+    "village/enemies/BeholderDeathAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 1316,
+        "w": 1408,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1408,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 1408,
+        "h": 128
+      }
+    },
+    "village/enemies/BeholderGhostDeathAnimation": {
+      "frame": {
+        "x": 0,
+        "y": 1446,
+        "w": 1408,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1408,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 1408,
+        "h": 128
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic1": {
+      "frame": {
+        "x": 1410,
+        "y": 1226,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic10": {
+      "frame": {
+        "x": 1410,
+        "y": 1556,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic11": {
+      "frame": {
+        "x": 0,
+        "y": 1576,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "firemage/spell_phonex/PhoenixBirthAnimPic12": {
+      "frame": {
+        "x": 551,
+        "y": 1576,
+        "w": 549,
+        "h": 328
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 549,
+        "h": 328
+      },
+      "sourceSize": {
+        "w": 549,
+        "h": 328
+      }
+    },
+    "village/enemies/BatFlyAnimation3": {
+      "frame": {
+        "x": 0,
+        "y": 1906,
+        "w": 1260,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1260,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 1260,
+        "h": 140
+      }
+    },
+    "necromancer/spell_lastday/KnightLightSpell": {
+      "frame": {
+        "x": 1796,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 1223
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 1223
+      }
+    },
+    "necromancer/spell_skeleton/SkeletalMageBirth": {
+      "frame": {
+        "x": 1262,
+        "y": 1886,
+        "w": 696,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 696,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 696,
+        "h": 153
+      }
+    },
+    "heaven/HeavenLvl": {
+      "frame": {
+        "x": 683,
+        "y": 230,
+        "w": 592,
+        "h": 146
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 592,
+        "h": 146
+      },
+      "sourceSize": {
+        "w": 592,
+        "h": 146
+      }
+    },
+    "firemage/skill_size/ChoseFireHeroSizeIco": {
+      "frame": {
+        "x": 1102,
+        "y": 1576,
+        "w": 256,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "firemage/spell_firewall/FireStandAnnimation2": {
+      "frame": {
+        "x": 1182,
+        "y": 1226,
+        "w": 224,
+        "h": 86
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 86
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 86
+      }
+    },
+    "heaven/StandartHaven2Destroyed": {
+      "frame": {
+        "x": 1102,
+        "y": 1834,
+        "w": 151,
+        "h": 69
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 151,
+        "h": 69
+      },
+      "sourceSize": {
+        "w": 151,
+        "h": 69
+      }
+    }
+  },
+  "animations": {
+    "firemage/spell_phonex/phoenixbirthanimpic": [
+      "firemage/spell_phonex/PhoenixBirthAnimPic1",
+      "firemage/spell_phonex/PhoenixBirthAnimPic2",
+      "firemage/spell_phonex/PhoenixBirthAnimPic3",
+      "firemage/spell_phonex/PhoenixBirthAnimPic4",
+      "firemage/spell_phonex/PhoenixBirthAnimPic5",
+      "firemage/spell_phonex/PhoenixBirthAnimPic6",
+      "firemage/spell_phonex/PhoenixBirthAnimPic7",
+      "firemage/spell_phonex/PhoenixBirthAnimPic8",
+      "firemage/spell_phonex/PhoenixBirthAnimPic9",
+      "firemage/spell_phonex/PhoenixBirthAnimPic10",
+      "firemage/spell_phonex/PhoenixBirthAnimPic11",
+      "firemage/spell_phonex/PhoenixBirthAnimPic12",
+      "firemage/spell_phonex/PhoenixBirthAnimPic13",
+      "firemage/spell_phonex/PhoenixBirthAnimPic14",
+      "firemage/spell_phonex/PhoenixBirthAnimPic15",
+      "firemage/spell_phonex/PhoenixBirthAnimPic16",
+      "firemage/spell_phonex/PhoenixBirthAnimPic17",
+      "firemage/spell_phonex/PhoenixBirthAnimPic18",
+      "firemage/spell_phonex/PhoenixBirthAnimPic19",
+      "firemage/spell_phonex/PhoenixBirthAnimPic20"
+    ],
+    "fons/hellfon": [
+      "fons/HellFon1",
+      "fons/HellFon2",
+      "fons/HellFon3"
+    ],
+    "hell/hellfon": [
+      "hell/HellFon1",
+      "hell/HellFon2",
+      "hell/HellFon3"
+    ]
+  }
+}
