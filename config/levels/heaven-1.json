@@ -1,12 +1,27 @@
-{ "id": "heaven-1", "biome": "heaven", "cols": 12, "rows": 8,
+{
+  "id": "heaven-1",
+  "biome": "heaven",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "SSSSSSSSSSSS",
-    ".SAAAAAAS...",
-    ".SATTTTAS...",
-    ".SAAAAAAS...",
-    "SSSSSSSSSSSS",
-    "............",
-    "............"
+    "SSSSSSSS",
+    "SAAAAAS.",
+    ".SATTAS.",
+    "SSSSSSSS",
+    "SAAAAAS.",
+    ".SATTAS.",
+    "SSSSSSSS",
+    "SAAAAAS.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "heaven_basic", "T": "heaven_tough", "S": "heaven_statue" } }
+  "legend": {
+    "A": "heaven_basic",
+    "T": "heaven_tough",
+    "S": "heaven_statue"
+  }
+}

@@ -97,12 +97,15 @@ export function anim(key: string): Texture[] {
 
 /**
  * Return the background Texture for a biome name.
- * Biome names: "hell" | "dungeon" | "village" | "heaven"
+ * Level biome strings: "hell" | "caverns" | "cavern" | "village" | "heaven"
+ * (caverns/cavern both map to the dungeon/2Dungeon background)
  */
-export function bg(biome: "hell" | "dungeon" | "village" | "heaven"): Texture {
+export function bg(biome: string): Texture {
   const bgMap: Record<string, string> = {
     hell:    "fons/1Hell",
     dungeon: "fons/2Dungeon",
+    caverns: "fons/2Dungeon",
+    cavern:  "fons/2Dungeon",
     village: "fons/3Village",
     heaven:  "fons/5Heaven",
   };
@@ -112,6 +115,15 @@ export function bg(biome: "hell" | "dungeon" | "village" | "heaven"): Texture {
     if (t) return t;
   }
   return Texture.WHITE;
+}
+
+/**
+ * Return the parallax hell background textures (HellFon1/2/3), sorted.
+ * Returns [] when not loaded (non-hell biomes or before loadAtlas).
+ */
+export function hellParallaxFrames(): Texture[] {
+  const keys = ["fons/HellFon1", "fons/HellFon2", "fons/HellFon3"];
+  return keys.map(k => frameMap.get(k)).filter((t): t is Texture => !!t);
 }
 
 /**

@@ -1,17 +1,27 @@
 {
   "id": "hell-2",
   "biome": "hell",
-  "cols": 12,
-  "rows": 8,
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "AAAAAAAAAAAA",
-    "ABBBBBBBBBBA",
-    "AB.OOOOOO.BA",
-    "ABBBBBBBBBBA",
-    "AAAAAAAAAAAA",
-    "............",
-    "............"
+    "AAAAAAAA",
+    "ABBBBBBA",
+    "AB.OO.BA",
+    "ABBBBBBA",
+    "AAAAAAAA",
+    "ABBBBBBA",
+    "AB.OO.BA",
+    "AAAAAAAA",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "hell_basic", "B": "hell_tough", "O": "hell_obsidian" }
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "O": "hell_obsidian"
+  }
 }

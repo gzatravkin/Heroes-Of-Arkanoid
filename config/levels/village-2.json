@@ -1,17 +1,27 @@
 {
   "id": "village-2",
   "biome": "village",
-  "cols": 12,
-  "rows": 8,
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "VVVVVVVVVVVV",
-    "VWWWWWWWWWWV",
-    "VWGGGGGGGGWV",
-    "VWGGGGGGGGWV",
-    "VWWWWWWWWWWV",
-    "VVVVVVVVVVVV",
-    "............"
+    "VVVVVVVV",
+    "VWWWWWWV",
+    "VW.GG.WV",
+    "VWWWWWWV",
+    "VVVVVVVV",
+    "VWWWWWWV",
+    "VW.GG.WV",
+    "VVVVVVVV",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "V": "village_basic", "W": "village_tough", "G": "village_ghost" }
+  "legend": {
+    "V": "village_basic",
+    "W": "village_tough",
+    "G": "village_ghost"
+  }
 }

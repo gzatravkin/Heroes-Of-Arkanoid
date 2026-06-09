@@ -3,8 +3,9 @@ import type { BlockTypeDef } from "../net/metaApi";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const ART_BASE = "/art/";
-const DEFAULT_COLS = 12;
-const DEFAULT_ROWS = 8;
+// Portrait-native dimensions matching the P2 board format (8 cols × 14 rows).
+const DEFAULT_COLS = 8;
+const DEFAULT_ROWS = 14;
 
 // Assign legend chars starting from 'A', avoiding '.'
 const LEGEND_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

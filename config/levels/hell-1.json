@@ -1,12 +1,25 @@
-{ "id": "hell-1", "biome": "hell", "cols": 12, "rows": 8,
+{
+  "id": "hell-1",
+  "biome": "hell",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "..AAAAAAAA..",
-    "..ABBBBBBA..",
-    "..ABBBBBBA..",
-    "..AAAAAAAA..",
-    "............",
-    "............",
-    "............"
+    "........",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "hell_basic", "B": "hell_tough" } }
+  "legend": {
+    "A": "hell_basic"
+  }
+}

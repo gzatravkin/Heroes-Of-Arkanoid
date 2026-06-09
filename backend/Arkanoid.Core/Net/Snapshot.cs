@@ -61,6 +61,7 @@ public sealed class Snapshot
     [JsonPropertyName("manaMax")] public double ManaMax { get; set; }
     [JsonPropertyName("boardW")] public double BoardW { get; set; }
     [JsonPropertyName("boardH")] public double BoardH { get; set; }
+    [JsonPropertyName("biome")] public string Biome { get; set; } = "";
     [JsonPropertyName("paddleX")] public double PaddleX { get; set; }
     [JsonPropertyName("paddleW")] public double PaddleW { get; set; }
     [JsonPropertyName("paddleH")] public double PaddleH { get; set; }
@@ -80,6 +81,7 @@ public sealed class Snapshot
             Lives = g.Lives, SpareBalls = g.SpareBalls,
             Mana = g.ManaValue, ManaMax = g.ManaMaxValue,
             BoardW = g.Level.Grid.Width, BoardH = g.Level.Grid.Height,
+            Biome = g.Level.Biome,
             PaddleX = g.Paddle.Center.X, PaddleW = g.Paddle.Width, PaddleH = g.Paddle.Height,
             CellSize = g.Config.CellSize
         };

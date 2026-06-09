@@ -1,12 +1,27 @@
-{ "id": "hell-boss", "biome": "hell", "cols": 12, "rows": 8,
+{
+  "id": "hell-boss",
+  "biome": "hell",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "....ABBA....",
-    "..AABBBBAA..",
-    "..AB.DD.BA..",
-    "..AABBBBAA..",
-    "....ABBA....",
-    "............",
-    "............"
+    "..ABBA..",
+    ".ABBBBA.",
+    ".AB.DBA.",
+    ".ABDDBA.",
+    ".ABBBBA.",
+    "..ABBA..",
+    ".ABBBBA.",
+    ".ABBBBA.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "hell_basic", "B": "hell_tough", "D": "hell_demon_boss" } }
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "D": "hell_demon_boss"
+  }
+}

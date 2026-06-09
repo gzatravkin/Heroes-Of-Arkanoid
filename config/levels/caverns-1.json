@@ -1,12 +1,27 @@
-{ "id": "caverns-1", "biome": "cavern", "cols": 12, "rows": 8,
+{
+  "id": "caverns-1",
+  "biome": "caverns",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "RRRRRRRRRRRR",
-    ".RABBBBBBR..",
-    ".RABBBBBBR..",
-    ".RABBBBBBR..",
-    "RRRRRRRRRRRR",
-    "............",
-    "............"
+    "RRRRRRRR",
+    "RACCCCAR",
+    "RACCCCAR",
+    "RACCCCAR",
+    "RACCCCAR",
+    "RRRRRRRR",
+    "RACCCCAR",
+    "RRRRRRRR",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "cavern_basic", "B": "cavern_tough", "R": "cavern_rock" } }
+  "legend": {
+    "A": "cavern_basic",
+    "C": "cavern_tough",
+    "R": "cavern_rock"
+  }
+}

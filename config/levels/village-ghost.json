@@ -1,12 +1,26 @@
-{ "id": "village-ghost", "biome": "village", "cols": 12, "rows": 8,
+{
+  "id": "village-ghost",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "..AAAAAAAA..",
-    "..AGGGGGGA..",
-    "..AGGGGGGA..",
-    "..AAAAAAAA..",
-    "............",
-    "............",
-    "............"
+    ".AAAAAA.",
+    ".AGGGGA.",
+    ".AGGGGA.",
+    ".AGGGGA.",
+    ".AGGGGA.",
+    ".AAAAAA.",
+    ".AGGGGA.",
+    ".AAAAAA.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "village_basic", "G": "village_ghost" } }
+  "legend": {
+    "A": "village_basic",
+    "G": "village_ghost"
+  }
+}

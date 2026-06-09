@@ -1,12 +1,27 @@
-{ "id": "hell-teleport", "biome": "hell", "cols": 12, "rows": 8,
+{
+  "id": "hell-teleport",
+  "biome": "hell",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "..P.........",
-    "..AAAAAAAA..",
-    "..ABBBBBBA..",
-    "..ABBBBBBA..",
-    "..AAAAAAAA..",
-    "...........P",
-    "............",
-    "............"
+    "P.......",
+    ".AAAAAA.",
+    ".ABBBBA.",
+    ".ABBBBA.",
+    ".ABBBBA.",
+    ".ABBBBA.",
+    ".AAAAAA.",
+    ".......P",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "hell_basic", "B": "hell_tough", "P": "hell_teleporter" } }
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "P": "hell_teleporter"
+  }
+}

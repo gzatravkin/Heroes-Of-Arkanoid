@@ -1,12 +1,25 @@
-{ "id": "village-1", "biome": "village", "cols": 12, "rows": 8,
+{
+  "id": "village-1",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
   "rows_data": [
-    "............",
-    "..AAAAAAAA..",
-    "..ATTTTTTA..",
-    "..ATTTTTTA..",
-    "..ATTTTTTA..",
-    "..AAAAAAAA..",
-    "............",
-    "............"
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    ".AAAAAA.",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "legend": { "A": "village_basic", "T": "village_tough" } }
+  "legend": {
+    "A": "village_basic"
+  }
+}

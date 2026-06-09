@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Sprite, BLEND_MODES, Texture } from "
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
+import { bg as biomedBg, hellParallaxFrames } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
@@ -12,6 +13,15 @@ import { Vignette } from "./Vignette";
 // navigator.webdriver is true in automation; false/undefined in real browsers.
 // NOTE: base rendering always runs — only the optional glow post-processing is gated.
 const HEAVY_FX = !(navigator as any).webdriver;
+
+// Biome background: slightly darkened so blocks read clearly over it.
+const BG_TINT = 0xaaaaaa; // ~67% brightness multiplier on the sprite
+// Paddle sprite: atlas key for the Fire Mage bar (first animation frame).
+const PADDLE_SPRITE_KEY = "firemage/bars/v2FireHero1";
+// Ball sprite: atlas key for the Fire Mage ball.
+const BALL_SPRITE_KEY = "firemage/ball/FireHeroBall";
+// Ball sprite size expressed as a multiplier of the sim ball radius.
+const BALL_SPRITE_SCALE = 2.2; // sprite is slightly larger than the physics circle
 
 // Visible gap between bricks so the wall doesn't merge into a solid sheet.
 // Expressed as a fraction of cellSize; enforces a 2 px minimum.
@@ -75,12 +85,18 @@ const GLOW_COLOR      = 0xff6a20; // warm orange — complements fire/explosion 
 
 export class Renderer {
   app: Application;
+  // Background layer (behind everything — biome background fills the stage).
+  private bgLayer = new Container();
+  private bgSprite = new Sprite();
+  private _hellParallaxSprites: Sprite[] = [];
+  private _lastBiome = "";
   private world = new Container();
   private blocks = new Container();
   private effectsLayer: Effects;
   private fireWalls = new Container();
   private hazardsLayer = new Container();
-  private paddle = new Graphics();
+  // Paddle rendered as a sprite; Graphics kept as invisible fallback.
+  private paddleSprite = new Sprite();
   private turretSprite = new Sprite();
   private balls = new Container();
   private ballTrail: BallTrail;
@@ -95,8 +111,8 @@ export class Renderer {
   // ---- Sprite pools: keyed by entity id to avoid per-frame alloc churn ----
   // Block pool: each entry is a { sprite, aura?, ring? } tuple.
   private _blockPool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics }>();
-  // Ball pool: each entry is { gfx (ball circle), haloGfx (ignite halo) }.
-  private _ballPool = new Map<number, { gfx: Graphics; haloGfx: Graphics }>();
+  // Ball pool: each entry is { sp (sprite), haloGfx (ignite halo) }.
+  private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics }>();
   // Hazard pool: each entry is { halo, core }.
   private _hazardPool: { halo: Graphics; core: Graphics }[] = [];
 
@@ -107,6 +123,15 @@ export class Renderer {
     this.effectsLayer = new Effects();
     this.ballTrail = new BallTrail();
     this.screenShake = new ScreenShake();
+
+    // Background: full-stage sprite (behind world container).
+    this.bgSprite.anchor.set(0);
+    this.bgSprite.tint = BG_TINT;
+    this.bgLayer.addChild(this.bgSprite);
+
+    // Paddle: sprite with anchor at center-left; fallback to Texture.WHITE until atlas loads.
+    this.paddleSprite.anchor.set(0.5);
+    this.paddleSprite.texture = Texture.WHITE;
 
     // Try to load the turret sprite; fall back to Graphics if it fails.
     this.turretSprite = Sprite.from("/art/FireHeroTurret.png");
@@ -143,19 +168,21 @@ export class Renderer {
       this.balls.filters = [ballGlow];
     }
 
-    // Layer order: ballTrail → blocks → fireWalls → effects → balls → paddle → turret → hazards
+    // Layer order: ballTrail → blocks → fireWalls → effects → balls → paddleSprite → turret → hazards
     this.world.addChild(
       this.ballTrail.container,
       this.blocks,
       this.fireWalls,
       this.effectsLayer.container,
       this.balls,
-      this.paddle,
+      this.paddleSprite,
       this.turretSprite,
       this.hazardsLayer,
     );
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
     this.damageFlash.alpha = 0;
+    // Layer order on stage: bg → world → damageFlash → vignette
+    this.app.stage.addChild(this.bgLayer);
     this.app.stage.addChild(this.world);
     this.app.stage.addChild(this.damageFlash);
 
@@ -190,18 +217,68 @@ export class Renderer {
   private fit(s: Snapshot) {
     // Include paddle zone below the block grid so the paddle is never clipped.
     const effectiveH = s.boardH + s.cellSize * PADDLE_ZONE_CELLS;
+    // Portrait-first: prefer filling the full height, then constrain by width.
+    // Use 0.97 instead of 0.95 to maximise use of vertical space on tall phones.
     const scale = Math.min(
       this.app.screen.width / s.boardW,
       this.app.screen.height / effectiveH,
-    ) * 0.95;
+    ) * 0.97;
     this.world.scale.set(scale);
-    // Store the base fit position — screen-shake will add its offset on top each tick.
+    // Centre horizontally; align to top with a small top margin so blocks are
+    // visible near the top of the screen (not centred vertically, which wastes space).
+    const topMargin = this.app.screen.height * 0.01;
     this._fitX = (this.app.screen.width - s.boardW * scale) / 2;
-    this._fitY = (this.app.screen.height - effectiveH * scale) / 2;
+    this._fitY = Math.max(topMargin, (this.app.screen.height - effectiveH * scale) / 2);
     this.world.position.set(this._fitX, this._fitY);
+
+    // Resize background to cover the full stage.
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const bw = this.bgSprite.texture.width;
+    const bh = this.bgSprite.texture.height;
+    if (bw > 0 && bh > 0) {
+      // COVER: scale to fill, no letter-boxing.
+      const coverScale = Math.max(sw / bw, sh / bh);
+      this.bgSprite.scale.set(coverScale);
+      this.bgSprite.x = (sw - bw * coverScale) / 2;
+      this.bgSprite.y = (sh - bh * coverScale) / 2;
+    }
+    // Resize hell parallax layers similarly (same cover approach).
+    for (const psp of this._hellParallaxSprites) {
+      if (psp.texture.width > 0 && psp.texture.height > 0) {
+        const pw = psp.texture.width;
+        const ph = psp.texture.height;
+        const ps = Math.max(sw / pw, sh / ph);
+        psp.scale.set(ps);
+        psp.y = (sh - ph * ps) / 2;
+      }
+    }
   }
 
   draw(s: Snapshot) {
+    // --- biome background (update only on biome change) ---
+    if (s.biome && s.biome !== this._lastBiome) {
+      this._lastBiome = s.biome;
+      const bgTex = biomedBg(s.biome);
+      this.bgSprite.texture = bgTex;
+      this.bgSprite.visible = bgTex !== Texture.WHITE;
+
+      // Hell parallax layers: add/rebuild when entering hell biome.
+      for (const psp of this._hellParallaxSprites) this.bgLayer.removeChild(psp);
+      this._hellParallaxSprites = [];
+      if (s.biome === "hell") {
+        const frames = hellParallaxFrames();
+        for (let i = 0; i < frames.length; i++) {
+          const psp = new Sprite(frames[i]);
+          psp.anchor.set(0);
+          psp.tint = 0x888888; // darker than main bg for depth
+          psp.alpha = 0.35;    // subtle layering
+          this.bgLayer.addChild(psp);
+          this._hellParallaxSprites.push(psp);
+        }
+      }
+    }
+
     this.fit(s);
 
     // --- screen shake: fire on relevant events ---
@@ -346,14 +423,22 @@ export class Renderer {
       }
     }
 
-    // --- paddle ---
-    this.paddle.clear();
-    this.paddle.beginFill(0x7fd1ff).drawRect(
-      s.paddleX - s.paddleW / 2,
-      (s.boardH + s.cellSize) - s.paddleH / 2,
-      s.paddleW,
-      s.paddleH,
-    ).endFill();
+    // --- paddle (sprite) ---
+    // Swap to atlas paddle texture on first draw (atlas may not be loaded at construction time).
+    const paddleTex = tex(PADDLE_SPRITE_KEY);
+    if (paddleTex !== Texture.WHITE) this.paddleSprite.texture = paddleTex;
+    const paddleY = (s.boardH + s.cellSize) - s.paddleH / 2;
+    this.paddleSprite.x = s.paddleX;
+    this.paddleSprite.y = paddleY;
+    // Scale the sprite so its width matches the sim paddle width; keep natural aspect ratio for height.
+    const paddleNaturalW = this.paddleSprite.texture.width;
+    const paddleNaturalH = this.paddleSprite.texture.height;
+    if (paddleNaturalW > 0) {
+      const wScale = s.paddleW / paddleNaturalW;
+      // Min height: at least sim paddleH; use natural aspect ratio above that.
+      const spriteH = Math.max(s.paddleH, paddleNaturalH * wScale);
+      this.paddleSprite.scale.set(wScale, spriteH / paddleNaturalH);
+    }
 
     // --- turret indicator ---
     const paddleTopY = (s.boardH + s.cellSize) - s.paddleH / 2;
@@ -372,7 +457,10 @@ export class Renderer {
     const ballRadius = s.cellSize * 0.25;
     this.ballTrail.update(s.balls, ballRadius);
 
-    // --- balls (pooled by id) ---
+    // --- balls (pooled by id, sprite-based) ---
+    const ballTex = tex(BALL_SPRITE_KEY);
+    const spriteRadius = ballRadius * BALL_SPRITE_SCALE;
+
     const liveBallIds = new Set<number>();
     for (const ball of s.balls) liveBallIds.add(ball.id);
 
@@ -380,15 +468,15 @@ export class Renderer {
     for (const [id, entry] of this._ballPool) {
       if (!liveBallIds.has(id)) {
         this.balls.removeChild(entry.haloGfx);
-        this.balls.removeChild(entry.gfx);
+        this.balls.removeChild(entry.sp);
         this._ballPool.delete(id);
       }
     }
 
     for (const ball of s.balls) {
       if (this._ballPool.has(ball.id)) {
-        // Update existing pooled Graphics objects (redraw is cheap — no alloc).
-        const { gfx, haloGfx } = this._ballPool.get(ball.id)!;
+        // Update existing pooled entry.
+        const { sp, haloGfx } = this._ballPool.get(ball.id)!;
 
         haloGfx.clear();
         if (ball.ignited) {
@@ -398,15 +486,15 @@ export class Renderer {
             .endFill();
         }
 
-        gfx.clear();
-        if (ball.ignited) {
-          gfx.beginFill(0xff7a2a, IGNITE_HALO_ALPHA)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-        gfx.beginFill(ball.ignited ? 0xff7a2a : 0xffffff)
-          .drawCircle(ball.x, ball.y, ballRadius)
-          .endFill();
+        sp.x = ball.x;
+        sp.y = ball.y;
+        sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+        // Pulse ignited balls slightly for visual feedback.
+        const igScale = ball.ignited
+          ? spriteRadius * (1.0 + 0.15 * Math.sin(this._tick * 0.2))
+          : spriteRadius;
+        sp.width  = igScale * 2;
+        sp.height = igScale * 2;
       } else {
         // Create new pooled entry.
         const haloGfx = new Graphics();
@@ -417,19 +505,17 @@ export class Renderer {
             .endFill();
         }
 
-        const gfx = new Graphics();
-        if (ball.ignited) {
-          gfx.beginFill(0xff7a2a, IGNITE_HALO_ALPHA)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-        gfx.beginFill(ball.ignited ? 0xff7a2a : 0xffffff)
-          .drawCircle(ball.x, ball.y, ballRadius)
-          .endFill();
+        const sp = new Sprite(ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
+        sp.anchor.set(0.5);
+        sp.x = ball.x;
+        sp.y = ball.y;
+        sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+        sp.width  = spriteRadius * 2;
+        sp.height = spriteRadius * 2;
 
         this.balls.addChild(haloGfx);
-        this.balls.addChild(gfx);
-        this._ballPool.set(ball.id, { gfx, haloGfx });
+        this.balls.addChild(sp);
+        this._ballPool.set(ball.id, { sp, haloGfx });
       }
     }
 
