@@ -1,12 +1,13 @@
-import { Application, Container, Graphics, Sprite, BLEND_MODES, Texture } from "pixi.js";
+import { Application, Container, Graphics, Sprite, AnimatedSprite, BLEND_MODES, Texture } from "pixi.js";
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
-import { bg as biomedBg, hellParallaxFrames } from "./assets";
+import { bg as biomedBg, hellParallaxFrames, anim as animFrames } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
 import { Vignette } from "./Vignette";
+import { AnimSystem } from "./AnimSystem";
 
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
 // this flag so that Playwright's headless software-WebGL never pays the cost.
@@ -55,7 +56,39 @@ const TELEPORTER_RING_RADIUS_MULT = 0.72; // fraction of brickSize/2
 const TURRET_BARREL_LENGTH_MULT = 1.8;
 const TURRET_BARREL_WIDTH_MULT  = 0.45;
 
-// Note: turret bullets (id >= 10000) render via the normal ball path — no special branch needed.
+// Projectile id threshold: turret bullets + fireballs use id >= this value.
+const PROJECTILE_ID_THRESHOLD = 10000;
+
+// Turret: atlas art keys for the barrel sprite and missile bullets.
+const TURRET_SPRITE_KEY   = "firemage/spell_fireturret/FireHeroTurret";
+const TURRET_MISSILE_KEY  = "firemage/spell_fireturret/FireHeroTurretMissile";
+
+// Fireball / firering: art for the active fireball projectile.
+const FIRE_RING_KEY = "firemage/spell_firering/FireRing";
+
+// FireWall animation key in the manifest.
+const FIRE_WALL_ANIM_KEY = "firemage/spell_firewall/firestandannimation";
+// How many tiles to use per fire-wall band (we switch from many thin sprites to
+// fewer wide AnimatedSprites at the wall height, one per "segment").
+// Each segment is about 1 × cellSize wide so they tile naturally.
+
+// Ignite fire aura: atlas anim key (FireBirth frames) played as a looping aura.
+const IGNITE_AURA_KEY = "firemage/spell_phonex/phoenixbirthanimpic";
+const IGNITE_AURA_FPS = 10; // slow loop looks like a gentle fire aura
+// Size of the fire aura as a multiplier of the ball sprite size.
+const IGNITE_AURA_SIZE_MULT = 2.8;
+
+// Paddle squash/stretch constants.
+// On ball bounce (ball y crosses paddleY within a threshold), the paddle stretches briefly.
+const PADDLE_SQUASH_DURATION_MS = 180; // total duration of the squash → stretch anim
+const PADDLE_SQUASH_Y_SCALE     = 0.65; // minimum Y scale during squash peak
+const PADDLE_STRETCH_X_SCALE    = 1.18; // maximum X scale at stretch peak
+
+// Hit-stop: brief freeze of the world container (enemies / big bosses / ignited kills).
+// Implemented as a duration counter; when active, we skip updating the game world
+// visually by skipping draw() calls' update of animations for that many ms.
+const HIT_STOP_DURATION_BOSS_MS = 80;   // short camera stutter for boss hits
+const HIT_STOP_DURATION_IGNITE_MS = 55; // ignited kill
 
 // Boss block rendering constants.
 const BOSS_SCALE_MULT  = 1.15;   // slightly enlarged vs normal brickSize
@@ -108,13 +141,32 @@ export class Renderer {
   private _tick = 0; // used to drive wall flicker animation
   private _lastLives = -1; // track lives decreases for damage flash
 
+  // AnimSystem for fire-wall animated tiles.
+  private _wallAnimSys: AnimSystem;
+  // Track previous fire-wall count to avoid unnecessary rebuild.
+  private _lastWallCount = -1;
+  // Fire-wall AnimatedSprites (rebuilt only when wall count changes).
+  private _wallAnims: AnimatedSprite[] = [];
+
   // ---- Sprite pools: keyed by entity id to avoid per-frame alloc churn ----
   // Block pool: each entry is a { sprite, aura?, ring? } tuple.
   private _blockPool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics }>();
-  // Ball pool: each entry is { sp (sprite), haloGfx (ignite halo) }.
-  private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics }>();
+  // Ball pool: each entry is { sp (sprite), haloGfx (ignite halo), auraHandle? }
+  // auraHandle tracks the looping ignite aura AnimatedSprite in _ballAnimSys.
+  private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics; auraId?: number }>();
+  // Separate AnimSystem for ball aura effects (looping per-ball fire aura).
+  private _ballAnimSys: AnimSystem;
   // Hazard pool: each entry is { halo, core }.
   private _hazardPool: { halo: Graphics; core: Graphics }[] = [];
+
+  // Paddle squash/stretch state.
+  private _paddleSquashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
+  // Base paddle scale (set by draw(); squash multiplies on top).
+  private _paddleBaseScaleX = 1;
+  private _paddleBaseScaleY = 1;
+
+  // Hit-stop state: remaining ms of visual freeze.
+  private _hitStopRemaining = 0;
 
   constructor(host: HTMLElement) {
     this.app = new Application({ resizeTo: host, background: "#0b0b12", antialias: true });
@@ -123,6 +175,8 @@ export class Renderer {
     this.effectsLayer = new Effects();
     this.ballTrail = new BallTrail();
     this.screenShake = new ScreenShake();
+    this._wallAnimSys = new AnimSystem();
+    this._ballAnimSys = new AnimSystem();
 
     // Background: full-stage sprite (behind world container).
     this.bgSprite.anchor.set(0);
@@ -133,8 +187,10 @@ export class Renderer {
     this.paddleSprite.anchor.set(0.5);
     this.paddleSprite.texture = Texture.WHITE;
 
-    // Try to load the turret sprite; fall back to Graphics if it fails.
-    this.turretSprite = Sprite.from("/art/FireHeroTurret.png");
+    // Turret: use atlas art (FireHeroTurret strip is a horizontal sprite strip;
+    // we use the first frame from the strip key, which is the full texture).
+    // The turret glow is layered on top as a second sprite.
+    this.turretSprite = new Sprite(Texture.WHITE); // will be updated to atlas on first draw
     this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
     this.turretSprite.visible = false;
 
@@ -168,12 +224,14 @@ export class Renderer {
       this.balls.filters = [ballGlow];
     }
 
-    // Layer order: ballTrail → blocks → fireWalls → effects → balls → paddleSprite → turret → hazards
+    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → effects → ballAuras → balls → paddleSprite → turret → hazards
     this.world.addChild(
       this.ballTrail.container,
       this.blocks,
       this.fireWalls,
+      this._wallAnimSys.container,
       this.effectsLayer.container,
+      this._ballAnimSys.container,
       this.balls,
       this.paddleSprite,
       this.turretSprite,
@@ -193,7 +251,17 @@ export class Renderer {
     this.app.ticker.add((delta) => {
       // delta is in Pixi ticker units (frames at 60 fps → multiply by 1000/60 for ms)
       const dtMs = (delta / 60) * 1000;
-      this.effectsLayer.update(dtMs);
+
+      // Hit-stop: while active, freeze AnimatedSprites (don't update) and damp animations.
+      if (this._hitStopRemaining > 0) {
+        this._hitStopRemaining -= dtMs;
+        // Skip effects + ball aura updates during hit-stop so the world freezes visually.
+      } else {
+        this.effectsLayer.update(dtMs);
+        this._ballAnimSys.update(dtMs);
+        this._wallAnimSys.update(dtMs);
+      }
+
       this.screenShake.update(dtMs);
       // Apply screen-shake offset on top of the fit position calculated last draw().
       this.world.position.set(
@@ -201,12 +269,37 @@ export class Renderer {
         this._fitY + this.screenShake.offsetY,
       );
       this._tick += delta;
-      // Animate the alpha flicker on each fire-wall tile every frame.
-      for (let i = 0; i < this.fireWalls.children.length; i++) {
-        const child = this.fireWalls.children[i];
-        const flicker = 0.72 + 0.28 * Math.sin(this._tick * 0.18 + i * 1.3);
-        child.alpha = flicker;
+
+      // Paddle squash/stretch animation.
+      if (this._paddleSquashElapsed >= 0) {
+        this._paddleSquashElapsed += dtMs;
+        const t = Math.min(this._paddleSquashElapsed / PADDLE_SQUASH_DURATION_MS, 1);
+        // Phase 1 (0→0.4): squash — compress Y, expand X
+        // Phase 2 (0.4→1.0): spring back to 1.0 with slight overshoot
+        let xScale = 1.0;
+        let yScale = 1.0;
+        if (t < 0.4) {
+          const p = t / 0.4;
+          // squash: X expands to STRETCH, Y squashes to SQUASH
+          xScale = 1.0 + (PADDLE_STRETCH_X_SCALE - 1.0) * p;
+          yScale = 1.0 - (1.0 - PADDLE_SQUASH_Y_SCALE) * p;
+        } else {
+          const p = (t - 0.4) / 0.6;
+          // spring back with slight overshoot at p≈0.5
+          const overshoot = Math.sin(p * Math.PI) * 0.06;
+          xScale = PADDLE_STRETCH_X_SCALE - (PADDLE_STRETCH_X_SCALE - 1.0) * p + overshoot;
+          yScale = PADDLE_SQUASH_Y_SCALE + (1.0 - PADDLE_SQUASH_Y_SCALE) * p - overshoot;
+        }
+        // Apply squash/stretch to paddle sprite on top of the base scale.
+        this.paddleSprite.scale.x = this._paddleBaseScaleX * xScale;
+        this.paddleSprite.scale.y = this._paddleBaseScaleY * yScale;
+        if (t >= 1) {
+          this._paddleSquashElapsed = -1;
+          // Snap back to clean base scale.
+          this.paddleSprite.scale.set(this._paddleBaseScaleX, this._paddleBaseScaleY);
+        }
       }
+
       // Fade the damage flash overlay.
       if (this.damageFlash.alpha > 0) {
         this.damageFlash.alpha = Math.max(0, this.damageFlash.alpha - DAMAGE_FLASH_FADE_SPEED * delta);
@@ -281,10 +374,17 @@ export class Renderer {
 
     this.fit(s);
 
-    // --- screen shake: fire on relevant events ---
+    // --- screen shake + hit-stop: fire on relevant events ---
     for (const ev of s.events) {
       if (ev.type === "playerHit") this.screenShake.trigger("playerHit");
-      else if (ev.type === "bossAttack") this.screenShake.trigger("bossAttack");
+      else if (ev.type === "bossAttack") {
+        this.screenShake.trigger("bossAttack");
+        // Short hit-stop on boss attacks.
+        this._hitStopRemaining = Math.max(this._hitStopRemaining, HIT_STOP_DURATION_BOSS_MS);
+      } else if (ev.type === "ignite") {
+        // Brief hit-stop when ignite lands.
+        this._hitStopRemaining = Math.max(this._hitStopRemaining, HIT_STOP_DURATION_IGNITE_MS);
+      }
     }
 
     // --- damage flash: trigger on lives decrease ---
@@ -400,26 +500,75 @@ export class Renderer {
       }
     }
 
-    // --- fire walls ---
-    this.fireWalls.removeChildren();
+    // --- fire walls (animated art: FireStandAnnimation frames) ---
+    // Rebuild only when the wall count changes to avoid per-frame alloc.
+    const walls = s.walls ?? [];
     const wallH = s.cellSize * FIRE_WALL_HEIGHT_MULT;
-    for (const wall of (s.walls ?? [])) {
-      // Tile Explosion.png across the board width to form the flame band.
-      const explosionTex: Texture = tex("Explosion");
-      const tileW = wallH; // square tiles looks good
-      const count  = Math.ceil(s.boardW / tileW);
-      for (let i = 0; i < count; i++) {
-        const sp = new Sprite(explosionTex);
-        sp.blendMode = BLEND_MODES.ADD;
-        sp.tint    = 0xff6620; // orange-red tint
-        sp.anchor.set(0, 0.5);
-        sp.width   = tileW + 1;  // +1 to avoid hairline gaps
-        sp.height  = wallH;
-        sp.x       = i * tileW;
-        sp.y       = wall.y;
-        // Initial alpha; the ticker loop will flicker it each frame.
-        sp.alpha   = 0.85;
-        this.fireWalls.addChild(sp);
+    const fireWallFrames = animFrames(FIRE_WALL_ANIM_KEY);
+
+    if (walls.length !== this._lastWallCount) {
+      // Destroy old wall anim sprites.
+      this.fireWalls.removeChildren();
+      for (const a of this._wallAnims) { a.stop(); a.destroy(); }
+      this._wallAnims = [];
+
+      for (const wall of walls) {
+        const tileW = wallH; // square tiles
+        const count = Math.ceil(s.boardW / tileW);
+        for (let i = 0; i < count; i++) {
+          if (fireWallFrames.length >= 2) {
+            // Use real animated FireStandAnnimation art.
+            const anim = new AnimatedSprite(fireWallFrames);
+            anim.blendMode = BLEND_MODES.ADD;
+            anim.tint = 0xff8833;
+            anim.anchor.set(0, 0.5);
+            anim.width  = tileW + 1;
+            anim.height = wallH;
+            anim.x = i * tileW;
+            anim.y = wall.y;
+            anim.loop = true;
+            anim.animationSpeed = 8 / 60; // ~8 fps
+            // Stagger offset per tile for organic flicker.
+            anim.currentFrame = (i * 3) % fireWallFrames.length;
+            anim.alpha = 0.9;
+            anim.play();
+            this.fireWalls.addChild(anim);
+            this._wallAnims.push(anim);
+          } else {
+            // Fallback: static Explosion sprite.
+            const sp = new Sprite(tex("Explosion"));
+            sp.blendMode = BLEND_MODES.ADD;
+            sp.tint = 0xff6620;
+            sp.anchor.set(0, 0.5);
+            sp.width  = tileW + 1;
+            sp.height = wallH;
+            sp.x = i * tileW;
+            sp.y = wall.y;
+            sp.alpha = 0.85;
+            this.fireWalls.addChild(sp);
+          }
+        }
+      }
+      this._lastWallCount = walls.length;
+    } else {
+      // Walls unchanged — just flicker alpha for the static-sprite fallback path.
+      for (let i = 0; i < this.fireWalls.children.length; i++) {
+        const child = this.fireWalls.children[i];
+        if (!(child instanceof AnimatedSprite)) {
+          const flicker = 0.72 + 0.28 * Math.sin(this._tick * 0.18 + i * 1.3);
+          child.alpha = flicker;
+        }
+      }
+    }
+
+    // --- paddle squash trigger: detect ball near paddle ---
+    // Trigger squash when any non-projectile ball passes the paddle's y-band.
+    const paddleYCenter = (s.boardH + s.cellSize) - s.paddleH / 2;
+    const paddleBounceZone = s.paddleH * 2.5;
+    for (const ball of s.balls) {
+      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue; // skip turret bullets
+      if (Math.abs(ball.y - paddleYCenter) < paddleBounceZone && this._paddleSquashElapsed < 0) {
+        this._paddleSquashElapsed = 0; // start squash animation
       }
     }
 
@@ -427,22 +576,31 @@ export class Renderer {
     // Swap to atlas paddle texture on first draw (atlas may not be loaded at construction time).
     const paddleTex = tex(PADDLE_SPRITE_KEY);
     if (paddleTex !== Texture.WHITE) this.paddleSprite.texture = paddleTex;
-    const paddleY = (s.boardH + s.cellSize) - s.paddleH / 2;
+    const paddleY = paddleYCenter;
     this.paddleSprite.x = s.paddleX;
     this.paddleSprite.y = paddleY;
     // Scale the sprite so its width matches the sim paddle width; keep natural aspect ratio for height.
+    // Store base scale; the ticker's squash/stretch animation applies on top.
     const paddleNaturalW = this.paddleSprite.texture.width;
     const paddleNaturalH = this.paddleSprite.texture.height;
     if (paddleNaturalW > 0) {
       const wScale = s.paddleW / paddleNaturalW;
       // Min height: at least sim paddleH; use natural aspect ratio above that.
       const spriteH = Math.max(s.paddleH, paddleNaturalH * wScale);
-      this.paddleSprite.scale.set(wScale, spriteH / paddleNaturalH);
+      this._paddleBaseScaleX = wScale;
+      this._paddleBaseScaleY = spriteH / paddleNaturalH;
+      // Only reset to base scale if no squash animation is running.
+      if (this._paddleSquashElapsed < 0) {
+        this.paddleSprite.scale.set(this._paddleBaseScaleX, this._paddleBaseScaleY);
+      }
     }
 
-    // --- turret indicator ---
-    const paddleTopY = (s.boardH + s.cellSize) - s.paddleH / 2;
+    // --- turret indicator (atlas art: FireHeroTurret) ---
+    const paddleTopY = paddleYCenter;
     if (s.turretActive) {
+      // Load atlas turret texture on first use.
+      const turretAtlasTex = tex(TURRET_SPRITE_KEY);
+      if (turretAtlasTex !== Texture.WHITE) this.turretSprite.texture = turretAtlasTex;
       const turretSize = s.paddleH * TURRET_BARREL_LENGTH_MULT;
       this.turretSprite.visible = true;
       this.turretSprite.width   = s.paddleH * TURRET_BARREL_WIDTH_MULT * 2;
@@ -459,7 +617,17 @@ export class Renderer {
 
     // --- balls (pooled by id, sprite-based) ---
     const ballTex = tex(BALL_SPRITE_KEY);
+    // FireRing texture for fireballs — a fiery orb glyph, great for projectile art.
+    // Turret missiles use the dedicated missile art.
+    const fireRingTex = tex(FIRE_RING_KEY);
+    // Missile texture for turret bullets (id >= PROJECTILE_ID_THRESHOLD).
+    const missileTex = tex(TURRET_MISSILE_KEY);
+    // Projectile art: prefer FireRing for fireball look; fall back to missile art.
+    const projectileTex = fireRingTex !== Texture.WHITE ? fireRingTex
+      : (missileTex !== Texture.WHITE ? missileTex : ballTex);
     const spriteRadius = ballRadius * BALL_SPRITE_SCALE;
+    // Ignite aura frames (phoenix birth sequence used as looping fire halo).
+    const igniteAuraFrames = animFrames(IGNITE_AURA_KEY);
 
     const liveBallIds = new Set<number>();
     for (const ball of s.balls) liveBallIds.add(ball.id);
@@ -469,17 +637,24 @@ export class Renderer {
       if (!liveBallIds.has(id)) {
         this.balls.removeChild(entry.haloGfx);
         this.balls.removeChild(entry.sp);
+        // Clean up looping ignite aura.
+        if (entry.auraId !== undefined) {
+          this._ballAnimSys.remove({ id: entry.auraId });
+        }
         this._ballPool.delete(id);
       }
     }
 
     for (const ball of s.balls) {
+      const isProjectile = ball.id >= PROJECTILE_ID_THRESHOLD;
+
       if (this._ballPool.has(ball.id)) {
         // Update existing pooled entry.
-        const { sp, haloGfx } = this._ballPool.get(ball.id)!;
+        const entry = this._ballPool.get(ball.id)!;
+        const { sp, haloGfx } = entry;
 
         haloGfx.clear();
-        if (ball.ignited) {
+        if (ball.ignited && !isProjectile) {
           haloGfx.blendMode = BLEND_MODES.ADD;
           haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
             .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
@@ -488,34 +663,93 @@ export class Renderer {
 
         sp.x = ball.x;
         sp.y = ball.y;
-        sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
-        // Pulse ignited balls slightly for visual feedback.
-        const igScale = ball.ignited
-          ? spriteRadius * (1.0 + 0.15 * Math.sin(this._tick * 0.2))
-          : spriteRadius;
-        sp.width  = igScale * 2;
-        sp.height = igScale * 2;
+
+        if (isProjectile) {
+          // Turret missile: rotate in direction of travel; pulsate slightly.
+          sp.tint = 0xffcc44;
+          const missileSize = ballRadius * 1.4;
+          sp.width  = missileSize * 2;
+          sp.height = missileSize * 2;
+          sp.rotation = (this._tick * 0.12); // slow spin
+        } else {
+          sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+          // Pulse ignited balls slightly for visual feedback.
+          const igScale = ball.ignited
+            ? spriteRadius * (1.0 + 0.15 * Math.sin(this._tick * 0.2))
+            : spriteRadius;
+          sp.width  = igScale * 2;
+          sp.height = igScale * 2;
+        }
+
+        // Update ignite aura position if active.
+        if (entry.auraId !== undefined) {
+          this._ballAnimSys.moveTo({ id: entry.auraId }, ball.x, ball.y);
+          // Resize aura to match current ball size.
+          this._ballAnimSys.resize({ id: entry.auraId }, spriteRadius * IGNITE_AURA_SIZE_MULT * 2);
+        }
+
+        // Spawn/remove ignite aura as ignite state changes (non-projectile balls only).
+        if (!isProjectile && ball.ignited && entry.auraId === undefined && igniteAuraFrames.length) {
+          const h = this._ballAnimSys.looping(
+            igniteAuraFrames, IGNITE_AURA_FPS,
+            ball.x, ball.y,
+            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
+            true, 0xff8822,
+          );
+          entry.auraId = h.id;
+        } else if (!ball.ignited && entry.auraId !== undefined) {
+          this._ballAnimSys.remove({ id: entry.auraId });
+          entry.auraId = undefined;
+        }
       } else {
         // Create new pooled entry.
         const haloGfx = new Graphics();
-        if (ball.ignited) {
+        if (ball.ignited && !isProjectile) {
           haloGfx.blendMode = BLEND_MODES.ADD;
           haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
             .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
             .endFill();
         }
 
-        const sp = new Sprite(ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
+        // Choose texture based on ball type:
+        // - Projectile (turret bullet/fireball): use FireRing/missile art
+        // - Normal ball: use FireHeroBall
+        const chosenTex: Texture = isProjectile
+          ? projectileTex
+          : (ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
+
+        const sp = new Sprite(chosenTex);
         sp.anchor.set(0.5);
         sp.x = ball.x;
         sp.y = ball.y;
-        sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
-        sp.width  = spriteRadius * 2;
-        sp.height = spriteRadius * 2;
+
+        if (isProjectile) {
+          sp.tint = 0xffcc44;
+          const missileSize = ballRadius * 1.4;
+          sp.width  = missileSize * 2;
+          sp.height = missileSize * 2;
+        } else {
+          sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+          sp.width  = spriteRadius * 2;
+          sp.height = spriteRadius * 2;
+        }
 
         this.balls.addChild(haloGfx);
         this.balls.addChild(sp);
-        this._ballPool.set(ball.id, { sp, haloGfx });
+
+        // Spawn ignite aura for already-ignited balls.
+        let auraId: number | undefined;
+        if (!isProjectile && ball.ignited && igniteAuraFrames.length) {
+          const h = this._ballAnimSys.looping(
+            igniteAuraFrames, IGNITE_AURA_FPS,
+            ball.x, ball.y,
+            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
+            true, 0xff8822,
+          );
+          auraId = h.id;
+        }
+
+        this._ballPool.set(ball.id, { sp, haloGfx, auraId });
       }
     }
 
@@ -551,6 +785,6 @@ export class Renderer {
     }
 
     // --- effects: consume snapshot events ---
-    this.effectsLayer.consume(s.events, s.cellSize);
+    this.effectsLayer.consume(s.events, s.cellSize, s.biome);
   }
 }

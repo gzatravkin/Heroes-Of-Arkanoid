@@ -10,7 +10,7 @@
  * Frame keys match the stable paths produced by build-atlas.mjs.
  */
 
-import { Assets, Texture, BaseTexture, Spritesheet } from "pixi.js";
+import { Assets, Texture, BaseTexture, Spritesheet, Rectangle } from "pixi.js";
 
 // ── State ───────────────────────────────────────────────────────────────────
 let loaded = false;
@@ -127,6 +127,39 @@ export function hellParallaxFrames(): Texture[] {
 }
 
 /**
+ * Slice a horizontal sprite strip into individual frame Textures and return them
+ * as an ordered array suitable for AnimatedSprite.
+ *
+ * A "strip" is a single wide texture whose height equals one frame's size and
+ * whose width = frameSize * N.  Detection is by aspect ratio (width >= height).
+ *
+ * fps is stored alongside the returned array on the `.fps` property so callers
+ * can pass it straight into AnimSystem.oneShot / looping.
+ *
+ * Returns [] if the texture is not loaded or is degenerate.
+ */
+export function animStrip(key: string, fps = 12): Texture[] & { fps: number } {
+  const texture = frameMap.get(key) ?? Texture.WHITE;
+  const result: Texture[] & { fps: number } = Object.assign([], { fps });
+  if (texture === Texture.WHITE || texture === Texture.EMPTY) return result;
+  const { width, height } = texture;
+  if (height <= 0 || width <= 0) return result;
+  const frameSize = height;
+  const frameCount = Math.max(1, Math.round(width / frameSize));
+  if (frameCount === 1) {
+    result.push(texture);
+    return result;
+  }
+  const base = texture.baseTexture;
+  const ox = texture.frame.x;
+  const oy = texture.frame.y;
+  for (let i = 0; i < frameCount; i++) {
+    result.push(new Texture(base, new Rectangle(ox + i * frameSize, oy, frameSize, frameSize)));
+  }
+  return result;
+}
+
+/**
  * Expose frame and animation maps for debugging.
  * window.__atlas.frames() lists all loaded frame keys.
  * window.__atlas.ready is true only after loadAtlas() fully completes.
@@ -138,5 +171,6 @@ if (typeof window !== "undefined") {
     anims:  () => [...animMap.keys()],
     tex,
     anim,
+    animStrip,
   };
 }
