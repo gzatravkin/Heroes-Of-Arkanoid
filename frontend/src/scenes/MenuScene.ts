@@ -307,7 +307,7 @@ function injectMenuStyles() {
       transform: translateY(-50%);
       width: 40px;
       height: 40px;
-      background: url('/Sprites/Interface/Achivements/achievementLvl2Eng.png') no-repeat center / contain;
+      background: url('/achievements/achievementLvl2Eng.png') no-repeat center / contain;
     }
 
     /* Settings — uses close/gear icon */

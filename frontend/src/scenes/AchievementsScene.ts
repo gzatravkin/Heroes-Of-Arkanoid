@@ -38,25 +38,24 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "campaign_complete",   name: "World Saved",          description: "Complete all campaign levels.", tier: 5 },
 ];
 
-// ── Badge art mapping: tier → locked/unlocked image from ui/ exports ─────────
-// The badges in /Sprites/Interface/Achivements/ are exported to the atlas
-// as ui/achievements/achievementLvl1 etc. — we use their /ui/ copies.
+// ── Badge art mapping: tier → locked/unlocked image ──────────────────────────
+// Files copied to public/achievements/ (committed, no /Sprites/ symlink dependency).
 
 function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, unlocked: boolean): string {
   // Unlocked uses Eng variant (English text badge); locked uses the plain number badge.
   // Tier 3 gold variant used for unlocked tier-3 (achievementLvl3Oro).
   if (unlocked) {
-    if (tier === 1) return "/Sprites/Interface/Achivements/achievementLvl1Eng.png";
-    if (tier === 2) return "/Sprites/Interface/Achivements/achievementLvl2Eng.png";
-    if (tier === 3) return "/Sprites/Interface/Achivements/achievementLvl3Oro.png";
-    if (tier === 4) return "/Sprites/Interface/Achivements/achievementLl4Eng.png";
-    return "/Sprites/Interface/Achivements/achievementLl5Eng.png";
+    if (tier === 1) return "/achievements/achievementLvl1Eng.png";
+    if (tier === 2) return "/achievements/achievementLvl2Eng.png";
+    if (tier === 3) return "/achievements/achievementLvl3Oro.png";
+    if (tier === 4) return "/achievements/achievementLl4Eng.png";
+    return "/achievements/achievementLl5Eng.png";
   }
-  if (tier === 1) return "/Sprites/Interface/Achivements/achievementLvl1.png";
-  if (tier === 2) return "/Sprites/Interface/Achivements/achievementLvl2.png";
-  if (tier === 3) return "/Sprites/Interface/Achivements/achievementLvl3.png";
-  if (tier === 4) return "/Sprites/Interface/Achivements/achievementLl4.png";
-  return "/Sprites/Interface/Achivements/achievementLl5.png";
+  if (tier === 1) return "/achievements/achievementLvl1.png";
+  if (tier === 2) return "/achievements/achievementLvl2.png";
+  if (tier === 3) return "/achievements/achievementLvl3.png";
+  if (tier === 4) return "/achievements/achievementLl4.png";
+  return "/achievements/achievementLl5.png";
 }
 
 // ── Mount ─────────────────────────────────────────────────────────────────────
@@ -226,7 +225,7 @@ function injectAchievementStyles() {
     }
     .ach-panel-deco {
       position: absolute; inset: 0;
-      background: url('/Sprites/Interface/Achivements/AchievmentPanel.png') no-repeat center / contain;
+      background: url('/achievements/AchievmentPanel.png') no-repeat center / contain;
       opacity: 0.3; pointer-events: none;
     }
     .ach-title {

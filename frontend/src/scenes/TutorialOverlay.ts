@@ -15,40 +15,41 @@ import { metaApi } from "../net/metaApi";
 
 interface TutorialSlide {
   screenKey: string;   // atlas key for the big background art
-  screenSrc: string;   // /Sprites/... path for <img> src
+  screenSrc: string;   // committed public/hints/ path for <img> src
   title: string;
   caption: string;
   icons: Array<{ src: string; label: string }>;
 }
 
+// All hint PNGs are committed to public/hints/ (no /Sprites/ symlink dependency).
 const SLIDES: TutorialSlide[] = [
   {
     screenKey: "hints/HintsScreen1",
-    screenSrc: "/Sprites/HintSystem/HintsScreen1.png",
+    screenSrc: "/hints/HintsScreen1.png",
     title: "Move & Serve",
     caption: "Drag your paddle left/right to deflect the ball. Tap the screen to serve at the start.",
     icons: [
-      { src: "/Sprites/HintSystem/EducationHeroIco (1).png", label: "Your hero paddle" },
+      { src: "/hints/EducationHeroIco.png", label: "Your hero paddle" },
     ],
   },
   {
     screenKey: "hints/HintsScreen2",
-    screenSrc: "/Sprites/HintSystem/HintsScreen2.png",
+    screenSrc: "/hints/HintsScreen2.png",
     title: "Spells & Mana",
     caption: "Tap hotbar slots (Q/E/W/R) to cast spells. Each spell costs mana — watch the blue bar!",
     icons: [
-      { src: "/Sprites/HintSystem/EducationSpellBunner.png", label: "Spell banner" },
-      { src: "/Sprites/HintSystem/EducationLife.png",         label: "Life indicator" },
+      { src: "/hints/EducationSpellBunner.png", label: "Spell banner" },
+      { src: "/hints/EducationLife.png",         label: "Life indicator" },
     ],
   },
   {
     screenKey: "hints/HintsScreen3",
-    screenSrc: "/Sprites/HintSystem/HintsScreen3.png",
+    screenSrc: "/hints/HintsScreen3.png",
     title: "Bonuses & Boss",
     caption: "Catch falling bonuses to power up. Clear all blocks to meet the boss — and defeat it!",
     icons: [
-      { src: "/Sprites/HintSystem/EducationGem.png",    label: "Gem bonus" },
-      { src: "/Sprites/HintSystem/EducationChance.png", label: "Chance bonus" },
+      { src: "/hints/EducationGem.png",    label: "Gem bonus" },
+      { src: "/hints/EducationChance.png", label: "Chance bonus" },
     ],
   },
 ];

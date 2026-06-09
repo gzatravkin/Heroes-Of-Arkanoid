@@ -16,57 +16,55 @@
 import { metaApi } from "../net/metaApi";
 import type { Profile, CharactersResponse } from "../net/metaApi";
 
-// ── LevelSkill badge → atlas key ─────────────────────────────────────────────
-// Keys: levelskill/Lvl1Skill … levelskill/Lvl10Skill
+// ── LevelSkill badge → committed public path ──────────────────────────────────
+// Keys: levelskill/Lvl1Skill … levelskill/Lvl10Skill (copied to public/levelskill/)
 function lvlSkillSrc(level: number): string {
   const clamped = Math.max(1, Math.min(10, level));
-  // These are in the atlas as levelskill/Lvl1Skill etc.
-  // We serve them from the /Sprites/ path for <img> tags.
-  return `/Sprites/Heroes/Icos LevelSkill/Lvl${clamped}Skill.png`;
+  return `/levelskill/Lvl${clamped}Skill.png`;
 }
 
-// Shkatulka frames for decorative animation (available in atlas: ui/menu_skill/shkatulka/*)
+// Shkatulka frames for decorative animation (copied to public/shkatulka/)
 const SHKATULKA_SRCS: string[] = [
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka2.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka3.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/shkatulka4.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/shkatulka5.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/shkatulka6.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/shkatulka7.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/shkatulka8.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka9.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka10.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka11.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/Shkatulka12.png",
-  "/Sprites/Interface/Menu_Skill/Shkatulka/ShkatulkaGlow.png",
+  "/shkatulka/Shkatulka.png",
+  "/shkatulka/Shkatulka2.png",
+  "/shkatulka/Shkatulka3.png",
+  "/shkatulka/shkatulka4.png",
+  "/shkatulka/shkatulka5.png",
+  "/shkatulka/shkatulka6.png",
+  "/shkatulka/shkatulka7.png",
+  "/shkatulka/shkatulka8.png",
+  "/shkatulka/Shkatulka9.png",
+  "/shkatulka/Shkatulka10.png",
+  "/shkatulka/Shkatulka11.png",
+  "/shkatulka/Shkatulka12.png",
+  "/shkatulka/ShkatulkaGlow.png",
 ];
 
 // Per-spell icon paths (matching characters.json icon fields)
+// LargeIco variants copied to public/spellicons/<class>/
 const SPELL_ICON_MAP: Record<string, string> = {
   // Fire Mage
   ignite:   "/art/FireBallIco.png",
   fireball: "/art/FireBallIco.png",
   firewall: "/art/FireWallIco.png",
   turret:   "/art/FireTurretIco.png",
-  // Paladin
-  shield:    "/Sprites/Heroes/Clase_2_Paladin/SpellShieldLargeIco.png",
-  spear:     "/Sprites/Heroes/Clase_2_Paladin/SpearLargeLargeIco.png",
-  duplicate: "/Sprites/Heroes/Clase_2_Paladin/SplitLargeIco.png",
-  // Engineer
-  lightning: "/Sprites/Heroes/Clase_3_Engineer/LightingLargeIco.png",
-  rocket:    "/Sprites/Heroes/Clase_3_Engineer/RocketLargeIco.png",
-  radiation: "/Sprites/Heroes/Clase_3_Engineer/RadiationLargeIco.png",
-  // Necromancer
-  decay:    "/Sprites/Heroes/Clase_4_Necromancer/SpellShieldLargeIco.png",
-  skeleton: "/Sprites/Heroes/Clase_4_Necromancer/RiseSkeletonLargeIcon.png",
-  drain:    "/Sprites/Heroes/Clase_4_Necromancer/LastJudgmentLargeIco.png",
+  // Paladin (public/spellicons/paladin/)
+  shield:    "/spellicons/paladin/SpellShieldLargeIco.png",
+  spear:     "/spellicons/paladin/SpearLargeLargeIco.png",
+  duplicate: "/spellicons/paladin/SplitLargeIco.png",
+  // Engineer (public/spellicons/engineer/)
+  lightning: "/spellicons/engineer/LightingLargeIco.png",
+  rocket:    "/spellicons/engineer/RocketLargeIco.png",
+  radiation: "/spellicons/engineer/RadiationLargeIco.png",
+  // Necromancer (public/spellicons/necromancer/)
+  decay:    "/spellicons/necromancer/SpellShieldLargeIco.png",
+  skeleton: "/spellicons/necromancer/RiseSkeletonLargeIcon.png",
+  drain:    "/spellicons/necromancer/LastJudgmentLargeIco.png",
 };
 
 function spellIconSrc(iconKey: string): string {
-  // Characters.json may pass either a short key or full path
-  if (iconKey.startsWith("/") || iconKey.includes("/")) return `/Sprites/${iconKey}.png`.replace("//", "/");
-  // Common art/<key>.png pattern
+  // Characters.json may pass either a short key or a simple name
+  // Never use /Sprites/ symlink — fall back to /art/ for anything unrecognized
   return `/art/${iconKey}.png`;
 }
 

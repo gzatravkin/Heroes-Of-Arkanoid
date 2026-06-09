@@ -29,12 +29,16 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
   };
 
   // Fetch selected character's spell kit and load into HUD.
-  // Wire conn after (wireConn also handles the fallback path if fetch fails).
+  // Also switch Renderer to the correct per-class paddle/ball sprites.
   metaApi.getCharacters()
     .then((data) => {
       const selected = data.characters.find(c => c.id === data.selected);
-      if (selected && selected.spells?.length > 0) {
-        hud.loadSpells(selected.spells);
+      if (selected) {
+        // Switch paddle/ball art to match the selected class.
+        r.setClass(selected.id);
+        if (selected.spells?.length > 0) {
+          hud.loadSpells(selected.spells);
+        }
       }
       hud.wireConn(conn);
     })
