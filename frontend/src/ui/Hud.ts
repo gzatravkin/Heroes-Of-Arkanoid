@@ -388,7 +388,7 @@ export class Hud {
   private buildSpellIcon(wrap: HTMLElement, spell: SpellDef) {
     const iconKey = spell.icon;
     if (!iconKey) {
-      wrap.textContent = "✨";
+      wrap.textContent = getSpellFallback(spell.id);
       return;
     }
 
@@ -435,7 +435,7 @@ export class Hud {
       img.src = legacySrc;
       img.alt = spell.name;
       img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
-      const emoji = getSpellEmoji(spell.id);
+      const emoji = getSpellFallback(spell.id);
       img.onerror = () => { img.style.display = "none"; wrap.textContent = emoji; };
       wrap.appendChild(img);
       return;
@@ -443,7 +443,7 @@ export class Hud {
 
     // Full atlas key: try /atlas/ path (may work if build pipeline exposes frames).
     // Fall through to emoji.
-    wrap.textContent = getSpellEmoji(spell.id);
+    wrap.textContent = getSpellFallback(spell.id);
   }
 
   private wireConnHandlers(conn: Connection) {
@@ -754,21 +754,8 @@ export class Hud {
   }
 }
 
-function getSpellEmoji(id: string): string {
-  const map: Record<string, string> = {
-    ignite:    "🔥",
-    fireball:  "💥",
-    firewall:  "🧱",
-    turret:    "🔫",
-    shield:    "🛡️",
-    spear:     "🗡️",
-    duplicate: "✂️",
-    lightning: "⚡",
-    rocket:    "🚀",
-    radiation: "☢️",
-    decay:     "💀",
-    skeleton:  "🦴",
-    drain:     "🩸",
-  };
-  return map[id] ?? "✨";
+// Non-emoji last-resort fallback when a spell icon can't be resolved: the spell's
+// initial letter (the user dislikes emojis; real art is preferred and usually resolves).
+function getSpellFallback(id: string): string {
+  return (id[0] ?? "?").toUpperCase();
 }
