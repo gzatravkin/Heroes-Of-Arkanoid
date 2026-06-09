@@ -1,30 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import type { BlockTypeDef } from "../net/metaApi";
-
-// ── Constants ────────────────────────────────────────────────────────────────
-const ART_BASE = "/art/";
-// Portrait-native dimensions matching the P2 board format (8 cols × 14 rows).
-const DEFAULT_COLS = 8;
-const DEFAULT_ROWS = 14;
-
-// Assign legend chars starting from 'A', avoiding '.'
-const LEGEND_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function btn(
-  text: string,
-  id: string | null,
-  css: string,
-  onClick?: () => void,
-): HTMLButtonElement {
-  const b = document.createElement("button");
-  if (id) b.id = id;
-  b.textContent = text;
-  b.style.cssText = css;
-  if (onClick) b.addEventListener("click", onClick);
-  return b;
-}
+import { ART_BASE, DEFAULT_COLS, DEFAULT_ROWS, LEGEND_CHARS, btn } from "./editor/editorUtils";
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
