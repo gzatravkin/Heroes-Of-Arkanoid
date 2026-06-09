@@ -1,5 +1,6 @@
 import { test } from "./helpers/fixtures";
 import type { Page } from "@playwright/test";
+import { openBattle, cheat } from "./helpers/game";
 import * as path from "path";
 
 /** Wait until the scene fade-in overlay has fully cleared so shots aren't dimmed. */
@@ -52,3 +53,30 @@ test("shot: move3 rift banner over campaign map", async ({ page }) => {
   });
   await page.screenshot({ path: path.join(SHOTS, "move3-rift-banner.png") });
 });
+
+// ── Move 4: HUD bars (HP / spare-balls / mana / boss) at 100 / 50 / 0% fill ───
+for (const [name, lives, balls, mana] of [
+  ["full", 10, 10, 100], ["half", 5, 5, 50], ["empty", 0, 0, 0],
+] as const) {
+  test(`shot: move4 value bars ${name} (HP/balls/mana)`, async ({ page }) => {
+    await openBattle(page, "hell-1");
+    await cheat(page, "setLives", lives);
+    await cheat(page, "setBalls", balls);
+    await cheat(page, "setMana", mana);
+    await page.waitForFunction((lv) => (window as any).__game.getState()?.lives === lv, lives);
+    await page.screenshot({ path: path.join(SHOTS, `move4-bars-${name}.png`) });
+  });
+}
+
+for (const [name, hp] of [["full", 100], ["half", 50], ["empty", 0]] as const) {
+  test(`shot: move4 boss bar ${name}`, async ({ page }) => {
+    await openBattle(page, "hell-boss");
+    await page.waitForSelector("#hud-boss-hp");
+    await cheat(page, "setBossHp", hp);
+    await page.waitForFunction((h) => {
+      const w = parseFloat((document.querySelector("#hud-boss-hp-fill") as HTMLElement)?.style.width || "-1");
+      return Math.abs(w - h) < 6;
+    }, hp);
+    await page.screenshot({ path: path.join(SHOTS, `move4-boss-${name}.png`) });
+  });
+}

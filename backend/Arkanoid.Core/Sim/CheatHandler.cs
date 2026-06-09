@@ -31,6 +31,18 @@ internal static class CheatHandler
             case "setMana":
                 g.ManaValue = System.Math.Clamp(value, 0, g.ManaMaxValue);
                 break;
+            case "setLives":
+                g.Lives = System.Math.Max(0, (int)value);
+                break;
+            case "setBalls":
+                g.SpareBalls = System.Math.Max(0, (int)value);
+                break;
+            case "setBossHp":
+                // value = percent (0..100) of each live boss block's max HP.
+                var bossFrac = System.Math.Clamp(value / 100.0, 0, 1);
+                foreach (var bb in g.Blocks.Where(b => !b.Dead && b.Boss))
+                    bb.Hp = System.Math.Max(0, (int)System.Math.Round(bb.MaxHp * bossFrac));
+                break;
             case "loseBall":
                 foreach (var b in g.Balls) b.Alive = false;
                 break;

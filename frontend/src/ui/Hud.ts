@@ -27,6 +27,19 @@ const SPELL_COSTS: Record<string, number> = {
 // Key labels by slot index (0→Q, 1→E, 2→W, 3→R).
 const SLOT_KEYS = ["Q", "E", "W", "R"];
 
+// ---------------------------------------------------------------------------
+// 3-slice HUD bar geometry. The bar sprites (BattleHPEmpty/MPEmpty) are 220×41
+// with dark angular end-caps baked into the sides. Rendering them as a single
+// stretched image distorts the caps and produces a lopsided "half bar"; instead
+// we pin the caps to the ends via CSS border-image 9-slice and stretch only the
+// middle, with the value fill clipped strictly between the caps (symmetric).
+// ---------------------------------------------------------------------------
+const BAR_SPRITE_H = 41;   // native sprite height (px)
+const BAR_CAP_X    = 16;   // native left/right cap thickness (px)
+const BAR_CAP_Y    = 7;    // native top/bottom cap thickness (px)
+const BAR_H        = 20;   // rendered height of value bars (mana/HP/balls)
+const BOSS_BAR_H   = 18;   // rendered height of the boss bar
+
 // Legacy per-spell DOM ids for Fire Mage (required for existing tests).
 const FIRE_MAGE_SLOT_IDS: Record<string, string> = {
   ignite:   "hud-spell-ignite",
@@ -41,7 +54,15 @@ const FIRE_MAGE_SLOT_IDS: Record<string, string> = {
 export class Hud {
   private root: HTMLElement;
   private livesEl: HTMLElement;
+  private livesFill: HTMLElement;
+  private livesCount: HTMLElement;
   private ballsEl: HTMLElement;
+  private ballsFill: HTMLElement;
+  private ballsCount: HTMLElement;
+  // Running maxima — lives/spare-balls have no fixed cap, so the bar is scaled to
+  // the largest value seen this battle (start value = full bar).
+  private _maxLives = 1;
+  private _maxBalls = 1;
   private manaOuter: HTMLElement;
   private manaFill: HTMLElement;
   private manaText: HTMLElement;
@@ -80,16 +101,28 @@ export class Hud {
     const topLeft = this.createElement("div", "hud-top-left");
     topLeft.style.cssText = "position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:5px;";
 
-    this.livesEl = this.createElement("div");
-    this.livesEl.id = "hud-lives";
+    const livesBar = this.buildLabelledBar({
+      id: "hud-lives", fillId: "hud-lives-fill", labelId: "hud-lives-label",
+      emptySrc: "/ui/BattleHPEmpty.png",
+      gradient: "linear-gradient(to right,#cc2a2a,#ff5a4a)",
+      icon: "/ui/BonusHP.png",
+    });
+    this.livesEl = livesBar.outer;
     this.livesEl.dataset.lives = "0";
-    this.livesEl.className = "hud-stat-row";
+    this.livesFill = livesBar.fill;
+    this.livesCount = livesBar.label.querySelector(".hud-bar-count")!;
     topLeft.appendChild(this.livesEl);
 
-    this.ballsEl = this.createElement("div");
-    this.ballsEl.id = "hud-balls";
+    const ballsBar = this.buildLabelledBar({
+      id: "hud-balls", fillId: "hud-balls-fill", labelId: "hud-balls-label",
+      emptySrc: "/ui/BattleMPEmpty.png",
+      gradient: "linear-gradient(to right,#9aa6c8,#e8eeff)",
+      icon: "/ui/BattleLifeBall.png",
+    });
+    this.ballsEl = ballsBar.outer;
     this.ballsEl.dataset.balls = "0";
-    this.ballsEl.className = "hud-stat-row";
+    this.ballsFill = ballsBar.fill;
+    this.ballsCount = ballsBar.label.querySelector(".hud-bar-count")!;
     topLeft.appendChild(this.ballsEl);
 
     // ---- top-right panel: relics row ----
@@ -229,15 +262,19 @@ export class Hud {
   update(s: Snapshot) {
     this._mana = s.mana ?? 0;
 
-    // -- lives --
+    // -- lives (HP bar) --
     const lives = s.lives ?? 0;
+    this._maxLives = Math.max(this._maxLives, lives);
     this.livesEl.dataset.lives = String(lives);
-    this.livesEl.innerHTML = this.renderStatRow(lives, "/ui/BattleHPFull.png", "/art/HPFull.png", "❤️", "Lives");
+    this.livesFill.style.width = `${(lives / this._maxLives) * 100}%`;
+    this.livesCount.textContent = String(lives);
 
-    // -- spare balls --
+    // -- spare balls bar --
     const balls = s.spareBalls ?? 0;
+    this._maxBalls = Math.max(this._maxBalls, balls);
     this.ballsEl.dataset.balls = String(balls);
-    this.ballsEl.innerHTML = this.renderStatRow(balls, "/ui/BattleLifeBall.png", "/art/LifeBall.png", "⚪", "Spare balls");
+    this.ballsFill.style.width = `${(balls / this._maxBalls) * 100}%`;
+    this.ballsCount.textContent = String(balls);
 
     // -- mana bar --
     const mana    = s.mana    ?? 0;
@@ -471,6 +508,79 @@ export class Hud {
     }
   }
 
+  /**
+   * Build a symmetric 3-slice value bar: the empty sprite supplies the frame via
+   * border-image (caps pinned to both ends, middle stretched), and a gradient fill
+   * is clipped strictly between the caps so it grows left→right without ever
+   * touching the caps. `fill.style.width` stays a plain percentage string.
+   */
+  private buildBar(opts: {
+    id: string; fillId: string; width: string; height: number;
+    emptySrc: string; gradient: string;
+  }): { outer: HTMLElement; fill: HTMLElement } {
+    const capX = Math.round(BAR_CAP_X * opts.height / BAR_SPRITE_H);
+    const capY = Math.round(BAR_CAP_Y * opts.height / BAR_SPRITE_H);
+
+    const outer = this.createElement("div");
+    outer.id = opts.id;
+    outer.style.cssText = `position:relative;width:${opts.width};height:${opts.height}px;`;
+
+    // Frame: empty bar via 9-slice border-image — caps fixed, middle stretched, `fill` draws the interior.
+    const track = this.createElement("div");
+    track.style.cssText = [
+      "position:absolute", "inset:0", "box-sizing:border-box",
+      "border-style:solid",
+      `border-width:${capY}px ${capX}px`,
+      `border-image:url('${opts.emptySrc}') ${BAR_CAP_Y} ${BAR_CAP_X} ${BAR_CAP_Y} ${BAR_CAP_X} fill stretch`,
+    ].join(";");
+    outer.appendChild(track);
+
+    // Fill clip: the interior region strictly between the caps.
+    const clip = this.createElement("div");
+    clip.style.cssText = [
+      "position:absolute",
+      `left:${capX}px`, `right:${capX}px`, `top:${capY}px`, `bottom:${capY}px`,
+      "overflow:hidden", "border-radius:2px",
+    ].join(";");
+    const fill = this.createElement("div");
+    fill.id = opts.fillId;
+    fill.style.cssText = [
+      "position:absolute", "left:0", "top:0", "bottom:0", "width:100%",
+      `background:${opts.gradient}`,
+      "transition:width 0.15s linear",
+    ].join(";");
+    clip.appendChild(fill);
+    outer.appendChild(clip);
+
+    return { outer, fill };
+  }
+
+  /** A labelled value bar (icon + count overlay) for the top-left HP / spare-balls. */
+  private buildLabelledBar(opts: {
+    id: string; fillId: string; labelId: string;
+    emptySrc: string; gradient: string; icon: string;
+  }): { outer: HTMLElement; fill: HTMLElement; label: HTMLElement } {
+    const { outer, fill } = this.buildBar({
+      id: opts.id, fillId: opts.fillId,
+      width: "118px", height: BAR_H,
+      emptySrc: opts.emptySrc, gradient: opts.gradient,
+    });
+    const label = this.createElement("span");
+    label.id = opts.labelId;
+    label.style.cssText = [
+      "position:absolute", "top:50%", "left:8px",
+      "transform:translateY(-50%)",
+      "display:flex", "align-items:center", "gap:4px",
+      "font-size:11px", "color:#fff", "font-weight:700",
+      "text-shadow:0 0 4px #000,0 1px 2px #000", "pointer-events:none", "white-space:nowrap",
+    ].join(";");
+    label.innerHTML =
+      `<img src="${opts.icon}" alt="" style="width:13px;height:13px;object-fit:contain;image-rendering:pixelated;">` +
+      `<span class="hud-bar-count">0</span>`;
+    outer.appendChild(label);
+    return { outer, fill, label };
+  }
+
   private buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: HTMLElement } {
     const outer = this.createElement("div");
     outer.id = "hud-boss-hp";
@@ -497,55 +607,24 @@ export class Hud {
     ].join(";");
     outer.appendChild(name);
 
-    const barWrap = this.createElement("div");
-    barWrap.style.cssText = [
-      "position:relative",
-      "width:100%", "height:14px",
-      "background:rgba(0,0,0,0.7)",
-      "border:1px solid #aa1111",
-      "border-radius:3px",
-      "overflow:hidden",
-    ].join(";");
-    outer.appendChild(barWrap);
-
-    const fill = this.createElement("div");
-    fill.id = "hud-boss-hp-fill";
-    fill.style.cssText = [
-      "position:absolute", "left:0", "top:0", "bottom:0",
-      "width:100%",
-      "background:linear-gradient(to right,#880000,#cc2222)",
-      "transition:width 0.15s linear",
-    ].join(";");
-    barWrap.appendChild(fill);
+    const { outer: bar, fill } = this.buildBar({
+      id: "hud-boss-bar", fillId: "hud-boss-hp-fill",
+      width: "100%", height: BOSS_BAR_H,
+      emptySrc: "/ui/BattleHPEmpty.png",
+      gradient: "linear-gradient(to right,#880000,#cc2222)",
+    });
+    outer.appendChild(bar);
 
     return { outer, fill, name };
   }
 
   private buildManaBar(): HTMLElement {
-    const outer = this.createElement("div");
-    outer.id = "hud-mana";
-    outer.style.cssText = [
-      "position:relative",
-      "width:min(220px,80vw)",
-      "height:20px",
-    ].join(";");
-
-    const bg = this.createElement("div");
-    bg.style.cssText = [
-      "position:absolute", "inset:0",
-      "background:url('/ui/BattleMPEmpty.png') no-repeat center/100% 100%",
-    ].join(";");
-    outer.appendChild(bg);
-
-    const fill = this.createElement("div");
-    fill.id = "hud-mana-fill";
-    fill.style.cssText = [
-      "position:absolute", "left:0", "top:0", "bottom:0",
-      "width:100%",
-      "background:url('/ui/BattleMPFull.png') no-repeat left center/auto 100%",
-      "transition:width 0.1s linear",
-    ].join(";");
-    outer.appendChild(fill);
+    const { outer } = this.buildBar({
+      id: "hud-mana", fillId: "hud-mana-fill",
+      width: "min(220px,80vw)", height: BAR_H,
+      emptySrc: "/ui/BattleMPEmpty.png",
+      gradient: "linear-gradient(to right,#1f9fb8,#5fe6f5)",
+    });
 
     const label = this.createElement("span");
     label.id = "hud-mana-text";
@@ -553,25 +632,11 @@ export class Hud {
       "position:absolute", "top:50%", "left:50%",
       "transform:translate(-50%,-50%)",
       "font-size:9px", "color:#fff", "font-weight:600",
-      "text-shadow:0 0 4px #000", "pointer-events:none", "white-space:nowrap",
+      "text-shadow:0 0 4px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
     ].join(";");
     outer.appendChild(label);
 
     return outer;
-  }
-
-  /** Render a row of icon images (or emoji fallback) with a count. */
-  private renderStatRow(count: number, uiSrc: string, artSrc: string, emoji: string, label: string): string {
-    const iconHtml = `<img
-      src="${uiSrc}" alt="${label}"
-      style="width:18px;height:18px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;"
-      onerror="this.src='${artSrc}';this.onerror=function(){this.style.display='none';this.insertAdjacentText('afterend','${emoji}')}"
-    >`;
-    const MAX_ICONS = 5;
-    const shown = Math.min(count, MAX_ICONS);
-    const icons = Array.from({ length: shown }, () => iconHtml).join(" ");
-    const overflow = count > MAX_ICONS ? `<span style="font-size:11px;color:#aaa;"> +${count - MAX_ICONS}</span>` : "";
-    return `<span style="display:inline-flex;align-items:center;gap:2px;">${icons}${overflow}</span>`;
   }
 
   private createElement(tag: string, className?: string): HTMLElement {

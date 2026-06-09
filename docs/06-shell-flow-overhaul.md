@@ -105,7 +105,7 @@ If a rule is missing, **add it here** rather than asking.
 - [x] Classic-button home menu; legacy redundant button list gone; Editor not player-visible.
 - [x] **Continue** resumes the campaign; secondary screens reachable via docked icons.
 - [x] Rift/dungeon entry is probabilistic from the campaign via banner; Dungeons menu removed.
-- [ ] All HUD bars are symmetrical 9-slice, screenshot-verified at 0/50/100% fill on mobile.
+- [x] All HUD bars are symmetrical 9-slice, screenshot-verified at 0/50/100% fill on mobile.
 - [ ] Every level has a distinct, purposeful layout; `all-levels.spec.ts` green; asset usage ≥ current ~86%.
 - [ ] All unit tests + all Playwright specs green at 390×844 (update specs that asserted the old menu/buttons).
 - [ ] Before/after mobile screenshots attached for: home menu, a rift banner, the HUD bars at 3 fills, and 3 redesigned levels.
