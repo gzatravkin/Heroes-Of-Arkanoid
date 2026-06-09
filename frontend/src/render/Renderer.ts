@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Sprite, AnimatedSprite, BLEND_MODES, Texture } from "pixi.js";
+import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
@@ -7,14 +7,14 @@ import { BonusLayer } from "./BonusLayer";
 import { BlockLayer } from "./BlockLayer";
 import { SpellFxLayer } from "./SpellFxLayer";
 import { BallLayer, PROJECTILE_ID_THRESHOLD } from "./BallLayer";
+import { FireWallLayer } from "./FireWallLayer";
 import { VILLAGE_AMBIENT_REFS } from "./ambientRefs";
 void VILLAGE_AMBIENT_REFS; // referenced so the asset-coverage audit sees these frames
-import { bg as biomedBg, hellParallaxFrames, anim as animFrames, tex as atlasTex } from "./assets";
+import { bg as biomedBg, hellParallaxFrames, tex as atlasTex } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
 import { Vignette } from "./Vignette";
-import { AnimSystem } from "./AnimSystem";
 import { BossRig, TelegraphWarning, inferBossType } from "./Boss";
 
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
@@ -81,10 +81,6 @@ const GAP_FRAC = 0.12;
 // fully visible (grid + paddle zone + margin).
 const PADDLE_ZONE_CELLS = 3;
 
-// Fire wall band height as a fraction of cellSize.
-const FIRE_WALL_HEIGHT_MULT = 1.1;
-
-
 // Turret visual: barrel length and width as fractions of paddleH.
 const TURRET_BARREL_LENGTH_MULT = 1.8;
 const TURRET_BARREL_WIDTH_MULT  = 0.45;
@@ -94,12 +90,6 @@ const TURRET_BARREL_WIDTH_MULT  = 0.45;
 
 // Turret: atlas art key for the barrel sprite.
 const TURRET_SPRITE_KEY   = "firemage/spell_fireturret/FireHeroTurret";
-
-// FireWall animation key in the manifest.
-const FIRE_WALL_ANIM_KEY = "firemage/spell_firewall/firestandannimation";
-// How many tiles to use per fire-wall band (we switch from many thin sprites to
-// fewer wide AnimatedSprites at the wall height, one per "segment").
-// Each segment is about 1 × cellSize wide so they tile naturally.
 
 // Paddle squash/stretch constants.
 // On ball bounce (ball y crosses paddleY within a threshold), the paddle stretches briefly.
@@ -137,7 +127,7 @@ export class Renderer {
   private world = new Container();
   private blockLayer = new BlockLayer();
   private effectsLayer: Effects;
-  private fireWalls = new Container();
+  private fireWallLayer = new FireWallLayer();
   private hazardLayer = new HazardLayer();
   // Paddle rendered as a sprite; Graphics kept as invisible fallback.
   private paddleSprite = new Sprite();
@@ -151,13 +141,6 @@ export class Renderer {
   private damageFlash = new Graphics(); // full-screen overlay for HP hit feedback
   private _tick = 0; // used to drive wall flicker animation
   private _lastLives = -1; // track lives decreases for damage flash
-
-  // AnimSystem for fire-wall animated tiles.
-  private _wallAnimSys: AnimSystem;
-  // Track previous fire-wall count to avoid unnecessary rebuild.
-  private _lastWallCount = -1;
-  // Fire-wall AnimatedSprites (rebuilt only when wall count changes).
-  private _wallAnims: AnimatedSprite[] = [];
 
 
   // Bonus pickups layer.
@@ -220,7 +203,6 @@ export class Renderer {
     this.effectsLayer = new Effects();
     this.ballTrail = new BallTrail();
     this.screenShake = new ScreenShake();
-    this._wallAnimSys = new AnimSystem();
 
     // Background: full-stage sprite (behind world container).
     this.bgSprite.anchor.set(0);
@@ -255,7 +237,7 @@ export class Renderer {
         quality:       0.25, // low quality = faster; perfectly fine for bloom halos
       });
       this.effectsLayer.container.filters = [fxGlow];
-      this.fireWalls.filters = [fxGlow];
+      this.fireWallLayer.container.filters = [fxGlow];
 
       // Ball glow: separate filter instance so ball trails can share it independently.
       const ballGlow = new GlowFilter({
@@ -279,8 +261,7 @@ export class Renderer {
       this.ballTrail.container,
       this.spellFx.zonesContainer,
       this.blockLayer.container,
-      this.fireWalls,
-      this._wallAnimSys.container,
+      this.fireWallLayer.container,
       this.spellFx.barriersContainer,
       this._bossLayer,
       this.effectsLayer.container,
@@ -314,7 +295,6 @@ export class Renderer {
       } else {
         this.effectsLayer.update(dtMs);
         this.ballLayer.updateAnim(dtMs);
-        this._wallAnimSys.update(dtMs);
         this.spellFx.updateAnim(dtMs);
       }
 
@@ -611,66 +591,8 @@ export class Renderer {
       }
     }
 
-    // --- fire walls (animated art: FireStandAnnimation frames) ---
-    // Rebuild only when the wall count changes to avoid per-frame alloc.
-    const walls = s.walls ?? [];
-    const wallH = s.cellSize * FIRE_WALL_HEIGHT_MULT;
-    const fireWallFrames = animFrames(FIRE_WALL_ANIM_KEY);
-
-    if (walls.length !== this._lastWallCount) {
-      // Destroy old wall anim sprites.
-      this.fireWalls.removeChildren();
-      for (const a of this._wallAnims) { a.stop(); a.destroy(); }
-      this._wallAnims = [];
-
-      for (const wall of walls) {
-        const tileW = wallH; // square tiles
-        const count = Math.ceil(s.boardW / tileW);
-        for (let i = 0; i < count; i++) {
-          if (fireWallFrames.length >= 2) {
-            // Use real animated FireStandAnnimation art.
-            const anim = new AnimatedSprite(fireWallFrames);
-            anim.blendMode = BLEND_MODES.ADD;
-            anim.tint = 0xff8833;
-            anim.anchor.set(0, 0.5);
-            anim.width  = tileW + 1;
-            anim.height = wallH;
-            anim.x = i * tileW;
-            anim.y = wall.y;
-            anim.loop = true;
-            anim.animationSpeed = 8 / 60; // ~8 fps
-            // Stagger offset per tile for organic flicker.
-            anim.currentFrame = (i * 3) % fireWallFrames.length;
-            anim.alpha = 0.9;
-            anim.play();
-            this.fireWalls.addChild(anim);
-            this._wallAnims.push(anim);
-          } else {
-            // Fallback: static Explosion sprite.
-            const sp = new Sprite(tex("Explosion"));
-            sp.blendMode = BLEND_MODES.ADD;
-            sp.tint = 0xff6620;
-            sp.anchor.set(0, 0.5);
-            sp.width  = tileW + 1;
-            sp.height = wallH;
-            sp.x = i * tileW;
-            sp.y = wall.y;
-            sp.alpha = 0.85;
-            this.fireWalls.addChild(sp);
-          }
-        }
-      }
-      this._lastWallCount = walls.length;
-    } else {
-      // Walls unchanged — just flicker alpha for the static-sprite fallback path.
-      for (let i = 0; i < this.fireWalls.children.length; i++) {
-        const child = this.fireWalls.children[i];
-        if (!(child instanceof AnimatedSprite)) {
-          const flicker = 0.72 + 0.28 * Math.sin(this._tick * 0.18 + i * 1.3);
-          child.alpha = flicker;
-        }
-      }
-    }
+    // --- fire walls (animated FireStandAnnimation tiles, rebuilt on count change) ---
+    this.fireWallLayer.update(s.walls ?? [], this._tick, s.cellSize, s.boardW);
 
     // --- paddle squash trigger: detect ball near paddle ---
     // Trigger squash when any non-projectile ball passes the paddle's y-band.
