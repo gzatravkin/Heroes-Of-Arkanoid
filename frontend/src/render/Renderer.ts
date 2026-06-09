@@ -247,6 +247,20 @@ const BOSS_AURA_ALPHA_AMP  = 0.25;
 // How long to keep the boss rig visible after defeat (for the explosion burst to play).
 const BOSS_DEFEAT_CLEANUP_MS = 1500;
 
+// Block damage states (A3): below DAMAGE_THRESHOLD of max HP, swap the block to its
+// "destroyed/cracked" frame so blocks visibly break instead of just fading out.
+const DAMAGE_THRESHOLD = 0.6;
+const BLOCK_DAMAGED: Record<string, string> = {
+  HellStandart:     "hell/StandartHellDestroyed",
+  HellStandart2:    "hell/StandartHell2Destroyed",
+  DungeonStandart:  "dungeon/DungeonStandartDestroyed",
+  DungeonStandart2: "dungeon/DungeonStandart2Destroyed",
+  VillageStandart:  "village/blocks/VillageStandartDestroyed",
+  VillageStandart2: "village/blocks/VillageStandart2Destroyed",
+  StandartHaven:    "heaven/StandartHavenDestroyed",
+  Standart2Haven:   "heaven/Standart2HavenDestroyed",
+};
+
 // Hazard (falling enemy projectile) rendering constants.
 const HAZARD_RADIUS    = 6;         // px in world space (scaled later)
 const HAZARD_COLOR     = 0xdd1111; // crimson
@@ -614,6 +628,16 @@ export class Renderer {
     }
   }
 
+  /** Block texture with damage states: swaps to the "destroyed/cracked" frame near death. */
+  private blockTex(b: { sprite: string; hp: number; maxHp: number }): Texture {
+    const dmgKey = BLOCK_DAMAGED[b.sprite];
+    if (dmgKey && b.maxHp > 0 && b.hp / b.maxHp < DAMAGE_THRESHOLD) {
+      const t = atlasTex(dmgKey);
+      if (t !== Texture.WHITE) return t;
+    }
+    return tex(b.sprite);
+  }
+
   draw(s: Snapshot) {
     // --- biome background (update only on biome change) ---
     if (s.biome && s.biome !== this._lastBiome) {
@@ -725,7 +749,7 @@ export class Renderer {
         const entry = this._blockPool.get(b.id)!;
         const { sp, aura, ring } = entry;
 
-        sp.texture = tex(b.sprite);
+        sp.texture = this.blockTex(b);
         sp.width   = bossRenderSize;
         sp.height  = bossRenderSize;
         sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
@@ -782,7 +806,7 @@ export class Renderer {
           this.blocks.addChild(ring);
         }
 
-        const sp = new Sprite(tex(b.sprite));
+        const sp = new Sprite(this.blockTex(b));
         sp.anchor.set(0.5);
         sp.width  = bossRenderSize;
         sp.height = bossRenderSize;

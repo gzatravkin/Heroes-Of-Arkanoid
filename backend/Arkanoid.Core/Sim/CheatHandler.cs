@@ -37,6 +37,11 @@ internal static class CheatHandler
             case "setBalls":
                 g.SpareBalls = System.Math.Max(0, (int)value);
                 break;
+            case "chipBlocks":
+                // Damage every normal block by `value` (deterministic; for showing damage states).
+                foreach (var bl in g.Blocks.Where(b => !b.Dead && !b.Indestructible && !b.Boss).ToList())
+                    Systems.BlockDamage.DamageBlock(g, bl, (int)value, igniteSource: false);
+                break;
             case "dropStalactites":
                 Systems.StalactiteSystem.BossDrop(g, System.Math.Max(1, (int)value));
                 break;
