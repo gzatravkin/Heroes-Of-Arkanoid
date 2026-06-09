@@ -2,6 +2,7 @@ import type { Snapshot } from "../../net/Connection";
 import { metaApi } from "../../net/metaApi";
 import { buildPickOverlay, buildDungeonClearOverlay, buildDungeonFailOverlay } from "./overlays";
 import { navigateTo } from "../../ui/transition";
+import { unlockAchievement } from "../AchievementsScene";
 
 export function createDungeonFlow() {
   let completeCalled = false;
@@ -16,6 +17,7 @@ export function createDungeonFlow() {
       try {
         const data = await metaApi.floorCleared();
         if (data.isLastFloor) {
+          unlockAchievement("clear_dungeon").catch(() => {});
           const el = buildDungeonClearOverlay(data, () => { navigateTo("/?scene=dungeons"); });
           document.body.appendChild(el);
         } else {

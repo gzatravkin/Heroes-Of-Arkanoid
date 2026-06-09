@@ -32,6 +32,8 @@ export interface Profile {
   completedLevels: string[];
   unlockedRelics: string[];
   spellLevels: Record<string, number>;
+  achievements: string[];
+  tutorialSeen: boolean;
 }
 
 export interface CampaignNode {
@@ -189,4 +191,7 @@ export const metaApi = {
   getBlockTypes: ()                   => get<BlockTypeDef[]>("/editor/blocktypes"),
   loadLevel: (id: string)             => get<LevelData>(`/editor/load?id=${encodeURIComponent(id)}`),
   saveLevel: (body: LevelData)        => postJson<SaveLevelResult>("/editor/save", body),
+  // Achievements & tutorial
+  unlockAchievement: (id: string)     => post<{ ok: boolean; achievements: string[] }>(`/achievement/unlock?id=${encodeURIComponent(id)}`),
+  markTutorialSeen: ()                => post<{ ok: boolean }>("/tutorial/seen"),
 };

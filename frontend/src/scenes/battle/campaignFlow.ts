@@ -2,6 +2,7 @@ import type { Snapshot } from "../../net/Connection";
 import { metaApi } from "../../net/metaApi";
 import { buildRewardOverlay, buildDefeatOverlay } from "./overlays";
 import { navigateTo } from "../../ui/transition";
+import { unlockAchievement } from "../AchievementsScene";
 
 export function createCampaignFlow(level: string) {
   let completeCalled = false;
@@ -17,6 +18,21 @@ export function createCampaignFlow(level: string) {
       try {
         const data = await metaApi.complete(level, s.treasureBonus ?? 0);
         reward = data.reward;
+        // Unlock achievements for this win
+        await unlockAchievement("first_win");
+        if (level.startsWith("hell"))    await unlockAchievement("clear_biome_hell");
+        if (level.startsWith("cavern"))  await unlockAchievement("clear_biome_dungeon");
+        if (level.startsWith("village")) await unlockAchievement("clear_biome_village");
+        if (level.startsWith("heaven"))  await unlockAchievement("clear_biome_heaven");
+        // Per-class win achievements
+        try {
+          const chars = await metaApi.getCharacters();
+          const cls = chars.selected;
+          if (cls === "fire_mage")   await unlockAchievement("win_fire_mage");
+          if (cls === "paladin")     await unlockAchievement("win_paladin");
+          if (cls === "engineer")    await unlockAchievement("win_engineer");
+          if (cls === "necromancer") await unlockAchievement("win_necromancer");
+        } catch { /* non-fatal */ }
       } catch (e) {
         console.error("Failed to complete level", e);
       }

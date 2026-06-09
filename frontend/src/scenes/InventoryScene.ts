@@ -1,4 +1,5 @@
 import { metaApi, type ItemDef } from "../net/metaApi";
+import { unlockAchievement } from "./AchievementsScene";
 
 // ---------------------------------------------------------------------------
 // Inventory / Shop scene
@@ -190,6 +191,8 @@ function buildGrid(
           for (const it of items) { it.equipped = equipped.includes(it.id); }
           buildGrid(grid, items, equipped, crystals, crystalEl, equippedRow);
           updateEquippedRow(equippedRow, equipped, items);
+          // Unlock achievement on first equip
+          if (!isEquipped) unlockAchievement("equip_item").catch(() => {});
         }
       });
     }

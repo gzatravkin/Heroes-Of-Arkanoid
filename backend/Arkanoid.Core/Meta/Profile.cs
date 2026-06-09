@@ -31,6 +31,14 @@ public sealed class Profile
     [JsonPropertyName("equippedItems")]
     public List<string> EquippedItems { get; set; } = new();
 
+    /// <summary>Unlocked achievement ids. Client-driven; backend only persists what it receives.</summary>
+    [JsonPropertyName("achievements")]
+    public List<string> Achievements { get; set; } = new();
+
+    /// <summary>True after the first battle has been seen; suppresses tutorial on subsequent sessions.</summary>
+    [JsonPropertyName("tutorialSeen")]
+    public bool TutorialSeen { get; set; } = false;
+
     public static Profile NewDefault()
     {
         return new Profile

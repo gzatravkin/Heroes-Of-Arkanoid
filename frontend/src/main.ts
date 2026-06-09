@@ -7,6 +7,9 @@ import { mountDungeon } from "./scenes/DungeonScene";
 import { mountCharacters } from "./scenes/CharacterScene";
 import { mountEditor } from "./scenes/EditorScene";
 import { mountInventory } from "./scenes/InventoryScene";
+import { mountAchievements } from "./scenes/AchievementsScene";
+import { mountSettings } from "./scenes/SettingsScene";
+import { mountSkills } from "./scenes/SkillsScene";
 import { fadeInOnLoad } from "./ui/transition";
 
 const host = document.getElementById("app")!;
@@ -36,6 +39,9 @@ loadAtlas()
     else if (scene === "characters") mountCharacters(host);
     else if (scene === "editor") mountEditor(host);
     else if (scene === "inventory") mountInventory(host);
+    else if (scene === "achievements") mountAchievements(host);
+    else if (scene === "settings") mountSettings(host);
+    else if (scene === "skills") mountSkills(host);
     else mountMenu(host);
   })
   .catch((err) => {

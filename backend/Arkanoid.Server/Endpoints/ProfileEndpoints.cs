@@ -69,5 +69,31 @@ public static class ProfileEndpoints
             profileStore.Save(profile);
             return Results.Json(profile, jsonOpts);
         });
+
+        // POST /achievement/unlock?id=<achievementId>
+        // Records an achievement unlock. Idempotent — no-ops if already unlocked.
+        app.MapPost("/achievement/unlock", (HttpContext ctx) =>
+        {
+            var achievementId = ctx.Request.Query["id"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(achievementId))
+                return Results.BadRequest("id query parameter required");
+
+            var profile = profileStore.Load();
+            if (!profile.Achievements.Contains(achievementId))
+            {
+                profile.Achievements.Add(achievementId);
+                profileStore.Save(profile);
+            }
+            return Results.Json(new { ok = true, achievements = profile.Achievements }, jsonOpts);
+        });
+
+        // POST /tutorial/seen → marks tutorial as seen
+        app.MapPost("/tutorial/seen", () =>
+        {
+            var profile = profileStore.Load();
+            profile.TutorialSeen = true;
+            profileStore.Save(profile);
+            return Results.Json(new { ok = true }, jsonOpts);
+        });
     }
 }

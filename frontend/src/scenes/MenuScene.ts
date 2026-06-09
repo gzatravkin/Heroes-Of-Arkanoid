@@ -96,6 +96,22 @@ export function mountMenu(host: HTMLElement) {
   editorBtn.addEventListener("click", () => { navigateTo("/?scene=editor"); });
   navSection.appendChild(editorBtn);
 
+  // Achievements
+  const achBtn = document.createElement("button");
+  achBtn.id = "btn-achievements";
+  achBtn.className = "menu-art-btn menu-btn-achievements";
+  achBtn.innerHTML = `<span class="menu-btn-label">Achievements</span>`;
+  achBtn.addEventListener("click", () => { navigateTo("/?scene=achievements"); });
+  navSection.appendChild(achBtn);
+
+  // Settings
+  const settingsBtn = document.createElement("button");
+  settingsBtn.id = "btn-settings";
+  settingsBtn.className = "menu-art-btn menu-btn-settings";
+  settingsBtn.innerHTML = `<span class="menu-btn-label">Settings</span>`;
+  settingsBtn.addEventListener("click", () => { navigateTo("/?scene=settings"); });
+  navSection.appendChild(settingsBtn);
+
   col.appendChild(navSection);
 
   // Quick-level grid (hidden below main nav, preserves all [data-level] for tests)
@@ -280,6 +296,30 @@ function injectMenuStyles() {
       width: 38px;
       height: 38px;
       background: url('/ui/InterfaceNewButton.png') no-repeat center / contain;
+    }
+
+    /* Achievements — uses achievement badge as icon */
+    .menu-btn-achievements::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      background: url('/Sprites/Interface/Achivements/achievementLvl2Eng.png') no-repeat center / contain;
+    }
+
+    /* Settings — uses close/gear icon */
+    .menu-btn-settings::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      background: url('/ui/InterfaceNewButton2.png') no-repeat center / contain;
     }
 
     .menu-btn-label {

@@ -6,6 +6,7 @@ import { Hud } from "../ui/Hud";
 import { metaApi } from "../net/metaApi";
 import { createCampaignFlow } from "./battle/campaignFlow";
 import { createDungeonFlow } from "./battle/dungeonFlow";
+import { maybeShowTutorial } from "./TutorialOverlay";
 
 // Renderer always runs — the pooled draw() is cheap enough for mobile GPUs and
 // headless WebGL alike. The HEAVY_FX glow gate in Renderer.ts still skips the
@@ -49,6 +50,20 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
 
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);
-  // auto-serve shortly after connect so the ball is live for tests/play
-  conn.whenReady(() => setTimeout(() => conn.serve(), 300));
+  // Show tutorial on first battle (non-blocking — serves after tutorial or immediately).
+  // Skip in Playwright/automated environments (navigator.webdriver=true) to avoid
+  // blocking test automation that depends on the ball auto-serving.
+  // Can be forced with ?tutorial=1 URL param for dedicated tutorial tests.
+  const q2 = new URLSearchParams(location.search);
+  const forceTutorial = q2.get("tutorial") === "1";
+  const isAutomated = !!(navigator as any).webdriver && !forceTutorial;
+  conn.whenReady(() => {
+    if (isAutomated) {
+      setTimeout(() => conn.serve(), 300);
+    } else {
+      maybeShowTutorial(host, forceTutorial).then(() => {
+        setTimeout(() => conn.serve(), 300);
+      });
+    }
+  });
 }

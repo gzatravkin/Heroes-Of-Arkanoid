@@ -40,6 +40,24 @@ const PHOENIX_BIRTH_FPS = 12;
 const PHOENIX_DEATH_STRIP_KEY = "firemage/spell_phonex/PhoenixDeathAnimation2";
 const PHOENIX_DEATH_FPS = 14;
 
+// Lightning: animated frames from manifest (engineer/spell_lighting/lighting)
+const LIGHTNING_ANIM_KEY = "engineer/spell_lighting/lighting";
+const LIGHTNING_FPS = 16;
+
+// Skeleton death: animated strip (necromancer/spell_skeleton/SkeletonDeathAnimation)
+const SKELETON_DEATH_STRIP_KEY = "necromancer/spell_skeleton/SkeletonDeathAnimation";
+const SKELETON_DEATH_FPS = 12;
+
+// Skeleton2 death: animated strip (necromancer/spell_skeleton/Skeleton2DeathAnimation)
+const SKELETON2_DEATH_STRIP_KEY = "necromancer/spell_skeleton/Skeleton2DeathAnimation";
+const SKELETON2_DEATH_FPS = 12;
+
+// Heaven Vaza death and HellBall death: referenced indirectly by getBiomeSecondaryStrip()
+// which is called from spawnBlockDestroy. Keys are literal strings in that function.
+const _HEAVEN_VAZA_REF = "heaven/HeavenVazaDeathAnimation"; // used in getBiomeSecondaryStrip
+const _HELL_BALL_REF = "hell/HellBallDeathAnimation"; // used in getBiomeSecondaryStrip
+void _HEAVEN_VAZA_REF; void _HELL_BALL_REF; // suppress lint — actual keys are in the function below
+
 export class Effects {
   readonly container: Container;
   private animSys: AnimSystem;
@@ -50,6 +68,9 @@ export class Effects {
   private _fireBirthFrames = () => animStrip(FIRE_BIRTH_KEY, FIRE_BIRTH_FPS);
   private _phoenixBirthFrames = () => animFrames(PHOENIX_BIRTH_ANIM_KEY);
   private _phoenixDeathFrames = () => animStrip(PHOENIX_DEATH_STRIP_KEY, PHOENIX_DEATH_FPS);
+  private _lightningFrames = () => animFrames(LIGHTNING_ANIM_KEY);
+  private _skeletonDeathFrames = () => animStrip(SKELETON_DEATH_STRIP_KEY, SKELETON_DEATH_FPS);
+  private _skeleton2DeathFrames = () => animStrip(SKELETON2_DEATH_STRIP_KEY, SKELETON2_DEATH_FPS);
 
   constructor() {
     this.container = new Container();
@@ -73,6 +94,12 @@ export class Effects {
         case "spellCast":
           this.spawnPhoenixFlourish(ev.x, ev.y, cellSize);
           break;
+        case "lightning":
+          this.spawnLightningStrike(ev.x, ev.y, cellSize);
+          break;
+        case "skeletonDeath":
+          this.spawnSkeletonDeath(ev.x, ev.y, cellSize);
+          break;
       }
     }
   }
@@ -94,6 +121,14 @@ export class Effects {
       const exFrames = this._explosionFrames();
       if (exFrames.length) {
         this.animSys.oneShot(exFrames, EXPLOSION_FPS + 4, x, y, cellSize * 0.9, true, 0xff9933);
+      }
+      // Biome-specific secondary burst (heaven vaza glow, hell ball death)
+      const secondaryKey = getBiomeSecondaryStrip(biome);
+      if (secondaryKey) {
+        const secondaryFrames = animStrip(secondaryKey, 14);
+        if (secondaryFrames.length) {
+          this.animSys.oneShot(secondaryFrames, 14, x, y, cellSize * 1.2, true, 0xffffff);
+        }
       }
     } else {
       // Fallback: static sprite fade
@@ -144,6 +179,32 @@ export class Effects {
     }
     // Fallback: bright white flash
     this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.5, 120, 1.0, 1.3);
+  }
+
+  // ── Lightning strike ─────────────────────────────────────────────────────
+
+  private spawnLightningStrike(x: number, y: number, cellSize: number) {
+    const frames = this._lightningFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, LIGHTNING_FPS, x, y, cellSize * 2.5, true, 0xaaccff);
+      // Secondary additive white flash
+      this.animSys.oneShot(frames, LIGHTNING_FPS + 6, x, y + cellSize, cellSize * 1.5, true, 0xffffff);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize * 1.8, 200, 1.0, 1.5, 0x88bbff);
+    }
+  }
+
+  // ── Skeleton death ────────────────────────────────────────────────────────
+
+  private spawnSkeletonDeath(x: number, y: number, cellSize: number) {
+    const frames = this._skeletonDeathFrames();
+    const frames2 = this._skeleton2DeathFrames();
+    const chosen = frames.length >= frames2.length ? frames : frames2;
+    if (chosen.length) {
+      this.animSys.oneShot(chosen, SKELETON_DEATH_FPS, x, y, cellSize * 3, false, 0xccddff);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize, 220, 1.0, 1.6, 0x8899ff);
+    }
   }
 
   // ── Fallback particle (no atlas art) ─────────────────────────────────────
@@ -209,6 +270,15 @@ function getBiomeDestroyStrip(biome: string): string | null {
     case "cavern":  return "dungeon/DungeonStandartDestroyed";
     case "village": return "village/blocks/VillageStandartDestroyed";
     case "heaven":  return "heaven/StandartHavenDestroyed";
+    default:        return null;
+  }
+}
+
+// Expose biome-specific secondary burst keys for richer effects.
+function getBiomeSecondaryStrip(biome: string): string | null {
+  switch (biome) {
+    case "heaven":  return "heaven/HeavenVazaDeathAnimation";
+    case "hell":    return "hell/HellBallDeathAnimation";
     default:        return null;
   }
 }
