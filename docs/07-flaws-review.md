@@ -87,3 +87,99 @@ exactly the generic-fantasy-mobile-kit look. Specific offenders:
 5. **C1 + C2** — non-face Hell channels; denser/taller layouts.
 6. **A7** — a Heaven boss to actually end the campaign.
 7. Remaining P2/P3 polish (A4–A6, C4–C5, D4–D7).
+
+---
+---
+
+# Round 2 — Expanded review (verified against Sprites/ + Scripts/ + design docs)
+
+Added shots reviewed: `ui-{characters,inventory,skills,campaign,dungeon-run}`,
+`spell-{ignite,fireball,firewall,turret}`, `spell-{paladin-shield,engineer-lightning,necromancer-skeleton}`.
+
+## E. Missing ENEMIES & hazards per location (the big one — verified)
+
+The original was an action-RPG breakout: **each location had multiple moving enemies that
+shoot/attack you and environmental hazards**, confirmed by art in `Sprites/Locationes/Objects/`,
+controller scripts in `Scripts/`, and `docs/01-current-game-design.md`. The current build has
+**none of them** — only the static boss-hazard. This is the single biggest reason it "looks like
+a shit / feels empty." Full inventory of what exists in the assets but is **unused**:
+
+**Hell (`Location_1_Hell`)**
+- **Hell Ball Spawner** (`HellBallSpawner`, `HellBallLvl1/2/3`, `HellBallMissile`, `HellBallDamage`) — a maw that **spawns homing fireballs at the paddle**. Real enemy. **P1**.
+- **Lava Spawner / lava flow** (`LavaSpowner(+Active/Damaged/Destroyed)`, `LavaBegining/MainPart/End`; scripts `BlockEffects_OpenLavaSpawner`, `LavaBlockEater`) — the signature Hell hazard (design doc calls it a stub even in the original, but the art + opener exist). **P2**.
+- **Color-paired teleporters** (`Skull` Red/Blue/Green + Active + `SkullAnimation`) — design doc: "color-paired portals warp the ball." Current uses ONLY red as a single teleport. The pairing-by-color mechanic + blue/green skulls are unused. **P2**.
+- **Chains** (`ChainHell`, `ChainMainHell(+Damaged/Destroyed)`) — decorative/structural. P3.
+
+**Caverns (`Location_2_Dungeion`)**
+- **Stalactites** (`Stalactite`, `Stalactite2`) — dedicated downward-spike art; design doc: the **Goblin boss "drops stalactites"** and there's "stalactite scatter." Completely unused as a hazard/block. **P1** (user explicitly called this out).
+- **Bombs** (`Bomb`, `GrateBomb`, `*Stand/Vertical`) — explosive chain blocks. **P1** (= A1).
+- **Mine cart** (`DungeonCart`, `DungeonCartWheel`) — a rolling hazard/prop. P3.
+- `Stone`/`StoneLight` rock variants — unused. P3.
+
+**Witchland (`Location_3_Village`) — the deepest roster, all unused**
+- **Beholders** (`Beholder1/2/3` + `Ghost` variants, `BeholderAttackAnimation`, `BeholderDeathAnimation`, `BeholderMissile(+Ghost)`; script `BeholderController/LookAtBall`) — flying eyes that **track the ball and shoot missiles**. **P1**.
+- **Bats** (`BatFlyAnimation*`, `BatSleeping`, `BatGhost*`; scripts `BatController`, `SleepingBatController`) — sleeping bats that wake and fly. **P1**.
+- **Necromant / Death** (`VillageDeath(+Ghost)`, `*CastAnimation`, `*DeathAnimation`, `DeathSphere`, `DeathMark.cs`) — design doc: "**Necromant enemy that revives destroyed blocks**" + casts death spheres. **P1**.
+- **Cauldrons** (`Kotelok1/2/3` + Death) — signature Witchland block. **0 refs** (= A2). **P1**.
+- **Portals** (`Portal`, `VillagePortal`, `VillagePotalLarge`; script `GhostPortalController`) — ghost-layer portals. **P2**.
+- Pots/potions/broom/shadow props (`VillagePotion`, `VillageMetla`, `VillageShadow`, `VillageCorrupt`) — set dressing, unused. P3.
+
+**Heaven (`Location_4_Heavens`) — "most developed biome" in the original, now the emptiest**
+- **Statue enemies** (`HeavenDefender(+Active)`, `HeavenMeleeStatue(+Active/glowing parts)`, `ShieldStatue.cs`, `MeleeStatue.cs`, `StatueController.cs`, `AbstractStatue.cs`) — statues that **activate and attack**, and (design doc) can be **turned ally / leveled by hitting an Altar/Vase**. **P1**.
+- **WindMaster** (`WindMaster2`, `WindMasterV2Circle/FromCircle/Glow`; `WindMasterScript.cs`) — a wind enemy/miniboss. **P2**.
+- **Columns** (`Column`, `ColumnTop/Bottom(+Damaged/Destroyed)`; `ColumnPart.cs`) — multi-part vertical pillars (real silhouette variety) (= A4). **P2**.
+- **Altar / Vase / Graal** (`HeavenAltarV2(+Active)`, `HeavenVaza(+DeathAnimation)`, `GraalHaven`, `HolyBall`, `Shield`, `Missile`) — the ally/level-up interaction objects. **P2**.
+- **Heaven boss** (`HeavenBoss`, `HeavenBossGlobe`) — the campaign currently **just ends at `heaven-2`** with no 4th boss (= A7). **P2**.
+
+> Net: the original had ~12 distinct enemy/hazard types across the biomes (beholders, bats,
+> necromant, hell-ball-spawner, lava, stalactites, bombs, melee/shield statues, windmaster, …).
+> The current build shipped **zero** of them. This is why locations feel like recoloured walls.
+
+## F. No mirrored / oriented block variants ("corner block with no sense")
+
+The renderer draws every cell as one upright sprite — there is **no flipX/flipY or
+corner/edge tile system**. Consequences:
+- **Asymmetric block art breaks when repeated.** `HellInvulnerable` is a left/right-asymmetric demon face; using it as a vertical "channel" puts the same face on both walls, so one side faces the wrong way (visible in `move5-hell-2`). It reads as random faces, not a wall.
+- **Multi-part structures are impossible.** `ColumnTop` (an ornate capital) needs a matching `ColumnBottom` and orientation; without flip/rotate there's no way to build a proper framed column or a 4-corner border.
+- **Fix (user's suggestion):** add mirrored block-ids (e.g. `_l`/`_r`, `_tl/_tr/_bl/_br`) **or** a per-cell `flipX`/`flipY` flag in the level format + renderer. Cheapest: a `flip` field on the legend mapping; or duplicate block defs that point at the same sprite with a mirror flag. This unlocks corners, channels, and symmetric structures that actually look intentional. **P2**.
+
+## G. Emojis used as UI icons (replace with real art)
+
+Emoji glyphs are shipped in place of sprites — looks cheap/inconsistent on a pixel-art game:
+- `CampaignScene.ts:379` — **⚡** in the rift banner (use a real rift/portal sprite).
+- `InventoryScene.ts` — **💎** as the crystals icon (×3) and **🔒** as the locked-item icon. Real `Gem.png` and a lock sprite exist.
+- `Hud.ts` — **✨ 🔥 🛡 ⚡ 💀** as spell/effect fallback icons (lines ~390, 755–769).
+**Fix:** swap every emoji for the corresponding sprite (gem, lock, spell icons, rift). **P2** (D-class "AI-kit" tell the user explicitly hates).
+
+## H. Stretched art instead of 9-slice (the "weirdly stretched" art)
+
+~31 single-sprite backgrounds are stretched with `background-size: 100% 100%` / `cover` across
+12 files (buttons `InterfaceButton`/`Button1`, panels `LvlUpInterfacePanel`, node art, hero
+banners, etc.). A fixed-aspect sprite stretched to an arbitrary box distorts — exactly what the
+original avoided with **9-slice** (which we now use for the HUD bars). **Fix:** convert framed
+buttons/panels to CSS `border-image` 9-slice (same technique as `Hud.buildBar`). Files: `MenuScene`,
+`CampaignScene`, `CharacterScene`, `DungeonsScene`, `DungeonScene`, `SkillsScene`, `SettingsScene`,
+`AchievementsScene`, `TutorialOverlay`, `battle/overlays`, `Hud`. **P2**.
+
+## I. More UI flaws (from the new gallery shots)
+
+| # | Screen | Flaw | Sev |
+|---|--------|------|-----|
+| I1 | **Inventory** (`ui-inventory`) | **Every item icon is an identical grey padlock** — the real item art (`/items/…`) is hidden behind the "unowned" lock, so the whole shop reads as broken placeholders. Show the (greyed) item art + a small lock badge instead. Also uses 💎 emoji. | **P1** |
+| I2 | **Battle hotbar** (`spell-fireball/turret/ignite`) | **Fire Mage spell slots render as blank white boxes** (no icon) while Engineer/Paladin/Necromancer slots show icons — the default class's hotbar looks empty/broken. | **P1** |
+| I3 | **Dungeon run** (`ui-dungeon-run`) | ~70% empty black void; "Active Run / Floor 1/3 / None yet / Enter Floor" floats in a vacuum. Looks unfinished. | P2 |
+| I4 | **Campaign map** (`ui-campaign`) | Every node is the **same glassy orb with the same generic picture icon**, only tinted by tier; nodes don't show biome/level identity. Connectors are thin; labels tiny. | P2 |
+| I5 | **Character select** (`ui-characters`) | Each row has a **decorative gold arrow** pointing right that does nothing (implies "next/forward" but is inert). | P3 |
+| I6 | **Spell VFX are weak** (`spell-fireball/turret`) | Fireball = a tiny orange ring; turret = barely visible. Only Firewall and Necro skeleton read clearly. Effects need more scale/punch (the original had big missile/explosion frames). | P2 |
+
+## Revised top priorities (after round 2)
+
+The "looks like shit / empty" verdict is mostly **E (no enemies)** + the broken-looking
+placeholders. Recommended order:
+
+1. **I1 + I2 + D1 + D2 + D3** — fix the broken-looking placeholders (inventory padlocks, blank Fire-Mage hotbar, Skills grey box, Russian badges, dev watermark). Cheap, kills the "unfinished" read.
+2. **E (enemies)** — bring back at least one signature enemy per biome: Hell-Ball-Spawner, Stalactite drops (Caverns), Beholder (Witchland), Melee Statue (Heaven). This is the real gameplay gap.
+3. **A1/A2/A3** — bombs, cauldrons, and real block damage states.
+4. **F** — mirrored/oriented block variants (unblocks good-looking structures).
+5. **G + H** — replace emojis with sprites; convert stretched buttons/panels to 9-slice.
+6. **B/C/D residue** — balls-bar contrast, denser levels, Heaven boss, generic-node polish.
