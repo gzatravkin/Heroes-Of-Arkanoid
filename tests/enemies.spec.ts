@@ -36,6 +36,13 @@ test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await page.screenshot({ path: path.join(SHOTS, "enemy-caverns-bombs.png") });
 });
 
+test("Witchland ghost portal toggles the ball's phase", async ({ page }) => {
+  await openBattle(page, "village-2");
+  expect((await page.evaluate(() => (window as any).__game.getState()))
+    .blocks.some((b: any) => b.sprite === "Portal")).toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-ghost-portal.png") });
+});
+
 test("Heaven shield statue shields neighbours (immune flash)", async ({ page }) => {
   await openBattle(page, "heaven-1");
   expect((await page.evaluate(() => (window as any).__game.getState()))

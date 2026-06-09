@@ -86,8 +86,30 @@ internal static class BallSystem
                 // single teleporter: fall through to indestructible bounce below
             }
 
-            // Ghost block (ballPhases): ball passes through entirely — no reflection, no damage
-            if (blk.BallPhases) continue;
+            // Ghost portal (Witchland): toggle the ball's phase and pass through the portal.
+            if (blk.Portal)
+            {
+                if (b.TeleportCooldown == 0)
+                {
+                    b.Ghost = !b.Ghost;
+                    b.TeleportCooldown = g.Config.TeleportCooldownTicks;
+                    g.RaiseEvent("ghostPortal", c.X, c.Y);
+                    g._log.Log(g.TickCount, "portal", "phase toggled", $"ball={b.Id} ghost={b.Ghost}");
+                }
+                continue; // always pass through the portal block itself
+            }
+
+            // Phase interaction: a NORMAL ball passes through ghost (ballPhases) blocks; a GHOST
+            // ball instead passes through normal destructible blocks and collides with ghost ones.
+            bool ghostBlock = blk.BallPhases;
+            if (b.Ghost)
+            {
+                if (!ghostBlock && !blk.Indestructible && !blk.Boss && !blk.Teleporter) continue;
+            }
+            else
+            {
+                if (ghostBlock) continue;
+            }
 
             // reflect by dominant penetration axis
             var dx = b.Pos.X - c.X;

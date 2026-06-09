@@ -88,6 +88,37 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
+
+    [Fact]
+    public void GhostPortal_TogglesPhase_GhostBallHitsGhostBlocksAndPhasesNormal()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"portal\":true}," +
+            "{\"id\":\"p\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}," +
+            "{\"id\":\"x\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"ballPhases\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"r.p\",\"x..\",\"...\"],\"legend\":{\"r\":\"r\",\"p\":\"p\",\"x\":\"x\"}}");
+
+        var portal = g.Blocks[0];
+        var normal = g.Blocks[1];
+        var ghost  = g.Blocks[2];
+
+        // Hit the portal → the ball becomes a ghost.
+        BallHit(g, portal);
+        Assert.True(g.Balls[0].Ghost, "portal toggled the ball to ghost phase");
+
+        // Ghost ball passes THROUGH a normal block (no damage).
+        int pBefore = normal.Hp;
+        BallHit(g, normal);
+        Assert.Equal(pBefore, normal.Hp);
+
+        // Ghost ball COLLIDES with a ghost (ballPhases) block, damaging it.
+        int xBefore = ghost.Hp;
+        BallHit(g, ghost);
+        Assert.True(ghost.Hp < xBefore, "ghost ball should damage the ghost block");
+    }
+
     // ── Shield Statue (temporary block immunity) ──────────────────────────────
 
     [Fact]

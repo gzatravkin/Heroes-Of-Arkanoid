@@ -1056,7 +1056,7 @@ export class Renderer {
           sp.height = missileSize * 2;
           sp.rotation = (this._tick * 0.12); // slow spin
         } else {
-          sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
           // Pulse ignited balls slightly for visual feedback.
           const igScale = ball.ignited
             ? spriteRadius * (1.0 + 0.15 * Math.sin(this._tick * 0.2))
@@ -1113,7 +1113,7 @@ export class Renderer {
           sp.width  = missileSize * 2;
           sp.height = missileSize * 2;
         } else {
-          sp.tint = ball.ignited ? 0xff7a2a : 0xffffff;
+          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
           sp.width  = spriteRadius * 2;
           sp.height = spriteRadius * 2;
         }

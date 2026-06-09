@@ -42,6 +42,9 @@ public sealed class BlockType
     /// <summary>Periodically grants nearby blocks a temporary damage shield (Heaven Shield Statue).</summary>
     [JsonPropertyName("shieldStatue")] public bool ShieldStatue { get; set; } = false;
 
+    /// <summary>On ball overlap, toggles the ball's ghost phase (Witchland Ghost Portal).</summary>
+    [JsonPropertyName("portal")] public bool Portal { get; set; } = false;
+
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
     [JsonPropertyName("flipY")] public bool FlipY { get; set; } = false;

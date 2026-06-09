@@ -46,6 +46,9 @@ public sealed class Block
     // --- WindMaster: pushes nearby balls away (deflects aim) within a radius. ---
     public bool WindMaster { get; init; }
 
+    // --- Ghost Portal (Witchland): on ball overlap, toggles the ball's ghost phase. ---
+    public bool Portal { get; init; }
+
     // --- Shield Statue: periodically grants nearby blocks a temporary damage shield. ---
     public bool   ShieldStatue { get; init; }
     /// <summary>Seconds of remaining damage-immunity granted by a shield statue (mutable).</summary>

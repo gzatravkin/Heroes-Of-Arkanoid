@@ -102,10 +102,10 @@ const LEVELS = [
     ".AA..AA.",
     "AA.AA.AA",
   ]},
-  { id: "village-2", biome: "village", legend: { A: "village_basic", G: "village_ghost", E: "village_beholder" }, rows: [
+  { id: "village-2", biome: "village", legend: { A: "village_basic", G: "village_ghost", E: "village_beholder", P: "village_portal" }, rows: [
     "GA.AA.AG",
     "A.AGGA.A",
-    ".AA..AA.",
+    "PAA..AAP",
     "GA.EE.AG",
     ".AA..AA.",
     "A.AGGA.A",

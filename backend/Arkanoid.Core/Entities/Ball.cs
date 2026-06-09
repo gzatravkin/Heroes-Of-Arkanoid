@@ -12,4 +12,7 @@ public sealed class Ball
     public int DecayHitsLeft  = 0;     // >0 means imbued with Decay (necromancer)
     /// <summary>Ticks remaining before this ball can be warped by a teleporter again.</summary>
     public int TeleportCooldown = 0;
+    /// <summary>Ghost phase (Witchland portal): a ghost ball passes through normal blocks and
+    /// instead collides with ghost (ballPhases) blocks. Toggled by a Portal block.</summary>
+    public bool Ghost = false;
 }

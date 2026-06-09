@@ -10,6 +10,7 @@ public sealed class BallDto
     [JsonPropertyName("y")]       public double Y       { get; set; }
     [JsonPropertyName("ignited")] public bool   Ignited { get; set; }
     [JsonPropertyName("decayed")] public bool   Decayed { get; set; }
+    [JsonPropertyName("ghost")]   public bool   Ghost   { get; set; }
 }
 
 public sealed class ProjectileDto
@@ -136,7 +137,7 @@ public sealed class Snapshot
             CellSize = g.Config.CellSize
         };
         foreach (var b in g.Balls)
-            s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0, Decayed = b.DecayHitsLeft > 0 });
+            s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0, Decayed = b.DecayHitsLeft > 0, Ghost = b.Ghost });
         // Legacy: projectiles also appear in Balls list for backwards compat (id offset)
         foreach (var pr in g.Projectiles)
             s.Balls.Add(new BallDto { Id = 10000 + pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Ignited = pr.Kind is "fireball" or ""});

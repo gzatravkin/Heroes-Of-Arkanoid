@@ -6,7 +6,7 @@
   "rows_data": [
     "GA.AA.AG",
     "A.AGGA.A",
-    ".AA..AA.",
+    "PAA..AAP",
     "GA.EE.AG",
     ".AA..AA.",
     "A.AGGA.A",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "village_basic",
     "G": "village_ghost",
-    "E": "village_beholder"
+    "E": "village_beholder",
+    "P": "village_portal"
   }
 }

@@ -50,6 +50,7 @@ const ALIAS: Record<string, string> = {
   Bomb:                  "dungeon/Bomb",
   Beholder1:             "village/enemies/Beholder1",
   VillageDeath:          "village/enemies/VillageDeath",
+  Portal:                "village/blocks/Portal",
   HeavenMeleeStatue:     "heaven/HeavenMeleeStatue",
   WindMaster2:           "heaven/WindMaster2",
   HeavenDefender:        "heaven/HeavenDefender",
