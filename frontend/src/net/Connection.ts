@@ -38,7 +38,10 @@ export class Connection {
 
   constructor(level: string, seed: number, runId: string) {
     this.runId = runId;
-    this.ws = new WebSocket(`ws://localhost:5080/ws?level=${level}&seed=${seed}&run=${runId}`);
+    // Profile namespace: lets parallel test workers isolate their backend save.
+    // Browsers can't set WS headers, so it rides the query string. Defaults to "default".
+    const pid = (typeof localStorage !== "undefined" && localStorage.getItem("ark_pid")) || "default";
+    this.ws = new WebSocket(`ws://localhost:5080/ws?level=${level}&seed=${seed}&run=${runId}&pid=${encodeURIComponent(pid)}`);
     log("net", "connecting", { level, seed, runId });
     this.ws.onopen = () => log("net", "open");
     this.ws.onclose = () => log("net", "close");

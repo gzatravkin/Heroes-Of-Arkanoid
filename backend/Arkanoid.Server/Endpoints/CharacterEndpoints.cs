@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Arkanoid.Core.Meta;
+using Arkanoid.Server;
 using Arkanoid.Server.Meta;
 
 namespace Arkanoid.Server.Endpoints;
@@ -10,9 +11,9 @@ public static class CharacterEndpoints
         ProfileStore profileStore, JsonSerializerOptions jsonOpts)
     {
         // GET /characters → catalog + selection state from profile
-        app.MapGet("/characters", () =>
+        app.MapGet("/characters", (HttpContext ctx) =>
         {
-            var profile = profileStore.Load();
+            var profile = profileStore.Load(ProfileNs.From(ctx));
             return Results.Json(new
             {
                 characters = characterCatalog.All,
@@ -32,9 +33,10 @@ public static class CharacterEndpoints
             try { characterCatalog.Get(id); }
             catch (KeyNotFoundException) { return Results.NotFound($"Character '{id}' not found"); }
 
-            var profile = profileStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var profile = profileStore.Load(pid);
             profile.SelectedCharacter = id;
-            profileStore.Save(profile);
+            profileStore.Save(profile, pid);
             return Results.Json(profile, jsonOpts);
         });
     }

@@ -21,13 +21,14 @@ public sealed class GameSession
     private readonly ProfileStore _profileStore;
     private readonly DungeonStore _dungeonStore;
     private readonly ItemCatalog? _itemCatalog;
+    private readonly string _pid;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
     private FileSimLog _log = null!;
     private long _tick;
 
-    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore, DungeonStore dungeonStore, ItemCatalog? itemCatalog = null)
-    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; _dungeonStore = dungeonStore; _itemCatalog = itemCatalog; }
+    public GameSession(WebSocket socket, string configRoot, ProfileStore profileStore, DungeonStore dungeonStore, ItemCatalog? itemCatalog = null, string pid = "default")
+    { _socket = socket; _configRoot = configRoot; _profileStore = profileStore; _dungeonStore = dungeonStore; _itemCatalog = itemCatalog; _pid = pid; }
 
     public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
@@ -65,7 +66,7 @@ public sealed class GameSession
             : null;
         _game = new GameInstance(level, SimConfig.Default, seed, _log, relics, bonuses);
 
-        var profile = _profileStore.Load();
+        var profile = _profileStore.Load(_pid);
         _game.SetSpellLevels(profile.SpellLevels);
         _game.SetCharacter(profile.SelectedCharacter);
 
@@ -77,7 +78,7 @@ public sealed class GameSession
         }
 
         // Apply dungeon run buffs if there is an active run for this level.
-        var run = _dungeonStore.Load();
+        var run = _dungeonStore.Load(_pid);
         if (run is { Active: true } && run.CurrentFloor == levelId)
         {
             foreach (var relicId in run.Relics)

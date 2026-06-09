@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Arkanoid.Core.Meta;
+using Arkanoid.Server;
 using Arkanoid.Server.Meta;
 
 namespace Arkanoid.Server.Endpoints;
@@ -27,23 +28,24 @@ public static class DungeonEndpoints
 
             var seed = (int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff);
             var run  = DungeonService.StartRun(def, seed);
-            dungeonStore.Save(run);
+            dungeonStore.Save(run, ProfileNs.From(ctx));
             return Results.Json(run, jsonOpts);
         });
 
         // GET /dungeon/state → current run (or {active:false})
-        app.MapGet("/dungeon/state", () =>
+        app.MapGet("/dungeon/state", (HttpContext ctx) =>
         {
-            var run = dungeonStore.Load();
+            var run = dungeonStore.Load(ProfileNs.From(ctx));
             return run is null
                 ? Results.Json(new { active = false }, jsonOpts)
                 : Results.Json(run, jsonOpts);
         });
 
         // POST /dungeon/floor-cleared → advance floor; grants permanent reward on final floor
-        app.MapPost("/dungeon/floor-cleared", () =>
+        app.MapPost("/dungeon/floor-cleared", (HttpContext ctx) =>
         {
-            var run = dungeonStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var run = dungeonStore.Load(pid);
             if (run is null || !run.Active)
                 return Results.BadRequest("No active dungeon run");
 
@@ -52,16 +54,16 @@ public static class DungeonEndpoints
             catch { return Results.BadRequest($"Unknown dungeon id '{run.DungeonId}'"); }
 
             var isLastFloor = DungeonService.OnFloorCleared(run, progressionConfig);
-            dungeonStore.Save(run);
+            dungeonStore.Save(run, pid);
 
             Profile? updatedProfile = null;
             if (isLastFloor)
             {
-                var profile = profileStore.Load();
+                var profile = profileStore.Load(pid);
                 if (!profile.UnlockedRelics.Contains(def.RewardRelic))
                     profile.UnlockedRelics.Add(def.RewardRelic);
                 profile.Crystals += def.RewardCrystals;
-                profileStore.Save(profile);
+                profileStore.Save(profile, pid);
                 updatedProfile = profile;
             }
 
@@ -75,23 +77,25 @@ public static class DungeonEndpoints
             if (string.IsNullOrWhiteSpace(choice))
                 return Results.BadRequest("choice query parameter required");
 
-            var run = dungeonStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var run = dungeonStore.Load(pid);
             if (run is null || !run.Active)
                 return Results.BadRequest("No active dungeon run");
 
             DungeonService.PickChoice(run, choice);
-            dungeonStore.Save(run);
+            dungeonStore.Save(run, pid);
             return Results.Json(run, jsonOpts);
         });
 
         // POST /dungeon/fail → permadeath — ends the run
-        app.MapPost("/dungeon/fail", () =>
+        app.MapPost("/dungeon/fail", (HttpContext ctx) =>
         {
-            var run = dungeonStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var run = dungeonStore.Load(pid);
             if (run is null) return Results.BadRequest("No active dungeon run");
 
             DungeonService.Fail(run);
-            dungeonStore.Save(run);
+            dungeonStore.Save(run, pid);
             return Results.Json(run, jsonOpts);
         });
     }

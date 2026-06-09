@@ -41,8 +41,9 @@ app.Map("/ws", async context =>
     var levelId = context.Request.Query["level"].FirstOrDefault() ?? "hell-1";
     var seed = int.TryParse(context.Request.Query["seed"].FirstOrDefault(), out var s) ? s : 1;
     var runId = context.Request.Query["run"].FirstOrDefault() ?? $"sess-{DateTime.UtcNow:HHmmss-fff}";
+    var pid   = context.Request.Query["pid"].FirstOrDefault() ?? "default";
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var session = new GameSession(socket, configRoot, profileStore, dungeonStore, itemCatalog);
+    var session = new GameSession(socket, configRoot, profileStore, dungeonStore, itemCatalog, pid);
     await session.RunAsync(levelId, seed, runId, context.RequestAborted);
 });
 

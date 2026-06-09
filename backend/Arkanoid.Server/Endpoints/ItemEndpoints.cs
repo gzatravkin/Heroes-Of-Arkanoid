@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Arkanoid.Core.Meta;
+using Arkanoid.Server;
 using Arkanoid.Server.Meta;
 
 namespace Arkanoid.Server.Endpoints;
@@ -10,9 +11,9 @@ public static class ItemEndpoints
         JsonSerializerOptions jsonOpts)
     {
         // GET /items → catalog + owned tiers + equipped list + current crystals
-        app.MapGet("/items", () =>
+        app.MapGet("/items", (HttpContext ctx) =>
         {
-            var profile = profileStore.Load();
+            var profile = profileStore.Load(ProfileNs.From(ctx));
             var items = itemCatalog.All.Select(def => new
             {
                 def.Id,
@@ -35,9 +36,10 @@ public static class ItemEndpoints
             if (string.IsNullOrWhiteSpace(id))
                 return Results.BadRequest("id query parameter required");
 
-            var profile = profileStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var profile = profileStore.Load(pid);
             var ok = ItemShop.TryBuy(profile, itemCatalog, id);
-            if (ok) profileStore.Save(profile);
+            if (ok) profileStore.Save(profile, pid);
             return Results.Json(new { ok, crystals = profile.Crystals, ownedTier = profile.OwnedItems.GetValueOrDefault(id, 0) }, jsonOpts);
         });
 
@@ -48,9 +50,10 @@ public static class ItemEndpoints
             if (string.IsNullOrWhiteSpace(id))
                 return Results.BadRequest("id query parameter required");
 
-            var profile = profileStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var profile = profileStore.Load(pid);
             var ok = ItemShop.Equip(profile, id);
-            if (ok) profileStore.Save(profile);
+            if (ok) profileStore.Save(profile, pid);
             return Results.Json(new { ok, equipped = profile.EquippedItems }, jsonOpts);
         });
 
@@ -61,9 +64,10 @@ public static class ItemEndpoints
             if (string.IsNullOrWhiteSpace(id))
                 return Results.BadRequest("id query parameter required");
 
-            var profile = profileStore.Load();
+            var pid = ProfileNs.From(ctx);
+            var profile = profileStore.Load(pid);
             var ok = ItemShop.Unequip(profile, id);
-            if (ok) profileStore.Save(profile);
+            if (ok) profileStore.Save(profile, pid);
             return Results.Json(new { ok, equipped = profile.EquippedItems }, jsonOpts);
         });
     }

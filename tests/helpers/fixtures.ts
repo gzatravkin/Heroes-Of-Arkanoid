@@ -6,7 +6,16 @@ import * as path from "path";
 // backend session JSONL to the report. Attaches on EVERY test (handy on pass too,
 // essential on fail) so an AI can read exactly what happened.
 export const test = base.extend({
+  // Per-worker profile namespace so parallel workers never clobber each other's
+  // backend save. The header covers app fetch + page.request; the localStorage
+  // value (set below) covers the WebSocket sim session.
+  extraHTTPHeaders: async ({}, use, testInfo) => {
+    await use({ "X-Profile-Id": `w${testInfo.parallelIndex}` });
+  },
   page: async ({ page }, use, testInfo) => {
+    await page.addInitScript(
+      (pid) => localStorage.setItem("ark_pid", pid), `w${testInfo.parallelIndex}`);
+
     const console_: string[] = [];
     page.on("console", (m) => console_.push(`[${m.type()}] ${m.text()}`));
     page.on("pageerror", (e) => console_.push(`[pageerror] ${e.message}`));

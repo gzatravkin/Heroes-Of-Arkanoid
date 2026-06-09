@@ -89,6 +89,7 @@ test("permadeath: lose a floor → fail overlay → state inactive", async ({ pa
 });
 
 test("clear reward: win all 3 floors → clear overlay with reward info", async ({ page }) => {
+  test.slow(); // plays three full floors of sim — needs headroom under parallel load
   await page.request.post(`${API}/dungeon/start?id=ember-depths`);
 
   // Helper: enter floor → win → pick (or clear on last)
