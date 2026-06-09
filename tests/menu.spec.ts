@@ -35,6 +35,35 @@ test("clicking Continue enters a battle", async ({ page }) => {
   expect(s.blocks.length).toBeGreaterThan(0);
 });
 
+test("menu controls meet the ≥44px mobile touch-target floor (WCAG 2.5.5)", async ({ page }) => {
+  await page.goto("/?scene=menu");
+  const ids = ["#btn-continue", "#btn-campaign",
+    "#btn-characters", "#btn-inventory", "#btn-skills", "#btn-achievements", "#btn-settings"];
+  for (const id of ids) {
+    const box = await page.locator(id).boundingBox();
+    expect(box, `${id} has no box`).toBeTruthy();
+    expect(box!.width,  `${id} width ≥ 44`).toBeGreaterThanOrEqual(44);
+    expect(box!.height, `${id} height ≥ 44`).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test("every docked destination navigates to its scene", async ({ page }) => {
+  const dest: Record<string, string> = {
+    "#btn-characters":   "scene=characters",
+    "#btn-inventory":    "scene=inventory",
+    "#btn-skills":       "scene=skills",
+    "#btn-achievements": "scene=achievements",
+    "#btn-settings":     "scene=settings",
+    "#btn-campaign":     "scene=campaign",
+  };
+  for (const [id, frag] of Object.entries(dest)) {
+    await page.goto("/?scene=menu");
+    await page.locator(id).click();
+    await page.waitForURL(new RegExp(frag.replace("=", "=")), { timeout: 10_000 });
+    expect(page.url()).toContain(frag);
+  }
+});
+
 test("Continue resumes the furthest playable node", async ({ page }) => {
   // Fresh profile → furthest playable node is hell-1.
   await page.goto("/?scene=menu");
