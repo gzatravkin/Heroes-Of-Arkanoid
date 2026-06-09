@@ -10,7 +10,7 @@
     "........",
     "..ABBA..",
     "..ABBA..",
-    "P.AAAA.P",
+    "Q.AAAA.Q",
     "........",
     "........",
     "........",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "hell_basic",
     "B": "hell_tough",
-    "P": "hell_teleporter"
+    "P": "hell_teleporter",
+    "Q": "hell_teleporter_blue"
   }
 }

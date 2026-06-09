@@ -40,14 +40,14 @@ const LEVELS = [
     "O......O",
     "..AAAA..",
   ]},
-  { id: "hell-teleport", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", P: "hell_teleporter" }, rows: [
+  { id: "hell-teleport", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", P: "hell_teleporter", Q: "hell_teleporter_blue" }, rows: [
     "P.AAAA.P",
     "..ABBA..",
     "..ABBA..",
     "........",
     "..ABBA..",
     "..ABBA..",
-    "P.AAAA.P",
+    "Q.AAAA.Q",
   ]},
   { id: "hell-boss", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", D: "hell_demon_boss" }, rows: [
     "O......O",

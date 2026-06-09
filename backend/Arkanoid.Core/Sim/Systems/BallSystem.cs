@@ -68,7 +68,7 @@ internal static class BallSystem
             // Teleporter: warp ball to next teleporter in cycle (Hell signature mechanic)
             if (blk.Teleporter && b.TeleportCooldown == 0)
             {
-                var teleporters = g.Blocks.Where(t => !t.Dead && t.Teleporter).ToList();
+                var teleporters = g.Blocks.Where(t => !t.Dead && t.Teleporter && t.TeleportColor == blk.TeleportColor).ToList();
                 if (teleporters.Count >= 2)
                 {
                     int idx  = teleporters.IndexOf(blk);

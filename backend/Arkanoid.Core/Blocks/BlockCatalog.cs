@@ -15,6 +15,8 @@ public sealed class BlockType
     [JsonPropertyName("ballPhases")] public bool BallPhases { get; set; } = false;
     /// <summary>On ball overlap, warps the ball to the next teleporter cyclically (Hell signature mechanic).</summary>
     [JsonPropertyName("teleporter")] public bool Teleporter { get; set; } = false;
+    /// <summary>Teleporter colour group (0 red / 1 blue / 2 green) — warps pair within a colour.</summary>
+    [JsonPropertyName("teleportColor")] public int TeleportColor { get; set; } = 0;
     /// <summary>Boss block: periodically fires falling hazards that damage player HP on paddle contact.</summary>
     [JsonPropertyName("boss")] public bool Boss { get; set; } = false;
 

@@ -38,7 +38,7 @@ public static class LevelLoader
                     Sprite = t.Sprite, NeedToKill = t.NeedToKill,
                     Indestructible = t.Indestructible,
                     BallPhases = t.BallPhases,
-                    Teleporter = t.Teleporter,
+                    Teleporter = t.Teleporter, TeleportColor = t.TeleportColor,
                     Boss = t.Boss,
                     Emitter = t.Emitter, EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
                     Bomb = t.Bomb, ExplodeRadius = t.ExplodeRadius,

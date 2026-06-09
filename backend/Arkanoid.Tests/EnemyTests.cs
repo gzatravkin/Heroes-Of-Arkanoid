@@ -81,6 +81,35 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Colour-paired teleporters ─────────────────────────────────────────────
+
+    [Fact]
+    public void Teleporter_WarpsToSameColourPartner_NotOtherColour()
+    {
+        // Row: red(0,0) blue(1,0) red(2,0). Ball hitting the first red must land on the
+        // OTHER red (col 2), never the blue.
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"r\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"teleporter\":true,\"teleportColor\":0}," +
+            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"teleporter\":true,\"teleportColor\":1}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\"rbr\",\"...\",\"...\",\"..k\"],\"legend\":{\"r\":\"r\",\"b\":\"b\",\"k\":\"k\"}}");
+
+        var redA = g.Blocks[0]; // (0,0)
+        var redB = g.Blocks[2]; // (2,0)
+        var destCenter = g.Level.Grid.CellCenter(redB.Col, redB.Row);
+
+        // Drive the ball into the first red teleporter.
+        var c = g.Level.Grid.CellCenter(redA.Col, redA.Row);
+        g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
+        g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
+        g.Tick(SimConfig.Default.FixedDt);
+
+        // Ball must be near the OTHER red (col 2), not the blue (col 1).
+        Assert.True(System.Math.Abs(g.Balls[0].Pos.X - destCenter.X) < SimConfig.Default.CellSize,
+            $"ball warped to x={g.Balls[0].Pos.X:F1}, expected near red partner x={destCenter.X:F1}");
+    }
+
     [Fact]
     public void Bomb_Chains_IntoAdjacentBomb()
     {

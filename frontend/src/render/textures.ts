@@ -21,6 +21,8 @@ const ALIAS: Record<string, string> = {
   HellStandart2:         "hell/StandartHell2",
   HellInvulnerable:      "hell/HellInvulnerable",
   SkullRed:              "hell/SkullRed",
+  SkullBlue:             "hell/SkullBlue",
+  SkullGreen:            "hell/SkullGreen",
 
   // ── Dungeon biome blocks ─────────────────────────────────────────────────
   DungeonStandart:       "dungeon/DungeonStandart",
