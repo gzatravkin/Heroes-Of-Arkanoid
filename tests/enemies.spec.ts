@@ -36,6 +36,25 @@ test("Heaven boss finale renders", async ({ page }) => {
   await page.screenshot({ path: path.join(SHOTS, "enemy-heaven-boss.png") });
 });
 
+test("Witch boss casts magic bolts (witchmagic hazards)", async ({ page }) => {
+  await openBattle(page, "village-boss");
+  expect((await page.evaluate(() => (window as any).__game.getState())).bossActive).toBeTruthy();
+  // Keep lives topped up so the frozen ball can't lose the fight while the boss
+  // drains the paddle — otherwise the game ends before we can observe the volley.
+  await cheat(page, "setLives", 99);
+  // Advance sim-time deterministically so the boss telegraphs + fires magic volleys.
+  await cheat(page, "fastForward", 130);
+  // Wait until a magic bolt is in the open mid-field (below the top block rows, above
+  // the paddle) so the proof screenshot shows it clearly rather than under the boss.
+  await page.waitForFunction(() => {
+    const s = (window as any).__game.getState();
+    if (!s) return false;
+    const lo = s.boardH * 0.3, hi = s.boardH * 0.6;
+    return s.hazards.some((h: any) => h.kind === "witchmagic" && h.y > lo && h.y < hi);
+  }, null, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-witch-magic.png") });
+});
+
 test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await openBattle(page, "caverns-2");
   const s = await page.evaluate(() => (window as any).__game.getState());

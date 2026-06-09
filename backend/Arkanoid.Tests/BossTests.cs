@@ -70,6 +70,40 @@ public class BossTests
     }
 
     // -----------------------------------------------------------------------
+    // 1b. WitchBoss_TagsHazardsAsWitchMagic — the Witchland boss casts magic bolts
+    //     (Kind="witchmagic") so the renderer cycles the WitchMagic1-4 sprites.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void WitchBoss_TagsHazardsAsWitchMagic()
+    {
+        var cfg = new SimConfig
+        {
+            BossAttackInterval    = 0.05,
+            BossTelegraphDuration = 0.02,
+        };
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"village","hp":24,"sprite":"WitchChest","needToKill":true,"behavior":"boss"},
+            {"id":"fill","biome":"village","hp":1, "sprite":"s",          "needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"village","cols":12,"rows":8,
+             "rows_data":["BBBBBBBBBBBB","............","............","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss"}}
+            """,
+            cfg);
+        g.Serve();
+
+        g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
+        g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+
+        Assert.NotEmpty(g.Hazards);
+        Assert.All(g.Hazards, h => Assert.Equal("witchmagic", h.Kind));
+    }
+
+    // -----------------------------------------------------------------------
     // 2. Hazard_HittingPaddle_DamagesPlayerHP (legacy, adapted)
     // -----------------------------------------------------------------------
 

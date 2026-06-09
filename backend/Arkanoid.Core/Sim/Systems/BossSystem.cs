@@ -142,6 +142,10 @@ internal static class BossSystem
     {
         var pattern = (BossPattern)patternInt;
 
+        // The Witchland boss casts her magic — every bolt is tagged "witchmagic" so the
+        // renderer cycles the WitchMagic1-4 sprites (port of WitchController's action list).
+        var kind = g.Level.Biome == "village" ? "witchmagic" : "";
+
         foreach (var boss in bossBlocks)
         {
             var origin = g.Level.Grid.CellCenter(boss.Col, boss.Row);
@@ -149,19 +153,19 @@ internal static class BossSystem
             switch (pattern)
             {
                 case BossPattern.AimedShot:
-                    SpawnAimedShot(g, origin);
+                    SpawnAimedShot(g, origin, kind);
                     break;
 
                 case BossPattern.Rain:
-                    SpawnRain(g, origin);
+                    SpawnRain(g, origin, kind);
                     break;
 
                 case BossPattern.Spread:
-                    SpawnSpread(g, origin);
+                    SpawnSpread(g, origin, kind);
                     break;
 
                 case BossPattern.Summon:
-                    SpawnSummon(g, origin);
+                    SpawnSummon(g, origin, kind);
                     break;
             }
 
@@ -176,16 +180,16 @@ internal static class BossSystem
     // -----------------------------------------------------------------------
 
     /// <summary>AimedShot — single hazard aimed at paddle X.</summary>
-    private static void SpawnAimedShot(GameInstance g, Vec2 origin)
+    private static void SpawnAimedShot(GameInstance g, Vec2 origin, string kind = "")
     {
         var dx   = g.Paddle.Center.X - origin.X;
         var aimX = dx * g.Config.BossHazardAimStrength;
         var vel  = new Vec2(aimX, g.Config.BossHazardSpeed);
-        AddHazard(g, origin, vel);
+        AddHazard(g, origin, vel, kind);
     }
 
     /// <summary>Rain — BossRainCount hazards at random X. The Caverns Goblin rains stalactites.</summary>
-    private static void SpawnRain(GameInstance g, Vec2 origin)
+    private static void SpawnRain(GameInstance g, Vec2 origin, string kind = "")
     {
         if (g.Level.Biome == "caverns")
         {
@@ -198,12 +202,12 @@ internal static class BossSystem
             double x   = g.Rng.Range(0, boardW);
             var pos    = new Vec2(x, origin.Y);
             var vel    = new Vec2(0, g.Config.BossHazardSpeed);
-            AddHazard(g, pos, vel);
+            AddHazard(g, pos, vel, kind);
         }
     }
 
     /// <summary>Spread — fan of BossSpreadCount hazards centred on the paddle at ±BossSpreadHalfAngleDeg.</summary>
-    private static void SpawnSpread(GameInstance g, Vec2 origin)
+    private static void SpawnSpread(GameInstance g, Vec2 origin, string kind = "")
     {
         int count    = g.Config.BossSpreadCount;
         double halfRad = g.Config.BossSpreadHalfAngleDeg * System.Math.PI / 180.0;
@@ -217,25 +221,25 @@ internal static class BossSystem
             // "straight down" direction is (0, +1); rotate by angle around Z
             double vx = speed * System.Math.Sin(angle);
             double vy = speed * System.Math.Cos(angle);
-            AddHazard(g, origin, new Vec2(vx, vy));
+            AddHazard(g, origin, new Vec2(vx, vy), kind);
         }
     }
 
     /// <summary>Summon — one fast minion hazard that strongly tracks the paddle X.</summary>
-    private static void SpawnSummon(GameInstance g, Vec2 origin)
+    private static void SpawnSummon(GameInstance g, Vec2 origin, string kind = "")
     {
         var dx   = g.Paddle.Center.X - origin.X;
         var aimX = dx * g.Config.BossSummonAimStrength;
         var vy   = g.Config.BossHazardSpeed * g.Config.BossSummonSpeedMult;
         var vel  = new Vec2(aimX, vy);
-        AddHazard(g, origin, vel);
+        AddHazard(g, origin, vel, kind);
     }
 
     // -----------------------------------------------------------------------
     // Hazard factory
     // -----------------------------------------------------------------------
 
-    private static void AddHazard(GameInstance g, Vec2 pos, Vec2 vel)
+    private static void AddHazard(GameInstance g, Vec2 pos, Vec2 vel, string kind = "")
         => g.Hazards.Add(new Projectile
         {
             Id     = g._nextHazardId++,
@@ -244,5 +248,6 @@ internal static class BossSystem
             Damage = g.Config.BossHazardDamage,
             Radius = g.Config.BossHazardRadius,
             Alive  = true,
+            Kind   = kind,
         });
 }
