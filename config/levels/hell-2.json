@@ -1,0 +1,17 @@
+{
+  "id": "hell-2",
+  "biome": "hell",
+  "cols": 12,
+  "rows": 8,
+  "rows_data": [
+    "............",
+    "AAAAAAAAAAAA",
+    "ABBBBBBBBBBA",
+    "AB.OOOOOO.BA",
+    "ABBBBBBBBBBA",
+    "AAAAAAAAAAAA",
+    "............",
+    "............"
+  ],
+  "legend": { "A": "hell_basic", "B": "hell_tough", "O": "hell_obsidian" }
+}

@@ -1,8 +1,13 @@
 { "nodes": [
-  { "id": "hell-1",        "label": "Hell I",               "biome": "hell",    "x": 0, "y": 0, "requires": [] },
-  { "id": "hell-teleport", "label": "Hell — Teleporters",   "biome": "hell",    "x": 1, "y": 0, "requires": ["hell-1"] },
-  { "id": "caverns-1",     "label": "Caverns I",            "biome": "caverns", "x": 2, "y": 0, "requires": ["hell-teleport"] },
-  { "id": "village-1",     "label": "Witchland I",          "biome": "village", "x": 3, "y": 0, "requires": ["caverns-1"] },
-  { "id": "village-ghost", "label": "Witchland — Ghosts",   "biome": "village", "x": 4, "y": 0, "requires": ["village-1"] },
-  { "id": "heaven-1",      "label": "Heaven I",             "biome": "heaven",  "x": 5, "y": 0, "requires": ["village-ghost"] }
+  { "id": "hell-1",        "label": "Hell I",             "biome": "hell",    "x": 0,  "y": 0, "requires": [] },
+  { "id": "hell-2",        "label": "Hell II",            "biome": "hell",    "x": 1,  "y": 0, "requires": ["hell-1"] },
+  { "id": "hell-teleport", "label": "Hell — Teleporters", "biome": "hell",    "x": 2,  "y": 0, "requires": ["hell-2"] },
+  { "id": "hell-boss",     "label": "Hell — Demon",       "biome": "hell",    "x": 3,  "y": 0, "requires": ["hell-teleport"] },
+  { "id": "caverns-1",     "label": "Caverns I",          "biome": "caverns", "x": 4,  "y": 0, "requires": ["hell-boss"] },
+  { "id": "caverns-2",     "label": "Caverns II",         "biome": "caverns", "x": 5,  "y": 0, "requires": ["caverns-1"] },
+  { "id": "village-1",     "label": "Witchland I",        "biome": "village", "x": 6,  "y": 0, "requires": ["caverns-2"] },
+  { "id": "village-2",     "label": "Witchland II",       "biome": "village", "x": 7,  "y": 0, "requires": ["village-1"] },
+  { "id": "village-ghost", "label": "Witchland — Ghosts", "biome": "village", "x": 8,  "y": 0, "requires": ["village-2"] },
+  { "id": "heaven-1",      "label": "Heaven I",           "biome": "heaven",  "x": 9,  "y": 0, "requires": ["village-ghost"] },
+  { "id": "heaven-2",      "label": "Heaven II",          "biome": "heaven",  "x": 10, "y": 0, "requires": ["heaven-1"] }
 ]}

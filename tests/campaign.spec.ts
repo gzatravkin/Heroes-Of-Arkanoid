@@ -14,7 +14,7 @@ test("campaign map: hell-1 unlocked, caverns-1 locked after reset", async ({ pag
   await expect(page.locator('[data-level="caverns-1"]')).toHaveAttribute("data-state", "locked");
 });
 
-test("campaign win flow: complete hell-1 → reward overlay → hell-teleport unlocked", async ({ page }) => {
+test("campaign win flow: complete hell-1 → reward overlay → hell-2 unlocked", async ({ page }) => {
   // Navigate to campaign and enter hell-1 from campaign
   await page.goto("/?scene=campaign");
   await page.waitForSelector('[data-level="hell-1"]');
@@ -35,8 +35,8 @@ test("campaign win flow: complete hell-1 → reward overlay → hell-teleport un
   // Click continue to go back to campaign
   await page.locator("#btn-continue").click();
 
-  // Now on campaign: hell-1 completed, hell-teleport unlocked
+  // Now on campaign: hell-1 completed, hell-2 (its successor) unlocked
   await page.waitForSelector('#campaign-map [data-level="hell-1"]');
   await expect(page.locator('[data-level="hell-1"]')).toHaveAttribute("data-state", "completed");
-  await expect(page.locator('[data-level="hell-teleport"]')).toHaveAttribute("data-state", "unlocked");
+  await expect(page.locator('[data-level="hell-2"]')).toHaveAttribute("data-state", "unlocked");
 });

@@ -1,0 +1,17 @@
+{
+  "id": "village-2",
+  "biome": "village",
+  "cols": 12,
+  "rows": 8,
+  "rows_data": [
+    "............",
+    "VVVVVVVVVVVV",
+    "VWWWWWWWWWWV",
+    "VWGGGGGGGGWV",
+    "VWGGGGGGGGWV",
+    "VWWWWWWWWWWV",
+    "VVVVVVVVVVVV",
+    "............"
+  ],
+  "legend": { "V": "village_basic", "W": "village_tough", "G": "village_ghost" }
+}
