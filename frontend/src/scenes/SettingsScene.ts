@@ -13,6 +13,7 @@
 import { metaApi } from "../net/metaApi";
 import { showTutorial } from "./TutorialOverlay";
 import { navigateTo } from "../ui/transition";
+import { btnInterface } from "../ui/nineSlice";
 
 export function mountSettings(host: HTMLElement) {
   injectSettingsStyles();
@@ -235,8 +236,8 @@ function injectSettingsStyles() {
     }
     .set-action-btn {
       height: 40px; min-width: 100px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
-      border: none; cursor: pointer;
+      ${btnInterface()}
+      cursor: pointer;
       font-family: sans-serif; font-size: 13px;
       font-weight: 700; color: #f0e0b8;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);

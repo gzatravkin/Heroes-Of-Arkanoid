@@ -1,5 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import type { CampaignNode, Profile } from "../net/metaApi";
+import { btn1, missionName } from "../ui/nineSlice";
 import { navigateTo } from "../ui/transition";
 import { log } from "../log";
 
@@ -559,9 +560,8 @@ function injectCampaignStyles() {
       align-items: center;
       gap: 5px;
       padding: 4px 12px;
-      background: url('/ui/Button1.png') no-repeat center / 100% 100%;
+      ${btn1()}
       color: #f0e0b8;
-      border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 13px;
@@ -653,7 +653,7 @@ function injectCampaignStyles() {
     }
 
     .camp-node-label-wrap {
-      background: url('/ui/MissionName.png') no-repeat center / 100% 100%;
+      ${missionName()}
       padding: 2px 8px;
       min-width: 70px;
       text-align: center;

@@ -1,5 +1,6 @@
 import { navigateTo } from "../ui/transition";
 import { metaApi } from "../net/metaApi";
+import { btn1 } from "../ui/nineSlice";
 import type { CampaignNode } from "../net/metaApi";
 import { log } from "../log";
 
@@ -248,8 +249,7 @@ function injectMenuStyles() {
       min-width: 56px;
       min-height: 64px;
       padding: 6px 2px;
-      background: url('/ui/Button1.png') no-repeat center / 100% 100%;
-      border: none;
+      ${btn1()}
       border-radius: 10px;
       cursor: pointer;
       touch-action: manipulation;

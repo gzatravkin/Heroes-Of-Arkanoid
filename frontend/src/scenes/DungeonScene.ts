@@ -1,4 +1,5 @@
 import { metaApi } from "../net/metaApi";
+import { btnInterface } from "../ui/nineSlice";
 import type { DungeonRunState } from "../net/metaApi";
 import { css, buffName, buffIcon } from "./battle/overlays";
 
@@ -215,9 +216,8 @@ function injectDungeonRunStyles() {
       padding: 0 48px;
       height: 56px;
       min-width: 200px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
+      ${btnInterface()}
       color: #f0e0b8;
-      border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 17px;

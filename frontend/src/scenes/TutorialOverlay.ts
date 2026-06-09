@@ -10,6 +10,7 @@
  */
 
 import { metaApi } from "../net/metaApi";
+import { btnInterface } from "../ui/nineSlice";
 
 // ── Tutorial slide data (3 HintSystem full screens + inline icon captions) ───
 
@@ -332,8 +333,7 @@ function injectTutorialStyles() {
     .tut-btn {
       height: 48px;
       min-width: 100px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
-      border: none;
+      ${btnInterface()}
       cursor: pointer;
       font-family: sans-serif;
       font-size: 15px;
@@ -354,7 +354,8 @@ function injectTutorialStyles() {
     }
 
     .tut-btn-done {
-      background-image: url('/ui/InterfaceButton.png');
+      /* primary button keeps full opacity (base .tut-btn already 9-slices the frame) */
+      filter: brightness(1.05);
     }
 
     .tut-skip {

@@ -15,6 +15,7 @@
 
 import { metaApi } from "../net/metaApi";
 import type { Profile, CharactersResponse } from "../net/metaApi";
+import { btnInterface } from "../ui/nineSlice";
 
 // ── LevelSkill badge → committed public path ──────────────────────────────────
 // Keys: levelskill/Lvl1Skill … levelskill/Lvl10Skill (copied to public/levelskill/)
@@ -339,8 +340,8 @@ function injectSkillsStyles() {
     }
     .sk-tab {
       height: 36px; padding: 0 14px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
-      border: none; cursor: pointer;
+      ${btnInterface()}
+      cursor: pointer;
       font-family: sans-serif; font-size: 12px;
       font-weight: 700; color: rgba(200,180,140,0.65);
       -webkit-tap-highlight-color: transparent;
@@ -396,8 +397,8 @@ function injectSkillsStyles() {
     }
     .sk-upgrade-btn {
       width: 100%; height: 36px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
-      border: none; cursor: pointer;
+      ${btnInterface()}
+      cursor: pointer;
       font-family: sans-serif; font-size: 18px;
       font-weight: 900; color: #ffd700;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);

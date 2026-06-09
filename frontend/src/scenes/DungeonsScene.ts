@@ -1,4 +1,5 @@
 import { metaApi } from "../net/metaApi";
+import { btnInterface } from "../ui/nineSlice";
 import type { DungeonDef } from "../net/metaApi";
 import { css } from "./battle/overlays";
 
@@ -220,9 +221,8 @@ function injectDungeonStyles() {
       align-self: flex-start;
       padding: 0 28px;
       height: 48px;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
+      ${btnInterface()}
       color: #f0e0b8;
-      border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 15px;
