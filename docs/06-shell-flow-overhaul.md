@@ -118,5 +118,5 @@ If a rule is missing, **add it here** rather than asking.
 - [x] Rift/dungeon entry is probabilistic from the campaign via banner; Dungeons menu removed.
 - [x] All HUD bars are symmetrical 9-slice, screenshot-verified at 0/50/100% fill on mobile.
 - [x] Every level has a distinct, purposeful layout; `all-levels.spec.ts` green; asset usage 86.3% (≥ current ~86%).
-- [ ] All unit tests + all Playwright specs green at 390×844 (update specs that asserted the old menu/buttons).
+- [x] All unit tests + all Playwright specs green at 390×844, run twice (194 unit · 103 Playwright).
 - [x] Before/after mobile screenshots attached for: home menu, a rift banner, the HUD bars at 3 fills, and 3 redesigned levels.
