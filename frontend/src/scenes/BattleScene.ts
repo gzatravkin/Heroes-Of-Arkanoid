@@ -6,12 +6,9 @@ import { Hud } from "../ui/Hud";
 import { createCampaignFlow } from "./battle/campaignFlow";
 import { createDungeonFlow } from "./battle/dungeonFlow";
 
-// Skip the per-snapshot Pixi render under Playwright automation: the canvas is
-// unused by tests (they poll window.__game.getState() and the DOM HUD directly),
-// and the render call adds enough JS-thread latency to shift ball-drain timing,
-// causing spell-cast commands to arrive in Serving phase instead of Playing.
-// navigator.webdriver is true in Playwright headless; false/undefined in browsers.
-const NEEDS_RENDER = !(navigator as any).webdriver;
+// Renderer always runs — the pooled draw() is cheap enough for mobile GPUs and
+// headless WebGL alike. The HEAVY_FX glow gate in Renderer.ts still skips the
+// expensive GlowFilter passes under Playwright, but base rendering is always on.
 
 export function mountBattle(host: HTMLElement, level: string, seed: number, run: string, from = "") {
   const r = new Renderer(host);
@@ -23,15 +20,14 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
     from === "dungeon"  ? createDungeonFlow()        :
     null;
 
-  // Under automation, stop the Pixi ticker so it doesn't consume JS-thread time
-  // with animation-frame callbacks. Tests don't observe the canvas.
-  if (!NEEDS_RENDER) r.app.ticker.stop();
-
   conn.onSnapshot = (s) => {
-    if (NEEDS_RENDER) r.draw(s);
+    r.draw(s);
     hud.update(s);
     if (flow) flow.handlePhase(s);
   };
+
+  // Wire the connection so HUD spell buttons can cast spells on tap/click.
+  hud.wireConn(conn);
 
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);

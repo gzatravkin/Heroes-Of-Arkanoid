@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: ".",
@@ -8,7 +8,16 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 1,
-  use: { baseURL: "http://localhost:5175", headless: true, trace: "retain-on-failure" },
+  use: {
+    baseURL: "http://localhost:5175",
+    headless: true,
+    trace: "retain-on-failure",
+    // Mobile-first viewport: iPhone 13 dimensions, touch enabled.
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 3,
+  },
   webServer: [
     {
       command: "dotnet run --project ../backend/Arkanoid.Server",

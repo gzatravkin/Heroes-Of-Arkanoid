@@ -10,6 +10,7 @@ import { Vignette } from "./Vignette";
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
 // this flag so that Playwright's headless software-WebGL never pays the cost.
 // navigator.webdriver is true in automation; false/undefined in real browsers.
+// NOTE: base rendering always runs — only the optional glow post-processing is gated.
 const HEAVY_FX = !(navigator as any).webdriver;
 
 // Visible gap between bricks so the wall doesn't merge into a solid sheet.
@@ -90,6 +91,14 @@ export class Renderer {
   private damageFlash = new Graphics(); // full-screen overlay for HP hit feedback
   private _tick = 0; // used to drive wall flicker animation
   private _lastLives = -1; // track lives decreases for damage flash
+
+  // ---- Sprite pools: keyed by entity id to avoid per-frame alloc churn ----
+  // Block pool: each entry is a { sprite, aura?, ring? } tuple.
+  private _blockPool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics }>();
+  // Ball pool: each entry is { gfx (ball circle), haloGfx (ignite halo) }.
+  private _ballPool = new Map<number, { gfx: Graphics; haloGfx: Graphics }>();
+  // Hazard pool: each entry is { halo, core }.
+  private _hazardPool: { halo: Graphics; core: Graphics }[] = [];
 
   constructor(host: HTMLElement) {
     this.app = new Application({ resizeTo: host, background: "#0b0b12", antialias: true });
@@ -212,58 +221,106 @@ export class Renderer {
     }
     this._lastLives = s.lives;
 
-    // --- blocks ---
+    // --- blocks (pooled: update existing sprites, create/destroy on actual add/remove) ---
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
-    this.blocks.removeChildren();
+
+    // Track which block ids are live this frame to detect removals.
+    const liveBlockIds = new Set<number>();
+    for (const b of s.blocks) liveBlockIds.add(b.id);
+
+    // Remove pooled sprites for blocks that no longer exist.
+    for (const [id, entry] of this._blockPool) {
+      if (!liveBlockIds.has(id)) {
+        if (entry.aura) this.blocks.removeChild(entry.aura);
+        if (entry.ring) this.blocks.removeChild(entry.ring);
+        this.blocks.removeChild(entry.sp);
+        this._blockPool.delete(id);
+      }
+    }
+
     for (const b of s.blocks) {
-      // Boss block: pulsing red aura behind the sprite.
-      if (b.boss) {
-        const auraAlpha = BOSS_AURA_ALPHA
-          + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
-        const aura = new Graphics();
-        aura.blendMode = BLEND_MODES.ADD;
-        aura.beginFill(BOSS_AURA_COLOR, auraAlpha)
-          .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT)
-          .endFill();
-        this.blocks.addChild(aura);
-      }
-
-      // Teleporter: additive pulsing glow ring drawn behind the sprite.
-      if (b.teleporter) {
-        const ringAlpha = TELEPORTER_RING_ALPHA_BASE
-          + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
-        const ring = new Graphics();
-        ring.blendMode = BLEND_MODES.ADD;
-        ring.beginFill(TELEPORTER_RING_COLOR, ringAlpha)
-          .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT)
-          .endFill();
-        this.blocks.addChild(ring);
-      }
-
       const bossRenderSize = b.boss ? brickSize * BOSS_SCALE_MULT : brickSize;
-      const sp = new Sprite(tex(b.sprite));
-      sp.anchor.set(0.5);
-      sp.width = bossRenderSize;
-      sp.height = bossRenderSize;
-      sp.position.set(b.x, b.y);
 
-      if (b.boss) {
-        // Boss blocks: always full alpha, no HP fade.
-        sp.alpha = 1.0;
-      } else if (b.ballPhases) {
-        // Ghost block: semi-transparent blue/cyan tint with pulsing alpha.
-        sp.tint = GHOST_TINT;
-        sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
-      } else if (b.indestructible || b.teleporter) {
-        // Indestructible / teleporter: always full alpha — these never lose HP.
-        sp.alpha = 1.0;
+      if (this._blockPool.has(b.id)) {
+        // --- Update existing pooled sprite ---
+        const entry = this._blockPool.get(b.id)!;
+        const { sp, aura, ring } = entry;
+
+        sp.texture = tex(b.sprite);
+        sp.width   = bossRenderSize;
+        sp.height  = bossRenderSize;
+        sp.position.set(b.x, b.y);
+
+        if (b.boss) {
+          sp.alpha = 1.0;
+          if (aura) {
+            const auraAlpha = BOSS_AURA_ALPHA
+              + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
+            aura.clear().beginFill(BOSS_AURA_COLOR, auraAlpha)
+              .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
+          }
+        } else if (b.ballPhases) {
+          sp.tint  = GHOST_TINT;
+          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
+        } else if (b.indestructible || b.teleporter) {
+          sp.alpha = 1.0;
+          if (ring) {
+            const ringAlpha = TELEPORTER_RING_ALPHA_BASE
+              + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
+            ring.clear().beginFill(TELEPORTER_RING_COLOR, ringAlpha)
+              .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
+          }
+        } else {
+          sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+        }
       } else {
-        // Normal destructible block: fade slightly with damage.
-        sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-      }
+        // --- Create new pooled entry ---
+        let aura: Graphics | undefined;
+        let ring: Graphics | undefined;
 
-      this.blocks.addChild(sp);
+        if (b.boss) {
+          const auraAlpha = BOSS_AURA_ALPHA
+            + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
+          aura = new Graphics();
+          aura.blendMode = BLEND_MODES.ADD;
+          aura.beginFill(BOSS_AURA_COLOR, auraAlpha)
+            .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT)
+            .endFill();
+          this.blocks.addChild(aura);
+        }
+
+        if (b.teleporter) {
+          const ringAlpha = TELEPORTER_RING_ALPHA_BASE
+            + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
+          ring = new Graphics();
+          ring.blendMode = BLEND_MODES.ADD;
+          ring.beginFill(TELEPORTER_RING_COLOR, ringAlpha)
+            .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT)
+            .endFill();
+          this.blocks.addChild(ring);
+        }
+
+        const sp = new Sprite(tex(b.sprite));
+        sp.anchor.set(0.5);
+        sp.width  = bossRenderSize;
+        sp.height = bossRenderSize;
+        sp.position.set(b.x, b.y);
+
+        if (b.boss) {
+          sp.alpha = 1.0;
+        } else if (b.ballPhases) {
+          sp.tint  = GHOST_TINT;
+          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
+        } else if (b.indestructible || b.teleporter) {
+          sp.alpha = 1.0;
+        } else {
+          sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+        }
+
+        this.blocks.addChild(sp);
+        this._blockPool.set(b.id, { sp, aura, ring });
+      }
     }
 
     // --- fire walls ---
@@ -315,49 +372,96 @@ export class Renderer {
     const ballRadius = s.cellSize * 0.25;
     this.ballTrail.update(s.balls, ballRadius);
 
-    // --- balls ---
-    this.balls.removeChildren();
-    for (const ball of s.balls) {
-      const g = new Graphics();
+    // --- balls (pooled by id) ---
+    const liveBallIds = new Set<number>();
+    for (const ball of s.balls) liveBallIds.add(ball.id);
 
-      if (ball.ignited) {
-        // Draw an additive halo behind the ball to signal the ignite status.
-        g.beginFill(0xff7a2a, IGNITE_HALO_ALPHA)
-          .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-          .endFill();
-        // The halo is drawn with additive blend; use a child container for the
-        // normal ball circle on top so it composites cleanly.
-        const haloGfx = new Graphics();
-        haloGfx.blendMode = BLEND_MODES.ADD;
-        haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
-          .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-          .endFill();
-        this.balls.addChild(haloGfx);
+    // Remove pooled entries for balls that no longer exist.
+    for (const [id, entry] of this._ballPool) {
+      if (!liveBallIds.has(id)) {
+        this.balls.removeChild(entry.haloGfx);
+        this.balls.removeChild(entry.gfx);
+        this._ballPool.delete(id);
       }
-
-      g.beginFill(ball.ignited ? 0xff7a2a : 0xffffff)
-        .drawCircle(ball.x, ball.y, ballRadius)
-        .endFill();
-      this.balls.addChild(g);
     }
 
-    // --- hazards (falling enemy projectiles) ---
-    this.hazardsLayer.removeChildren();
-    for (const hz of (s.hazards ?? [])) {
-      const hg = new Graphics();
-      // Additive glow halo behind the hazard circle.
-      hg.blendMode = BLEND_MODES.ADD;
-      hg.beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
-        .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT)
-        .endFill();
-      this.hazardsLayer.addChild(hg);
+    for (const ball of s.balls) {
+      if (this._ballPool.has(ball.id)) {
+        // Update existing pooled Graphics objects (redraw is cheap — no alloc).
+        const { gfx, haloGfx } = this._ballPool.get(ball.id)!;
 
-      // Solid crimson core on top.
-      const hc = new Graphics();
-      hc.beginFill(HAZARD_COLOR, 1)
-        .drawCircle(hz.x, hz.y, HAZARD_RADIUS)
-        .endFill();
-      this.hazardsLayer.addChild(hc);
+        haloGfx.clear();
+        if (ball.ignited) {
+          haloGfx.blendMode = BLEND_MODES.ADD;
+          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
+            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
+            .endFill();
+        }
+
+        gfx.clear();
+        if (ball.ignited) {
+          gfx.beginFill(0xff7a2a, IGNITE_HALO_ALPHA)
+            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
+            .endFill();
+        }
+        gfx.beginFill(ball.ignited ? 0xff7a2a : 0xffffff)
+          .drawCircle(ball.x, ball.y, ballRadius)
+          .endFill();
+      } else {
+        // Create new pooled entry.
+        const haloGfx = new Graphics();
+        if (ball.ignited) {
+          haloGfx.blendMode = BLEND_MODES.ADD;
+          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
+            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
+            .endFill();
+        }
+
+        const gfx = new Graphics();
+        if (ball.ignited) {
+          gfx.beginFill(0xff7a2a, IGNITE_HALO_ALPHA)
+            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
+            .endFill();
+        }
+        gfx.beginFill(ball.ignited ? 0xff7a2a : 0xffffff)
+          .drawCircle(ball.x, ball.y, ballRadius)
+          .endFill();
+
+        this.balls.addChild(haloGfx);
+        this.balls.addChild(gfx);
+        this._ballPool.set(ball.id, { gfx, haloGfx });
+      }
+    }
+
+    // --- hazards (falling enemy projectiles) — pool by array index ---
+    // Hazards have no stable id; use a fixed-size ring buffer keyed by index.
+    const hazards = s.hazards ?? [];
+
+    // Grow pool if more hazards than pooled entries.
+    while (this._hazardPool.length < hazards.length) {
+      const halo = new Graphics();
+      halo.blendMode = BLEND_MODES.ADD;
+      const core = new Graphics();
+      this.hazardsLayer.addChild(halo);
+      this.hazardsLayer.addChild(core);
+      this._hazardPool.push({ halo, core });
+    }
+
+    // Update visible entries.
+    for (let i = 0; i < this._hazardPool.length; i++) {
+      const { halo, core } = this._hazardPool[i];
+      if (i < hazards.length) {
+        const hz = hazards[i];
+        halo.visible = true;
+        core.visible = true;
+        halo.clear().beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
+          .drawCircle(hz.x, hz.y, HAZARD_RADIUS * HAZARD_GLOW_RADIUS_MULT).endFill();
+        core.clear().beginFill(HAZARD_COLOR, 1)
+          .drawCircle(hz.x, hz.y, HAZARD_RADIUS).endFill();
+      } else {
+        halo.visible = false;
+        core.visible = false;
+      }
     }
 
     // --- effects: consume snapshot events ---

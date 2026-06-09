@@ -1,3 +1,4 @@
+import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
 
 // ---------------------------------------------------------------------------
@@ -17,18 +18,20 @@ interface SpellDef {
   label: string;
   icon: string | null; // path relative to / (public/art/...) or null for emoji
   emoji: string;       // fallback when icon fails to load
+  cast: (conn: Connection) => void;
 }
 
 const SPELLS: SpellDef[] = [
-  { id: "ignite",   key: "Q", label: "Ignite",   icon: "/art/FireHeroBall.png",  emoji: "🔥" },
-  { id: "fireball", key: "E", label: "Fireball", icon: "/art/FireBallIco.png",   emoji: "💥" },
-  { id: "firewall", key: "W", label: "Fire Wall", icon: "/art/FireWallIco.png",  emoji: "🧱" },
-  { id: "turret",   key: "R", label: "Turret",   icon: "/art/FireTurretIco.png", emoji: "🔫" },
+  { id: "ignite",   key: "Q", label: "Ignite",   icon: "/art/FireHeroBall.png",  emoji: "🔥", cast: (c) => c.castIgnite()   },
+  { id: "fireball", key: "E", label: "Fireball", icon: "/art/FireBallIco.png",   emoji: "💥", cast: (c) => c.castFireball() },
+  { id: "firewall", key: "W", label: "Fire Wall", icon: "/art/FireWallIco.png",  emoji: "🧱", cast: (c) => c.castFireWall() },
+  { id: "turret",   key: "R", label: "Turret",   icon: "/art/FireTurretIco.png", emoji: "🔫", cast: (c) => c.castTurret()   },
 ];
 
 // ---------------------------------------------------------------------------
 // Hud — a DOM overlay mounted on top of the Pixi canvas.
-// pointer-events:none so mouse/touch events pass through to the canvas.
+// Spell slots are tappable buttons (pointer-events:auto) that cast the spell.
+// Other elements are pointer-events:none so mouse/touch pass through to canvas.
 // ---------------------------------------------------------------------------
 export class Hud {
   private root: HTMLElement;
@@ -41,12 +44,17 @@ export class Hud {
   private banner: HTMLElement;
   private relicsEl: HTMLElement;
 
+  // Latest snapshot mana, for affordability check on tap.
+  private _mana = 0;
+
   constructor(host: HTMLElement) {
     this.root = this.createElement("div", "hud-root");
     this.root.style.cssText = [
       "position:absolute", "inset:0", "pointer-events:none",
       "font-family:'Segoe UI',system-ui,sans-serif", "z-index:10",
       "user-select:none",
+      // Safe-area insets for notched phones.
+      "padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)",
     ].join(";");
 
     this.injectStyles();
@@ -75,11 +83,16 @@ export class Hud {
     ].join(";");
     this.relicsEl = topRight;
 
-    // ---- bottom-center: mana bar + spell hotbar ----
+    // ---- bottom thumb zone: mana bar + spell hotbar ----
+    // pointer-events:auto only for the bottom zone so taps on spell slots work.
     const bottomCenter = this.createElement("div", "hud-bottom");
     bottomCenter.style.cssText = [
-      "position:absolute", "bottom:12px", "left:50%", "transform:translateX(-50%)",
+      "position:absolute", "bottom:0", "left:0", "right:0",
       "display:flex", "flex-direction:column", "align-items:center", "gap:6px",
+      "padding-bottom:max(12px,env(safe-area-inset-bottom,12px))",
+      "padding-top:8px",
+      "background:linear-gradient(to top,rgba(8,8,18,0.72) 0%,transparent 100%)",
+      "pointer-events:none", // container passes through; individual buttons opt-in
     ].join(";");
 
     this.manaOuter = this.buildManaBar();
@@ -98,7 +111,7 @@ export class Hud {
       "position:absolute", "top:50%", "left:50%",
       "transform:translate(-50%,-50%)",
       "display:none", "padding:18px 48px", "border-radius:8px",
-      "font-size:48px", "font-weight:900", "letter-spacing:4px",
+      "font-size:clamp(28px,8vw,48px)", "font-weight:900", "letter-spacing:4px",
       "text-shadow:0 0 20px currentColor",
     ].join(";");
 
@@ -112,7 +125,25 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
+  // Wire up the connection so spell buttons can cast.
+  // Called by BattleScene after construction.
+  // -----------------------------------------------------------------------
+  wireConn(conn: Connection) {
+    for (const spell of SPELLS) {
+      const el = this.spellSlots.get(spell.id);
+      if (!el) continue;
+      el.addEventListener("pointerdown", (e) => {
+        e.stopPropagation(); // don't let it bubble to the canvas
+        const cost = SPELL_COSTS[spell.id] ?? 0;
+        if (this._mana >= cost) spell.cast(conn);
+      });
+    }
+  }
+
+  // -----------------------------------------------------------------------
   update(s: Snapshot) {
+    this._mana = s.mana ?? 0;
+
     // -- lives --
     const lives = s.lives ?? 0;
     this.livesEl.dataset.lives = String(lives);
@@ -200,7 +231,7 @@ export class Hud {
     const outer = this.createElement("div");
     outer.id = "hud-mana";
     outer.style.cssText = [
-      "width:220px", "background:rgba(0,0,0,0.55)", "border-radius:6px",
+      "width:min(220px,80vw)", "background:rgba(0,0,0,0.55)", "border-radius:6px",
       "border:1px solid rgba(80,120,255,0.4)", "padding:3px", "position:relative",
     ].join(";");
 
@@ -234,7 +265,7 @@ export class Hud {
 
   private buildHotbar(): HTMLElement {
     const bar = this.createElement("div");
-    bar.style.cssText = "display:flex;gap:8px;";
+    bar.style.cssText = "display:flex;gap:8px;pointer-events:none;";
 
     for (const spell of SPELLS) {
       const slot = this.createElement("div");
@@ -321,8 +352,15 @@ export class Hud {
         border: 1px solid rgba(255,120,40,0.35);
         border-radius: 7px;
         padding: 5px 8px;
+        /* ≥44px touch target (WCAG 2.5.5) */
         min-width: 56px;
+        min-height: 44px;
+        touch-action: manipulation;
+        cursor: pointer;
+        /* pointer-events must be auto so taps register */
+        pointer-events: auto;
         transition: opacity 0.15s, border-color 0.15s;
+        -webkit-tap-highlight-color: transparent;
       }
       .hud-spell-slot.affordable {
         opacity: 1;
@@ -331,6 +369,10 @@ export class Hud {
       .hud-spell-slot.unaffordable {
         opacity: 0.4;
         border-color: rgba(100,100,100,0.4);
+        cursor: default;
+      }
+      .hud-spell-slot:active {
+        transform: scale(0.93);
       }
       .hud-spell-key {
         font-size: 10px;
@@ -365,6 +407,16 @@ export class Hud {
       }
       #hud-relics [data-relic-id] {
         cursor: default;
+      }
+      /* Landscape orientation: reduce bottom zone height */
+      @media (orientation: landscape) and (max-height: 500px) {
+        .hud-spell-slot {
+          min-width: 48px;
+          min-height: 40px;
+          padding: 4px 6px;
+        }
+        .hud-spell-icon { width: 24px; height: 24px; }
+        .hud-spell-icon img { width: 24px !important; height: 24px !important; }
       }
     `;
     document.head.appendChild(style);
