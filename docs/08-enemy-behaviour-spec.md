@@ -135,10 +135,13 @@ by hitting an **Altar**, or **level them up** (stronger) by destroying a **Vase*
 - [x] **Wave 2** (`56eaa2d`): **H2** colour-paired teleporters. +1 xUnit.
 - [x] **Wave 3** (`587ff63`): Caverns **C1** stalactites (column-trigger fall + Goblin BossDrop path + dropStalactites cheat).
 - [x] **Wave 4a** (`f24d8f4`): Witchland **W3** necromant (block reviver + revive queue).
-- [ ] **Wave 4b** — Witchland **W4** ghost-portal (ball phase toggle), **W2** bat (ball-grabber).
+- [x] **Wave 4b** (`0f99764`): Witchland **W4** ghost-portal (ball phase toggle).
 - [x] **Wave 5** (`8d10c9f`): Heaven **He3** windmaster (ball deflector).
-- [ ] **Wave 5b** — Heaven **He2** shield statue, **He5/He6** altar/vase ally+levelup, **He4** columns.
-- [ ] **Wave 6** — Hell **H3** lava; Caverns **C3** cart; bosses: wire Goblin stalactite pattern, Witch magic, **heaven-boss** level.
-- [ ] Then the §07 polish: block **damage-state sprites** (A3), UI fixes (inventory padlocks I1, blank Fire-Mage hotbar I2, Russian badges D2, dev watermark D3), balls-bar contrast (B1), emojis→sprites (G), stretched-art→9-slice (H).
+- [x] **Wave 5b** (`8d9a076`): Heaven **He2** shield statue.
+- [x] **Refactor + Bat** (`3941143`): behaviour-bool soup → one `BlockBehavior` enum; Witchland **W2** bat (ball-grabber).
+- [x] **Boss wiring** (`1f772fe`): Goblin rains stalactites; **heaven-boss** finale level + campaign node.
+- [x] **§07 polish so far**: A3 damage-state sprites (`e519fc4`); Fire-Mage hotbar I2 + inventory padlocks I1 + watermark D3 (`7bacc00`); balls-bar B1 + rift emoji G (`f5e4222`).
+
+**ALL 12 ENEMY TYPES DONE.** Remaining refinements/polish: **He5/He6** altar/vase ally-toggle, **He4** columns, Hell **H3** lava, Caverns **C3** cart, Witch boss magic, Russian badges (D2, needs art), HUD spell-emoji fallbacks, stretched-art→9-slice (H).
 
 Each wave: SimConfig tunables, snapshot fields, frontend render, xUnit + Playwright proof + screenshot.
