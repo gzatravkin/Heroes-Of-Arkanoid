@@ -60,39 +60,41 @@ export class Hud {
     this.injectStyles();
 
     // ---- top-left panel: lives + balls ----
+    // Framed with the HP/life bar arts from Battle Interface
     const topLeft = this.createElement("div", "hud-top-left");
-    topLeft.style.cssText = "position:absolute;top:10px;left:12px;display:flex;flex-direction:column;gap:6px;";
+    topLeft.style.cssText = "position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:5px;";
 
     this.livesEl = this.createElement("div");
     this.livesEl.id = "hud-lives";
     this.livesEl.dataset.lives = "0";
+    this.livesEl.className = "hud-stat-row";
     topLeft.appendChild(this.livesEl);
 
     this.ballsEl = this.createElement("div");
     this.ballsEl.id = "hud-balls";
     this.ballsEl.dataset.balls = "0";
+    this.ballsEl.className = "hud-stat-row";
     topLeft.appendChild(this.ballsEl);
 
     // ---- top-right panel: relics row ----
     const topRight = this.createElement("div", "hud-relics");
     topRight.id = "hud-relics";
     topRight.style.cssText = [
-      "position:absolute", "top:10px", "right:12px",
-      "display:flex", "flex-direction:row", "gap:6px",
+      "position:absolute", "top:8px", "right:8px",
+      "display:flex", "flex-direction:row", "gap:5px",
       "align-items:center", "min-width:40px", "min-height:20px",
     ].join(";");
     this.relicsEl = topRight;
 
     // ---- bottom thumb zone: mana bar + spell hotbar ----
-    // pointer-events:auto only for the bottom zone so taps on spell slots work.
     const bottomCenter = this.createElement("div", "hud-bottom");
     bottomCenter.style.cssText = [
       "position:absolute", "bottom:0", "left:0", "right:0",
-      "display:flex", "flex-direction:column", "align-items:center", "gap:6px",
+      "display:flex", "flex-direction:column", "align-items:center", "gap:4px",
       "padding-bottom:max(12px,env(safe-area-inset-bottom,12px))",
-      "padding-top:8px",
-      "background:linear-gradient(to top,rgba(8,8,18,0.72) 0%,transparent 100%)",
-      "pointer-events:none", // container passes through; individual buttons opt-in
+      "padding-top:6px",
+      "background:linear-gradient(to top,rgba(4,4,12,0.80) 0%,transparent 100%)",
+      "pointer-events:none",
     ].join(";");
 
     this.manaOuter = this.buildManaBar();
@@ -125,15 +127,12 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
-  // Wire up the connection so spell buttons can cast.
-  // Called by BattleScene after construction.
-  // -----------------------------------------------------------------------
   wireConn(conn: Connection) {
     for (const spell of SPELLS) {
       const el = this.spellSlots.get(spell.id);
       if (!el) continue;
       el.addEventListener("pointerdown", (e) => {
-        e.stopPropagation(); // don't let it bubble to the canvas
+        e.stopPropagation();
         const cost = SPELL_COSTS[spell.id] ?? 0;
         if (this._mana >= cost) spell.cast(conn);
       });
@@ -147,12 +146,12 @@ export class Hud {
     // -- lives --
     const lives = s.lives ?? 0;
     this.livesEl.dataset.lives = String(lives);
-    this.livesEl.innerHTML = this.renderIconRow(lives, "/art/HPFull.png", "❤️", "Lives");
+    this.livesEl.innerHTML = this.renderStatRow(lives, "/ui/BattleHPFull.png", "/art/HPFull.png", "❤️", "Lives");
 
     // -- spare balls --
     const balls = s.spareBalls ?? 0;
     this.ballsEl.dataset.balls = String(balls);
-    this.ballsEl.innerHTML = this.renderIconRow(balls, "/art/LifeBall.png", "⚪", "Spare balls");
+    this.ballsEl.innerHTML = this.renderStatRow(balls, "/ui/BattleLifeBall.png", "/art/LifeBall.png", "⚪", "Spare balls");
 
     // -- mana bar --
     const mana    = s.mana    ?? 0;
@@ -190,27 +189,21 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
-  // Helpers
-  // -----------------------------------------------------------------------
-
   private updateRelics(relics: { id: string; name: string; icon: string }[]) {
-    // Diff by id — only rebuild if the set has changed.
     const existing = this.relicsEl.querySelectorAll<HTMLElement>("[data-relic-id]");
     const existingIds = Array.from(existing).map(el => el.dataset.relicId!);
     const newIds = relics.map(r => r.id);
     if (existingIds.join(",") === newIds.join(",")) return;
 
-    // Clear and rebuild.
     this.relicsEl.innerHTML = "";
     for (const relic of relics) {
       const tile = this.createElement("div");
       tile.dataset.relicId = relic.id;
       tile.title = relic.name;
+      // Use SpellBarActive as frame for relic tiles
       tile.style.cssText = [
-        "width:32px", "height:32px",
-        "background:rgba(0,0,0,0.55)",
-        "border:1px solid rgba(255,255,255,0.2)",
-        "border-radius:5px",
+        "width:36px", "height:36px",
+        "background:url('/ui/BattleSpellBarActive.png') no-repeat center/cover",
         "display:flex", "align-items:center", "justify-content:center",
         "pointer-events:none",
       ].join(";");
@@ -219,7 +212,7 @@ export class Hud {
       const img = document.createElement("img");
       img.src = iconSrc;
       img.alt = relic.name;
-      img.style.cssText = "width:24px;height:24px;object-fit:contain;image-rendering:pixelated;";
+      img.style.cssText = "width:22px;height:22px;object-fit:contain;image-rendering:pixelated;";
       img.onerror = () => { img.style.display = "none"; tile.textContent = "?"; };
       tile.appendChild(img);
 
@@ -230,60 +223,65 @@ export class Hud {
   private buildManaBar(): HTMLElement {
     const outer = this.createElement("div");
     outer.id = "hud-mana";
+    // Use MPFull art as a visual frame reference; overlay custom fill on top
     outer.style.cssText = [
-      "width:min(220px,80vw)", "background:rgba(0,0,0,0.55)", "border-radius:6px",
-      "border:1px solid rgba(80,120,255,0.4)", "padding:3px", "position:relative",
+      "position:relative",
+      "width:min(220px,80vw)",
+      "height:20px",
     ].join(";");
 
-    const track = this.createElement("div");
-    track.style.cssText = [
-      "width:100%", "height:14px", "background:rgba(20,20,50,0.8)",
-      "border-radius:4px", "overflow:hidden", "position:relative",
+    // Background: empty mana bar art
+    const bg = this.createElement("div");
+    bg.style.cssText = [
+      "position:absolute", "inset:0",
+      "background:url('/ui/BattleMPEmpty.png') no-repeat center/100% 100%",
     ].join(";");
+    outer.appendChild(bg);
 
+    // Fill: full mana bar art, clipped by percentage
     const fill = this.createElement("div");
     fill.id = "hud-mana-fill";
     fill.style.cssText = [
-      "height:100%", "width:100%", "border-radius:4px", "transition:width 0.1s linear",
-      "background:linear-gradient(90deg,#3355ff 0%,#88aaff 100%)",
+      "position:absolute", "left:0", "top:0", "bottom:0",
+      "width:100%",
+      "background:url('/ui/BattleMPFull.png') no-repeat left center/auto 100%",
+      "transition:width 0.1s linear",
     ].join(";");
+    outer.appendChild(fill);
 
     const label = this.createElement("span");
     label.id = "hud-mana-text";
     label.style.cssText = [
       "position:absolute", "top:50%", "left:50%",
       "transform:translate(-50%,-50%)",
-      "font-size:10px", "color:#dde", "font-weight:600",
+      "font-size:9px", "color:#fff", "font-weight:600",
       "text-shadow:0 0 4px #000", "pointer-events:none", "white-space:nowrap",
     ].join(";");
+    outer.appendChild(label);
 
-    track.appendChild(fill);
-    track.appendChild(label);
-    outer.appendChild(track);
     return outer;
   }
 
   private buildHotbar(): HTMLElement {
     const bar = this.createElement("div");
-    bar.style.cssText = "display:flex;gap:8px;pointer-events:none;";
+    bar.style.cssText = "display:flex;gap:6px;pointer-events:none;";
 
     for (const spell of SPELLS) {
       const slot = this.createElement("div");
       slot.id = `hud-spell-${spell.id}`;
-      // start affordable (ignite is free, fireball we'll assess on first update)
       slot.className = "hud-spell-slot affordable";
 
       // key badge
       const keyBadge = this.createElement("div", "hud-spell-key");
       keyBadge.textContent = spell.key;
 
-      // icon area
+      // icon area — use SpellBar art as the slot frame
       const iconWrap = this.createElement("div", "hud-spell-icon");
       if (spell.icon) {
         const img = document.createElement("img");
         img.src = spell.icon;
         img.alt = spell.label;
-        img.style.cssText = "width:32px;height:32px;object-fit:contain;image-rendering:pixelated;";
+        img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
         img.onerror = () => { img.style.display = "none"; iconWrap.textContent = spell.emoji; };
         iconWrap.appendChild(img);
       } else {
@@ -305,12 +303,13 @@ export class Hud {
     return bar;
   }
 
-  /** Render a row of icon images (or emoji fallback) with a count. */
-  private renderIconRow(count: number, iconSrc: string, emoji: string, label: string): string {
+  /** Render a row of icon images (or emoji fallback) with a count.
+   *  uiSrc is tried first (battle-interface art), artSrc is fallback. */
+  private renderStatRow(count: number, uiSrc: string, artSrc: string, emoji: string, label: string): string {
     const iconHtml = `<img
-      src="${iconSrc}" alt="${label}"
-      style="width:16px;height:16px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;"
-      onerror="this.style.display='none';this.insertAdjacentText('afterend','${emoji}')"
+      src="${uiSrc}" alt="${label}"
+      style="width:18px;height:18px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;"
+      onerror="this.src='${artSrc}';this.onerror=function(){this.style.display='none';this.insertAdjacentText('afterend','${emoji}')}"
     >`;
     const MAX_ICONS = 5;
     const shown = Math.min(count, MAX_ICONS);
@@ -331,44 +330,50 @@ export class Hud {
     const style = document.createElement("style");
     style.id = id;
     style.textContent = `
-      .hud-top-left > div {
-        background: rgba(0,0,0,0.55);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 6px;
-        padding: 4px 8px;
+      /* Lives/balls stat row — framed with HeroBar-style pill */
+      .hud-stat-row {
+        background: url('/ui/BattleHeroBar.png') no-repeat center/contain,
+                    rgba(0,0,0,0.45);
+        border-radius: 20px;
+        padding: 3px 10px 3px 8px;
         color: #eee;
-        font-size: 13px;
+        font-size: 12px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        min-width: 70px;
+        gap: 3px;
+        min-width: 60px;
+        min-height: 26px;
       }
+
       .hud-spell-slot {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3px;
-        background: rgba(0,0,0,0.6);
-        border: 1px solid rgba(255,120,40,0.35);
-        border-radius: 7px;
-        padding: 5px 8px;
+        gap: 2px;
+        /* Use SpellBar art as the slot frame background */
+        background: url('/ui/BattleSpellBar.png') no-repeat center/100% 100%;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 6px 6px 6px;
         /* ≥44px touch target (WCAG 2.5.5) */
-        min-width: 56px;
-        min-height: 44px;
+        min-width: 52px;
+        min-height: 72px;
         touch-action: manipulation;
         cursor: pointer;
-        /* pointer-events must be auto so taps register */
         pointer-events: auto;
-        transition: opacity 0.15s, border-color 0.15s;
+        transition: opacity 0.15s, filter 0.15s;
         -webkit-tap-highlight-color: transparent;
       }
       .hud-spell-slot.affordable {
         opacity: 1;
-        border-color: rgba(255,130,50,0.7);
+        filter: none;
+      }
+      .hud-spell-slot.affordable:hover {
+        filter: brightness(1.2);
       }
       .hud-spell-slot.unaffordable {
         opacity: 0.4;
-        border-color: rgba(100,100,100,0.4);
+        filter: grayscale(0.6);
         cursor: default;
       }
       .hud-spell-slot:active {
@@ -386,14 +391,15 @@ export class Hud {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
       }
       .hud-spell-name {
-        font-size: 9px;
-        color: #ccc;
+        font-size: 8px;
+        color: #e0c880;
         text-align: center;
         line-height: 1;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       }
       .hud-banner.win {
         background: rgba(10,40,10,0.85);
@@ -411,12 +417,12 @@ export class Hud {
       /* Landscape orientation: reduce bottom zone height */
       @media (orientation: landscape) and (max-height: 500px) {
         .hud-spell-slot {
-          min-width: 48px;
-          min-height: 40px;
-          padding: 4px 6px;
+          min-width: 44px;
+          min-height: 56px;
+          padding: 3px 5px 4px 5px;
         }
-        .hud-spell-icon { width: 24px; height: 24px; }
-        .hud-spell-icon img { width: 24px !important; height: 24px !important; }
+        .hud-spell-icon { width: 22px; height: 22px; }
+        .hud-spell-icon img { width: 22px !important; height: 22px !important; }
       }
     `;
     document.head.appendChild(style);

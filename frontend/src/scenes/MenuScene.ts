@@ -8,184 +8,292 @@ const LEVELS: { id: string; label: string }[] = [
 ];
 
 export function mountMenu(host: HTMLElement) {
+  // Inject menu styles
+  injectMenuStyles();
+
   const el = document.createElement("div");
   el.id = "menu";
-  el.style.cssText = [
-    "color:#e8e8ff",
-    "font-family:sans-serif",
-    "text-align:center",
-    "padding-top:12vh",
-    "display:flex",
-    "flex-direction:column",
-    "align-items:center",
-    "gap:0",
-  ].join(";");
+  el.className = "menu-root";
 
+  // Background fill
+  const bg = document.createElement("div");
+  bg.className = "menu-bg";
+  el.appendChild(bg);
+
+  // Character art (left side decoration)
+  const charArt = document.createElement("div");
+  charArt.className = "menu-char-art";
+  el.appendChild(charArt);
+
+  // Main content column
+  const col = document.createElement("div");
+  col.className = "menu-col";
+
+  // Logo image (visual) + screen-reader / test h1
   const h1 = document.createElement("h1");
   h1.textContent = "ARKANOID RPG";
-  h1.style.cssText = "margin:0 0 8px 0;font-size:2.4rem;letter-spacing:0.08em";
-  el.appendChild(h1);
+  h1.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;";
+  col.appendChild(h1);
 
-  const sub = document.createElement("p");
-  sub.textContent = "Choose a level";
-  sub.style.cssText = "margin:0 0 24px 0;color:#8899cc;font-size:0.95rem;letter-spacing:0.05em";
-  el.appendChild(sub);
+  const logo = document.createElement("div");
+  logo.className = "menu-logo";
+  col.appendChild(logo);
 
-  const grid = document.createElement("div");
-  grid.style.cssText = [
-    "display:grid",
-    "grid-template-columns:1fr 1fr",
-    "gap:12px",
-    "width:360px",
-  ].join(";");
+  // Nav buttons (big art buttons)
+  const navSection = document.createElement("div");
+  navSection.className = "menu-nav";
+
+  // Play button — styled with PlayButton art, keeps id="btn-play" + data-level="hell-1"
+  const playBtn = document.createElement("button");
+  playBtn.id = "btn-play";
+  playBtn.setAttribute("data-level", "hell-1");
+  playBtn.className = "menu-art-btn menu-btn-play";
+  playBtn.innerHTML = `<span class="menu-btn-label">Play</span>`;
+  playBtn.addEventListener("click", () => {
+    location.search = `?scene=battle&level=hell-1`;
+  });
+  navSection.appendChild(playBtn);
+
+  // Campaign
+  const campaignBtn = document.createElement("button");
+  campaignBtn.id = "btn-campaign";
+  campaignBtn.className = "menu-art-btn menu-btn-campaign";
+  campaignBtn.innerHTML = `<span class="menu-btn-label">Campaign</span>`;
+  campaignBtn.addEventListener("click", () => { location.href = "/?scene=campaign"; });
+  navSection.appendChild(campaignBtn);
+
+  // Characters
+  const charactersBtn = document.createElement("button");
+  charactersBtn.id = "btn-characters";
+  charactersBtn.className = "menu-art-btn menu-btn-characters";
+  charactersBtn.innerHTML = `<span class="menu-btn-label">Characters</span>`;
+  charactersBtn.addEventListener("click", () => { location.href = "/?scene=characters"; });
+  navSection.appendChild(charactersBtn);
+
+  // Dungeons
+  const dungeonsBtn = document.createElement("button");
+  dungeonsBtn.id = "btn-dungeons";
+  dungeonsBtn.className = "menu-art-btn menu-btn-dungeons";
+  dungeonsBtn.innerHTML = `<span class="menu-btn-label">Dungeons</span>`;
+  dungeonsBtn.addEventListener("click", () => { location.href = "/?scene=dungeons"; });
+  navSection.appendChild(dungeonsBtn);
+
+  // Editor
+  const editorBtn = document.createElement("button");
+  editorBtn.id = "btn-editor";
+  editorBtn.className = "menu-art-btn menu-btn-editor";
+  editorBtn.innerHTML = `<span class="menu-btn-label">Level Editor</span>`;
+  editorBtn.addEventListener("click", () => { location.href = "/?scene=editor"; });
+  navSection.appendChild(editorBtn);
+
+  col.appendChild(navSection);
+
+  // Quick-level grid (hidden below main nav, preserves all [data-level] for tests)
+  const quickGrid = document.createElement("div");
+  quickGrid.className = "menu-quick-grid";
 
   LEVELS.forEach((lvl, i) => {
+    if (i === 0) return; // hell-1 is already the Play button above
     const btn = document.createElement("button");
     btn.setAttribute("data-level", lvl.id);
+    btn.className = "menu-quick-btn";
     btn.textContent = lvl.label;
-    // Keep id="btn-play" on the first button so existing menu test still passes.
-    if (i === 0) btn.id = "btn-play";
-    btn.style.cssText = [
-      "font-size:15px",
-      "padding:12px 10px",
-      "background:#1a1a2e",
-      "color:#e8e8ff",
-      "border:1px solid #334",
-      "border-radius:6px",
-      "cursor:pointer",
-      "transition:background 0.15s,border-color 0.15s",
-    ].join(";");
-    btn.addEventListener("mouseenter", () => {
-      btn.style.background = "#2a2a4e";
-      btn.style.borderColor = "#556";
-    });
-    btn.addEventListener("mouseleave", () => {
-      btn.style.background = "#1a1a2e";
-      btn.style.borderColor = "#334";
-    });
     btn.addEventListener("click", () => {
       location.search = `?scene=battle&level=${lvl.id}`;
     });
-    grid.appendChild(btn);
+    quickGrid.appendChild(btn);
   });
 
-  el.appendChild(grid);
-
-  // Campaign button — navigate to campaign scene
-  const campaignBtn = document.createElement("button");
-  campaignBtn.id = "btn-campaign";
-  campaignBtn.textContent = "Campaign";
-  campaignBtn.style.cssText = [
-    "margin-top:20px",
-    "font-size:15px",
-    "padding:12px 32px",
-    "background:#1a1a3a",
-    "color:#cc88ff",
-    "border:1px solid #553377",
-    "border-radius:6px",
-    "cursor:pointer",
-    "letter-spacing:0.05em",
-    "transition:background 0.15s,border-color 0.15s",
-  ].join(";");
-  campaignBtn.addEventListener("mouseenter", () => {
-    campaignBtn.style.background = "#2a1a4a";
-    campaignBtn.style.borderColor = "#775599";
-  });
-  campaignBtn.addEventListener("mouseleave", () => {
-    campaignBtn.style.background = "#1a1a3a";
-    campaignBtn.style.borderColor = "#553377";
-  });
-  campaignBtn.addEventListener("click", () => {
-    location.href = "/?scene=campaign";
-  });
-  el.appendChild(campaignBtn);
-
-  // Characters button — navigate to character select scene
-  const charactersBtn = document.createElement("button");
-  charactersBtn.id = "btn-characters";
-  charactersBtn.textContent = "Characters";
-  charactersBtn.style.cssText = [
-    "margin-top:10px",
-    "font-size:15px",
-    "padding:12px 32px",
-    "background:#120a22",
-    "color:#cc88ff",
-    "border:1px solid #553366",
-    "border-radius:6px",
-    "cursor:pointer",
-    "letter-spacing:0.05em",
-    "transition:background 0.15s,border-color 0.15s",
-  ].join(";");
-  charactersBtn.addEventListener("mouseenter", () => {
-    charactersBtn.style.background = "#1e1040";
-    charactersBtn.style.borderColor = "#885599";
-  });
-  charactersBtn.addEventListener("mouseleave", () => {
-    charactersBtn.style.background = "#120a22";
-    charactersBtn.style.borderColor = "#553366";
-  });
-  charactersBtn.addEventListener("click", () => {
-    location.href = "/?scene=characters";
-  });
-  el.appendChild(charactersBtn);
-
-  // Dungeons button — navigate to dungeons scene
-  const dungeonsBtn = document.createElement("button");
-  dungeonsBtn.id = "btn-dungeons";
-  dungeonsBtn.textContent = "Dungeons";
-  dungeonsBtn.style.cssText = [
-    "margin-top:10px",
-    "font-size:15px",
-    "padding:12px 32px",
-    "background:#1a0a2a",
-    "color:#aa66ff",
-    "border:1px solid #442266",
-    "border-radius:6px",
-    "cursor:pointer",
-    "letter-spacing:0.05em",
-    "transition:background 0.15s,border-color 0.15s",
-  ].join(";");
-  dungeonsBtn.addEventListener("mouseenter", () => {
-    dungeonsBtn.style.background = "#2a1a4a";
-    dungeonsBtn.style.borderColor = "#664488";
-  });
-  dungeonsBtn.addEventListener("mouseleave", () => {
-    dungeonsBtn.style.background = "#1a0a2a";
-    dungeonsBtn.style.borderColor = "#442266";
-  });
-  dungeonsBtn.addEventListener("click", () => {
-    location.href = "/?scene=dungeons";
-  });
-  el.appendChild(dungeonsBtn);
-
-  // Editor button — navigate to level editor
-  const editorBtn = document.createElement("button");
-  editorBtn.id = "btn-editor";
-  editorBtn.textContent = "Level Editor";
-  editorBtn.style.cssText = [
-    "margin-top:10px",
-    "font-size:15px",
-    "padding:12px 32px",
-    "background:#0d1a2a",
-    "color:#66ccff",
-    "border:1px solid #224466",
-    "border-radius:6px",
-    "cursor:pointer",
-    "letter-spacing:0.05em",
-    "transition:background 0.15s,border-color 0.15s",
-  ].join(";");
-  editorBtn.addEventListener("mouseenter", () => {
-    editorBtn.style.background = "#1a2a3a";
-    editorBtn.style.borderColor = "#3366aa";
-  });
-  editorBtn.addEventListener("mouseleave", () => {
-    editorBtn.style.background = "#0d1a2a";
-    editorBtn.style.borderColor = "#224466";
-  });
-  editorBtn.addEventListener("click", () => {
-    location.href = "/?scene=editor";
-  });
-  el.appendChild(editorBtn);
-
+  col.appendChild(quickGrid);
+  el.appendChild(col);
   host.appendChild(el);
+}
+
+function injectMenuStyles() {
+  const id = "menu-styles";
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = `
+    .menu-root {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      font-family: sans-serif;
+    }
+
+    /* Dark gradient background with parchment-brown tint matching the game art palette */
+    .menu-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
+        linear-gradient(180deg, #1a0e06 0%, #0d0808 40%, #050308 100%);
+      z-index: 0;
+    }
+
+    /* Character art positioned right side */
+    .menu-char-art {
+      position: absolute;
+      right: -20px;
+      bottom: 0;
+      width: min(260px, 60vw);
+      height: 70vh;
+      background: url('/ui/MainCharacter.png') no-repeat bottom right / contain;
+      opacity: 0.18;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .menu-col {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 16px) 0;
+      padding-top: max(env(safe-area-inset-top, 0px), 28px);
+      gap: 0;
+    }
+
+    /* Logo — the real Heroes of Arkanoid II title image */
+    .menu-logo {
+      width: min(340px, 88vw);
+      height: 80px;
+      background: url('/ui/LogoArkanoid.png') no-repeat center / contain;
+      margin-bottom: 28px;
+    }
+
+    .menu-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 0 24px;
+      box-sizing: border-box;
+    }
+
+    /* Art button base — uses InterfaceButton (blue-gold pill) as the bg */
+    .menu-art-btn {
+      position: relative;
+      width: min(320px, 88vw);
+      height: 56px;
+      border: none;
+      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .menu-art-btn:hover  { filter: brightness(1.15); }
+    .menu-art-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+
+    /* Play button — has the PlayButton art icon on the left */
+    .menu-btn-play {
+      background-image: url('/ui/InterfaceButton.png');
+    }
+    .menu-btn-play::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      background: url('/ui/PlayButtonEng.png') no-repeat center / contain;
+    }
+
+    /* Campaign — uses the Campaign text art as icon label */
+    .menu-btn-campaign::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 80%;
+      background: url('/ui/InterfaceCampaignENG.png') no-repeat center / contain;
+    }
+    .menu-btn-campaign .menu-btn-label { opacity: 0; }
+
+    /* Characters — uses Inventory helmet button as icon */
+    .menu-btn-characters::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      background: url('/ui/InventoryButton.png') no-repeat center / contain;
+    }
+
+    /* Dungeons — uses skill-arrows button as icon */
+    .menu-btn-dungeons::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      background: url('/ui/InterfaceSkillsButton.png') no-repeat center / contain;
+    }
+
+    /* Editor — uses new+ button as icon */
+    .menu-btn-editor::before {
+      content: '';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      background: url('/ui/InterfaceNewButton.png') no-repeat center / contain;
+    }
+
+    .menu-btn-label {
+      color: #f0e0b8;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+
+    /* Quick-level grid — compact, secondary */
+    .menu-quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: min(320px, 88vw);
+      margin-top: 16px;
+      padding: 0 0 24px 0;
+    }
+    .menu-quick-btn {
+      padding: 10px 8px;
+      background: rgba(30,20,10,0.75);
+      color: #c8b888;
+      border: 1px solid rgba(160,120,50,0.45);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: sans-serif;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, border-color 0.15s;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    .menu-quick-btn:hover  { background: rgba(50,35,15,0.85); border-color: rgba(200,160,80,0.7); }
+    .menu-quick-btn:active { filter: brightness(0.85); }
+  `;
+  document.head.appendChild(style);
 }

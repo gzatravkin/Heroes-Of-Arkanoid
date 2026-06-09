@@ -27,9 +27,9 @@ const BALL_CORE_NAMES: Record<string, string> = {
 };
 
 const BALL_CORE_ICONS: Record<string, string> = {
-  heavy: "/art/BonusRock.png",
-  split: "/art/BonusSplit.png",
-  ember: "/art/BonusFire.png",
+  heavy: "/ui/BonusRock.png",
+  split: "/ui/BonusSplit.png",
+  ember: "/ui/BonusFire.png",
 };
 
 export function buffName(id: string): string {
@@ -40,6 +40,163 @@ export function buffIcon(id: string): string {
   return RELIC_ICONS[id] ?? BALL_CORE_ICONS[id] ?? "/art/ItemGem.png";
 }
 
+// Inject overlay styles once
+function injectOverlayStyles() {
+  const id = "overlay-styles";
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = `
+    .ov-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 1000;
+      font-family: sans-serif;
+      color: #e8e8ff;
+      gap: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Framed panel — LvlUpInterfacePanel art as background */
+    .ov-panel {
+      position: relative;
+      background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
+                  rgba(10,8,26,0.95);
+      border: 2px solid rgba(180,140,60,0.7);
+      border-radius: 12px;
+      padding: 24px 32px;
+      min-width: min(280px, 88vw);
+      max-width: min(400px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 40px rgba(10,5,30,0.5);
+    }
+
+    /* Top/bottom bar decorations */
+    .ov-panel::before,
+    .ov-panel::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 16px;
+      background: url('/ui/LvlUpInterfaceTopBottomPanel.png') repeat-x center / auto 100%;
+    }
+    .ov-panel::before { top: 0; border-radius: 10px 10px 0 0; }
+    .ov-panel::after  { bottom: 0; border-radius: 0 0 10px 10px; }
+
+    .ov-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 20px currentColor, 0 2px 4px rgba(0,0,0,0.9);
+      margin-bottom: 8px;
+    }
+    .ov-title-win   { color: #ffd700; }
+    .ov-title-green { color: #55ee88; }
+    .ov-title-red   { color: #ff4444; }
+
+    .ov-reward-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.1rem;
+    }
+
+    /* Art button — InterfaceButton pill */
+    .ov-btn {
+      margin-top: 12px;
+      padding: 0 32px;
+      height: 52px;
+      min-width: min(200px, 70vw);
+      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: sans-serif;
+      font-weight: 700;
+      color: #f0e0b8;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      transition: filter 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .ov-btn:hover  { filter: brightness(1.15); }
+    .ov-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+
+    /* Chest image */
+    .ov-chest {
+      width: 80px;
+      height: 80px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7));
+      margin-bottom: 4px;
+    }
+
+    /* Bonus card */
+    .ov-bonus-card {
+      position: relative;
+      width: min(110px, 28vw);
+      min-height: 140px;
+      background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
+                  rgba(10,8,26,0.95);
+      border: 2px solid rgba(100,80,160,0.5);
+      border-radius: 10px;
+      padding: 12px 8px 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ov-bonus-card:hover {
+      transform: translateY(-4px) scale(1.04);
+      border-color: rgba(220,190,80,0.8);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 12px rgba(220,190,80,0.3);
+    }
+    .ov-bonus-card:active { transform: scale(0.97); }
+
+    .ov-bonus-icon {
+      width: 52px;
+      height: 52px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+    }
+    .ov-bonus-name {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: #e8d8b0;
+      line-height: 1.3;
+    }
+
+    .ov-bonus-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: min(400px, 96vw);
+    }
+
+    .ov-pick-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffcc44;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      text-shadow: 0 0 12px rgba(255,200,50,0.5);
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // ── Overlay builders ──────────────────────────────────────────────────────────
 
 /** Campaign victory overlay (#reward-overlay). */
@@ -47,94 +204,93 @@ export function buildRewardOverlay(
   reward: CompleteResult["reward"],
   onContinue: () => void,
 ): HTMLElement {
+  injectOverlayStyles();
+
   const overlay = document.createElement("div");
   overlay.id = "reward-overlay";
-  css(overlay, {
-    position: "fixed", inset: "0",
-    background: "rgba(0,0,0,0.82)",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    zIndex: "1000",
-    color: "#e8e8ff",
-    fontFamily: "sans-serif",
-    gap: "12px",
-  });
+  overlay.className = "ov-backdrop";
 
   const title = document.createElement("div");
   title.textContent = "Victory!";
-  css(title, { fontSize: "2.4rem", fontWeight: "700", color: "#ffd700", letterSpacing: "0.1em" });
+  title.className = "ov-title ov-title-win";
   overlay.appendChild(title);
 
-  const card = document.createElement("div");
-  css(card, {
-    background: "#12122a",
-    border: "1px solid #334466",
-    borderRadius: "12px",
-    padding: "24px 36px",
-    minWidth: "280px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    alignItems: "center",
-  });
+  // Chest art
+  const chest = document.createElement("img");
+  chest.src = "/ui/GreenChest.png";
+  chest.className = "ov-chest";
+  overlay.appendChild(chest);
+
+  const panel = document.createElement("div");
+  panel.className = "ov-panel";
 
   if (reward) {
     const expEl = document.createElement("div");
     expEl.id = "reward-exp";
-    expEl.textContent = `+${reward.expGained} EXP`;
-    css(expEl, { fontSize: "1.2rem", color: "#88aaff" });
-    card.appendChild(expEl);
+    expEl.className = "ov-reward-row";
+    const expIco = document.createElement("img");
+    expIco.src = "/ui/ExpBarFull.png";
+    css(expIco, { width: "28px", height: "12px", imageRendering: "pixelated" });
+    expEl.appendChild(expIco);
+    const expText = document.createElement("span");
+    expText.textContent = `+${reward.expGained} EXP`;
+    css(expText, { color: "#88aaff", fontSize: "1.1rem" });
+    expEl.appendChild(expText);
+    panel.appendChild(expEl);
 
     const pointsEl = document.createElement("div");
     pointsEl.id = "reward-points";
-    pointsEl.textContent = `+${reward.pointsGained} Skill Points`;
-    css(pointsEl, { fontSize: "1.1rem", color: "#ffcc44" });
-    card.appendChild(pointsEl);
+    pointsEl.className = "ov-reward-row";
+    const ptIco = document.createElement("img");
+    ptIco.src = "/ui/InterfaceSkillsButton.png";
+    css(ptIco, { width: "22px", height: "22px", imageRendering: "pixelated" });
+    pointsEl.appendChild(ptIco);
+    const ptText = document.createElement("span");
+    ptText.textContent = `+${reward.pointsGained} Skill Points`;
+    css(ptText, { color: "#ffcc44", fontSize: "1.1rem" });
+    pointsEl.appendChild(ptText);
+    panel.appendChild(pointsEl);
 
     const crystalsEl = document.createElement("div");
     crystalsEl.id = "reward-crystals";
-    crystalsEl.textContent = `+${reward.crystalsGained} Crystals`;
-    css(crystalsEl, { fontSize: "1.1rem", color: "#44ddff" });
-    card.appendChild(crystalsEl);
+    crystalsEl.className = "ov-reward-row";
+    const cIco = document.createElement("img");
+    cIco.src = "/ui/GemBlue.png";
+    css(cIco, { width: "22px", height: "22px", imageRendering: "pixelated" });
+    crystalsEl.appendChild(cIco);
+    const cText = document.createElement("span");
+    cText.textContent = `+${reward.crystalsGained} Crystals`;
+    css(cText, { color: "#44ddff", fontSize: "1.1rem" });
+    crystalsEl.appendChild(cText);
+    panel.appendChild(crystalsEl);
 
     if (reward.leveledUp) {
       const lvlUp = document.createElement("div");
       lvlUp.id = "reward-levelup";
       lvlUp.textContent = `Level Up! → Lv ${reward.newLevel}`;
       css(lvlUp, { fontSize: "1.1rem", color: "#ffd700", fontWeight: "700", marginTop: "4px" });
-      card.appendChild(lvlUp);
+      panel.appendChild(lvlUp);
     }
 
     if (reward.firstClear) {
       const first = document.createElement("div");
       first.textContent = "First Clear!";
       css(first, { fontSize: "0.9rem", color: "#aa88ff", marginTop: "4px" });
-      card.appendChild(first);
+      panel.appendChild(first);
     }
   } else {
     const msg = document.createElement("div");
     msg.textContent = "Level complete!";
     css(msg, { color: "#88aaff" });
-    card.appendChild(msg);
+    panel.appendChild(msg);
   }
 
-  overlay.appendChild(card);
+  overlay.appendChild(panel);
 
   const btnContinue = document.createElement("button");
   btnContinue.id = "btn-continue";
+  btnContinue.className = "ov-btn";
   btnContinue.textContent = "Continue";
-  css(btnContinue, {
-    marginTop: "8px",
-    padding: "12px 36px",
-    background: "#1a3a2a",
-    color: "#55ee88",
-    border: "2px solid #33aa66",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontFamily: "sans-serif",
-    letterSpacing: "0.05em",
-  });
   btnContinue.addEventListener("click", onContinue);
   overlay.appendChild(btnContinue);
 
@@ -146,53 +302,29 @@ export function buildDefeatOverlay(
   onRetry: () => void,
   onMap: () => void,
 ): HTMLElement {
+  injectOverlayStyles();
+
   const overlay = document.createElement("div");
   overlay.id = "defeat-overlay";
-  css(overlay, {
-    position: "fixed", inset: "0",
-    background: "rgba(0,0,0,0.82)",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    zIndex: "1000",
-    color: "#e8e8ff",
-    fontFamily: "sans-serif",
-    gap: "16px",
-  });
+  overlay.className = "ov-backdrop";
 
   const title = document.createElement("div");
   title.textContent = "Defeat";
-  css(title, { fontSize: "2.4rem", fontWeight: "700", color: "#ff4444", letterSpacing: "0.1em" });
+  title.className = "ov-title ov-title-red";
   overlay.appendChild(title);
 
   const btnRetry = document.createElement("button");
   btnRetry.id = "btn-retry";
+  btnRetry.className = "ov-btn";
   btnRetry.textContent = "Retry";
-  css(btnRetry, {
-    padding: "12px 32px",
-    background: "#2a1a1a",
-    color: "#ff8888",
-    border: "2px solid #aa3333",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "15px",
-    fontFamily: "sans-serif",
-  });
+  css(btnRetry, { filter: "hue-rotate(200deg) saturate(0.7)" });
   btnRetry.addEventListener("click", onRetry);
   overlay.appendChild(btnRetry);
 
   const btnMap = document.createElement("button");
   btnMap.id = "btn-map";
+  btnMap.className = "ov-btn";
   btnMap.textContent = "Map";
-  css(btnMap, {
-    padding: "12px 32px",
-    background: "#1a1a2a",
-    color: "#aabbff",
-    border: "2px solid #334488",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "15px",
-    fontFamily: "sans-serif",
-  });
   btnMap.addEventListener("click", onMap);
   overlay.appendChild(btnMap);
 
@@ -204,60 +336,34 @@ export function buildPickOverlay(
   choices: string[],
   onPick: (choiceId: string) => void,
 ): HTMLElement {
+  injectOverlayStyles();
+
   const overlay = document.createElement("div");
   overlay.id = "pick-overlay";
-  css(overlay, {
-    position: "fixed", inset: "0",
-    background: "rgba(0,0,0,0.88)",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    zIndex: "1000",
-    color: "#e8e8ff",
-    fontFamily: "sans-serif",
-    gap: "20px",
-  });
+  overlay.className = "ov-backdrop";
 
   const title = document.createElement("div");
-  title.textContent = "Floor Cleared — Choose a Boon";
-  css(title, { fontSize: "1.6rem", fontWeight: "700", color: "#ffcc44", letterSpacing: "0.08em" });
+  title.textContent = "Choose a Boon";
+  title.className = "ov-pick-title";
   overlay.appendChild(title);
 
   const row = document.createElement("div");
-  css(row, { display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" });
+  row.className = "ov-bonus-row";
 
   for (const choiceId of choices) {
     const card = document.createElement("div");
     card.setAttribute("data-choice", choiceId);
-    css(card, {
-      background: "#12122a",
-      border: "2px solid #334466",
-      borderRadius: "10px",
-      padding: "20px 24px",
-      minWidth: "140px",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "10px",
-      cursor: "pointer",
-      transition: "background 0.15s, border-color 0.15s",
-    });
-    card.addEventListener("mouseenter", () => {
-      card.style.background = "#1e1e44";
-      card.style.borderColor = "#5566aa";
-    });
-    card.addEventListener("mouseleave", () => {
-      card.style.background = "#12122a";
-      card.style.borderColor = "#334466";
-    });
+    card.className = "ov-bonus-card";
 
     const icon = document.createElement("img");
     icon.src = buffIcon(choiceId);
-    css(icon, { width: "40px", height: "40px", imageRendering: "pixelated" });
+    icon.alt = buffName(choiceId);
+    icon.className = "ov-bonus-icon";
     card.appendChild(icon);
 
     const nameEl = document.createElement("div");
     nameEl.textContent = buffName(choiceId);
-    css(nameEl, { fontSize: "14px", fontWeight: "700", textAlign: "center", color: "#aabbff" });
+    nameEl.className = "ov-bonus-name";
     card.appendChild(nameEl);
 
     card.addEventListener("click", () => onPick(choiceId));
@@ -273,61 +379,50 @@ export function buildDungeonClearOverlay(
   data: FloorClearedResult,
   onDone: () => void,
 ): HTMLElement {
+  injectOverlayStyles();
+
   const overlay = document.createElement("div");
   overlay.id = "dungeon-clear-overlay";
-  css(overlay, {
-    position: "fixed", inset: "0",
-    background: "rgba(0,0,0,0.88)",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    zIndex: "1000",
-    color: "#e8e8ff",
-    fontFamily: "sans-serif",
-    gap: "16px",
-  });
+  overlay.className = "ov-backdrop";
 
   const title = document.createElement("div");
   title.textContent = "Dungeon Cleared!";
-  css(title, { fontSize: "2.4rem", fontWeight: "700", color: "#55ee88", letterSpacing: "0.1em" });
+  title.className = "ov-title ov-title-green";
   overlay.appendChild(title);
 
-  const card = document.createElement("div");
-  css(card, {
-    background: "#0e1e14",
-    border: "1px solid #226644",
-    borderRadius: "12px",
-    padding: "24px 36px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    alignItems: "center",
-    minWidth: "240px",
-  });
+  const chest = document.createElement("img");
+  chest.src = "/ui/BlueChest.png";
+  chest.className = "ov-chest";
+  overlay.appendChild(chest);
+
+  const panel = document.createElement("div");
+  panel.className = "ov-panel";
 
   const rewardTitle = document.createElement("div");
   rewardTitle.textContent = "Permanent Reward";
-  css(rewardTitle, { fontSize: "0.9rem", color: "#88aaaa", letterSpacing: "0.05em" });
-  card.appendChild(rewardTitle);
+  css(rewardTitle, { fontSize: "0.85rem", color: "#88aaaa", letterSpacing: "0.05em" });
+  panel.appendChild(rewardTitle);
 
   const profile = data.profile;
   if (profile?.crystals !== undefined) {
     const crystalEl = document.createElement("div");
     crystalEl.id = "dungeon-clear-crystals";
-    css(crystalEl, { display: "flex", alignItems: "center", gap: "8px", fontSize: "1.2rem", color: "#44ddff" });
+    crystalEl.className = "ov-reward-row";
     const gemImg = document.createElement("img");
-    gemImg.src = "/art/GemBlue.png";
+    gemImg.src = "/ui/GemBlue.png";
     css(gemImg, { width: "24px", height: "24px", imageRendering: "pixelated" });
     crystalEl.appendChild(gemImg);
     const crystalText = document.createElement("span");
     crystalText.textContent = `${profile.crystals} Crystals`;
+    css(crystalText, { fontSize: "1.2rem", color: "#44ddff" });
     crystalEl.appendChild(crystalText);
-    card.appendChild(crystalEl);
+    panel.appendChild(crystalEl);
   }
 
   if (profile?.unlockedRelics && Array.isArray(profile.unlockedRelics) && profile.unlockedRelics.length > 0) {
     const lastRelic = profile.unlockedRelics[profile.unlockedRelics.length - 1];
     const relicRow = document.createElement("div");
-    css(relicRow, { display: "flex", alignItems: "center", gap: "8px", fontSize: "1.1rem", color: "#cc88ff" });
+    relicRow.className = "ov-reward-row";
     const relicImg = document.createElement("img");
     relicImg.src = RELIC_ICONS[lastRelic] ?? "/art/ItemGem.png";
     css(relicImg, { width: "24px", height: "24px", imageRendering: "pixelated" });
@@ -335,26 +430,17 @@ export function buildDungeonClearOverlay(
     const relicText = document.createElement("span");
     relicText.id = "dungeon-clear-relic";
     relicText.textContent = RELIC_NAMES[lastRelic] ?? lastRelic;
+    css(relicText, { fontSize: "1.1rem", color: "#cc88ff" });
     relicRow.appendChild(relicText);
-    card.appendChild(relicRow);
+    panel.appendChild(relicRow);
   }
 
-  overlay.appendChild(card);
+  overlay.appendChild(panel);
 
   const doneBtn = document.createElement("button");
   doneBtn.id = "btn-dungeon-done";
+  doneBtn.className = "ov-btn";
   doneBtn.textContent = "Return to Dungeons";
-  css(doneBtn, {
-    padding: "12px 36px",
-    background: "#0e2a1a",
-    color: "#55ee88",
-    border: "2px solid #226644",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontFamily: "sans-serif",
-    letterSpacing: "0.05em",
-  });
   doneBtn.addEventListener("click", onDone);
   overlay.appendChild(doneBtn);
 
@@ -363,43 +449,27 @@ export function buildDungeonClearOverlay(
 
 /** Dungeon permadeath overlay (#dungeon-fail-overlay). */
 export function buildDungeonFailOverlay(onExit: () => void): HTMLElement {
+  injectOverlayStyles();
+
   const overlay = document.createElement("div");
   overlay.id = "dungeon-fail-overlay";
-  css(overlay, {
-    position: "fixed", inset: "0",
-    background: "rgba(0,0,0,0.88)",
-    display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center",
-    zIndex: "1000",
-    color: "#e8e8ff",
-    fontFamily: "sans-serif",
-    gap: "16px",
-  });
+  overlay.className = "ov-backdrop";
 
   const title = document.createElement("div");
   title.textContent = "Run Over";
-  css(title, { fontSize: "2.4rem", fontWeight: "700", color: "#ff4444", letterSpacing: "0.1em" });
+  title.className = "ov-title ov-title-red";
   overlay.appendChild(title);
 
   const sub = document.createElement("div");
   sub.textContent = "The rift claims you.";
-  css(sub, { color: "#aa5555", fontSize: "1.1rem", letterSpacing: "0.04em" });
+  css(sub, { color: "#aa5555", fontSize: "1.1rem", letterSpacing: "0.04em", marginBottom: "8px" });
   overlay.appendChild(sub);
 
   const exitBtn = document.createElement("button");
   exitBtn.id = "btn-dungeon-exit";
+  exitBtn.className = "ov-btn";
   exitBtn.textContent = "Return to Dungeons";
-  css(exitBtn, {
-    padding: "12px 36px",
-    background: "#2a0a0a",
-    color: "#ff8888",
-    border: "2px solid #aa2222",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontFamily: "sans-serif",
-    letterSpacing: "0.05em",
-  });
+  css(exitBtn, { filter: "hue-rotate(200deg) saturate(0.7)" });
   exitBtn.addEventListener("click", onExit);
   overlay.appendChild(exitBtn);
 
