@@ -76,13 +76,13 @@ const LEVELS = [
     "A...C...",
     "C.......",
   ]},
-  { id: "caverns-2", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock", X: "cavern_bomb" }, rows: [
+  { id: "caverns-2", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock", X: "cavern_bomb", K: "cavern_cart" }, rows: [
     "RR.AA.RR",
     "R..XX..R",
     "R.CCCC.R",
     "A..XX..A",
     "A.RAAR.A",
-    "A.R..R.A",
+    "K.R..R.K",
     "AAA..AAA",
   ]},
   { id: "caverns-boss", biome: "caverns", legend: { A: "cavern_basic", B: "cavern_tough", R: "cavern_rock", G: "cavern_goblin_boss" }, rows: [

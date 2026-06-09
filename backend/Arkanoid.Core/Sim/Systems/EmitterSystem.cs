@@ -16,7 +16,19 @@ internal static class EmitterSystem
     {
         foreach (var blk in g.Blocks)
         {
-            if (blk.Dead || !blk.Emitter) continue;
+            if (blk.Dead) continue;
+
+            // Cart-spawner: periodically rolls a horizontal cart hazard across the board.
+            if (blk.Cart)
+            {
+                blk.EmitAccumulator += dt;
+                if (blk.EmitAccumulator < g.Config.CartInterval) continue;
+                blk.EmitAccumulator -= g.Config.CartInterval;
+                LaunchCart(g, blk);
+                continue;
+            }
+
+            if (!blk.Emitter) continue;
             if (blk.AllyTimer > 0) continue; // pacified by an Altar/Vase — holds fire
             var interval = blk.EmitInterval > 0 ? blk.EmitInterval : 2.5;
             blk.EmitAccumulator += dt;
@@ -24,6 +36,23 @@ internal static class EmitterSystem
             blk.EmitAccumulator -= interval;
             Fire(g, blk);
         }
+    }
+
+    /// <summary>Roll a cart hazard along the paddle line, left→right — the paddle must dodge it.</summary>
+    private static void LaunchCart(GameInstance g, Block blk)
+    {
+        var y = g.Paddle.Center.Y; // sweeps the paddle row
+        g.Hazards.Add(new Projectile
+        {
+            Id     = g._nextHazardId++,
+            Pos    = new Vec2(0, y),
+            Vel    = new Vec2(g.Config.CartSpeed, 0),
+            Damage = g.Config.EnemyHazardDamage,
+            Radius = g.Config.EnemyHazardRadius * 1.6,
+            Alive  = true,
+            Kind   = "cart",
+        });
+        g.RaiseEvent("cart", 0, y);
     }
 
     private static void Fire(GameInstance g, Block blk)

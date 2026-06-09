@@ -9,7 +9,7 @@
     "R.CCCC.R",
     "A..XX..A",
     "A.RAAR.A",
-    "A.R..R.A",
+    "K.R..R.K",
     "AAA..AAA",
     "........",
     "........",
@@ -23,6 +23,7 @@
     "A": "cavern_basic",
     "C": "cavern_tough",
     "R": "cavern_rock",
-    "X": "cavern_bomb"
+    "X": "cavern_bomb",
+    "K": "cavern_cart"
   }
 }

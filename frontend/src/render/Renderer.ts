@@ -1194,13 +1194,20 @@ export class Renderer {
       const { halo, core, bat, stal } = this._hazardPool[i];
       if (i < hazards.length) {
         const hz = hazards[i];
-        if (hz.kind === "stalactite" && stal) {
+        if ((hz.kind === "stalactite" || hz.kind === "cart") && stal) {
           halo.visible = false;
           core.visible = false;
           if (bat) bat.visible = false;
           stal.visible = true;
-          const ss = HAZARD_RADIUS * 3.2;
-          stal.width = ss; stal.height = ss * 1.6;
+          if (hz.kind === "cart") {
+            stal.texture = tex("DungeonCart");
+            const cs = HAZARD_RADIUS * 4;
+            stal.width = cs * 1.4; stal.height = cs;
+          } else {
+            stal.texture = tex("Stalactite");
+            const ss = HAZARD_RADIUS * 3.2;
+            stal.width = ss; stal.height = ss * 1.6;
+          }
           stal.x = hz.x; stal.y = hz.y;
         } else if (showBats && bat) {
           if (stal) stal.visible = false;

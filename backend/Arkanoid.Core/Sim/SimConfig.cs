@@ -178,6 +178,10 @@ public sealed class SimConfig
     public double BatHoldTime          { get; init; } = 2.0;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
+    /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>
+    public double CartSpeed            { get; init; } = 150;
+    /// <summary>Seconds between cart launches from a cart-spawner block.</summary>
+    public double CartInterval         { get; init; } = 4.0;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>

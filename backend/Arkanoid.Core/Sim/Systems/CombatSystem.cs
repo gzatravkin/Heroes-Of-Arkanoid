@@ -31,6 +31,14 @@ internal static class CombatSystem
                 continue;
             }
 
+            // Carts roll horizontally and despawn once they leave the board (not by falling).
+            if (hz.Kind == "cart")
+            {
+                if (hz.Pos.X < -hz.Radius || hz.Pos.X > g.Level.Grid.Width + hz.Radius)
+                    hz.Alive = false;
+                continue;
+            }
+
             if (hz.Pos.Y - hz.Radius > drainLine)
             {
                 hz.Alive = false; // dodged / missed

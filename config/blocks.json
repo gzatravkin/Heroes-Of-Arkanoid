@@ -34,5 +34,6 @@
   { "id": "heaven_column_bottom", "biome": "heaven",  "hp": 4, "sprite": "ColumnBottom",  "needToKill": true },
   { "id": "hell_lava",            "biome": "hell",    "hp": 1, "sprite": "LavaMainPart",   "needToKill": false, "indestructible": true, "behavior": "lava" },
   { "id": "heaven_altar",         "biome": "heaven",  "hp": 1, "sprite": "HeavenAltarV2",  "needToKill": false, "indestructible": true, "behavior": "altar" },
-  { "id": "heaven_vase",          "biome": "heaven",  "hp": 2, "sprite": "HeavenVaza",     "needToKill": true,  "behavior": "vase" }
+  { "id": "heaven_vase",          "biome": "heaven",  "hp": 2, "sprite": "HeavenVaza",     "needToKill": true,  "behavior": "vase" },
+  { "id": "cavern_cart",          "biome": "caverns", "hp": 1, "sprite": "DungeonCart",    "needToKill": false, "indestructible": true, "behavior": "cart" }
 ]}

@@ -88,6 +88,24 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Cart (rolls a horizontal hazard across the paddle line) ───────────────
+
+    [Fact]
+    public void Cart_LaunchesHorizontalHazard_AfterInterval()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"cart\"}," +
+            "{\"id\":\"z\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":8,\"rows\":3,\"rows_data\":[\"k......z\",\"........\",\"........\"],\"legend\":{\"k\":\"k\",\"z\":\"z\"}}");
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.CartInterval / SimConfig.Default.FixedDt) + 2; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        var cart = g.Hazards.FirstOrDefault(h => h.Kind == "cart");
+        Assert.NotNull(cart);
+        Assert.True(System.Math.Abs(cart!.Vel.X) > 0 && cart.Vel.Y == 0, "cart rolls horizontally");
+    }
+
     // ── Lava (deadly block drains the ball) ───────────────────────────────────
 
     [Fact]

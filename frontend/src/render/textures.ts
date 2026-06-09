@@ -32,6 +32,7 @@ const ALIAS: Record<string, string> = {
   DungeonStandart2:      "dungeon/DungeonStandart2",
   DungeonInvulnerable:   "dungeon/DungeonInvulnerable",
   Stalactite:            "dungeon/Stalactite",
+  DungeonCart:           "dungeon/DungeonCart",
 
   // ── Village biome blocks ─────────────────────────────────────────────────
   VillageStandart:       "village/blocks/VillageStandart",

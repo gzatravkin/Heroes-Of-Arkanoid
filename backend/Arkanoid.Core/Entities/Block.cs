@@ -22,6 +22,7 @@ public enum BlockBehavior
     Lava,          // deadly block — drains the ball on contact
     Altar,         // ball-hit pacifies (allies) the Heaven statues for a while
     Vase,          // on death, pacifies the Heaven statues
+    Cart,          // periodically rolls a cart hazard across the board (Caverns)
 }
 
 public sealed class Block
@@ -58,6 +59,7 @@ public sealed class Block
     public bool Lava         => Behavior == BlockBehavior.Lava;
     public bool Altar        => Behavior == BlockBehavior.Altar;
     public bool Vase         => Behavior == BlockBehavior.Vase;
+    public bool Cart         => Behavior == BlockBehavior.Cart;
     /// <summary>True for Heaven statues that the Altar/Vase can pacify.</summary>
     public bool IsStatue     => Emitter && EmitAim == "paddle" || ShieldStatue;
 
