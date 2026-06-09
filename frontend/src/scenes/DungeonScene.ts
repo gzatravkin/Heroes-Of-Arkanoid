@@ -47,8 +47,8 @@ export function mountDungeon(host: HTMLElement) {
     root.appendChild(msg);
 
     const link = document.createElement("a");
-    link.href = "/?scene=dungeons";
-    link.textContent = "Browse Dungeons →";
+    link.href = "/?scene=campaign";
+    link.textContent = "← Back to Campaign";
     link.className = "dngrun-link";
     root.appendChild(link);
   }
@@ -61,8 +61,8 @@ export function mountDungeon(host: HTMLElement) {
     root.appendChild(msg);
 
     const link = document.createElement("a");
-    link.href = "/?scene=dungeons";
-    link.textContent = "Browse Dungeons →";
+    link.href = "/?scene=campaign";
+    link.textContent = "← Back to Campaign";
     link.className = "dngrun-link";
     root.appendChild(link);
   }
@@ -72,8 +72,8 @@ export function mountDungeon(host: HTMLElement) {
 
     // Back link
     const backBtn = document.createElement("a");
-    backBtn.href = "/?scene=dungeons";
-    backBtn.textContent = "← Dungeons";
+    backBtn.href = "/?scene=campaign";
+    backBtn.textContent = "← Campaign";
     backBtn.className = "dngrun-back";
     root.appendChild(backBtn);
 

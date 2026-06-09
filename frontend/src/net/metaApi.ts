@@ -50,6 +50,13 @@ export interface CampaignData {
   nodes: CampaignNode[];
 }
 
+export interface RiftOffer {
+  opened: boolean;
+  dungeonId: string;
+  name: string;
+  floors: number;
+}
+
 export interface CompleteResult {
   reward: {
     expGained: number;
@@ -59,7 +66,11 @@ export interface CompleteResult {
     newLevel: number;
     firstClear: boolean;
   } | null;
+  rift: RiftOffer | null;
 }
+
+/** Rift roll mode sent to /complete. "none" = never (default for direct callers). */
+export type RiftMode = "roll" | "force" | "none";
 
 export interface UpgradeResult {
   ok: boolean;
@@ -170,8 +181,8 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 export const metaApi = {
   getProfile: ()                 => get<Profile>("/profile"),
   getCampaign: ()                => get<CampaignData>("/campaign"),
-  complete: (level: string, treasureBonus = 0) =>
-    post<CompleteResult>(`/complete?level=${encodeURIComponent(level)}&treasureBonus=${treasureBonus}`),
+  complete: (level: string, treasureBonus = 0, riftMode: RiftMode = "none") =>
+    post<CompleteResult>(`/complete?level=${encodeURIComponent(level)}&treasureBonus=${treasureBonus}&rift=${riftMode}`),
   upgrade: (spell: string)       => post<UpgradeResult>(`/upgrade?spell=${encodeURIComponent(spell)}`),
   reset: ()                      => post<unknown>("/reset"),
   getDungeons: ()                => get<DungeonsResult>("/dungeons"),

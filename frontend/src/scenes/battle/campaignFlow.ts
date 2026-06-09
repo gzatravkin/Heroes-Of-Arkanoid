@@ -1,12 +1,29 @@
 import type { Snapshot } from "../../net/Connection";
 import { metaApi } from "../../net/metaApi";
+import type { RiftMode, RiftOffer } from "../../net/metaApi";
 import { buildRewardOverlay, buildDefeatOverlay } from "./overlays";
 import { navigateTo } from "../../ui/transition";
 import { unlockAchievement } from "../AchievementsScene";
+import { log } from "../../log";
+
+/** Where to return after the reward overlay — to the rift offer if one opened. */
+function campaignReturnUrl(rift: RiftOffer | null): string {
+  if (rift?.opened) {
+    return `/?scene=campaign&rift=${encodeURIComponent(rift.dungeonId)}`
+         + `&riftFloors=${rift.floors}&riftName=${encodeURIComponent(rift.name)}`;
+  }
+  return "/?scene=campaign";
+}
 
 export function createCampaignFlow(level: string) {
   let completeCalled = false;
   let overlayShown = false;
+
+  // Tests can force/suppress rifts deterministically via localStorage; players roll.
+  const riftMode = ((): RiftMode => {
+    const m = (typeof localStorage !== "undefined" && localStorage.getItem("ark_rift_mode")) || "roll";
+    return (m === "force" || m === "none") ? m : "roll";
+  })();
 
   async function handlePhase(s: Snapshot): Promise<boolean> {
     if (overlayShown) return true;
@@ -15,9 +32,12 @@ export function createCampaignFlow(level: string) {
       completeCalled = true;
       overlayShown = true;
       let reward = null;
+      let rift: RiftOffer | null = null;
       try {
-        const data = await metaApi.complete(level, s.treasureBonus ?? 0);
+        const data = await metaApi.complete(level, s.treasureBonus ?? 0, riftMode);
         reward = data.reward;
+        rift = data.rift;
+        log("rift", rift?.opened ? "offered" : "none", rift ?? { level });
         // Unlock achievements for this win
         await unlockAchievement("first_win");
         if (level.startsWith("hell"))    await unlockAchievement("clear_biome_hell");
@@ -36,7 +56,7 @@ export function createCampaignFlow(level: string) {
       } catch (e) {
         console.error("Failed to complete level", e);
       }
-      const el = buildRewardOverlay(reward, () => { navigateTo("/?scene=campaign"); });
+      const el = buildRewardOverlay(reward, () => { navigateTo(campaignReturnUrl(rift)); });
       document.body.appendChild(el);
       return true;
     }

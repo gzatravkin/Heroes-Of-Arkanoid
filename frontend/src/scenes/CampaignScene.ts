@@ -1,6 +1,7 @@
 import { metaApi } from "../net/metaApi";
 import type { CampaignNode, Profile } from "../net/metaApi";
 import { navigateTo } from "../ui/transition";
+import { log } from "../log";
 
 const SPELL_NAMES: Record<string, string> = {
   ignite: "Ignite",
@@ -352,7 +353,128 @@ export function mountCampaign(host: HTMLElement) {
     renderNodes(camp.nodes);
   }
 
-  loadAll().catch(console.error);
+  loadAll()
+    .then(() => maybeShowRiftBanner(root))
+    .catch(console.error);
+}
+
+/**
+ * If the URL carries a rift offer (set by the campaign reward flow), slide in a
+ * banner offering the dungeon run. Descend → start the run; Skip → stay on the map.
+ * The banner is an overlay layered over the (still-present) campaign map.
+ */
+function maybeShowRiftBanner(root: HTMLElement) {
+  const q = new URLSearchParams(location.search);
+  const dungeonId = q.get("rift");
+  if (!dungeonId) return;
+  const floors = q.get("riftFloors") ?? "?";
+  const name   = q.get("riftName") ?? "Rift";
+
+  injectRiftStyles();
+
+  const banner = document.createElement("div");
+  banner.id = "rift-banner";
+  banner.className = "rift-banner";
+  banner.innerHTML = `
+    <div class="rift-banner-glyph">⚡</div>
+    <div class="rift-banner-text">
+      <div class="rift-banner-title">A Rift opens</div>
+      <div class="rift-banner-sub">${name} · ${floors} floors · permadeath · 1 reward / floor</div>
+    </div>
+    <div class="rift-banner-actions">
+      <button id="btn-rift-descend" class="rift-btn rift-btn-go">Descend</button>
+      <button id="btn-rift-skip" class="rift-btn rift-btn-skip">Skip</button>
+    </div>`;
+  root.appendChild(banner);
+  log("rift", "banner-shown", { dungeonId, floors });
+
+  // Slide in on next frame.
+  requestAnimationFrame(() => banner.classList.add("rift-banner-in"));
+
+  const close = () => { banner.classList.remove("rift-banner-in"); };
+
+  banner.querySelector("#btn-rift-descend")!.addEventListener("click", async () => {
+    log("rift", "descend", { dungeonId });
+    try {
+      await metaApi.startDungeon(dungeonId);
+      navigateTo("/?scene=dungeon");
+    } catch (e) {
+      log("rift", "descend-failed", { err: String(e) });
+    }
+  });
+
+  banner.querySelector("#btn-rift-skip")!.addEventListener("click", () => {
+    log("rift", "skip", { dungeonId });
+    close();
+    // Drop the rift params so a refresh doesn't re-offer.
+    history.replaceState(null, "", "/?scene=campaign");
+    setTimeout(() => banner.remove(), 300);
+  });
+}
+
+function injectRiftStyles() {
+  const id = "rift-styles";
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = `
+    .rift-banner {
+      position: fixed;
+      left: 50%;
+      top: 64px;
+      transform: translate(-50%, -160%);
+      width: min(360px, 92vw);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      box-sizing: border-box;
+      background:
+        linear-gradient(180deg, rgba(60,10,70,0.96), rgba(30,5,40,0.97)),
+        rgba(20,5,30,0.97);
+      border: 2px solid #b048e0;
+      border-radius: 12px;
+      box-shadow: 0 0 28px rgba(180,70,230,0.55), inset 0 0 30px rgba(120,30,160,0.4);
+      color: #f4e6ff;
+      font-family: sans-serif;
+      transition: transform 0.35s cubic-bezier(0.2, 1.1, 0.4, 1);
+    }
+    .rift-banner-in { transform: translate(-50%, 0); }
+    .rift-banner-glyph {
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px #c060ff);
+      animation: rift-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes rift-pulse { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }
+    .rift-banner-text { flex: 1; min-width: 0; }
+    .rift-banner-title {
+      font-size: 15px; font-weight: 800; letter-spacing: 0.04em;
+      color: #e9b8ff; text-shadow: 0 0 10px rgba(190,90,240,0.7);
+    }
+    .rift-banner-sub { font-size: 10px; color: #c9a8e0; margin-top: 2px; line-height: 1.3; }
+    .rift-banner-actions { display: flex; flex-direction: column; gap: 6px; }
+    .rift-btn {
+      min-width: 78px; min-height: 34px;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 700; font-family: sans-serif;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      transition: filter 0.15s, transform 0.1s;
+    }
+    .rift-btn:active { transform: scale(0.95); }
+    .rift-btn-go {
+      background: linear-gradient(180deg, #c860ff, #8a28c0);
+      color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      box-shadow: 0 0 12px rgba(190,90,240,0.6);
+    }
+    .rift-btn-go:hover { filter: brightness(1.15); }
+    .rift-btn-skip {
+      background: rgba(40,20,55,0.9); color: #b89ccc;
+      border: 1px solid rgba(150,90,190,0.45);
+    }
+    .rift-btn-skip:hover { filter: brightness(1.2); }
+  `;
+  document.head.appendChild(style);
 }
 
 function injectCampaignStyles() {

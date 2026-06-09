@@ -440,7 +440,7 @@ export function buildDungeonClearOverlay(
   const doneBtn = document.createElement("button");
   doneBtn.id = "btn-dungeon-done";
   doneBtn.className = "ov-btn";
-  doneBtn.textContent = "Return to Dungeons";
+  doneBtn.textContent = "Return to Campaign";
   doneBtn.addEventListener("click", onDone);
   overlay.appendChild(doneBtn);
 
@@ -468,7 +468,7 @@ export function buildDungeonFailOverlay(onExit: () => void): HTMLElement {
   const exitBtn = document.createElement("button");
   exitBtn.id = "btn-dungeon-exit";
   exitBtn.className = "ov-btn";
-  exitBtn.textContent = "Return to Dungeons";
+  exitBtn.textContent = "Return to Campaign";
   css(exitBtn, { filter: "hue-rotate(200deg) saturate(0.7)" });
   exitBtn.addEventListener("click", onExit);
   overlay.appendChild(exitBtn);

@@ -38,3 +38,17 @@ test("shot: move1 home menu (after clearing Hell I → Continue advances)", asyn
   await settle(page);
   await page.screenshot({ path: path.join(SHOTS, "move1-home-advanced.png") });
 });
+
+// ── Move 3: rift banner over the campaign map ─────────────────────────────────
+test("shot: move3 rift banner over campaign map", async ({ page }) => {
+  await page.goto("/?scene=campaign&rift=ember-depths&riftFloors=3&riftName=Ember%20Depths");
+  await page.waitForSelector('#campaign-map [data-level="hell-1"]');
+  await page.waitForSelector("#rift-banner.rift-banner-in");
+  await settle(page);
+  // let the slide-in transform finish
+  await page.waitForFunction(() => {
+    const b = document.querySelector("#rift-banner") as HTMLElement | null;
+    return !!b && b.getBoundingClientRect().top > 40;
+  });
+  await page.screenshot({ path: path.join(SHOTS, "move3-rift-banner.png") });
+});

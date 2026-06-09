@@ -18,7 +18,7 @@ export function createDungeonFlow() {
         const data = await metaApi.floorCleared();
         if (data.isLastFloor) {
           unlockAchievement("clear_dungeon").catch(() => {});
-          const el = buildDungeonClearOverlay(data, () => { navigateTo("/?scene=dungeons"); });
+          const el = buildDungeonClearOverlay(data, () => { navigateTo("/?scene=campaign"); });
           document.body.appendChild(el);
         } else {
           const el = buildPickOverlay(
@@ -48,7 +48,7 @@ export function createDungeonFlow() {
       } catch (e) {
         console.error("dungeon fail failed", e);
       }
-      const el = buildDungeonFailOverlay(() => { navigateTo("/?scene=dungeons"); });
+      const el = buildDungeonFailOverlay(() => { navigateTo("/?scene=campaign"); });
       document.body.appendChild(el);
       return true;
     }

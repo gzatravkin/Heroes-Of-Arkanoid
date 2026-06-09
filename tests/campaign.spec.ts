@@ -5,6 +5,9 @@ const API = "http://localhost:5080";
 
 test.beforeEach(async ({ page }) => {
   await page.request.post(`${API}/reset`);
+  // This spec covers campaign progression only — suppress the probabilistic rift
+  // so a random rift banner can't interleave (rifts are covered by rift.spec.ts).
+  await page.addInitScript(() => localStorage.setItem("ark_rift_mode", "none"));
 });
 
 test("campaign map: hell-1 unlocked, caverns-1 locked after reset", async ({ page }) => {

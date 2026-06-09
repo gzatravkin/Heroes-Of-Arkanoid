@@ -29,7 +29,7 @@ var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPoli
 
 app.MapGet("/", () => "Arkanoid server up");
 
-ProfileEndpoints.Map(app, profileStore, campaignCatalog, progressionConfig, jsonOpts);
+ProfileEndpoints.Map(app, profileStore, campaignCatalog, dungeonCatalog, progressionConfig, jsonOpts);
 DungeonEndpoints.Map(app, dungeonStore, dungeonCatalog, profileStore, progressionConfig, jsonOpts);
 CharacterEndpoints.Map(app, characterCatalog, profileStore, jsonOpts);
 ItemEndpoints.Map(app, itemCatalog, profileStore, jsonOpts);

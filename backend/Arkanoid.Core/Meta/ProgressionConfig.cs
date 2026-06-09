@@ -20,6 +20,13 @@ public sealed class ProgressionConfig
     /// <summary>Maximum spell upgrade level a player can reach.</summary>
     public int MaxSpellLevel { get; set; } = 10;
 
+    /// <summary>
+    /// Probability (0..1) that clearing a campaign node tears open a Rift — the
+    /// opt-in dungeon run entry point. Tunable here so designers can dial how often
+    /// rifts interrupt the campaign without touching code.
+    /// </summary>
+    public double RiftChance { get; set; } = 0.34;
+
     /// <summary>EXP threshold to advance from <paramref name="level"/> to the next level.</summary>
     public int ExpToLevel(int level) => (int)global::System.Math.Round(ExpBase * global::System.Math.Pow(ExpGrowth, level - 1));
 

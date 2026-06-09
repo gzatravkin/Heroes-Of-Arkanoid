@@ -7,8 +7,8 @@ namespace Arkanoid.Server.Endpoints;
 public static class ProfileEndpoints
 {
     public static void Map(WebApplication app, ProfileStore profileStore,
-        CampaignCatalog campaignCatalog, ProgressionConfig progressionConfig,
-        JsonSerializerOptions jsonOpts)
+        CampaignCatalog campaignCatalog, DungeonCatalog dungeonCatalog,
+        ProgressionConfig progressionConfig, JsonSerializerOptions jsonOpts)
     {
         // GET /profile → current profile
         app.MapGet("/profile", () =>
@@ -46,7 +46,14 @@ public static class ProfileEndpoints
             var profile = profileStore.Load();
             var reward  = Rewards.GrantLevelCompletion(profile, levelId, progressionConfig, treasureBonus);
             profileStore.Save(profile);
-            return Results.Json(new { profile, reward }, jsonOpts);
+
+            // A cleared campaign node may tear open a Rift — the opt-in dungeon entry.
+            // mode: "force"/"none"/"roll" (default "none" so direct API callers are unaffected).
+            var riftMode = ctx.Request.Query["rift"].FirstOrDefault();
+            var riftSeed = unchecked((int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff) ^ levelId.GetHashCode());
+            var rift = RiftService.Roll(riftMode, progressionConfig.RiftChance, levelId, riftSeed, dungeonCatalog);
+
+            return Results.Json(new { profile, reward, rift }, jsonOpts);
         });
 
         // POST /upgrade?spell=<id> → upgrade spell, save, return {ok, profile}
