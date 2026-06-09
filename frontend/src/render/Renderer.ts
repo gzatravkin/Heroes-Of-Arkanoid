@@ -6,6 +6,7 @@ import { HazardLayer } from "./HazardLayer";
 import { BonusLayer } from "./BonusLayer";
 import { BlockLayer } from "./BlockLayer";
 import { SpellFxLayer } from "./SpellFxLayer";
+import { BallLayer, PROJECTILE_ID_THRESHOLD } from "./BallLayer";
 import { VILLAGE_AMBIENT_REFS } from "./ambientRefs";
 void VILLAGE_AMBIENT_REFS; // referenced so the asset-coverage audit sees these frames
 import { bg as biomedBg, hellParallaxFrames, anim as animFrames, tex as atlasTex } from "./assets";
@@ -59,9 +60,6 @@ let _paddleSpriteKey  = "firemage/bars/v2FireHero1";
 let _paddleAnimKeys   = CLASS_PADDLE_KEYS.fire_mage;
 let _ballSpriteKey    = CLASS_BALL_KEYS.fire_mage;
 
-// Ball sprite size expressed as a multiplier of the sim ball radius.
-const BALL_SPRITE_SCALE = 2.2; // sprite is slightly larger than the physics circle
-
 // ── Paddle animation: cycle through 4 bar frames at a slow rate ──────────────
 const PADDLE_ANIM_FPS = 6; // frames per second for the bar animation cycle
 const PADDLE_ANIM_MS_PER_FRAME = 1000 / PADDLE_ANIM_FPS;
@@ -83,10 +81,6 @@ const GAP_FRAC = 0.12;
 // fully visible (grid + paddle zone + margin).
 const PADDLE_ZONE_CELLS = 3;
 
-// Halo drawn behind ignited balls: radius multiplier and alpha.
-const IGNITE_HALO_RADIUS_MULT = 1.8;
-const IGNITE_HALO_ALPHA = 0.35;
-
 // Fire wall band height as a fraction of cellSize.
 const FIRE_WALL_HEIGHT_MULT = 1.1;
 
@@ -95,37 +89,17 @@ const FIRE_WALL_HEIGHT_MULT = 1.1;
 const TURRET_BARREL_LENGTH_MULT = 1.8;
 const TURRET_BARREL_WIDTH_MULT  = 0.45;
 
-// Projectile id threshold: turret bullets + fireballs use id >= this value.
-const PROJECTILE_ID_THRESHOLD = 10000;
+// (Ball ignite/decay/aura + projectile constants live in BallLayer;
+//  barrier/zone/skeleton constants live in SpellFxLayer.)
 
-// ---------------------------------------------------------------------------
-// Per-class spell visual constants
-// ---------------------------------------------------------------------------
-// (Barrier / zone / skeleton constants live in SpellFxLayer.)
-
-// Necromancer decay aura on ball (sickly green, distinct from ignite orange).
-const DECAY_HALO_COLOR      = 0x22cc44;
-const DECAY_HALO_ALPHA      = 0.38;
-const DECAY_HALO_RADIUS_MULT = 1.8;
-
-// Turret: atlas art keys for the barrel sprite and missile bullets.
+// Turret: atlas art key for the barrel sprite.
 const TURRET_SPRITE_KEY   = "firemage/spell_fireturret/FireHeroTurret";
-const TURRET_MISSILE_KEY  = "firemage/spell_fireturret/FireHeroTurretMissile";
-
-// Fireball / firering: art for the active fireball projectile.
-const FIRE_RING_KEY = "firemage/spell_firering/FireRing";
 
 // FireWall animation key in the manifest.
 const FIRE_WALL_ANIM_KEY = "firemage/spell_firewall/firestandannimation";
 // How many tiles to use per fire-wall band (we switch from many thin sprites to
 // fewer wide AnimatedSprites at the wall height, one per "segment").
 // Each segment is about 1 × cellSize wide so they tile naturally.
-
-// Ignite fire aura: atlas anim key (FireBirth frames) played as a looping aura.
-const IGNITE_AURA_KEY = "firemage/spell_phonex/phoenixbirthanimpic";
-const IGNITE_AURA_FPS = 10; // slow loop looks like a gentle fire aura
-// Size of the fire aura as a multiplier of the ball sprite size.
-const IGNITE_AURA_SIZE_MULT = 2.8;
 
 // Paddle squash/stretch constants.
 // On ball bounce (ball y crosses paddleY within a threshold), the paddle stretches briefly.
@@ -168,7 +142,7 @@ export class Renderer {
   // Paddle rendered as a sprite; Graphics kept as invisible fallback.
   private paddleSprite = new Sprite();
   private turretSprite = new Sprite();
-  private balls = new Container();
+  private ballLayer = new BallLayer();
   private ballTrail: BallTrail;
   private screenShake: ScreenShake;
   // Store the base fit position so screen-shake can layer on top.
@@ -185,14 +159,6 @@ export class Renderer {
   // Fire-wall AnimatedSprites (rebuilt only when wall count changes).
   private _wallAnims: AnimatedSprite[] = [];
 
-  // ---- Sprite pools: keyed by entity id to avoid per-frame alloc churn ----
-  // Block pool: each entry is a { sprite, aura?, ring? } tuple.
-  // Ball pool: each entry is { sp (sprite), haloGfx (ignite halo), auraHandle? }
-  // auraHandle tracks the looping ignite aura AnimatedSprite in _ballAnimSys.
-  private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics; auraId?: number }>();
-  // Separate AnimSystem for ball aura effects (looping per-ball fire aura).
-  private _ballAnimSys: AnimSystem;
-  // Hazard pool: each entry is { halo, core, bat? }.
 
   // Bonus pickups layer.
   private bonusLayer = new BonusLayer();
@@ -255,7 +221,6 @@ export class Renderer {
     this.ballTrail = new BallTrail();
     this.screenShake = new ScreenShake();
     this._wallAnimSys = new AnimSystem();
-    this._ballAnimSys = new AnimSystem();
 
     // Background: full-stage sprite (behind world container).
     this.bgSprite.anchor.set(0);
@@ -300,7 +265,7 @@ export class Renderer {
         color:         0xffffff,
         quality:       0.25,
       });
-      this.balls.filters = [ballGlow];
+      this.ballLayer.container.filters = [ballGlow];
     }
 
     // Add telegraph warning container to boss layer.
@@ -319,8 +284,8 @@ export class Renderer {
       this.spellFx.barriersContainer,
       this._bossLayer,
       this.effectsLayer.container,
-      this._ballAnimSys.container,
-      this.balls,
+      this.ballLayer.auraContainer,
+      this.ballLayer.container,
       this.paddleSprite,
       this.turretSprite,
       this.spellFx.skeletonAnim.container,
@@ -348,7 +313,7 @@ export class Renderer {
         // Skip effects + ball aura updates during hit-stop so the world freezes visually.
       } else {
         this.effectsLayer.update(dtMs);
-        this._ballAnimSys.update(dtMs);
+        this.ballLayer.updateAnim(dtMs);
         this._wallAnimSys.update(dtMs);
         this.spellFx.updateAnim(dtMs);
       }
@@ -763,143 +728,8 @@ export class Renderer {
     const ballRadius = s.cellSize * 0.25;
     this.ballTrail.update(s.balls, ballRadius);
 
-    // --- balls (pooled by id, sprite-based) ---
-    const ballTex = atlasTex(_ballSpriteKey);
-    // FireRing texture for fireballs — a fiery orb glyph, great for projectile art.
-    // Turret missiles use the dedicated missile art.
-    const fireRingTex = tex(FIRE_RING_KEY);
-    // Missile texture for turret bullets (id >= PROJECTILE_ID_THRESHOLD).
-    const missileTex = tex(TURRET_MISSILE_KEY);
-    // Projectile art: prefer FireRing for fireball look; fall back to missile art.
-    const projectileTex = fireRingTex !== Texture.WHITE ? fireRingTex
-      : (missileTex !== Texture.WHITE ? missileTex : ballTex);
-    const spriteRadius = ballRadius * BALL_SPRITE_SCALE;
-    // Ignite aura frames (phoenix birth sequence used as looping fire halo).
-    const igniteAuraFrames = animFrames(IGNITE_AURA_KEY);
-
-    const liveBallIds = new Set<number>();
-    for (const ball of s.balls) liveBallIds.add(ball.id);
-
-    // Remove pooled entries for balls that no longer exist.
-    for (const [id, entry] of this._ballPool) {
-      if (!liveBallIds.has(id)) {
-        this.balls.removeChild(entry.haloGfx);
-        this.balls.removeChild(entry.sp);
-        // Clean up looping ignite aura.
-        if (entry.auraId !== undefined) {
-          this._ballAnimSys.remove({ id: entry.auraId });
-        }
-        this._ballPool.delete(id);
-      }
-    }
-
-    for (const ball of s.balls) {
-      const isProjectile = ball.id >= PROJECTILE_ID_THRESHOLD;
-
-      if (this._ballPool.has(ball.id)) {
-        // Update existing pooled entry.
-        const entry = this._ballPool.get(ball.id)!;
-        const { sp, haloGfx } = entry;
-
-        haloGfx.clear();
-        if (ball.ignited && !isProjectile) {
-          haloGfx.blendMode = BLEND_MODES.ADD;
-          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-
-        sp.x = ball.x;
-        sp.y = ball.y;
-
-        if (isProjectile) {
-          // Turret missile: rotate in direction of travel; pulsate slightly.
-          sp.tint = 0xffcc44;
-          const missileSize = ballRadius * 1.4;
-          sp.width  = missileSize * 2;
-          sp.height = missileSize * 2;
-          sp.rotation = (this._tick * 0.12); // slow spin
-        } else {
-          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
-          // Pulse ignited balls slightly for visual feedback.
-          const igScale = ball.ignited
-            ? spriteRadius * (1.0 + 0.15 * Math.sin(this._tick * 0.2))
-            : spriteRadius;
-          sp.width  = igScale * 2;
-          sp.height = igScale * 2;
-        }
-
-        // Update ignite aura position if active.
-        if (entry.auraId !== undefined) {
-          this._ballAnimSys.moveTo({ id: entry.auraId }, ball.x, ball.y);
-          // Resize aura to match current ball size.
-          this._ballAnimSys.resize({ id: entry.auraId }, spriteRadius * IGNITE_AURA_SIZE_MULT * 2);
-        }
-
-        // Spawn/remove ignite aura as ignite state changes (non-projectile balls only).
-        if (!isProjectile && ball.ignited && entry.auraId === undefined && igniteAuraFrames.length) {
-          const h = this._ballAnimSys.looping(
-            igniteAuraFrames, IGNITE_AURA_FPS,
-            ball.x, ball.y,
-            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
-            true, 0xff8822,
-          );
-          entry.auraId = h.id;
-        } else if (!ball.ignited && entry.auraId !== undefined) {
-          this._ballAnimSys.remove({ id: entry.auraId });
-          entry.auraId = undefined;
-        }
-      } else {
-        // Create new pooled entry.
-        const haloGfx = new Graphics();
-        if (ball.ignited && !isProjectile) {
-          haloGfx.blendMode = BLEND_MODES.ADD;
-          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-
-        // Choose texture based on ball type:
-        // - Projectile (turret bullet/fireball): use FireRing/missile art
-        // - Normal ball: use FireHeroBall
-        const chosenTex: Texture = isProjectile
-          ? projectileTex
-          : (ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
-
-        const sp = new Sprite(chosenTex);
-        sp.anchor.set(0.5);
-        sp.x = ball.x;
-        sp.y = ball.y;
-
-        if (isProjectile) {
-          sp.tint = 0xffcc44;
-          const missileSize = ballRadius * 1.4;
-          sp.width  = missileSize * 2;
-          sp.height = missileSize * 2;
-        } else {
-          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
-          sp.width  = spriteRadius * 2;
-          sp.height = spriteRadius * 2;
-        }
-
-        this.balls.addChild(haloGfx);
-        this.balls.addChild(sp);
-
-        // Spawn ignite aura for already-ignited balls.
-        let auraId: number | undefined;
-        if (!isProjectile && ball.ignited && igniteAuraFrames.length) {
-          const h = this._ballAnimSys.looping(
-            igniteAuraFrames, IGNITE_AURA_FPS,
-            ball.x, ball.y,
-            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
-            true, 0xff8822,
-          );
-          auraId = h.id;
-        }
-
-        this._ballPool.set(ball.id, { sp, haloGfx, auraId });
-      }
-    }
+    // --- balls (pooled by id: per-class sprite, projectile art, ignite/decay halos + aura) ---
+    this.ballLayer.update(s.balls, this._tick, s.cellSize, _ballSpriteKey);
 
     // --- hazards (falling/rolling enemy projectiles) ---
     this.hazardLayer.update(s.hazards ?? [], this._tick, s.biome);
@@ -916,26 +746,6 @@ export class Renderer {
 
     // ── P6 per-class spell effects (Paladin barriers, Engineer zones, Necro skeleton) ──
     this.spellFx.update(s.barriers ?? [], s.zones ?? [], s.skeletonActive ?? false, this._tick, s.cellSize, s.boardW, s.boardH);
-
-    // --- decay aura on balls (Necromancer) ---
-    // decay balls get a sickly green halo instead of the ignite orange.
-    // This is handled inside the ball pool loop above, but we need to add the
-    // green halo for decayed balls that don't have the ignite halo drawn.
-    // We walk the ball pool again to add/update decay halos.
-    for (const ball of s.balls) {
-      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue;
-      const entry = this._ballPool.get(ball.id);
-      if (!entry) continue;
-      const ballRadius = s.cellSize * 0.25;
-      // If decayed, repaint the halo green (overrides ignite orange if both somehow set).
-      if ((ball as any).decayed) {
-        entry.haloGfx.clear();
-        entry.haloGfx.blendMode = BLEND_MODES.ADD;
-        entry.haloGfx.beginFill(DECAY_HALO_COLOR, DECAY_HALO_ALPHA)
-          .drawCircle(ball.x, ball.y, ballRadius * DECAY_HALO_RADIUS_MULT)
-          .endFill();
-      }
-    }
 
     // --- P6 events: lightning, explosion (rocket), radiation, decay ---
     // These are remapped to existing effect types so they reuse the existing
