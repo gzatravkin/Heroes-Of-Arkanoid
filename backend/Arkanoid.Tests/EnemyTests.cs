@@ -88,6 +88,30 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── WindMaster (deflects the ball away) ───────────────────────────────────
+
+    [Fact]
+    public void WindMaster_PushesBallAway_PreservingSpeed()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"w\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true,\"windMaster\":true}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"w.k\",\"...\",\"...\"],\"legend\":{\"w\":\"w\",\"k\":\"k\"}}");
+
+        var wind = g.Blocks[0];
+        var wc = g.Level.Grid.CellCenter(wind.Col, wind.Row);
+
+        // Ball just to the RIGHT of the windmaster, within radius, moving straight up.
+        var speed = SimConfig.Default.BallSpeed;
+        g.Balls[0].Pos = new Vec2(wc.X + g.Config.WindMasterRadius * 0.4, wc.Y);
+        g.Balls[0].Vel = new Vec2(0, -speed);
+        g.Tick(SimConfig.Default.FixedDt);
+
+        Assert.True(g.Balls[0].Vel.X > 0, $"ball should be pushed right (away), vx={g.Balls[0].Vel.X:F2}");
+        Assert.Equal(speed, g.Balls[0].Vel.Length, 1); // speed preserved (deflection only)
+    }
+
     // ── Necromant (revives destroyed blocks) ──────────────────────────────────
 
     [Fact]

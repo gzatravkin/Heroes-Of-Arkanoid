@@ -23,5 +23,6 @@
   { "id": "cavern_stalactite",    "biome": "caverns", "hp": 1, "sprite": "Stalactite",     "needToKill": false, "indestructible": true, "stalactite": true },
   { "id": "village_beholder",     "biome": "village", "hp": 4, "sprite": "Beholder1",      "needToKill": true, "emitter": true, "emitInterval": 1.6, "emitAim": "ball" },
   { "id": "village_necromant",    "biome": "village", "hp": 6, "sprite": "VillageDeath",   "needToKill": true, "necromant": true },
-  { "id": "heaven_melee_statue",  "biome": "heaven",  "hp": 5, "sprite": "HeavenMeleeStatue", "needToKill": true, "emitter": true, "emitInterval": 2.0, "emitAim": "paddle" }
+  { "id": "heaven_melee_statue",  "biome": "heaven",  "hp": 5, "sprite": "HeavenMeleeStatue", "needToKill": true, "emitter": true, "emitInterval": 2.0, "emitAim": "paddle" },
+  { "id": "heaven_windmaster",    "biome": "heaven",  "hp": 4, "sprite": "WindMaster2",  "needToKill": true, "windMaster": true }
 ]}

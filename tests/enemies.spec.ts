@@ -36,6 +36,14 @@ test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await page.screenshot({ path: path.join(SHOTS, "enemy-caverns-bombs.png") });
 });
 
+test("Heaven windmaster present (deflects the ball)", async ({ page }) => {
+  await openBattle(page, "heaven-2");
+  const s = await page.evaluate(() => (window as any).__game.getState());
+  expect(s.blocks.some((b: any) => b.sprite === "WindMaster2"),
+    "windmaster block should be in the level").toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-windmaster.png") });
+});
+
 test("Witchland necromant present (revives destroyed blocks)", async ({ page }) => {
   await openBattle(page, "village-ghost");
   const s = await page.evaluate(() => (window as any).__game.getState());

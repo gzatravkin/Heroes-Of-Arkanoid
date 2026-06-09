@@ -294,6 +294,7 @@ public sealed class GameInstance
         EmitterSystem.Update(this, dt);
         StalactiteSystem.Update(this, dt);
         NecromantSystem.Update(this, dt);
+        WindSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);

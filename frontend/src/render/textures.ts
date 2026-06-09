@@ -51,6 +51,7 @@ const ALIAS: Record<string, string> = {
   Beholder1:             "village/enemies/Beholder1",
   VillageDeath:          "village/enemies/VillageDeath",
   HeavenMeleeStatue:     "heaven/HeavenMeleeStatue",
+  WindMaster2:           "heaven/WindMaster2",
 
   // ── Game objects ─────────────────────────────────────────────────────────
   // "Ball" and "Paddle" were placeholder art not present in Sprites/ — the game

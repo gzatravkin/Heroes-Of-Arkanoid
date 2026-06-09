@@ -6,7 +6,7 @@
   "rows_data": [
     "H.STTS.H",
     "HS.TT.SH",
-    ".H.TT.H.",
+    ".H.WW.H.",
     "HT.SS.TH",
     ".H.TT.H.",
     "HS.TT.SH",
@@ -22,6 +22,7 @@
   "legend": {
     "H": "heaven_basic",
     "T": "heaven_tough",
-    "S": "heaven_statue"
+    "S": "heaven_statue",
+    "W": "heaven_windmaster"
   }
 }

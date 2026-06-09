@@ -164,6 +164,10 @@ public sealed class SimConfig
     public double StalactiteFallSpeed { get; init; } = 260;
     /// <summary>Seconds before a Necromant revives a destroyed normal block.</summary>
     public double NecromantReviveDelay { get; init; } = 4.0;
+    /// <summary>WindMaster push strength on a ball (units/sec of velocity added at the centre).</summary>
+    public double WindMasterForce { get; init; } = 900;
+    /// <summary>WindMaster influence radius (units); push falls off linearly to zero at the edge.</summary>
+    public double WindMasterRadius { get; init; } = 110;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>

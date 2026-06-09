@@ -43,6 +43,9 @@ public sealed class Block
     // --- Necromant: while alive, revives destroyed normal blocks after a delay. ---
     public bool Necromant { get; init; }
 
+    // --- WindMaster: pushes nearby balls away (deflects aim) within a radius. ---
+    public bool WindMaster { get; init; }
+
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }
     public bool FlipY { get; init; }

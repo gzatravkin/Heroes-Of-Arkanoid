@@ -17,7 +17,7 @@ const DESTRUCTIBLE = new Set([
   "hell_basic", "hell_tough", "hell_demon_boss", "hell_ballspawner",
   "cavern_basic", "cavern_tough", "cavern_goblin_boss", "cavern_bomb",
   "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder", "village_necromant",
-  "heaven_basic", "heaven_tough", "heaven_melee_statue",
+  "heaven_basic", "heaven_tough", "heaven_melee_statue", "heaven_windmaster",
 ]);
 // Non-needToKill special blocks that are allowed to exist (don't satisfy winnability alone).
 const NON_KILL = new Set(["cavern_stalactite"]);
@@ -143,10 +143,10 @@ const LEVELS = [
     "S.HTTH.S",
     "S......S",
   ]},
-  { id: "heaven-2", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue" }, rows: [
+  { id: "heaven-2", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", W: "heaven_windmaster" }, rows: [
     "H.STTS.H",
     "HS.TT.SH",
-    ".H.TT.H.",
+    ".H.WW.H.",
     "HT.SS.TH",
     ".H.TT.H.",
     "HS.TT.SH",
