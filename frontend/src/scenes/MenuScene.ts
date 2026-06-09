@@ -158,5 +158,34 @@ export function mountMenu(host: HTMLElement) {
   });
   el.appendChild(dungeonsBtn);
 
+  // Editor button — navigate to level editor
+  const editorBtn = document.createElement("button");
+  editorBtn.id = "btn-editor";
+  editorBtn.textContent = "Level Editor";
+  editorBtn.style.cssText = [
+    "margin-top:10px",
+    "font-size:15px",
+    "padding:12px 32px",
+    "background:#0d1a2a",
+    "color:#66ccff",
+    "border:1px solid #224466",
+    "border-radius:6px",
+    "cursor:pointer",
+    "letter-spacing:0.05em",
+    "transition:background 0.15s,border-color 0.15s",
+  ].join(";");
+  editorBtn.addEventListener("mouseenter", () => {
+    editorBtn.style.background = "#1a2a3a";
+    editorBtn.style.borderColor = "#3366aa";
+  });
+  editorBtn.addEventListener("mouseleave", () => {
+    editorBtn.style.background = "#0d1a2a";
+    editorBtn.style.borderColor = "#224466";
+  });
+  editorBtn.addEventListener("click", () => {
+    location.href = "/?scene=editor";
+  });
+  el.appendChild(editorBtn);
+
   host.appendChild(el);
 }

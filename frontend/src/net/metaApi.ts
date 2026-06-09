@@ -1,5 +1,27 @@
 const BASE = "http://localhost:5080";
 
+// ── Editor types ─────────────────────────────────────────────────────────────
+
+export interface BlockTypeDef {
+  id: string;
+  biome: string;
+  sprite: string;
+}
+
+export interface LevelData {
+  id: string;
+  biome: string;
+  cols: number;
+  rows: number;
+  rows_data: string[];
+  legend: Record<string, string>;
+}
+
+export interface SaveLevelResult {
+  ok: boolean;
+  id: string;
+}
+
 // ── Shared types ─────────────────────────────────────────────────────────────
 
 export interface Profile {
@@ -96,6 +118,15 @@ async function post<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json() as Promise<T>;
+}
+
 export const metaApi = {
   getProfile: ()                 => get<Profile>("/profile"),
   getCampaign: ()                => get<CampaignData>("/campaign"),
@@ -110,4 +141,8 @@ export const metaApi = {
   fail: ()                       => post<unknown>("/dungeon/fail"),
   getCharacters: ()              => get<CharactersResponse>("/characters"),
   selectCharacter: (id: string)  => post<unknown>(`/character/select?id=${encodeURIComponent(id)}`),
+  // Editor
+  getBlockTypes: ()                   => get<BlockTypeDef[]>("/editor/blocktypes"),
+  loadLevel: (id: string)             => get<LevelData>(`/editor/load?id=${encodeURIComponent(id)}`),
+  saveLevel: (body: LevelData)        => postJson<SaveLevelResult>("/editor/save", body),
 };

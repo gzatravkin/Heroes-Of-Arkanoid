@@ -31,6 +31,7 @@ app.MapGet("/", () => "Arkanoid server up");
 ProfileEndpoints.Map(app, profileStore, campaignCatalog, progressionConfig, jsonOpts);
 DungeonEndpoints.Map(app, dungeonStore, dungeonCatalog, profileStore, progressionConfig, jsonOpts);
 CharacterEndpoints.Map(app, characterCatalog, profileStore, jsonOpts);
+EditorEndpoints.Map(app, configRoot, jsonOpts);
 
 app.Map("/ws", async context =>
 {

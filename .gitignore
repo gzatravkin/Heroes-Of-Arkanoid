@@ -19,3 +19,6 @@ playwright/.cache/
 *.user
 .DS_Store
 Thumbs.db
+
+# Editor test levels
+config/levels/test-*.json
