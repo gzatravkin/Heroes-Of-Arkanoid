@@ -4,14 +4,14 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "..ABBA..",
-    ".ABBBBA.",
-    ".AB.DBA.",
+    "O......O",
+    ".AABBAA.",
+    ".AB..BA.",
     ".ABDDBA.",
-    ".ABBBBA.",
-    "..ABBA..",
-    ".ABBBBA.",
-    ".ABBBBA.",
+    ".ABDDBA.",
+    ".AB..BA.",
+    ".AABBAA.",
+    "..AAAA..",
     "........",
     "........",
     "........",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "hell_basic",
     "B": "hell_tough",
+    "O": "hell_obsidian",
     "D": "hell_demon_boss"
   }
 }

@@ -1,17 +1,17 @@
 {
   "id": "caverns-boss",
-  "biome": "cavern",
+  "biome": "caverns",
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "..ABBA..",
-    ".ABBBBA.",
-    ".AB.GBA.",
+    "RR....RR",
+    ".AABBAA.",
+    ".ABGGBA.",
     ".ABGGBA.",
     ".ABBBBA.",
-    "..ABBA..",
-    ".ABBBBA.",
-    ".ABBBBA.",
+    ".A....A.",
+    ".AABBAA.",
+    "..R..R..",
     "........",
     "........",
     "........",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "cavern_basic",
     "B": "cavern_tough",
+    "R": "cavern_rock",
     "G": "cavern_goblin_boss"
   }
 }

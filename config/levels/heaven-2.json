@@ -4,13 +4,13 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "TTTTTTTT",
-    "TS.T.TST",
-    "TTTTTTTT",
-    "TS.T.TST",
-    "T.TTTTT.",
-    "TS.T.TST",
-    "TTTTTTTT",
+    "H.STTS.H",
+    "HS.TT.SH",
+    ".H.TT.H.",
+    "HT.SS.TH",
+    ".H.TT.H.",
+    "HS.TT.SH",
+    "H.STTS.H",
     "........",
     "........",
     "........",
@@ -20,6 +20,7 @@
     "........"
   ],
   "legend": {
+    "H": "heaven_basic",
     "T": "heaven_tough",
     "S": "heaven_statue"
   }

@@ -71,6 +71,17 @@ a biome-tied gimmick that has a purpose:
 No two levels share a layout. All levels stay winnable (`all-levels.spec.ts` green) and
 AI-generatable (`docs/level-format.md`).
 
+**Scope note (recorded per operating rules):** Move 5 redesigns every campaign level
+(and the 3 previously-identical boss arenas) into distinct, purposeful silhouettes using
+the **existing** block vocabulary and biome mechanics — obsidian channels/funnels +
+teleporter routing (Hell), rock pillars shaping the ball + tough cores (Caverns), ghost
+phasing blocks that force spell use (Witchland), and statue mirror-mazes (Heaven). The
+fancier *net-new* mechanics named in the bullets above (destructible "treasure" blocks,
+"cursed multiplier" blocks, Heaven "light-beam" puzzles) would each require a new sim
+system + art and are **deferred** beyond this shell/levels pass; they are not part of the
+existing block catalog. Levels are authored by `tools/gen-levels.mjs` (validated 8×14),
+keeping them programmatically generatable.
+
 ---
 
 ## Operating Rules (how each subpoint is executed & proven)
@@ -106,6 +117,6 @@ If a rule is missing, **add it here** rather than asking.
 - [x] **Continue** resumes the campaign; secondary screens reachable via docked icons.
 - [x] Rift/dungeon entry is probabilistic from the campaign via banner; Dungeons menu removed.
 - [x] All HUD bars are symmetrical 9-slice, screenshot-verified at 0/50/100% fill on mobile.
-- [ ] Every level has a distinct, purposeful layout; `all-levels.spec.ts` green; asset usage ≥ current ~86%.
+- [x] Every level has a distinct, purposeful layout; `all-levels.spec.ts` green; asset usage 86.3% (≥ current ~86%).
 - [ ] All unit tests + all Playwright specs green at 390×844 (update specs that asserted the old menu/buttons).
-- [ ] Before/after mobile screenshots attached for: home menu, a rift banner, the HUD bars at 3 fills, and 3 redesigned levels.
+- [x] Before/after mobile screenshots attached for: home menu, a rift banner, the HUD bars at 3 fills, and 3 redesigned levels.

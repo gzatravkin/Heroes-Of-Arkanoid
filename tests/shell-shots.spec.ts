@@ -80,3 +80,15 @@ for (const [name, hp] of [["full", 100], ["half", 50], ["empty", 0]] as const) {
     await page.screenshot({ path: path.join(SHOTS, `move4-boss-${name}.png`) });
   });
 }
+
+// ── Move 5: distinct redesigned level silhouettes (one per biome) ─────────────
+for (const level of ["hell-2", "caverns-1", "village-ghost", "heaven-2"]) {
+  test(`shot: move5 level ${level}`, async ({ page }) => {
+    await openBattle(page, level);
+    // Freeze the launched ball off the field so it can't chew the block layout
+    // before the shot, preserving the as-designed silhouette.
+    await cheat(page, "loseBall");
+    await cheat(page, "setBalls", 99);
+    await page.screenshot({ path: path.join(SHOTS, `move5-${level}.png`) });
+  });
+}
