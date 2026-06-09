@@ -1,13 +1,13 @@
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
-import { tex } from "./textures";
 import { HazardLayer } from "./HazardLayer";
 import { BonusLayer } from "./BonusLayer";
 import { BlockLayer } from "./BlockLayer";
 import { SpellFxLayer } from "./SpellFxLayer";
-import { BallLayer, PROJECTILE_ID_THRESHOLD } from "./BallLayer";
+import { BallLayer } from "./BallLayer";
 import { FireWallLayer } from "./FireWallLayer";
+import { PaddleLayer } from "./PaddleLayer";
 import { VILLAGE_AMBIENT_REFS } from "./ambientRefs";
 void VILLAGE_AMBIENT_REFS; // referenced so the asset-coverage audit sees these frames
 import { bg as biomedBg, hellParallaxFrames, tex as atlasTex } from "./assets";
@@ -55,14 +55,8 @@ const CLASS_BALL_KEYS: Record<string, string> = {
   necromancer: "necromancer/ball/KnightHeroBall",
 };
 
-// Default paddle key (fire mage frame 1); overridden by setClass().
-let _paddleSpriteKey  = "firemage/bars/v2FireHero1";
-let _paddleAnimKeys   = CLASS_PADDLE_KEYS.fire_mage;
+// Default ball key (fire mage); overridden by setClass(). (Paddle keys live in PaddleLayer.)
 let _ballSpriteKey    = CLASS_BALL_KEYS.fire_mage;
-
-// ── Paddle animation: cycle through 4 bar frames at a slow rate ──────────────
-const PADDLE_ANIM_FPS = 6; // frames per second for the bar animation cycle
-const PADDLE_ANIM_MS_PER_FRAME = 1000 / PADDLE_ANIM_FPS;
 
 // ── Ambient beholder keys (cosmetic background, village biome only) ───────────
 // Pooled, max 2 simultaneous beholders, no gameplay/collision.
@@ -81,21 +75,7 @@ const GAP_FRAC = 0.12;
 // fully visible (grid + paddle zone + margin).
 const PADDLE_ZONE_CELLS = 3;
 
-// Turret visual: barrel length and width as fractions of paddleH.
-const TURRET_BARREL_LENGTH_MULT = 1.8;
-const TURRET_BARREL_WIDTH_MULT  = 0.45;
-
-// (Ball ignite/decay/aura + projectile constants live in BallLayer;
-//  barrier/zone/skeleton constants live in SpellFxLayer.)
-
-// Turret: atlas art key for the barrel sprite.
-const TURRET_SPRITE_KEY   = "firemage/spell_fireturret/FireHeroTurret";
-
-// Paddle squash/stretch constants.
-// On ball bounce (ball y crosses paddleY within a threshold), the paddle stretches briefly.
-const PADDLE_SQUASH_DURATION_MS = 180; // total duration of the squash → stretch anim
-const PADDLE_SQUASH_Y_SCALE     = 0.65; // minimum Y scale during squash peak
-const PADDLE_STRETCH_X_SCALE    = 1.18; // maximum X scale at stretch peak
+// (Paddle/turret + ball/spell constants live in their respective Layer modules.)
 
 // Hit-stop: brief freeze of the world container (enemies / big bosses / ignited kills).
 // Implemented as a duration counter; when active, we skip updating the game world
@@ -129,9 +109,7 @@ export class Renderer {
   private effectsLayer: Effects;
   private fireWallLayer = new FireWallLayer();
   private hazardLayer = new HazardLayer();
-  // Paddle rendered as a sprite; Graphics kept as invisible fallback.
-  private paddleSprite = new Sprite();
-  private turretSprite = new Sprite();
+  private paddleLayer = new PaddleLayer();
   private ballLayer = new BallLayer();
   private ballTrail: BallTrail;
   private screenShake: ScreenShake;
@@ -164,18 +142,8 @@ export class Renderer {
   // Boss rig container layer (sits above blocks).
   private _bossLayer = new Container();
 
-  // Paddle squash/stretch state.
-  private _paddleSquashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
-  // Base paddle scale (set by draw(); squash multiplies on top).
-  private _paddleBaseScaleX = 1;
-  private _paddleBaseScaleY = 1;
-
   // Hit-stop state: remaining ms of visual freeze.
   private _hitStopRemaining = 0;
-
-  // ── Paddle animation (per-class bar frames) ───────────────────────────────
-  private _paddleAnimFrame = 0;   // current frame index within _paddleAnimKeys
-  private _paddleAnimElapsed = 0; // ms elapsed since last frame advance
 
   // ── Ambient beholder sprites (village biome only, cosmetic) ──────────────
   // Up to 2 beholders drift slowly in the background.
@@ -189,11 +157,8 @@ export class Renderer {
   /** Switch the paddle/ball sprites to match the given class. */
   setClass(classId: string) {
     const paddleKeys = CLASS_PADDLE_KEYS[classId] ?? CLASS_PADDLE_KEYS.fire_mage;
-    const ballKey    = CLASS_BALL_KEYS[classId]   ?? CLASS_BALL_KEYS.fire_mage;
-    _paddleAnimKeys   = paddleKeys;
-    _paddleSpriteKey  = paddleKeys[0];
-    _ballSpriteKey    = ballKey;
-    this._paddleAnimFrame = 0;
+    _ballSpriteKey   = CLASS_BALL_KEYS[classId] ?? CLASS_BALL_KEYS.fire_mage;
+    this.paddleLayer.setClass(paddleKeys);
   }
 
   constructor(host: HTMLElement) {
@@ -209,16 +174,6 @@ export class Renderer {
     this.bgSprite.tint = BG_TINT;
     this.bgLayer.addChild(this.bgSprite);
 
-    // Paddle: sprite with anchor at center-left; fallback to Texture.WHITE until atlas loads.
-    this.paddleSprite.anchor.set(0.5);
-    this.paddleSprite.texture = Texture.WHITE;
-
-    // Turret: use atlas art (FireHeroTurret strip is a horizontal sprite strip;
-    // we use the first frame from the strip key, which is the full texture).
-    // The turret glow is layered on top as a second sprite.
-    this.turretSprite = new Sprite(Texture.WHITE); // will be updated to atlas on first draw
-    this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
-    this.turretSprite.visible = false;
 
     // Apply a single GlowFilter to the fx + fire layer group and to the balls
     // container so that explosions, fire walls, halos, and balls all glow.
@@ -267,8 +222,7 @@ export class Renderer {
       this.effectsLayer.container,
       this.ballLayer.auraContainer,
       this.ballLayer.container,
-      this.paddleSprite,
-      this.turretSprite,
+      this.paddleLayer.container,
       this.spellFx.skeletonAnim.container,
       this.hazardLayer.container,
       this.bonusLayer.container,
@@ -319,48 +273,12 @@ export class Renderer {
       );
       this._tick += delta;
 
-      // Paddle squash/stretch animation.
-      if (this._paddleSquashElapsed >= 0) {
-        this._paddleSquashElapsed += dtMs;
-        const t = Math.min(this._paddleSquashElapsed / PADDLE_SQUASH_DURATION_MS, 1);
-        // Phase 1 (0→0.4): squash — compress Y, expand X
-        // Phase 2 (0.4→1.0): spring back to 1.0 with slight overshoot
-        let xScale = 1.0;
-        let yScale = 1.0;
-        if (t < 0.4) {
-          const p = t / 0.4;
-          // squash: X expands to STRETCH, Y squashes to SQUASH
-          xScale = 1.0 + (PADDLE_STRETCH_X_SCALE - 1.0) * p;
-          yScale = 1.0 - (1.0 - PADDLE_SQUASH_Y_SCALE) * p;
-        } else {
-          const p = (t - 0.4) / 0.6;
-          // spring back with slight overshoot at p≈0.5
-          const overshoot = Math.sin(p * Math.PI) * 0.06;
-          xScale = PADDLE_STRETCH_X_SCALE - (PADDLE_STRETCH_X_SCALE - 1.0) * p + overshoot;
-          yScale = PADDLE_SQUASH_Y_SCALE + (1.0 - PADDLE_SQUASH_Y_SCALE) * p - overshoot;
-        }
-        // Apply squash/stretch to paddle sprite on top of the base scale.
-        this.paddleSprite.scale.x = this._paddleBaseScaleX * xScale;
-        this.paddleSprite.scale.y = this._paddleBaseScaleY * yScale;
-        if (t >= 1) {
-          this._paddleSquashElapsed = -1;
-          // Snap back to clean base scale.
-          this.paddleSprite.scale.set(this._paddleBaseScaleX, this._paddleBaseScaleY);
-        }
-      }
+      // Paddle squash/stretch + bar-frame animation.
+      this.paddleLayer.updateAnim(dtMs);
 
       // Fade the damage flash overlay.
       if (this.damageFlash.alpha > 0) {
         this.damageFlash.alpha = Math.max(0, this.damageFlash.alpha - DAMAGE_FLASH_FADE_SPEED * delta);
-      }
-
-      // Paddle bar animation: cycle through the 4 class bar frames.
-      this._paddleAnimElapsed += dtMs;
-      if (this._paddleAnimElapsed >= PADDLE_ANIM_MS_PER_FRAME) {
-        this._paddleAnimElapsed -= PADDLE_ANIM_MS_PER_FRAME;
-        this._paddleAnimFrame = (this._paddleAnimFrame + 1) % _paddleAnimKeys.length;
-        const nextTex = atlasTex(_paddleAnimKeys[this._paddleAnimFrame]);
-        if (nextTex !== Texture.WHITE) this.paddleSprite.texture = nextTex;
       }
 
       // Ambient sprite drift animation (village beholders).
@@ -594,57 +512,8 @@ export class Renderer {
     // --- fire walls (animated FireStandAnnimation tiles, rebuilt on count change) ---
     this.fireWallLayer.update(s.walls ?? [], this._tick, s.cellSize, s.boardW);
 
-    // --- paddle squash trigger: detect ball near paddle ---
-    // Trigger squash when any non-projectile ball passes the paddle's y-band.
-    const paddleYCenter = (s.boardH + s.cellSize) - s.paddleH / 2;
-    const paddleBounceZone = s.paddleH * 2.5;
-    for (const ball of s.balls) {
-      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue; // skip turret bullets
-      if (Math.abs(ball.y - paddleYCenter) < paddleBounceZone && this._paddleSquashElapsed < 0) {
-        this._paddleSquashElapsed = 0; // start squash animation
-      }
-    }
-
-    // --- paddle (sprite) ---
-    // Swap to per-class atlas paddle texture on first draw.
-    // The ticker advances the animation frame; we only set the initial texture here
-    // so the paddle loads when the atlas becomes available.
-    const paddleTex = atlasTex(_paddleSpriteKey);
-    if (paddleTex !== Texture.WHITE) this.paddleSprite.texture = paddleTex;
-    const paddleY = paddleYCenter;
-    this.paddleSprite.x = s.paddleX;
-    this.paddleSprite.y = paddleY;
-    // Scale the sprite so its width matches the sim paddle width; keep natural aspect ratio for height.
-    // Store base scale; the ticker's squash/stretch animation applies on top.
-    const paddleNaturalW = this.paddleSprite.texture.width;
-    const paddleNaturalH = this.paddleSprite.texture.height;
-    if (paddleNaturalW > 0) {
-      const wScale = s.paddleW / paddleNaturalW;
-      // Min height: at least sim paddleH; use natural aspect ratio above that.
-      const spriteH = Math.max(s.paddleH, paddleNaturalH * wScale);
-      this._paddleBaseScaleX = wScale;
-      this._paddleBaseScaleY = spriteH / paddleNaturalH;
-      // Only reset to base scale if no squash animation is running.
-      if (this._paddleSquashElapsed < 0) {
-        this.paddleSprite.scale.set(this._paddleBaseScaleX, this._paddleBaseScaleY);
-      }
-    }
-
-    // --- turret indicator (atlas art: FireHeroTurret) ---
-    const paddleTopY = paddleYCenter;
-    if (s.turretActive) {
-      // Load atlas turret texture on first use.
-      const turretAtlasTex = tex(TURRET_SPRITE_KEY);
-      if (turretAtlasTex !== Texture.WHITE) this.turretSprite.texture = turretAtlasTex;
-      const turretSize = s.paddleH * TURRET_BARREL_LENGTH_MULT;
-      this.turretSprite.visible = true;
-      this.turretSprite.width   = s.paddleH * TURRET_BARREL_WIDTH_MULT * 2;
-      this.turretSprite.height  = turretSize;
-      this.turretSprite.x       = s.paddleX;
-      this.turretSprite.y       = paddleTopY - s.paddleH / 2;
-    } else {
-      this.turretSprite.visible = false;
-    }
+    // --- paddle + turret (squash trigger, per-class bar sprite, turret indicator) ---
+    this.paddleLayer.update(s.paddleX, s.paddleW, s.paddleH, s.boardH, s.cellSize, s.turretActive, s.balls);
 
     // --- ball trail (drawn behind balls) ---
     const ballRadius = s.cellSize * 0.25;
