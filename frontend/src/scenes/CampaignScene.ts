@@ -376,7 +376,7 @@ function maybeShowRiftBanner(root: HTMLElement) {
   banner.id = "rift-banner";
   banner.className = "rift-banner";
   banner.innerHTML = `
-    <div class="rift-banner-glyph">⚡</div>
+    <div class="rift-banner-glyph"></div>
     <div class="rift-banner-text">
       <div class="rift-banner-title">A Rift opens</div>
       <div class="rift-banner-sub">${name} · ${floors} floors · permadeath · 1 reward / floor</div>
@@ -442,8 +442,10 @@ function injectRiftStyles() {
     }
     .rift-banner-in { transform: translate(-50%, 0); }
     .rift-banner-glyph {
-      font-size: 28px;
-      filter: drop-shadow(0 0 8px #c060ff);
+      width: 26px; height: 26px; flex-shrink: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, #f4d6ff 0%, #c060ff 45%, #5a149a 100%);
+      box-shadow: 0 0 14px #c060ff, inset 0 0 6px rgba(255,255,255,0.8);
       animation: rift-pulse 1.4s ease-in-out infinite;
     }
     @keyframes rift-pulse { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }

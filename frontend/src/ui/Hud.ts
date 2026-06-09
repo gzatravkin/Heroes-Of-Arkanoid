@@ -117,7 +117,7 @@ export class Hud {
     const ballsBar = this.buildLabelledBar({
       id: "hud-balls", fillId: "hud-balls-fill", labelId: "hud-balls-label",
       emptySrc: "/ui/BattleMPEmpty.png",
-      gradient: "linear-gradient(to right,#9aa6c8,#e8eeff)",
+      gradient: "linear-gradient(to right,#1f7fc8,#56d6ff)",
       icon: "/ui/BattleLifeBall.png",
     });
     this.ballsEl = ballsBar.outer;
