@@ -4,7 +4,7 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "A.A.A.A.",
+    "ALA.ALA.",
     "A.A.A.A.",
     "A.A.A.C.",
     "C.A.A...",
@@ -21,6 +21,7 @@
   ],
   "legend": {
     "A": "cavern_basic",
-    "C": "cavern_tough"
+    "C": "cavern_tough",
+    "L": "cavern_stalactite"
   }
 }

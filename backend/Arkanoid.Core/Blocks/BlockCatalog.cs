@@ -30,6 +30,9 @@ public sealed class BlockType
     [JsonPropertyName("bomb")]          public bool Bomb          { get; set; } = false;
     [JsonPropertyName("explodeRadius")] public int  ExplodeRadius { get; set; } = 1;
 
+    /// <summary>Hangs from the ceiling; drops into a falling hazard when a ball passes beneath.</summary>
+    [JsonPropertyName("stalactite")] public bool Stalactite { get; set; } = false;
+
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
     [JsonPropertyName("flipY")] public bool FlipY { get; set; } = false;

@@ -312,7 +312,7 @@ export class Renderer {
   // Separate AnimSystem for ball aura effects (looping per-ball fire aura).
   private _ballAnimSys: AnimSystem;
   // Hazard pool: each entry is { halo, core, bat? }.
-  private _hazardPool: { halo: Graphics; core: Graphics; bat?: Sprite }[] = [];
+  private _hazardPool: { halo: Graphics; core: Graphics; bat?: Sprite; stal?: Sprite }[] = [];
 
   // Bonus pickups layer and pool.
   private bonusesLayer = new Container();
@@ -1151,10 +1151,14 @@ export class Renderer {
       const bat = new Sprite(Texture.WHITE);
       bat.anchor.set(0.5);
       bat.visible = false;
+      const stal = new Sprite(tex("Stalactite"));
+      stal.anchor.set(0.5);
+      stal.visible = false;
       this.hazardsLayer.addChild(halo);
       this.hazardsLayer.addChild(core);
       this.hazardsLayer.addChild(bat);
-      this._hazardPool.push({ halo, core, bat });
+      this.hazardsLayer.addChild(stal);
+      this._hazardPool.push({ halo, core, bat, stal });
     }
 
     // Check if we should show bat sprites (village biome + bat texture loaded).
@@ -1162,10 +1166,19 @@ export class Renderer {
 
     // Update visible entries.
     for (let i = 0; i < this._hazardPool.length; i++) {
-      const { halo, core, bat } = this._hazardPool[i];
+      const { halo, core, bat, stal } = this._hazardPool[i];
       if (i < hazards.length) {
         const hz = hazards[i];
-        if (showBats && bat) {
+        if (hz.kind === "stalactite" && stal) {
+          halo.visible = false;
+          core.visible = false;
+          if (bat) bat.visible = false;
+          stal.visible = true;
+          const ss = HAZARD_RADIUS * 3.2;
+          stal.width = ss; stal.height = ss * 1.6;
+          stal.x = hz.x; stal.y = hz.y;
+        } else if (showBats && bat) {
+          if (stal) stal.visible = false;
           // Show bat sprite instead of circle for village hazards.
           halo.visible = false;
           core.visible = false;
@@ -1181,6 +1194,7 @@ export class Renderer {
         } else {
           // Standard crimson hazard circle.
           if (bat) bat.visible = false;
+          if (stal) stal.visible = false;
           halo.visible = true;
           core.visible = true;
           halo.clear().beginFill(HAZARD_GLOW_COLOR, HAZARD_GLOW_ALPHA)
@@ -1192,6 +1206,7 @@ export class Renderer {
         halo.visible = false;
         core.visible = false;
         if (bat) bat.visible = false;
+        if (stal) stal.visible = false;
       }
     }
 

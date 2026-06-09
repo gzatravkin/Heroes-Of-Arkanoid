@@ -19,6 +19,9 @@ const DESTRUCTIBLE = new Set([
   "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder",
   "heaven_basic", "heaven_tough", "heaven_melee_statue",
 ]);
+// Non-needToKill special blocks that are allowed to exist (don't satisfy winnability alone).
+const NON_KILL = new Set(["cavern_stalactite"]);
+void NON_KILL;
 
 /** Each level: id, biome, legend (char→block id), and block rows (top-down). */
 const LEVELS = [
@@ -61,8 +64,8 @@ const LEVELS = [
   ]},
 
   // ── CAVERNS — stalactite columns + rock pillars shaping the ball ───────────
-  { id: "caverns-1", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough" }, rows: [
-    "A.A.A.A.",
+  { id: "caverns-1", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", L: "cavern_stalactite" }, rows: [
+    "ALA.ALA.",
     "A.A.A.A.",
     "A.A.A.C.",
     "C.A.A...",

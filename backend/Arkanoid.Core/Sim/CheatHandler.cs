@@ -37,6 +37,9 @@ internal static class CheatHandler
             case "setBalls":
                 g.SpareBalls = System.Math.Max(0, (int)value);
                 break;
+            case "dropStalactites":
+                Systems.StalactiteSystem.BossDrop(g, System.Math.Max(1, (int)value));
+                break;
             case "fastForward":
                 // Deterministic time-travel for testing time-based mechanics (emitters,
                 // boss cadence). Freeze balls so they don't drain, then advance N ticks.

@@ -36,6 +36,10 @@ public sealed class Block
     public bool Bomb          { get; init; }
     public int  ExplodeRadius { get; init; }
 
+    // --- Stalactite: hangs from the ceiling; detaches into a falling hazard when a ball
+    //     passes beneath its column (Caverns hazard; the Goblin boss also drops these). ---
+    public bool Stalactite { get; init; }
+
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }
     public bool FlipY { get; init; }

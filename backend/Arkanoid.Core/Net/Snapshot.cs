@@ -40,6 +40,7 @@ public sealed class HazardDto
 {
     [JsonPropertyName("x")] public double X { get; set; }
     [JsonPropertyName("y")] public double Y { get; set; }
+    [JsonPropertyName("kind")] public string Kind { get; set; } = "";
 }
 
 public sealed class WallDto
@@ -147,7 +148,7 @@ public sealed class Snapshot
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });
         foreach (var hz in g.Hazards)
-            s.Hazards.Add(new HazardDto { X = hz.Pos.X, Y = hz.Pos.Y });
+            s.Hazards.Add(new HazardDto { X = hz.Pos.X, Y = hz.Pos.Y, Kind = hz.Kind });
         s.TurretActive = g.TurretActive;
         var aliveBossBlocks = g.Blocks.Where(b => !b.Dead && b.Boss).ToList();
         s.BossActive = aliveBossBlocks.Count > 0;

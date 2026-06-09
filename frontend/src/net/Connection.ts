@@ -6,7 +6,7 @@ export interface Snapshot {
   paddleX: number; paddleW: number; paddleH: number; cellSize: number;
   balls: { id: number; x: number; y: number; ignited: boolean; decayed?: boolean }[];
   blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string; ballPhases: boolean; teleporter: boolean; indestructible: boolean; boss?: boolean; flipX?: boolean; flipY?: boolean }[];
-  hazards: { x: number; y: number }[];
+  hazards: { x: number; y: number; kind?: string }[];
   events: { type: string; x: number; y: number }[];
   walls: { y: number; width: number }[];
   turretActive: boolean;

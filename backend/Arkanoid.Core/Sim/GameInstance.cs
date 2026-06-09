@@ -289,6 +289,7 @@ public sealed class GameInstance
         SpellSystem.UpdateDrain(this, dt);
         BossSystem.Update(this, dt);
         EmitterSystem.Update(this, dt);
+        StalactiteSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);

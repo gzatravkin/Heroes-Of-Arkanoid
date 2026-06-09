@@ -81,6 +81,35 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Stalactite (drops when a ball passes beneath) ─────────────────────────
+
+    [Fact]
+    public void Stalactite_Drops_WhenBallPassesBeneath()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"l\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"stalactite\":true}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\".L.\",\"...\",\"...\",\"..k\"],\"legend\":{\"L\":\"l\",\"k\":\"k\"}}");
+
+        var stal = g.Blocks[0];
+        var sc = g.Level.Grid.CellCenter(stal.Col, stal.Row);
+
+        // No drop while the ball is nowhere near its column.
+        g.Balls[0].Pos = new Vec2(sc.X + 999, sc.Y + 50);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.False(stal.Dead);
+        Assert.Empty(g.Hazards);
+
+        // Ball moves directly beneath the stalactite → it detaches into a falling hazard.
+        g.Balls[0].Pos = new Vec2(sc.X, sc.Y + g.Config.CellSize);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(stal.Dead, "stalactite detached");
+        Assert.Single(g.Hazards);
+        Assert.True(g.Hazards[0].Vel.Y > 0, "stalactite falls downward");
+        Assert.Equal("stalactite", g.Hazards[0].Kind);
+    }
+
     // ── Colour-paired teleporters ─────────────────────────────────────────────
 
     [Fact]

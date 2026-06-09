@@ -20,6 +20,7 @@
 
   { "id": "hell_ballspawner",     "biome": "hell",    "hp": 6, "sprite": "HellBallSpawner", "needToKill": true, "emitter": true, "emitInterval": 1.8, "emitAim": "paddle" },
   { "id": "cavern_bomb",          "biome": "caverns", "hp": 1, "sprite": "Bomb",           "needToKill": true, "bomb": true, "explodeRadius": 1 },
+  { "id": "cavern_stalactite",    "biome": "caverns", "hp": 1, "sprite": "Stalactite",     "needToKill": false, "indestructible": true, "stalactite": true },
   { "id": "village_beholder",     "biome": "village", "hp": 4, "sprite": "Beholder1",      "needToKill": true, "emitter": true, "emitInterval": 1.6, "emitAim": "ball" },
   { "id": "heaven_melee_statue",  "biome": "heaven",  "hp": 5, "sprite": "HeavenMeleeStatue", "needToKill": true, "emitter": true, "emitInterval": 2.0, "emitAim": "paddle" }
 ]}
