@@ -177,8 +177,12 @@ function injectMenuStyles() {
     .menu-art-btn {
       position: relative;
       width: min(320px, 88vw);
-      border: none;
-      background: url('/ui/InterfaceButton.png') no-repeat center / 100% 100%;
+      background: none;
+      /* 9-slice the InterfaceButton pill (626x162): fixed rounded end-caps + stretched
+         middle, so the button doesn't get its ends squished at different widths. */
+      border-style: solid;
+      border-width: 9px 34px;
+      border-image: url('/ui/InterfaceButton.png') 26 92 26 92 fill stretch;
       cursor: pointer;
       display: flex;
       flex-direction: column;
