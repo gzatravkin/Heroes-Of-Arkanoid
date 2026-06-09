@@ -4,9 +4,9 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "HHH..HHH",
-    "H.H..H.H",
-    "H.HMMH.H",
+    "PHH..HHP",
+    "C.H..H.C",
+    "B.HMMH.B",
     "H.HTTH.H",
     "H......H",
     "S.HDDH.S",
@@ -24,6 +24,9 @@
     "T": "heaven_tough",
     "S": "heaven_statue",
     "M": "heaven_melee_statue",
-    "D": "heaven_shield_statue"
+    "D": "heaven_shield_statue",
+    "P": "heaven_column_top",
+    "C": "heaven_column_mid",
+    "B": "heaven_column_bottom"
   }
 }

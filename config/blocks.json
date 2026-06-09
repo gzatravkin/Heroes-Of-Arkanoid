@@ -28,5 +28,8 @@
   { "id": "village_bat",          "biome": "village", "hp": 1, "sprite": "BatSleeping",    "needToKill": false, "behavior": "bat" },
   { "id": "heaven_melee_statue",  "biome": "heaven",  "hp": 5, "sprite": "HeavenMeleeStatue", "needToKill": true, "behavior": "emitter", "emitInterval": 2.0, "emitAim": "paddle" },
   { "id": "heaven_windmaster",    "biome": "heaven",  "hp": 4, "sprite": "WindMaster2",  "needToKill": true, "behavior": "windMaster" },
-  { "id": "heaven_shield_statue", "biome": "heaven",  "hp": 5, "sprite": "HeavenDefender", "needToKill": true, "behavior": "shieldStatue" }
+  { "id": "heaven_shield_statue", "biome": "heaven",  "hp": 5, "sprite": "HeavenDefender", "needToKill": true, "behavior": "shieldStatue" },
+  { "id": "heaven_column_top",    "biome": "heaven",  "hp": 4, "sprite": "ColumnTop",     "needToKill": true },
+  { "id": "heaven_column_mid",    "biome": "heaven",  "hp": 4, "sprite": "Column",        "needToKill": true },
+  { "id": "heaven_column_bottom", "biome": "heaven",  "hp": 4, "sprite": "ColumnBottom",  "needToKill": true }
 ]}

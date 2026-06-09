@@ -56,6 +56,9 @@ const ALIAS: Record<string, string> = {
   WindMaster2:           "heaven/WindMaster2",
   HeavenDefender:        "heaven/HeavenDefender",
   HeavenBoss:            "heaven/HeavenBoss",
+  ColumnTop:             "heaven/ColumnTop",
+  Column:                "heaven/Column",
+  ColumnBottom:          "heaven/ColumnBottom",
 
   // ── Game objects ─────────────────────────────────────────────────────────
   // "Ball" and "Paddle" were placeholder art not present in Sprites/ — the game

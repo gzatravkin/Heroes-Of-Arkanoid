@@ -18,6 +18,7 @@ const DESTRUCTIBLE = new Set([
   "cavern_basic", "cavern_tough", "cavern_goblin_boss", "cavern_bomb",
   "village_basic", "village_tough", "village_ghost", "village_witch_boss", "village_beholder", "village_necromant",
   "heaven_basic", "heaven_tough", "heaven_melee_statue", "heaven_windmaster", "heaven_shield_statue", "heaven_angel_boss",
+  "heaven_column_top", "heaven_column_mid", "heaven_column_bottom",
 ]);
 // Non-needToKill special blocks that are allowed to exist (don't satisfy winnability alone).
 const NON_KILL = new Set(["cavern_stalactite"]);
@@ -133,10 +134,10 @@ const LEVELS = [
   ]},
 
   // ── HEAVEN — statue mirror-mazes (strict left↔right symmetry) ──────────────
-  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue" }, rows: [
-    "HHH..HHH",
-    "H.H..H.H",
-    "H.HMMH.H",
+  { id: "heaven-1", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom" }, rows: [
+    "PHH..HHP",
+    "C.H..H.C",
+    "B.HMMH.B",
     "H.HTTH.H",
     "H......H",
     "S.HDDH.S",
