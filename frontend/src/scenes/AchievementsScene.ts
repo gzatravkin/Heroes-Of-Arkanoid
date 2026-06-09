@@ -41,21 +41,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 // ── Badge art mapping: tier → locked/unlocked image ──────────────────────────
 // Files copied to public/achievements/ (committed, no /Sprites/ symlink dependency).
 
-function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, unlocked: boolean): string {
-  // Unlocked uses Eng variant (English text badge); locked uses the plain number badge.
-  // Tier 3 gold variant used for unlocked tier-3 (achievementLvl3Oro).
-  if (unlocked) {
-    if (tier === 1) return "/achievements/achievementLvl1Eng.png";
-    if (tier === 2) return "/achievements/achievementLvl2Eng.png";
-    if (tier === 3) return "/achievements/achievementLvl3Oro.png";
-    if (tier === 4) return "/achievements/achievementLl4Eng.png";
-    return "/achievements/achievementLl5Eng.png";
-  }
-  if (tier === 1) return "/achievements/achievementLvl1.png";
-  if (tier === 2) return "/achievements/achievementLvl2.png";
-  if (tier === 3) return "/achievements/achievementLvl3.png";
-  if (tier === 4) return "/achievements/achievementLl4.png";
-  return "/achievements/achievementLl5.png";
+function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, _unlocked: boolean): string {
+  // Always use the English badge art (the non-Eng variants have Russian text baked in).
+  // Locked badges are conveyed by dimming the card, not by a different (Russian) sprite.
+  if (tier === 1) return "/achievements/achievementLvl1Eng.png";
+  if (tier === 2) return "/achievements/achievementLvl2Eng.png";
+  if (tier === 3) return "/achievements/achievementLvl3Oro.png";
+  if (tier === 4) return "/achievements/achievementLl4Eng.png";
+  return "/achievements/achievementLl5Eng.png";
 }
 
 // ── Mount ─────────────────────────────────────────────────────────────────────
