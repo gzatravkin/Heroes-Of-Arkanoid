@@ -29,8 +29,10 @@ test("crystals display reflects profile", async ({ page }) => {
   await page.request.post(`${API}/complete?level=hell-1`);
   await page.goto("/?scene=inventory");
   await expect(page.locator("#inv-crystals")).toBeVisible({ timeout: 8000 });
-  const text = await page.locator("#inv-crystals").textContent();
-  expect(text).toMatch(/💎\s*\d+/);
+  // Crystals show a Gem.png sprite + numeric count (the 💎 emoji was replaced by real art).
+  await expect(page.locator("#inv-crystals img[src*='Gem']")).toBeVisible();
+  const count = await page.locator("#inv-crystal-count").textContent();
+  expect(count?.trim()).toMatch(/^\d+$/);
 });
 
 test("buy an item raises owned tier and deducts crystals", async ({ page }) => {
