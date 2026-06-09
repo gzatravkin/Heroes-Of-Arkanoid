@@ -1,7 +1,11 @@
 import { Application, Container, Graphics, Sprite, BLEND_MODES, Texture } from "pixi.js";
+import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
 import { Effects } from "./Effects";
+import { BallTrail } from "./BallTrail";
+import { ScreenShake } from "./ScreenShake";
+import { Vignette } from "./Vignette";
 
 // Visible gap between bricks so the wall doesn't merge into a solid sheet.
 // Expressed as a fraction of cellSize; enforces a 2 px minimum.
@@ -56,6 +60,13 @@ const HAZARD_GLOW_RADIUS_MULT = 1.9;
 const DAMAGE_FLASH_ALPHA_START = 0.45;
 const DAMAGE_FLASH_FADE_SPEED  = 0.04; // alpha lost per ticker delta
 
+// Glow filter applied to the fx / fire layer and the balls container.
+// Kept modest to avoid washing out the whole board on slow hardware.
+const GLOW_DISTANCE   = 14;   // px — spread of the glow halo
+const GLOW_OUTER_STRENGTH = 3.0;
+const GLOW_INNER_STRENGTH = 0.0; // inner-strength=0 avoids colour shift on the core sprite
+const GLOW_COLOR      = 0xff6a20; // warm orange — complements fire/explosion palette
+
 export class Renderer {
   app: Application;
   private world = new Container();
@@ -66,6 +77,11 @@ export class Renderer {
   private paddle = new Graphics();
   private turretSprite = new Sprite();
   private balls = new Container();
+  private ballTrail: BallTrail;
+  private screenShake: ScreenShake;
+  // Store the base fit position so screen-shake can layer on top.
+  private _fitX = 0;
+  private _fitY = 0;
   private damageFlash = new Graphics(); // full-screen overlay for HP hit feedback
   private _tick = 0; // used to drive wall flicker animation
   private _lastLives = -1; // track lives decreases for damage flash
@@ -75,14 +91,40 @@ export class Renderer {
     host.appendChild(this.app.view as HTMLCanvasElement);
 
     this.effectsLayer = new Effects();
+    this.ballTrail = new BallTrail();
+    this.screenShake = new ScreenShake();
 
     // Try to load the turret sprite; fall back to Graphics if it fails.
     this.turretSprite = Sprite.from("/art/FireHeroTurret.png");
     this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
     this.turretSprite.visible = false;
 
-    // Layer order: blocks → fireWalls → effects → balls → paddle → turret → hazards
+    // Apply a single GlowFilter to the fx + fire layer group and to the balls
+    // container so that explosions, fire walls, halos, and balls all glow.
+    // Scoped to bright/fx elements only — blocks and paddle are untouched.
+    const fxGlow = new GlowFilter({
+      distance:      GLOW_DISTANCE,
+      outerStrength: GLOW_OUTER_STRENGTH,
+      innerStrength: GLOW_INNER_STRENGTH,
+      color:         GLOW_COLOR,
+      quality:       0.3, // low quality = faster; perfectly fine for bloom halos
+    });
+    this.effectsLayer.container.filters = [fxGlow];
+    this.fireWalls.filters = [fxGlow];
+
+    // Ball glow: separate filter instance so ball trails can share it independently.
+    const ballGlow = new GlowFilter({
+      distance:      10,
+      outerStrength: 2.2,
+      innerStrength: 0.0,
+      color:         0xffffff,
+      quality:       0.3,
+    });
+    this.balls.filters = [ballGlow];
+
+    // Layer order: ballTrail → blocks → fireWalls → effects → balls → paddle → turret → hazards
     this.world.addChild(
+      this.ballTrail.container,
       this.blocks,
       this.fireWalls,
       this.effectsLayer.container,
@@ -96,11 +138,20 @@ export class Renderer {
     this.app.stage.addChild(this.world);
     this.app.stage.addChild(this.damageFlash);
 
+    // Vignette: subtle dark corners overlay on the stage (top-most).
+    new Vignette(this.app);
+
     // Tick the effects every frame and drive wall flicker.
     this.app.ticker.add((delta) => {
       // delta is in Pixi ticker units (frames at 60 fps → multiply by 1000/60 for ms)
       const dtMs = (delta / 60) * 1000;
       this.effectsLayer.update(dtMs);
+      this.screenShake.update(dtMs);
+      // Apply screen-shake offset on top of the fit position calculated last draw().
+      this.world.position.set(
+        this._fitX + this.screenShake.offsetX,
+        this._fitY + this.screenShake.offsetY,
+      );
       this._tick += delta;
       // Animate the alpha flicker on each fire-wall tile every frame.
       for (let i = 0; i < this.fireWalls.children.length; i++) {
@@ -123,14 +174,20 @@ export class Renderer {
       this.app.screen.height / effectiveH,
     ) * 0.95;
     this.world.scale.set(scale);
-    this.world.position.set(
-      (this.app.screen.width - s.boardW * scale) / 2,
-      (this.app.screen.height - effectiveH * scale) / 2,
-    );
+    // Store the base fit position — screen-shake will add its offset on top each tick.
+    this._fitX = (this.app.screen.width - s.boardW * scale) / 2;
+    this._fitY = (this.app.screen.height - effectiveH * scale) / 2;
+    this.world.position.set(this._fitX, this._fitY);
   }
 
   draw(s: Snapshot) {
     this.fit(s);
+
+    // --- screen shake: fire on relevant events ---
+    for (const ev of s.events) {
+      if (ev.type === "playerHit") this.screenShake.trigger("playerHit");
+      else if (ev.type === "bossAttack") this.screenShake.trigger("bossAttack");
+    }
 
     // --- damage flash: trigger on lives decrease ---
     if (this._lastLives >= 0 && s.lives < this._lastLives) {
@@ -242,10 +299,13 @@ export class Renderer {
       this.turretSprite.visible = false;
     }
 
+    // --- ball trail (drawn behind balls) ---
+    const ballRadius = s.cellSize * 0.25;
+    this.ballTrail.update(s.balls, ballRadius);
+
     // --- balls ---
     this.balls.removeChildren();
     for (const ball of s.balls) {
-      const ballRadius = s.cellSize * 0.25;
       const g = new Graphics();
 
       if (ball.ignited) {
