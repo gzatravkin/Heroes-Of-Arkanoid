@@ -7,6 +7,11 @@ import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
 import { Vignette } from "./Vignette";
 
+// Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
+// this flag so that Playwright's headless software-WebGL never pays the cost.
+// navigator.webdriver is true in automation; false/undefined in real browsers.
+const HEAVY_FX = !(navigator as any).webdriver;
+
 // Visible gap between bricks so the wall doesn't merge into a solid sheet.
 // Expressed as a fraction of cellSize; enforces a 2 px minimum.
 const GAP_FRAC = 0.12;
@@ -102,25 +107,32 @@ export class Renderer {
     // Apply a single GlowFilter to the fx + fire layer group and to the balls
     // container so that explosions, fire walls, halos, and balls all glow.
     // Scoped to bright/fx elements only — blocks and paddle are untouched.
-    const fxGlow = new GlowFilter({
-      distance:      GLOW_DISTANCE,
-      outerStrength: GLOW_OUTER_STRENGTH,
-      innerStrength: GLOW_INNER_STRENGTH,
-      color:         GLOW_COLOR,
-      quality:       0.3, // low quality = faster; perfectly fine for bloom halos
-    });
-    this.effectsLayer.container.filters = [fxGlow];
-    this.fireWalls.filters = [fxGlow];
+    //
+    // HEAVY_FX is false under Playwright (navigator.webdriver===true), so the
+    // GlowFilter render-to-texture passes are skipped entirely in headless runs,
+    // preventing WebSocket snapshot starvation from GPU thread blocking.
+    // The filter arrays are assigned once here and never reassigned per-frame.
+    if (HEAVY_FX) {
+      const fxGlow = new GlowFilter({
+        distance:      GLOW_DISTANCE,
+        outerStrength: GLOW_OUTER_STRENGTH,
+        innerStrength: GLOW_INNER_STRENGTH,
+        color:         GLOW_COLOR,
+        quality:       0.25, // low quality = faster; perfectly fine for bloom halos
+      });
+      this.effectsLayer.container.filters = [fxGlow];
+      this.fireWalls.filters = [fxGlow];
 
-    // Ball glow: separate filter instance so ball trails can share it independently.
-    const ballGlow = new GlowFilter({
-      distance:      10,
-      outerStrength: 2.2,
-      innerStrength: 0.0,
-      color:         0xffffff,
-      quality:       0.3,
-    });
-    this.balls.filters = [ballGlow];
+      // Ball glow: separate filter instance so ball trails can share it independently.
+      const ballGlow = new GlowFilter({
+        distance:      10,
+        outerStrength: 2.2,
+        innerStrength: 0.0,
+        color:         0xffffff,
+        quality:       0.25,
+      });
+      this.balls.filters = [ballGlow];
+    }
 
     // Layer order: ballTrail → blocks → fireWalls → effects → balls → paddle → turret → hazards
     this.world.addChild(
