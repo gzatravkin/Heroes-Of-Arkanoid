@@ -43,6 +43,7 @@ public static class LevelLoader
                     Emitter = t.Emitter, EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
                     Bomb = t.Bomb, ExplodeRadius = t.ExplodeRadius,
                     Stalactite = t.Stalactite, Necromant = t.Necromant, WindMaster = t.WindMaster,
+                    ShieldStatue = t.ShieldStatue,
                     FlipX = t.FlipX, FlipY = t.FlipY
                 });
             }

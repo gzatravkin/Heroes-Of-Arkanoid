@@ -46,6 +46,11 @@ public sealed class Block
     // --- WindMaster: pushes nearby balls away (deflects aim) within a radius. ---
     public bool WindMaster { get; init; }
 
+    // --- Shield Statue: periodically grants nearby blocks a temporary damage shield. ---
+    public bool   ShieldStatue { get; init; }
+    /// <summary>Seconds of remaining damage-immunity granted by a shield statue (mutable).</summary>
+    public double ShieldTimer  { get; set; }
+
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }
     public bool FlipY { get; init; }

@@ -9,7 +9,7 @@
     "H.HMMH.H",
     "H.HTTH.H",
     "H......H",
-    "S.HHHH.S",
+    "S.HDDH.S",
     "S.HTTH.S",
     "S......S",
     "........",
@@ -23,6 +23,7 @@
     "H": "heaven_basic",
     "T": "heaven_tough",
     "S": "heaven_statue",
-    "M": "heaven_melee_statue"
+    "M": "heaven_melee_statue",
+    "D": "heaven_shield_statue"
   }
 }

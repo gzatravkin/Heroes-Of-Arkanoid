@@ -753,6 +753,7 @@ export class Renderer {
           }
         } else {
           sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+          sp.tint  = b.shielded ? 0x66ddff : 0xffffff; // cyan flash while shielded (immune)
         }
       } else {
         // --- Create new pooled entry ---

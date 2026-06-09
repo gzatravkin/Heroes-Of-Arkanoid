@@ -39,6 +39,9 @@ public sealed class BlockType
     /// <summary>Pushes nearby balls away (deflects aim) within a radius (Heaven WindMaster).</summary>
     [JsonPropertyName("windMaster")] public bool WindMaster { get; set; } = false;
 
+    /// <summary>Periodically grants nearby blocks a temporary damage shield (Heaven Shield Statue).</summary>
+    [JsonPropertyName("shieldStatue")] public bool ShieldStatue { get; set; } = false;
+
     /// <summary>Mirror the sprite so asymmetric/corner art can sit at any corner/side.</summary>
     [JsonPropertyName("flipX")] public bool FlipX { get; set; } = false;
     [JsonPropertyName("flipY")] public bool FlipY { get; set; } = false;

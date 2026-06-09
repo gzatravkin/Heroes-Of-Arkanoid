@@ -88,6 +88,37 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
+    // ── Shield Statue (temporary block immunity) ──────────────────────────────
+
+    [Fact]
+    public void ShieldStatue_MakesNeighbourImmune_ThenWearsOff()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"d\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"shieldStatue\":true}," +
+            "{\"id\":\"p\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"d.p\",\"...\",\"...\"],\"legend\":{\"d\":\"d\",\"p\":\"p\"}}");
+        var plain = g.Blocks[1];
+
+        // Advance past one shield pulse (ball parked so it doesn't interfere).
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.ShieldStatueInterval / SimConfig.Default.FixedDt) + 2; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(plain.ShieldTimer > 0, "neighbour was shielded");
+
+        int hpBefore = plain.Hp;
+        BallHit(g, plain);
+        Assert.Equal(hpBefore, plain.Hp); // immune while shielded
+
+        // Let the shield wear off, then damage lands.
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.ShieldDuration / SimConfig.Default.FixedDt) + 5; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(plain.ShieldTimer <= 0, "shield wore off");
+        BallHit(g, plain);
+        Assert.True(plain.Hp < hpBefore, "damage lands after the shield expires");
+    }
+
     // ── WindMaster (deflects the ball away) ───────────────────────────────────
 
     [Fact]

@@ -168,6 +168,12 @@ public sealed class SimConfig
     public double WindMasterForce { get; init; } = 900;
     /// <summary>WindMaster influence radius (units); push falls off linearly to zero at the edge.</summary>
     public double WindMasterRadius { get; init; } = 110;
+    /// <summary>Seconds between a Shield Statue's protective pulses.</summary>
+    public double ShieldStatueInterval { get; init; } = 3.5;
+    /// <summary>Shield-statue radius in cells (Chebyshev).</summary>
+    public int    ShieldStatueRadius   { get; init; } = 2;
+    /// <summary>Seconds a block stays damage-immune after being shielded.</summary>
+    public double ShieldDuration       { get; init; } = 2.5;
 
     // --- Boss multi-pattern phases ---
     /// <summary>HP fraction threshold below which the boss enters phase 2 (speed + spread added).</summary>

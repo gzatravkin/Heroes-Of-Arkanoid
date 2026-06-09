@@ -15,6 +15,7 @@ internal static class BlockDamage
     internal static void DamageBlock(GameInstance g, Block blk, int dmg, bool igniteSource, bool decaySource = false)
     {
         if (blk.Indestructible) return;
+        if (blk.ShieldTimer > 0) { g.RaiseEvent("shieldBlock", 0, 0); return; } // shielded: immune
         blk.Hp -= dmg;
         g._log.Log(g.TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
                    $"id={blk.Id} col={blk.Col} row={blk.Row} hp={blk.Hp} dmg={dmg} ignite={igniteSource} decay={decaySource}");

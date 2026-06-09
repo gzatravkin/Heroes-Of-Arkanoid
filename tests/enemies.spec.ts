@@ -36,6 +36,18 @@ test("Caverns bombs present (chain-explode block)", async ({ page }) => {
   await page.screenshot({ path: path.join(SHOTS, "enemy-caverns-bombs.png") });
 });
 
+test("Heaven shield statue shields neighbours (immune flash)", async ({ page }) => {
+  await openBattle(page, "heaven-1");
+  expect((await page.evaluate(() => (window as any).__game.getState()))
+    .blocks.some((b: any) => b.sprite === "HeavenDefender")).toBeTruthy();
+  // fast-forward past a shield pulse, then a block should report shielded
+  await cheat(page, "fastForward", 240);
+  await page.waitForFunction(
+    () => ((window as any).__game.getState()?.blocks ?? []).some((b: any) => b.shielded),
+    null, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-shield-statue.png") });
+});
+
 test("Heaven windmaster present (deflects the ball)", async ({ page }) => {
   await openBattle(page, "heaven-2");
   const s = await page.evaluate(() => (window as any).__game.getState());
