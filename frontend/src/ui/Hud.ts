@@ -48,6 +48,8 @@ export class Hud {
   private bossBarEl: HTMLElement;
   private bossBarFill: HTMLElement;
   private bossNameEl: HTMLElement;
+  // Active bonus effects indicator row.
+  private effectsEl: HTMLElement;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -116,6 +118,16 @@ export class Hud {
     this.bossBarEl   = bossBar.outer;
     this.bossBarFill = bossBar.fill;
     this.bossNameEl  = bossBar.name;
+
+    // ---- active bonus effects row (top-left, below lives) ----
+    this.effectsEl = this.createElement("div", "hud-effects");
+    this.effectsEl.id = "hud-effects";
+    this.effectsEl.style.cssText = [
+      "position:absolute", "top:72px", "left:8px",
+      "display:flex", "flex-direction:row", "gap:4px",
+      "align-items:center", "pointer-events:none",
+    ].join(";");
+    this.root.appendChild(this.effectsEl);
 
     // ---- banner (center) ----
     this.banner = this.createElement("div", "hud-banner");
@@ -206,6 +218,9 @@ export class Hud {
       this.bossBarEl.style.display = "none";
     }
 
+    // -- active bonus effects --
+    this.updateEffects(s);
+
     // -- banner --
     if (s.phase === "Won") {
       this.banner.style.display = "block";
@@ -222,6 +237,16 @@ export class Hud {
   }
 
   // -----------------------------------------------------------------------
+  private updateEffects(s: Snapshot) {
+    const chips: string[] = [];
+    if (s.widePaddleActive) chips.push(`↔️ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
+    if (s.slowBallActive)   chips.push(`🐢 ${Math.ceil(s.slowBallTimer ?? 0)}s`);
+    const html = chips.map(c =>
+      `<span style="background:rgba(0,0,0,0.65);border:1px solid #66aaff;border-radius:4px;padding:1px 5px;font-size:10px;color:#aaddff;">${c}</span>`
+    ).join("");
+    this.effectsEl.innerHTML = html;
+  }
+
   private updateRelics(relics: { id: string; name: string; icon: string }[]) {
     const existing = this.relicsEl.querySelectorAll<HTMLElement>("[data-relic-id]");
     const existingIds = Array.from(existing).map(el => el.dataset.relicId!);

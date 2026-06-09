@@ -120,5 +120,25 @@ public sealed class SimConfig
     /// <summary>How strongly summon minions track the paddle X (stronger than aimedShot).</summary>
     public double BossSummonAimStrength { get; init; } = 0.65;
 
+    // --- Bonus pickups ---
+    /// <summary>Probability (0–1) that a destroyed block drops a bonus pickup.</summary>
+    public double BonusDropChance     { get; init; } = 0.12;
+    /// <summary>Downward speed of a falling bonus pickup (units/sec).</summary>
+    public double BonusFallSpeed      { get; init; } = 130;
+    /// <summary>Seconds that temporary effects (wide_paddle, slow_ball) remain active.</summary>
+    public double BonusEffectDuration { get; init; } = 6.0;
+    /// <summary>Extra width added to the paddle by the wide_paddle bonus.</summary>
+    public double WidePaddleBonus     { get; init; } = 48;
+    /// <summary>Multiplier applied to ball speed during the slow_ball bonus (&lt;1 = slower).</summary>
+    public double SlowBallFactor      { get; init; } = 0.55;
+    /// <summary>Mana restored by the mana_surge bonus.</summary>
+    public double ManaSurgeAmount     { get; init; } = 30;
+    /// <summary>Hit-box half-height of a falling bonus pickup (for catch detection).</summary>
+    public double BonusCatchHalfH     { get; init; } = 10;
+    /// <summary>Hit-box half-width of a falling bonus pickup.</summary>
+    public double BonusCatchHalfW     { get; init; } = 14;
+    /// <summary>Crystal count awarded by the coins bonus pickup.</summary>
+    public int    CoinsBonus          { get; init; } = 10;
+
     public static SimConfig Default { get; } = new();
 }

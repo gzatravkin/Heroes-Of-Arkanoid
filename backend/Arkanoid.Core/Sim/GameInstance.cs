@@ -1,4 +1,5 @@
 using System.Linq;
+using Arkanoid.Core.Bonuses;
 using Arkanoid.Core.Entities;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Math;
@@ -31,6 +32,19 @@ public sealed class GameInstance
     /// <summary>Falling hazards spawned by boss blocks; hitting the paddle damages player HP.</summary>
     public List<Projectile> Hazards { get; } = new();
 
+    internal int _nextBonusId = 1;
+    /// <summary>Falling bonus pickups dropped by destroyed blocks.</summary>
+    public List<Bonus> Bonuses { get; } = new();
+
+    // --- Temp-effect state (wide_paddle / slow_ball) ---
+    internal bool   _widePaddleActive = false;
+    internal double _widePaddleTimer  = 0;
+    internal bool   _slowBallActive   = false;
+    internal double _slowBallTimer    = 0;
+
+    // --- Coin/crystal counter (coins bonus) ---
+    public int Crystals { get; internal set; } = 0;
+
     // --- Boss multi-pattern state ---
     internal double _bossAttackAccumulator;
     /// <summary>Current boss phase (1/2/3). 0 = not yet computed.</summary>
@@ -46,7 +60,8 @@ public sealed class GameInstance
     internal double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
     internal readonly ISimLog _log;
-    public RelicCatalog? RelicCatalog { get; }
+    public RelicCatalog?  RelicCatalog  { get; }
+    public BonusCatalog?  BonusCatalog  { get; }
     public long TickCount { get; private set; }
 
     public string Character { get; private set; } = "fire_mage";
@@ -76,10 +91,11 @@ public sealed class GameInstance
                 SpellLevels[k] = v;
     }
 
-    public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null)
+    public GameInstance(LevelData level, SimConfig config, int seed, ISimLog? log = null, RelicCatalog? relics = null, BonusCatalog? bonuses = null)
     {
         Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
         RelicCatalog = relics;
+        BonusCatalog = bonuses;
         Lives = config.StartLives;
         SpareBalls = config.StartBalls;
         ManaMaxValue = config.ManaMax;
@@ -184,6 +200,7 @@ public sealed class GameInstance
         SpellSystem.UpdateTurret(this, dt);
         BossSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
+        BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);
     }
 

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Collections.Concurrent;
 using Arkanoid.Core.Blocks;
+using Arkanoid.Core.Bonuses;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Net;
 using Arkanoid.Core.Relics;
@@ -53,10 +54,14 @@ public sealed class GameSession
 
     private void LoadLevel(string levelId, int seed)
     {
-        var catalog = BlockCatalog.FromFile(System.IO.Path.Combine(_configRoot, "blocks.json"));
-        var level   = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
-        var relics  = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
-        _game = new GameInstance(level, SimConfig.Default, seed, _log, relics);
+        var catalog  = BlockCatalog.FromFile(System.IO.Path.Combine(_configRoot, "blocks.json"));
+        var level    = LevelLoader.FromFile(System.IO.Path.Combine(_configRoot, "levels", $"{levelId}.json"), catalog);
+        var relics   = RelicCatalog.FromFile(System.IO.Path.Combine(_configRoot, "relics.json"));
+        var bonusCatalogPath = System.IO.Path.Combine(_configRoot, "bonuses.json");
+        var bonuses  = System.IO.File.Exists(bonusCatalogPath)
+            ? BonusCatalog.FromFile(bonusCatalogPath)
+            : null;
+        _game = new GameInstance(level, SimConfig.Default, seed, _log, relics, bonuses);
 
         var profile = _profileStore.Load();
         _game.SetSpellLevels(profile.SpellLevels);

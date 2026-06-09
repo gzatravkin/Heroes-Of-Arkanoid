@@ -51,6 +51,15 @@ public sealed class RelicDto
     [JsonPropertyName("icon")] public string Icon { get; set; } = "";
 }
 
+public sealed class BonusDto
+{
+    [JsonPropertyName("id")]   public int    Id   { get; set; }
+    [JsonPropertyName("x")]    public double X    { get; set; }
+    [JsonPropertyName("y")]    public double Y    { get; set; }
+    [JsonPropertyName("type")] public string Type { get; set; } = "";
+    [JsonPropertyName("icon")] public string Icon { get; set; } = "";
+}
+
 public sealed class Snapshot
 {
     [JsonPropertyName("tick")] public long Tick { get; set; }
@@ -76,6 +85,11 @@ public sealed class Snapshot
     [JsonPropertyName("bossActive")] public bool BossActive { get; set; }
     [JsonPropertyName("bossHp")]     public int  BossHp     { get; set; }
     [JsonPropertyName("bossMaxHp")]  public int  BossMaxHp  { get; set; }
+    [JsonPropertyName("bonuses")]    public List<BonusDto> Bonuses { get; set; } = new();
+    [JsonPropertyName("widePaddleActive")] public bool WidePaddleActive { get; set; }
+    [JsonPropertyName("widePaddleTimer")]  public double WidePaddleTimer  { get; set; }
+    [JsonPropertyName("slowBallActive")]   public bool SlowBallActive   { get; set; }
+    [JsonPropertyName("slowBallTimer")]    public double SlowBallTimer    { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -118,6 +132,12 @@ public sealed class Snapshot
                 Icon = def?.Icon ?? ""
             });
         }
+        foreach (var bn in g.Bonuses)
+            s.Bonuses.Add(new BonusDto { Id = bn.Id, X = bn.Pos.X, Y = bn.Pos.Y, Type = bn.Type, Icon = bn.Icon });
+        s.WidePaddleActive = g._widePaddleActive;
+        s.WidePaddleTimer  = g._widePaddleTimer;
+        s.SlowBallActive   = g._slowBallActive;
+        s.SlowBallTimer    = g._slowBallTimer;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

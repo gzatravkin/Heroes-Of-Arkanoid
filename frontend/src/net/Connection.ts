@@ -14,6 +14,11 @@ export interface Snapshot {
   bossActive: boolean;
   bossHp: number;
   bossMaxHp: number;
+  bonuses: { id: number; x: number; y: number; type: string; icon: string }[];
+  widePaddleActive: boolean;
+  widePaddleTimer: number;
+  slowBallActive: boolean;
+  slowBallTimer: number;
 }
 
 export class Connection {

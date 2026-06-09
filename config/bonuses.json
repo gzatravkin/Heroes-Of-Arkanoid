@@ -1,0 +1,8 @@
+{ "bonuses": [
+  { "id": "extra_ball",  "name": "Extra Ball",    "icon": "ui/bonus/BonusSplit",      "effect": "extra_ball"  },
+  { "id": "mana_surge",  "name": "Mana Surge",    "icon": "ui/bonus/BonusMana",       "effect": "mana_surge"  },
+  { "id": "wide_paddle", "name": "Wide Paddle",   "icon": "ui/bonus/BonusLargerBita", "effect": "wide_paddle" },
+  { "id": "slow_ball",   "name": "Slow Ball",     "icon": "ui/bonus/BonusProtection", "effect": "slow_ball"   },
+  { "id": "heal",        "name": "Heal",          "icon": "ui/bonus/BonusHP",         "effect": "heal"        },
+  { "id": "coins",       "name": "Treasure",      "icon": "ui/bonus/BonusGem",        "effect": "coins"       }
+]}

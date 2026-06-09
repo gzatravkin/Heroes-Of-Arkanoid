@@ -24,6 +24,7 @@ internal static class BlockDamage
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             g.RaiseEvent("blockDestroyed", c.X, c.Y);
             g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + Modifiers.KillManaGain(g));
+            BonusSystem.TrySpawnBonus(g, c.X, c.Y);
             if (igniteSource && Modifiers.ShouldSpreadFire(g))
                 SpreadFire(g, blk);
         }

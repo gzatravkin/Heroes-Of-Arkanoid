@@ -1,3 +1,4 @@
+using Arkanoid.Core.Entities;
 using Arkanoid.Core.Math;
 namespace Arkanoid.Core.Sim;
 
@@ -42,6 +43,25 @@ internal static class CheatHandler
                         g.Paddle.Center.X,
                         g.Paddle.Center.Y - g.Paddle.Height / 2 - b.Radius - 1);
                     b.Vel   = new Vec2(0, g.Config.BallSpeed); // downward → deflect next tick
+                }
+                break;
+
+            case "spawnBonus":
+                // Force-spawn a bonus of the given catalog index (value = index) above the paddle.
+                if (g.BonusCatalog != null && g.BonusCatalog.Defs.Count > 0)
+                {
+                    var idx = System.Math.Max(0, (int)value % g.BonusCatalog.Defs.Count);
+                    var def = g.BonusCatalog.Defs[idx];
+                    g.Bonuses.Add(new Bonus
+                    {
+                        Id    = g._nextBonusId++,
+                        Pos   = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height * 3),
+                        Vel   = new Vec2(0, g.Config.BonusFallSpeed),
+                        Type  = def.Effect,
+                        Icon  = def.Icon,
+                        Alive = true,
+                    });
+                    g._log.Log(g.TickCount, "cheat", "spawnBonus", $"type={def.Effect}");
                 }
                 break;
         }

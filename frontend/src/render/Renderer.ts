@@ -109,6 +109,12 @@ const HAZARD_GLOW_COLOR = 0xff3333; // additive glow
 const HAZARD_GLOW_ALPHA = 0.45;
 const HAZARD_GLOW_RADIUS_MULT = 1.9;
 
+// Bonus pickup rendering constants.
+const BONUS_SPRITE_SIZE    = 28;   // logical px (world-space) for bonus icon sprites
+const BONUS_SPIN_SPEED     = 0.04; // radians per ticker delta (gentle rotation)
+const BONUS_BOB_AMPLITUDE  = 2.5;  // px vertical bob amplitude
+const BONUS_BOB_SPEED      = 0.07; // radians per ticker delta for bob sinusoid
+
 // Damage flash: full-screen red overlay that fades out on a lives decrease.
 const DAMAGE_FLASH_ALPHA_START = 0.45;
 const DAMAGE_FLASH_FADE_SPEED  = 0.04; // alpha lost per ticker delta
@@ -162,6 +168,11 @@ export class Renderer {
   private _ballAnimSys: AnimSystem;
   // Hazard pool: each entry is { halo, core, bat? }.
   private _hazardPool: { halo: Graphics; core: Graphics; bat?: Sprite }[] = [];
+
+  // Bonus pickups layer and pool.
+  private bonusesLayer = new Container();
+  // Pool keyed by bonus id: { sp: Sprite, baseY: number }
+  private _bonusPool = new Map<number, { sp: Sprite; baseY: number }>();
 
   // Boss rig: one BossRig instance while bossActive, destroyed when boss dies.
   private _bossRig: BossRig | null = null;
@@ -244,7 +255,7 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → bossLayer → effects → ballAuras → balls → paddleSprite → turret → hazards
+    // Layer order: ballTrail → blocks → fireWalls → wallAnimSys → bossLayer → effects → ballAuras → balls → paddleSprite → turret → hazards → bonuses
     this.world.addChild(
       this.ballTrail.container,
       this.blocks,
@@ -257,6 +268,7 @@ export class Renderer {
       this.paddleSprite,
       this.turretSprite,
       this.hazardsLayer,
+      this.bonusesLayer,
     );
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
     this.damageFlash.alpha = 0;
@@ -908,6 +920,49 @@ export class Renderer {
         halo.visible = false;
         core.visible = false;
         if (bat) bat.visible = false;
+      }
+    }
+
+    // --- bonus pickups (falling icons from Bonus/ art) ---
+    const bonuses = s.bonuses ?? [];
+    const liveBonusIds = new Set<number>();
+    for (const bn of bonuses) liveBonusIds.add(bn.id);
+
+    // Remove pooled sprites for bonuses that were caught or fell off.
+    for (const [id, entry] of this._bonusPool) {
+      if (!liveBonusIds.has(id)) {
+        this.bonusesLayer.removeChild(entry.sp);
+        this._bonusPool.delete(id);
+      }
+    }
+
+    for (const bn of bonuses) {
+      if (this._bonusPool.has(bn.id)) {
+        // Update existing pooled entry.
+        const entry = this._bonusPool.get(bn.id)!;
+        const bob = Math.sin(this._tick * BONUS_BOB_SPEED + bn.id) * BONUS_BOB_AMPLITUDE;
+        entry.sp.x        = bn.x;
+        entry.sp.y        = bn.y + bob;
+        entry.sp.rotation += BONUS_SPIN_SPEED;
+      } else {
+        // Create new pooled entry for this bonus.
+        const bonusTex = tex(bn.icon);
+        const sp = new Sprite(bonusTex);
+        sp.anchor.set(0.5);
+        sp.width  = BONUS_SPRITE_SIZE;
+        sp.height = BONUS_SPRITE_SIZE;
+        sp.x = bn.x;
+        sp.y = bn.y;
+        sp.rotation = 0;
+        this.bonusesLayer.addChild(sp);
+        this._bonusPool.set(bn.id, { sp, baseY: bn.y });
+      }
+    }
+
+    // Catch sparkle: fire on bonusCaught events.
+    for (const ev of s.events) {
+      if (ev.type === "bonusCaught") {
+        this.effectsLayer.consume([{ type: "blockDestroyed", x: ev.x, y: ev.y }], s.cellSize, s.biome);
       }
     }
 
