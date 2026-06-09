@@ -4,14 +4,14 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
+    "AAAAAAAA",
+    "AAAAAAAA",
+    "AAAAAAAA",
+    "BBBBBBBB",
+    "AAAAAAAA",
     "........",
-    ".AAAAAA.",
-    ".AAAAAA.",
-    ".AAAAAA.",
-    ".AAAAAA.",
-    ".AAAAAA.",
-    ".AAAAAA.",
-    ".AAAAAA.",
+    "........",
+    "........",
     "........",
     "........",
     "........",
@@ -20,6 +20,7 @@
     "........"
   ],
   "legend": {
-    "A": "hell_basic"
+    "A": "hell_basic",
+    "B": "hell_tough"
   }
 }

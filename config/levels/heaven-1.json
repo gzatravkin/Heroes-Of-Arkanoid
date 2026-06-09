@@ -4,14 +4,14 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "SSSSSSSS",
-    "SAAAAAS.",
-    ".SATTAS.",
-    "SSSSSSSS",
-    "SAAAAAS.",
-    ".SATTAS.",
-    "SSSSSSSS",
-    "SAAAAAS.",
+    "HHHHHHHH",
+    "S.HHHH.S",
+    "S.HTTH.S",
+    "S.HTTH.S",
+    "S......S",
+    "HHHHHHHH",
+    "S..HH..S",
+    "S..TT..S",
     "........",
     "........",
     "........",
@@ -20,7 +20,7 @@
     "........"
   ],
   "legend": {
-    "A": "heaven_basic",
+    "H": "heaven_basic",
     "T": "heaven_tough",
     "S": "heaven_statue"
   }
