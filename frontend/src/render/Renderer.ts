@@ -4,6 +4,7 @@ import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
 import { HazardLayer } from "./HazardLayer";
 import { BonusLayer } from "./BonusLayer";
+import { BlockLayer } from "./BlockLayer";
 import { bg as biomedBg, hellParallaxFrames, anim as animFrames, tex as atlasTex } from "./assets";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
@@ -160,18 +161,6 @@ const IGNITE_HALO_ALPHA = 0.35;
 // Fire wall band height as a fraction of cellSize.
 const FIRE_WALL_HEIGHT_MULT = 1.1;
 
-// Ghost blocks (ballPhases): drawn semi-transparent with a blue/cyan tint.
-const GHOST_ALPHA_BASE = 0.45;
-const GHOST_ALPHA_AMP  = 0.12;   // oscillation amplitude around base
-const GHOST_PULSE_SPEED = 0.055; // ticker units per radian
-const GHOST_TINT = 0x88ccff;     // faint cyan tint
-
-// Teleporter glow ring: additive ring drawn behind the block sprite.
-const TELEPORTER_RING_ALPHA_BASE = 0.35;
-const TELEPORTER_RING_ALPHA_AMP  = 0.25;
-const TELEPORTER_RING_PULSE_SPEED = 0.07;
-const TELEPORTER_RING_COLOR = 0x44aaff; // cool blue portal glow
-const TELEPORTER_RING_RADIUS_MULT = 0.72; // fraction of brickSize/2
 
 // Turret visual: barrel length and width as fractions of paddleH.
 const TURRET_BARREL_LENGTH_MULT = 1.8;
@@ -238,30 +227,8 @@ const PADDLE_STRETCH_X_SCALE    = 1.18; // maximum X scale at stretch peak
 const HIT_STOP_DURATION_BOSS_MS = 80;   // short camera stutter for boss hits
 const HIT_STOP_DURATION_IGNITE_MS = 55; // ignited kill
 
-// Boss block rendering constants.
-const BOSS_SCALE_MULT  = 1.15;   // slightly enlarged vs normal brickSize
-const BOSS_AURA_COLOR  = 0xcc0000; // menacing red aura
-const BOSS_AURA_RADIUS_MULT = 0.8; // fraction of brickSize/2
-const BOSS_AURA_ALPHA  = 0.55;
-const BOSS_AURA_PULSE_SPEED = 0.06;
-const BOSS_AURA_ALPHA_AMP  = 0.25;
-
 // How long to keep the boss rig visible after defeat (for the explosion burst to play).
 const BOSS_DEFEAT_CLEANUP_MS = 1500;
-
-// Block damage states (A3): below DAMAGE_THRESHOLD of max HP, swap the block to its
-// "destroyed/cracked" frame so blocks visibly break instead of just fading out.
-const DAMAGE_THRESHOLD = 0.6;
-const BLOCK_DAMAGED: Record<string, string> = {
-  HellStandart:     "hell/StandartHellDestroyed",
-  HellStandart2:    "hell/StandartHell2Destroyed",
-  DungeonStandart:  "dungeon/DungeonStandartDestroyed",
-  DungeonStandart2: "dungeon/DungeonStandart2Destroyed",
-  VillageStandart:  "village/blocks/VillageStandartDestroyed",
-  VillageStandart2: "village/blocks/VillageStandart2Destroyed",
-  StandartHaven:    "heaven/StandartHavenDestroyed",
-  Standart2Haven:   "heaven/Standart2HavenDestroyed",
-};
 
 // Damage flash: full-screen red overlay that fades out on a lives decrease.
 const DAMAGE_FLASH_ALPHA_START = 0.45;
@@ -282,7 +249,7 @@ export class Renderer {
   private _hellParallaxSprites: Sprite[] = [];
   private _lastBiome = "";
   private world = new Container();
-  private blocks = new Container();
+  private blockLayer = new BlockLayer();
   private effectsLayer: Effects;
   private fireWalls = new Container();
   private hazardLayer = new HazardLayer();
@@ -308,7 +275,6 @@ export class Renderer {
 
   // ---- Sprite pools: keyed by entity id to avoid per-frame alloc churn ----
   // Block pool: each entry is a { sprite, aura?, ring? } tuple.
-  private _blockPool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics }>();
   // Ball pool: each entry is { sp (sprite), haloGfx (ignite halo), auraHandle? }
   // auraHandle tracks the looping ignite aura AnimatedSprite in _ballAnimSys.
   private _ballPool = new Map<number, { sp: Sprite; haloGfx: Graphics; auraId?: number }>();
@@ -444,7 +410,7 @@ export class Renderer {
       this._ambientLayer,
       this.ballTrail.container,
       this.zonesLayer,
-      this.blocks,
+      this.blockLayer.container,
       this.fireWalls,
       this._wallAnimSys.container,
       this.barriersLayer,
@@ -614,16 +580,6 @@ export class Renderer {
     }
   }
 
-  /** Block texture with damage states: swaps to the "destroyed/cracked" frame near death. */
-  private blockTex(b: { sprite: string; hp: number; maxHp: number }): Texture {
-    const dmgKey = BLOCK_DAMAGED[b.sprite];
-    if (dmgKey && b.maxHp > 0 && b.hp / b.maxHp < DAMAGE_THRESHOLD) {
-      const t = atlasTex(dmgKey);
-      if (t !== Texture.WHITE) return t;
-    }
-    return tex(b.sprite);
-  }
-
   draw(s: Snapshot) {
     // --- biome background (update only on biome change) ---
     if (s.biome && s.biome !== this._lastBiome) {
@@ -709,112 +665,10 @@ export class Renderer {
     }
     this._lastLives = s.lives;
 
-    // --- blocks (pooled: update existing sprites, create/destroy on actual add/remove) ---
+    // --- blocks (pooled: damage states, mirror, boss aura, teleporter ring, ghost, shield) ---
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
-
-    // Track which block ids are live this frame to detect removals.
-    const liveBlockIds = new Set<number>();
-    for (const b of s.blocks) liveBlockIds.add(b.id);
-
-    // Remove pooled sprites for blocks that no longer exist.
-    for (const [id, entry] of this._blockPool) {
-      if (!liveBlockIds.has(id)) {
-        if (entry.aura) this.blocks.removeChild(entry.aura);
-        if (entry.ring) this.blocks.removeChild(entry.ring);
-        this.blocks.removeChild(entry.sp);
-        this._blockPool.delete(id);
-      }
-    }
-
-    for (const b of s.blocks) {
-      const bossRenderSize = b.boss ? brickSize * BOSS_SCALE_MULT : brickSize;
-
-      if (this._blockPool.has(b.id)) {
-        // --- Update existing pooled sprite ---
-        const entry = this._blockPool.get(b.id)!;
-        const { sp, aura, ring } = entry;
-
-        sp.texture = this.blockTex(b);
-        sp.width   = bossRenderSize;
-        sp.height  = bossRenderSize;
-        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
-        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
-        sp.position.set(b.x, b.y);
-
-        if (b.boss) {
-          sp.alpha = 1.0;
-          if (aura) {
-            const auraAlpha = BOSS_AURA_ALPHA
-              + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
-            aura.clear().beginFill(BOSS_AURA_COLOR, auraAlpha)
-              .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
-          }
-        } else if (b.ballPhases) {
-          sp.tint  = GHOST_TINT;
-          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
-        } else if (b.indestructible || b.teleporter) {
-          sp.alpha = 1.0;
-          if (ring) {
-            const ringAlpha = TELEPORTER_RING_ALPHA_BASE
-              + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
-            ring.clear().beginFill(TELEPORTER_RING_COLOR, ringAlpha)
-              .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
-          }
-        } else {
-          sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-          sp.tint  = b.shielded ? 0x66ddff : 0xffffff; // cyan flash while shielded (immune)
-        }
-      } else {
-        // --- Create new pooled entry ---
-        let aura: Graphics | undefined;
-        let ring: Graphics | undefined;
-
-        if (b.boss) {
-          const auraAlpha = BOSS_AURA_ALPHA
-            + BOSS_AURA_ALPHA_AMP * Math.sin(this._tick * BOSS_AURA_PULSE_SPEED);
-          aura = new Graphics();
-          aura.blendMode = BLEND_MODES.ADD;
-          aura.beginFill(BOSS_AURA_COLOR, auraAlpha)
-            .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT)
-            .endFill();
-          this.blocks.addChild(aura);
-        }
-
-        if (b.teleporter) {
-          const ringAlpha = TELEPORTER_RING_ALPHA_BASE
-            + TELEPORTER_RING_ALPHA_AMP * Math.sin(this._tick * TELEPORTER_RING_PULSE_SPEED);
-          ring = new Graphics();
-          ring.blendMode = BLEND_MODES.ADD;
-          ring.beginFill(TELEPORTER_RING_COLOR, ringAlpha)
-            .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT)
-            .endFill();
-          this.blocks.addChild(ring);
-        }
-
-        const sp = new Sprite(this.blockTex(b));
-        sp.anchor.set(0.5);
-        sp.width  = bossRenderSize;
-        sp.height = bossRenderSize;
-        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
-        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
-        sp.position.set(b.x, b.y);
-
-        if (b.boss) {
-          sp.alpha = 1.0;
-        } else if (b.ballPhases) {
-          sp.tint  = GHOST_TINT;
-          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(this._tick * GHOST_PULSE_SPEED);
-        } else if (b.indestructible || b.teleporter) {
-          sp.alpha = 1.0;
-        } else {
-          sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-        }
-
-        this.blocks.addChild(sp);
-        this._blockPool.set(b.id, { sp, aura, ring });
-      }
-    }
+    this.blockLayer.update(s.blocks, this._tick, brickSize);
 
     // --- boss rig: assemble / update / destroy animated multi-part boss ---
     // Compute the boss-block bounding region this frame.
@@ -849,10 +703,7 @@ export class Renderer {
       }
 
       // Hide the plain boss-block sprites while the rig is showing.
-      for (const b of bossBlocks) {
-        const entry = this._blockPool.get(b.id);
-        if (entry) entry.sp.alpha = 0;
-      }
+      for (const b of bossBlocks) this.blockLayer.hideBlock(b.id);
 
       // Compute HP fraction (stored so the ticker can animate the rig).
       this._bossHpFrac = s.bossMaxHp > 0 ? s.bossHp / s.bossMaxHp : 1;
