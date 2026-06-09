@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Application, Container, Graphics } from "pixi.js";
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { HazardLayer } from "./HazardLayer";
@@ -10,7 +10,7 @@ import { FireWallLayer } from "./FireWallLayer";
 import { PaddleLayer } from "./PaddleLayer";
 import { VILLAGE_AMBIENT_REFS } from "./ambientRefs";
 void VILLAGE_AMBIENT_REFS; // referenced so the asset-coverage audit sees these frames
-import { bg as biomedBg, hellParallaxFrames, tex as atlasTex } from "./assets";
+import { BackgroundLayer } from "./BackgroundLayer";
 import { Effects } from "./Effects";
 import { BallTrail } from "./BallTrail";
 import { ScreenShake } from "./ScreenShake";
@@ -22,9 +22,6 @@ import { BossRig, TelegraphWarning, inferBossType } from "./Boss";
 // navigator.webdriver is true in automation; false/undefined in real browsers.
 // NOTE: base rendering always runs — only the optional glow post-processing is gated.
 const HEAVY_FX = !(navigator as any).webdriver;
-
-// Biome background: slightly darkened so blocks read clearly over it.
-const BG_TINT = 0xaaaaaa; // ~67% brightness multiplier on the sprite
 
 // ── Per-class paddle and ball keys ───────────────────────────────────────────
 // Each class has a 4-frame animated bar and a ball sprite.
@@ -58,15 +55,6 @@ const CLASS_BALL_KEYS: Record<string, string> = {
 // Default ball key (fire mage); overridden by setClass(). (Paddle keys live in PaddleLayer.)
 let _ballSpriteKey    = CLASS_BALL_KEYS.fire_mage;
 
-// ── Ambient beholder keys (cosmetic background, village biome only) ───────────
-// Pooled, max 2 simultaneous beholders, no gameplay/collision.
-const BEHOLDER_KEYS = [
-  "village/enemies/Beholder1","village/enemies/Beholder2","village/enemies/Beholder3",
-];
-const BEHOLDER_GHOST_KEYS = [
-  "village/enemies/Beholder1Ghost","village/enemies/Beholder2Ghost","village/enemies/Beholder3Ghost",
-];
-
 // Visible gap between bricks so the wall doesn't merge into a solid sheet.
 // Expressed as a fraction of cellSize; enforces a 2 px minimum.
 const GAP_FRAC = 0.12;
@@ -99,11 +87,8 @@ const GLOW_COLOR      = 0xff6a20; // warm orange — complements fire/explosion 
 
 export class Renderer {
   app: Application;
-  // Background layer (behind everything — biome background fills the stage).
-  private bgLayer = new Container();
-  private bgSprite = new Sprite();
-  private _hellParallaxSprites: Sprite[] = [];
-  private _lastBiome = "";
+  // Biome background + Hell parallax + ambient village beholders.
+  private background = new BackgroundLayer();
   private world = new Container();
   private blockLayer = new BlockLayer();
   private effectsLayer: Effects;
@@ -145,15 +130,6 @@ export class Renderer {
   // Hit-stop state: remaining ms of visual freeze.
   private _hitStopRemaining = 0;
 
-  // ── Ambient beholder sprites (village biome only, cosmetic) ──────────────
-  // Up to 2 beholders drift slowly in the background.
-  private _ambientLayer = new Container();
-  private _ambientSprites: Array<{
-    sp: Sprite; x: number; y: number; vx: number; vy: number;
-    frame: number; frameMs: number; keys: string[];
-  }> = [];
-  private _lastAmbientBiome = "";
-
   /** Switch the paddle/ball sprites to match the given class. */
   setClass(classId: string) {
     const paddleKeys = CLASS_PADDLE_KEYS[classId] ?? CLASS_PADDLE_KEYS.fire_mage;
@@ -169,10 +145,6 @@ export class Renderer {
     this.ballTrail = new BallTrail();
     this.screenShake = new ScreenShake();
 
-    // Background: full-stage sprite (behind world container).
-    this.bgSprite.anchor.set(0);
-    this.bgSprite.tint = BG_TINT;
-    this.bgLayer.addChild(this.bgSprite);
 
 
     // Apply a single GlowFilter to the fx + fire layer group and to the balls
@@ -208,11 +180,9 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ambient → ballTrail → zones → blocks → fireWalls → wallAnimSys → barriers → bossLayer → effects → ballAuras → balls → paddleSprite → turret → skeletonAnimSys → hazards → bonuses
-    // _ambientLayer sits behind everything — purely cosmetic background sprites.
-    this._ambientLayer.alpha = 0.22;
+    // Layer order: ambient → ballTrail → zones → blocks → fireWalls → barriers → bossLayer → effects → ballAuras → balls → paddle/turret → skeleton → hazards → bonuses
     this.world.addChild(
-      this._ambientLayer,
+      this.background.ambientContainer,
       this.ballTrail.container,
       this.spellFx.zonesContainer,
       this.blockLayer.container,
@@ -230,7 +200,7 @@ export class Renderer {
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
     this.damageFlash.alpha = 0;
     // Layer order on stage: bg → world → damageFlash → vignette
-    this.app.stage.addChild(this.bgLayer);
+    this.app.stage.addChild(this.background.bgLayer);
     this.app.stage.addChild(this.world);
     this.app.stage.addChild(this.damageFlash);
 
@@ -282,26 +252,7 @@ export class Renderer {
       }
 
       // Ambient sprite drift animation (village beholders).
-      for (const a of this._ambientSprites) {
-        // Advance frame.
-        a.frameMs += dtMs;
-        if (a.frameMs > 380) {
-          a.frameMs = 0;
-          a.frame = (a.frame + 1) % a.keys.length;
-          const t = atlasTex(a.keys[a.frame]);
-          if (t !== Texture.WHITE) a.sp.texture = t;
-        }
-        // Drift.
-        a.x += a.vx * dtMs;
-        a.y += a.vy * dtMs;
-        a.sp.x = a.x;
-        a.sp.y = a.y;
-        // Wrap horizontally within board bounds.
-        if (a.x < -40) a.x += 440;
-        if (a.x > 440) a.x -= 440;
-        if (a.y < -40) a.y += 540;
-        if (a.y > 540) a.y -= 540;
-      }
+      this.background.updateAnim(dtMs);
     });
   }
 
@@ -322,88 +273,13 @@ export class Renderer {
     this._fitY = Math.max(topMargin, (this.app.screen.height - effectiveH * scale) / 2);
     this.world.position.set(this._fitX, this._fitY);
 
-    // Resize background to cover the full stage.
-    const sw = this.app.screen.width;
-    const sh = this.app.screen.height;
-    const bw = this.bgSprite.texture.width;
-    const bh = this.bgSprite.texture.height;
-    if (bw > 0 && bh > 0) {
-      // COVER: scale to fill, no letter-boxing.
-      const coverScale = Math.max(sw / bw, sh / bh);
-      this.bgSprite.scale.set(coverScale);
-      this.bgSprite.x = (sw - bw * coverScale) / 2;
-      this.bgSprite.y = (sh - bh * coverScale) / 2;
-    }
-    // Resize hell parallax layers similarly (same cover approach).
-    for (const psp of this._hellParallaxSprites) {
-      if (psp.texture.width > 0 && psp.texture.height > 0) {
-        const pw = psp.texture.width;
-        const ph = psp.texture.height;
-        const ps = Math.max(sw / pw, sh / ph);
-        psp.scale.set(ps);
-        psp.y = (sh - ph * ps) / 2;
-      }
-    }
+    // Resize background + parallax to cover the full stage.
+    this.background.resize(this.app.screen.width, this.app.screen.height);
   }
 
   draw(s: Snapshot) {
-    // --- biome background (update only on biome change) ---
-    if (s.biome && s.biome !== this._lastBiome) {
-      this._lastBiome = s.biome;
-      const bgTex = biomedBg(s.biome);
-      this.bgSprite.texture = bgTex;
-      this.bgSprite.visible = bgTex !== Texture.WHITE;
-
-      // Hell parallax layers: add/rebuild when entering hell biome.
-      for (const psp of this._hellParallaxSprites) this.bgLayer.removeChild(psp);
-      this._hellParallaxSprites = [];
-      if (s.biome === "hell") {
-        const frames = hellParallaxFrames();
-        for (let i = 0; i < frames.length; i++) {
-          const psp = new Sprite(frames[i]);
-          psp.anchor.set(0);
-          psp.tint = 0x888888; // darker than main bg for depth
-          psp.alpha = 0.35;    // subtle layering
-          this.bgLayer.addChild(psp);
-          this._hellParallaxSprites.push(psp);
-        }
-      }
-    }
-
-    // --- ambient background sprites (cosmetic, village biome beholders) ---
-    // Rebuild when biome changes; no gameplay effect.
-    if (s.biome !== this._lastAmbientBiome) {
-      this._lastAmbientBiome = s.biome;
-      // Remove existing ambient sprites.
-      for (const a of this._ambientSprites) this._ambientLayer.removeChild(a.sp);
-      this._ambientSprites = [];
-
-      if (s.biome === "village" || s.biome === "village-ghost" || s.biome === "village-boss") {
-        // Spawn 2 ambient beholders drifting slowly across the board.
-        const beholderCount = 2;
-        for (let i = 0; i < beholderCount; i++) {
-          const useGhost = i === 1;
-          const keys = useGhost ? BEHOLDER_GHOST_KEYS : BEHOLDER_KEYS;
-          const tex0 = atlasTex(keys[0]);
-          if (tex0 === Texture.WHITE) continue; // atlas not yet loaded
-          const sp = new Sprite(tex0);
-          sp.anchor.set(0.5);
-          const size = s.cellSize * 2.2;
-          sp.width  = size;
-          sp.height = size;
-          sp.tint   = useGhost ? 0xaaccff : 0xffffff;
-          // Scatter starting positions.
-          const startX = 60 + i * 180;
-          const startY = 60 + i * 100;
-          // Gentle drift velocity (world-space px/ms).
-          const vx = (i % 2 === 0 ? 0.012 : -0.015);
-          const vy = (i % 2 === 0 ? 0.007 : 0.011);
-          sp.position.set(startX, startY);
-          this._ambientLayer.addChild(sp);
-          this._ambientSprites.push({ sp, x: startX, y: startY, vx, vy, frame: 0, frameMs: i * 180, keys });
-        }
-      }
-    }
+    // --- biome background + Hell parallax + ambient village beholders (rebuilt on biome change) ---
+    this.background.setBiome(s.biome, s.cellSize);
 
     this.fit(s);
 
