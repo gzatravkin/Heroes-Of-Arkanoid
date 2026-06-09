@@ -117,11 +117,11 @@ export function mountCampaign(host: HTMLElement) {
   mapEl.className = "camp-map";
   content.appendChild(mapEl);
 
-  // ── Upgrade panel ─────────────────────────────────────────────────────────
+  // ── Upgrade panel — fixed overlay so it's always in-viewport ────────────
   const upgradePanel = document.createElement("div");
   upgradePanel.id = "upgrade-panel";
   upgradePanel.className = "camp-upgrade-panel";
-  content.appendChild(upgradePanel);
+  root.appendChild(upgradePanel);
 
   const upgTitle = document.createElement("h3");
   upgTitle.textContent = "Spell Upgrades";
@@ -194,18 +194,112 @@ export function mountCampaign(host: HTMLElement) {
 
   function renderNodes(ns: CampaignNode[]) {
     mapEl.innerHTML = "";
-    ns.forEach((node, i) => {
-      if (i > 0) {
-        const connector = document.createElement("div");
-        connector.className = `camp-connector ${node.unlocked || node.completed ? "active" : ""}`;
-        mapEl.appendChild(connector);
-      }
 
+    // Serpentine layout: NODES_PER_ROW nodes per row, alternating left→right / right→left
+    const NODES_PER_ROW = 3;
+
+    // Convert linear index → (col, row) in serpentine order
+    function snakePos(i: number): { col: number; row: number } {
+      const row = Math.floor(i / NODES_PER_ROW);
+      const posInRow = i % NODES_PER_ROW;
+      const col = row % 2 === 0 ? posInRow : (NODES_PER_ROW - 1 - posInRow);
+      return { col, row };
+    }
+
+    // Node size + spacing (px)
+    const NODE_W = 80;     // button width
+    const NODE_H = 108;    // button height (img 64 + label ~36 + gap)
+    const H_GAP  = 20;     // horizontal gap between nodes
+    const V_GAP  = 36;     // vertical gap between rows
+    const CONNECTOR_THICKNESS = 6;
+
+    const totalCols = NODES_PER_ROW;
+    const totalRows = Math.ceil(ns.length / NODES_PER_ROW);
+    const innerW = totalCols * NODE_W + (totalCols - 1) * H_GAP;
+    const innerH = totalRows * NODE_H + (totalRows - 1) * V_GAP;
+
+    // Inner wrapper: relative-positioned, holds absolute connectors + nodes
+    const inner = document.createElement("div");
+    inner.className = "camp-map-inner";
+    inner.style.width    = `${innerW}px`;
+    inner.style.minHeight = `${innerH + 8}px`;
+    mapEl.appendChild(inner);
+
+    function nodeLeft(col: number) { return col * (NODE_W + H_GAP); }
+    function nodeTop(row: number)  { return row * (NODE_H + V_GAP); }
+    // Centre of node button
+    function nodeCX(col: number)   { return nodeLeft(col) + NODE_W / 2; }
+    function nodeCY(row: number)   { return nodeTop(row)  + NODE_H / 2; }
+
+    // ── Connectors first (behind nodes) ──────────────────────────────────────
+    for (let i = 1; i < ns.length; i++) {
+      const node = ns[i];
+      const isActive = node.unlocked || node.completed;
+      const activeClass = isActive ? "active" : "";
+
+      const prev = snakePos(i - 1);
+      const curr = snakePos(i);
+
+      const x1 = nodeCX(prev.col);
+      const x2 = nodeCX(curr.col);
+
+      if (prev.row === curr.row) {
+        // Same row → horizontal connector between the two node centres
+        const hLeft  = Math.min(x1, x2) + NODE_W / 2;
+        const hWidth = Math.abs(x2 - x1) - NODE_W;
+        if (hWidth > 0) {
+          const conn = document.createElement("div");
+          conn.className = `camp-connector ${activeClass}`;
+          conn.style.left   = `${hLeft}px`;
+          conn.style.top    = `${nodeCY(prev.row) - CONNECTOR_THICKNESS / 2}px`;
+          conn.style.width  = `${hWidth}px`;
+          conn.style.height = `${CONNECTOR_THICKNESS}px`;
+          inner.appendChild(conn);
+        }
+      } else {
+        // Row transition — L-path: vertical down from prev, then horizontal to curr column
+        const vTop    = nodeTop(prev.row) + NODE_H;
+        const vBottom = nodeCY(curr.row);
+        const vH = vBottom - vTop;
+        if (vH > 0) {
+          const vConn = document.createElement("div");
+          vConn.className = `camp-connector ${activeClass}`;
+          vConn.style.left   = `${x1 - CONNECTOR_THICKNESS / 2}px`;
+          vConn.style.top    = `${vTop}px`;
+          vConn.style.width  = `${CONNECTOR_THICKNESS}px`;
+          vConn.style.height = `${vH}px`;
+          inner.appendChild(vConn);
+        }
+        // Horizontal segment at vertical centre of curr row
+        const hY     = nodeCY(curr.row) - CONNECTOR_THICKNESS / 2;
+        const hLeft  = Math.min(x1, x2);
+        const hWidth = Math.abs(x2 - x1) - CONNECTOR_THICKNESS;
+        if (hWidth > 0) {
+          const hConn = document.createElement("div");
+          hConn.className = `camp-connector ${activeClass}`;
+          hConn.style.left   = `${hLeft + (x1 < x2 ? CONNECTOR_THICKNESS : 0)}px`;
+          hConn.style.top    = `${hY}px`;
+          hConn.style.width  = `${hWidth}px`;
+          hConn.style.height = `${CONNECTOR_THICKNESS}px`;
+          inner.appendChild(hConn);
+        }
+      }
+    }
+
+    // ── Node buttons ─────────────────────────────────────────────────────────
+    let lastUnlockedBtn: HTMLElement | null = null;
+    ns.forEach((node, i) => {
+      const { col, row } = snakePos(i);
       const state = node.completed ? "completed" : node.unlocked ? "unlocked" : "locked";
+
       const btn = document.createElement("button");
       btn.setAttribute("data-level", node.id);
       btn.setAttribute("data-state", state);
       btn.className = `camp-node camp-node-${state}`;
+      btn.style.position = "absolute";
+      btn.style.left  = `${nodeLeft(col)}px`;
+      btn.style.top   = `${nodeTop(row)}px`;
+      btn.style.width = `${NODE_W}px`;
 
       // Node art image (the glassy orb icons)
       const nodeImg = document.createElement("img");
@@ -227,9 +321,17 @@ export function mountCampaign(host: HTMLElement) {
         btn.addEventListener("click", () => {
           location.href = `/?scene=battle&level=${node.id}&from=campaign`;
         });
+        lastUnlockedBtn = btn;
       }
-      mapEl.appendChild(btn);
+      inner.appendChild(btn);
     });
+
+    // Scroll the most-recently-unlocked node into view
+    if (lastUnlockedBtn) {
+      requestAnimationFrame(() => {
+        (lastUnlockedBtn as HTMLElement).scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    }
   }
 
   // Toggle upgrade panel
@@ -355,34 +457,45 @@ function injectCampaignStyles() {
       flex: 1;
       display: flex;
       flex-direction: column;
-      overflow: auto;
-      padding: 16px;
-    }
-
-    /* ── Campaign map ── */
-    .camp-map {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 0;
-      overflow-x: auto;
-      padding: 16px 8px 24px 8px;
-      min-height: 180px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
       /* Subtle scrollbar */
       scrollbar-width: thin;
       scrollbar-color: rgba(180,140,60,0.4) transparent;
     }
-    .camp-connector {
-      width: 28px;
-      height: 4px;
-      background: rgba(80,60,20,0.5);
-      border-radius: 2px;
+
+    /* ── Campaign map — vertically fills the content area, inner content scrolls via camp-content ── */
+    .camp-map {
+      /* No flex:1 — natural height from inner content */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 32px 16px;
+      /* No overflow here — parent camp-content scrolls */
+    }
+
+    /* Inner relative wrapper that holds abs-positioned connectors + nodes */
+    .camp-map-inner {
+      position: relative;
       flex-shrink: 0;
-      align-self: center;
-      margin-bottom: 28px;
+    }
+
+    /* Connector shared base (positioned absolutely inside .camp-map-inner) */
+    .camp-connector {
+      position: absolute;
+      border-radius: 3px;
+      background: rgba(80,60,20,0.5);
+      pointer-events: none;
     }
     .camp-connector.active {
-      background: linear-gradient(90deg, rgba(180,140,60,0.6), rgba(220,180,80,0.9), rgba(180,140,60,0.6));
+      background: linear-gradient(
+        135deg,
+        rgba(180,140,60,0.6) 0%,
+        rgba(220,180,80,0.95) 50%,
+        rgba(180,140,60,0.6) 100%
+      );
+      box-shadow: 0 0 6px rgba(220,180,60,0.4);
     }
 
     /* Node button */
@@ -427,16 +540,21 @@ function injectCampaignStyles() {
       line-height: 1.3;
     }
 
-    /* ── Upgrade panel ── */
+    /* ── Upgrade panel — fixed bottom sheet, always in viewport ── */
     .camp-upgrade-panel {
       display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
       background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
-                  rgba(10,8,20,0.92);
-      border: 2px solid rgba(180,140,60,0.5);
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 12px;
-      max-width: 480px;
+                  rgba(10,8,20,0.96);
+      border-top: 2px solid rgba(180,140,60,0.5);
+      border-radius: 12px 12px 0 0;
+      padding: 20px 20px 32px 20px;
+      max-height: 60vh;
+      overflow-y: auto;
     }
     .camp-spell-row {
       display: flex;
