@@ -1,9 +1,10 @@
 import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
 import type { SpellDef, ItemDef } from "../net/metaApi";
-import { Texture } from "pixi.js";
 import { inferBossType, bossLabel } from "../render/Boss";
-import { tex as atlasTex } from "../render/assets";
+import { buildLabelledBar, buildManaBar, buildBossBar } from "./hud/bars";
+import { HUD_STYLES } from "./hud/hudStyles";
+import { buildSpellIcon } from "./hud/spellIcon";
 
 // ---------------------------------------------------------------------------
 // Spell cost constants (mirrored from backend; used for affordability dimming).
@@ -28,18 +29,7 @@ const SPELL_COSTS: Record<string, number> = {
 // Key labels by slot index (0→Q, 1→E, 2→W, 3→R).
 const SLOT_KEYS = ["Q", "E", "W", "R"];
 
-// ---------------------------------------------------------------------------
-// 3-slice HUD bar geometry. The bar sprites (BattleHPEmpty/MPEmpty) are 220×41
-// with dark angular end-caps baked into the sides. Rendering them as a single
-// stretched image distorts the caps and produces a lopsided "half bar"; instead
-// we pin the caps to the ends via CSS border-image 9-slice and stretch only the
-// middle, with the value fill clipped strictly between the caps (symmetric).
-// ---------------------------------------------------------------------------
-const BAR_SPRITE_H = 41;   // native sprite height (px)
-const BAR_CAP_X    = 16;   // native left/right cap thickness (px)
-const BAR_CAP_Y    = 7;    // native top/bottom cap thickness (px)
-const BAR_H        = 20;   // rendered height of value bars (mana/HP/balls)
-const BOSS_BAR_H   = 18;   // rendered height of the boss bar
+// The 3-slice HUD value bars (HP / balls / mana / boss) live in ./hud/bars.
 
 // Legacy per-spell DOM ids for Fire Mage (required for existing tests).
 const FIRE_MAGE_SLOT_IDS: Record<string, string> = {
@@ -102,7 +92,7 @@ export class Hud {
     const topLeft = this.createElement("div", "hud-top-left");
     topLeft.style.cssText = "position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:5px;";
 
-    const livesBar = this.buildLabelledBar({
+    const livesBar = buildLabelledBar({
       id: "hud-lives", fillId: "hud-lives-fill", labelId: "hud-lives-label",
       emptySrc: "/ui/BattleHPEmpty.png",
       gradient: "linear-gradient(to right,#cc2a2a,#ff5a4a)",
@@ -114,7 +104,7 @@ export class Hud {
     this.livesCount = livesBar.label.querySelector(".hud-bar-count")!;
     topLeft.appendChild(this.livesEl);
 
-    const ballsBar = this.buildLabelledBar({
+    const ballsBar = buildLabelledBar({
       id: "hud-balls", fillId: "hud-balls-fill", labelId: "hud-balls-label",
       emptySrc: "/ui/BattleMPEmpty.png",
       gradient: "linear-gradient(to right,#1f7fc8,#56d6ff)",
@@ -147,7 +137,7 @@ export class Hud {
       "pointer-events:none",
     ].join(";");
 
-    this.manaOuter = this.buildManaBar();
+    this.manaOuter = buildManaBar();
     this.manaFill  = this.manaOuter.querySelector("#hud-mana-fill")!;
     this.manaText  = this.manaOuter.querySelector("#hud-mana-text")!;
 
@@ -159,7 +149,7 @@ export class Hud {
     bottomCenter.appendChild(this.hotbarEl);
 
     // ---- boss HP bar (top center, only visible when bossActive) ----
-    const bossBar = this.buildBossBar();
+    const bossBar = buildBossBar();
     this.bossBarEl   = bossBar.outer;
     this.bossBarFill = bossBar.fill;
     this.bossNameEl  = bossBar.name;
@@ -366,7 +356,7 @@ export class Hud {
 
       // icon area
       const iconWrap = this.createElement("div", "hud-spell-icon");
-      this.buildSpellIcon(iconWrap, spell);
+      buildSpellIcon(iconWrap, spell);
 
       // name
       const name = this.createElement("div", "hud-spell-name");
@@ -379,71 +369,6 @@ export class Hud {
       this.spellSlots.set(spell.id, slot);
       this.hotbarEl.appendChild(slot);
     }
-  }
-
-  /**
-   * Resolve icon for a spell.
-   * Priority: atlas frame (long key) → /art/<key>.png legacy path → emoji fallback.
-   */
-  private buildSpellIcon(wrap: HTMLElement, spell: SpellDef) {
-    const iconKey = spell.icon;
-    if (!iconKey) {
-      wrap.textContent = getSpellFallback(spell.id);
-      return;
-    }
-
-    // Try atlas tex (for full atlas paths like "paladin/spell_passiveshield/SpellShieldLargeIco").
-    // atlasTex returns Texture.WHITE for unknown keys; check width > 1 to detect valid.
-    const atlasFrame = atlasTex(iconKey);
-    // NOTE: atlasTex returns the 16×16 Texture.WHITE for unknown keys (e.g. the Fire Mage
-    // short keys like "FireBallIco"), which would otherwise draw a blank white square.
-    // Exclude WHITE so those fall through to the real /art/ icons below.
-    if (atlasFrame && atlasFrame !== Texture.WHITE && atlasFrame.width > 1) {
-      // Build an img from the atlas texture using its source image + UV.
-      // Easiest cross-browser way: render to a canvas and use as dataURL.
-      // But since we're in DOM, we can use the sprite canvas extraction.
-      // Instead, construct a canvas-based icon.
-      const canvas = document.createElement("canvas");
-      canvas.width  = 28;
-      canvas.height = 28;
-      const ctx = canvas.getContext("2d");
-      if (ctx && (atlasFrame as any).baseTexture?.resource?.source) {
-        const src = (atlasFrame as any).baseTexture.resource.source as HTMLImageElement | HTMLCanvasElement;
-        const fr = (atlasFrame as any).frame;
-        if (fr) {
-          ctx.drawImage(src, fr.x, fr.y, fr.width, fr.height, 0, 0, 28, 28);
-          const img = document.createElement("img");
-          img.src = canvas.toDataURL();
-          img.alt = spell.name;
-          img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
-          wrap.appendChild(img);
-          return;
-        }
-      }
-    }
-
-    // Legacy /art/ path fallback.
-    const legacyPaths: Record<string, string> = {
-      FireHeroBall:  "/art/FireHeroBall.png",
-      FireBallIco:   "/art/FireBallIco.png",
-      FireWallIco:   "/art/FireWallIco.png",
-      FireTurretIco: "/art/FireTurretIco.png",
-    };
-    const legacySrc = legacyPaths[iconKey];
-    if (legacySrc) {
-      const img = document.createElement("img");
-      img.src = legacySrc;
-      img.alt = spell.name;
-      img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
-      const emoji = getSpellFallback(spell.id);
-      img.onerror = () => { img.style.display = "none"; wrap.textContent = emoji; };
-      wrap.appendChild(img);
-      return;
-    }
-
-    // Full atlas key: try /atlas/ path (may work if build pipeline exposes frames).
-    // Fall through to emoji.
-    wrap.textContent = getSpellFallback(spell.id);
   }
 
   private wireConnHandlers(conn: Connection) {
@@ -512,137 +437,6 @@ export class Hud {
     }
   }
 
-  /**
-   * Build a symmetric 3-slice value bar: the empty sprite supplies the frame via
-   * border-image (caps pinned to both ends, middle stretched), and a gradient fill
-   * is clipped strictly between the caps so it grows left→right without ever
-   * touching the caps. `fill.style.width` stays a plain percentage string.
-   */
-  private buildBar(opts: {
-    id: string; fillId: string; width: string; height: number;
-    emptySrc: string; gradient: string;
-  }): { outer: HTMLElement; fill: HTMLElement } {
-    const capX = Math.round(BAR_CAP_X * opts.height / BAR_SPRITE_H);
-    const capY = Math.round(BAR_CAP_Y * opts.height / BAR_SPRITE_H);
-
-    const outer = this.createElement("div");
-    outer.id = opts.id;
-    outer.style.cssText = `position:relative;width:${opts.width};height:${opts.height}px;`;
-
-    // Frame: empty bar via 9-slice border-image — caps fixed, middle stretched, `fill` draws the interior.
-    const track = this.createElement("div");
-    track.style.cssText = [
-      "position:absolute", "inset:0", "box-sizing:border-box",
-      "border-style:solid",
-      `border-width:${capY}px ${capX}px`,
-      `border-image:url('${opts.emptySrc}') ${BAR_CAP_Y} ${BAR_CAP_X} ${BAR_CAP_Y} ${BAR_CAP_X} fill stretch`,
-    ].join(";");
-    outer.appendChild(track);
-
-    // Fill clip: the interior region strictly between the caps.
-    const clip = this.createElement("div");
-    clip.style.cssText = [
-      "position:absolute",
-      `left:${capX}px`, `right:${capX}px`, `top:${capY}px`, `bottom:${capY}px`,
-      "overflow:hidden", "border-radius:2px",
-    ].join(";");
-    const fill = this.createElement("div");
-    fill.id = opts.fillId;
-    fill.style.cssText = [
-      "position:absolute", "left:0", "top:0", "bottom:0", "width:100%",
-      `background:${opts.gradient}`,
-      "transition:width 0.15s linear",
-    ].join(";");
-    clip.appendChild(fill);
-    outer.appendChild(clip);
-
-    return { outer, fill };
-  }
-
-  /** A labelled value bar (icon + count overlay) for the top-left HP / spare-balls. */
-  private buildLabelledBar(opts: {
-    id: string; fillId: string; labelId: string;
-    emptySrc: string; gradient: string; icon: string;
-  }): { outer: HTMLElement; fill: HTMLElement; label: HTMLElement } {
-    const { outer, fill } = this.buildBar({
-      id: opts.id, fillId: opts.fillId,
-      width: "118px", height: BAR_H,
-      emptySrc: opts.emptySrc, gradient: opts.gradient,
-    });
-    const label = this.createElement("span");
-    label.id = opts.labelId;
-    label.style.cssText = [
-      "position:absolute", "top:50%", "left:8px",
-      "transform:translateY(-50%)",
-      "display:flex", "align-items:center", "gap:4px",
-      "font-size:11px", "color:#fff", "font-weight:700",
-      "text-shadow:0 0 4px #000,0 1px 2px #000", "pointer-events:none", "white-space:nowrap",
-    ].join(";");
-    label.innerHTML =
-      `<img src="${opts.icon}" alt="" style="width:13px;height:13px;object-fit:contain;image-rendering:pixelated;">` +
-      `<span class="hud-bar-count">0</span>`;
-    outer.appendChild(label);
-    return { outer, fill, label };
-  }
-
-  private buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: HTMLElement } {
-    const outer = this.createElement("div");
-    outer.id = "hud-boss-hp";
-    outer.style.cssText = [
-      "display:none",
-      "position:absolute",
-      "top:8px", "left:50%",
-      "transform:translateX(-50%)",
-      "flex-direction:column",
-      "align-items:center",
-      "gap:3px",
-      "pointer-events:none",
-      "z-index:20",
-      "min-width:min(260px,72vw)",
-    ].join(";");
-
-    const name = this.createElement("div");
-    name.id = "hud-boss-name";
-    name.style.cssText = [
-      "font-size:10px", "font-weight:900",
-      "color:#ff6644", "letter-spacing:2px",
-      "text-shadow:0 0 6px #ff3300,0 1px 3px #000",
-      "text-align:center", "white-space:nowrap",
-    ].join(";");
-    outer.appendChild(name);
-
-    const { outer: bar, fill } = this.buildBar({
-      id: "hud-boss-bar", fillId: "hud-boss-hp-fill",
-      width: "100%", height: BOSS_BAR_H,
-      emptySrc: "/ui/BattleHPEmpty.png",
-      gradient: "linear-gradient(to right,#880000,#cc2222)",
-    });
-    outer.appendChild(bar);
-
-    return { outer, fill, name };
-  }
-
-  private buildManaBar(): HTMLElement {
-    const { outer } = this.buildBar({
-      id: "hud-mana", fillId: "hud-mana-fill",
-      width: "min(220px,80vw)", height: BAR_H,
-      emptySrc: "/ui/BattleMPEmpty.png",
-      gradient: "linear-gradient(to right,#1f9fb8,#5fe6f5)",
-    });
-
-    const label = this.createElement("span");
-    label.id = "hud-mana-text";
-    label.style.cssText = [
-      "position:absolute", "top:50%", "left:50%",
-      "transform:translate(-50%,-50%)",
-      "font-size:9px", "color:#fff", "font-weight:600",
-      "text-shadow:0 0 4px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
-    ].join(";");
-    outer.appendChild(label);
-
-    return outer;
-  }
-
   private createElement(tag: string, className?: string): HTMLElement {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -654,108 +448,7 @@ export class Hud {
     if (document.getElementById(id)) return;
     const style = document.createElement("style");
     style.id = id;
-    style.textContent = `
-      /* Lives/balls stat row — framed with HeroBar-style pill */
-      .hud-stat-row {
-        background: url('/ui/BattleHeroBar.png') no-repeat center/contain,
-                    rgba(0,0,0,0.45);
-        border-radius: 20px;
-        padding: 3px 10px 3px 8px;
-        color: #eee;
-        font-size: 12px;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        min-width: 60px;
-        min-height: 26px;
-      }
-
-      .hud-spell-slot {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        /* Use SpellBar art as the slot frame background */
-        background: url('/ui/BattleSpellBar.png') no-repeat center/100% 100%;
-        border: none;
-        border-radius: 6px;
-        padding: 4px 6px 6px 6px;
-        /* ≥44px touch target (WCAG 2.5.5) */
-        min-width: 52px;
-        min-height: 72px;
-        touch-action: manipulation;
-        cursor: pointer;
-        pointer-events: auto;
-        transition: opacity 0.15s, filter 0.15s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .hud-spell-slot.affordable {
-        opacity: 1;
-        filter: none;
-      }
-      .hud-spell-slot.affordable:hover {
-        filter: brightness(1.2);
-      }
-      .hud-spell-slot.unaffordable {
-        opacity: 0.4;
-        filter: grayscale(0.6);
-        cursor: default;
-      }
-      .hud-spell-slot:active {
-        transform: scale(0.93);
-      }
-      .hud-spell-key {
-        font-size: 10px;
-        font-weight: 700;
-        color: #ffcc66;
-        line-height: 1;
-      }
-      .hud-spell-icon {
-        font-size: 20px;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-      }
-      .hud-spell-name {
-        font-size: 8px;
-        color: #e0c880;
-        text-align: center;
-        line-height: 1;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-      }
-      .hud-banner.win {
-        background: rgba(10,40,10,0.85);
-        border: 2px solid #44ff88;
-        color: #44ff88;
-      }
-      .hud-banner.lose {
-        background: rgba(40,5,5,0.85);
-        border: 2px solid #ff3333;
-        color: #ff3333;
-      }
-      #hud-relics [data-relic-id] {
-        cursor: default;
-      }
-      /* Landscape orientation: reduce bottom zone height */
-      @media (orientation: landscape) and (max-height: 500px) {
-        .hud-spell-slot {
-          min-width: 44px;
-          min-height: 56px;
-          padding: 3px 5px 4px 5px;
-        }
-        .hud-spell-icon { width: 22px; height: 22px; }
-        .hud-spell-icon img { width: 22px !important; height: 22px !important; }
-      }
-    `;
+    style.textContent = HUD_STYLES;
     document.head.appendChild(style);
   }
-}
-
-// Non-emoji last-resort fallback when a spell icon can't be resolved: the spell's
-// initial letter (the user dislikes emojis; real art is preferred and usually resolves).
-function getSpellFallback(id: string): string {
-  return (id[0] ?? "?").toUpperCase();
 }
