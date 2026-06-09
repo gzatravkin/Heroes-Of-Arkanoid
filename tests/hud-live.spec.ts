@@ -34,12 +34,14 @@ test("HUD mana fill and fireball affordability track setMana cheat", async ({ pa
     const fb   = document.querySelector("#hud-spell-fireball");
     if (!fill || !fb) return false;
     const w = parseFloat(fill.style.width ?? "100");
-    return w < 5 && fb.classList.contains("unaffordable");
+    // mana regen (12/s) refills continuously, so assert "clearly drained" not "exactly 0"
+    // to avoid a TOCTOU race; the meaningful check is fireball affordability.
+    return w < 25 && fb.classList.contains("unaffordable");
   }, null, { timeout: 10_000 });
 
   const fill0 = page.locator("#hud-mana-fill");
   const widthStr0 = await fill0.evaluate((el: HTMLElement) => el.style.width);
-  expect(parseFloat(widthStr0)).toBeLessThan(5);
+  expect(parseFloat(widthStr0)).toBeLessThan(25);
   await expect(page.locator("#hud-spell-fireball")).toHaveClass(/unaffordable/);
 
   // set mana to 100 → fill ~100%, fireball affordable
