@@ -1,9 +1,10 @@
-import { Container, Sprite, Texture } from "pixi.js";
+import { Container, Graphics, Sprite, Texture, BLEND_MODES } from "pixi.js";
 import { bg as biomedBg, hellParallaxFrames, tex as atlasTex } from "./assets";
 
-// Biome background, Hell parallax layers, and cosmetic village "beholder" ambient
-// sprites. Extracted from Renderer. Exposes two containers: `bgLayer` (added to the
-// stage, behind the world) and `ambientContainer` (added to the world, behind play).
+// Biome background, Hell parallax layers, cosmetic ambient sprites, and the
+// per-biome atmosphere kits (docs/12): Hell embers, Caverns dust, Witchland fog
+// shadows, Heaven clouds + light motes. Exposes two containers: `bgLayer` (stage,
+// behind the world) and `ambientContainer` (world, behind play).
 
 // Biome background: slightly darkened so blocks read clearly over it.
 const BG_TINT = 0xaaaaaa; // ~67% brightness multiplier on the sprite
@@ -21,6 +22,28 @@ interface Ambient {
   frame: number; frameMs: number; keys: string[];
 }
 
+// ── Atmosphere kits (docs/12) ────────────────────────────────────────────────
+// All particles live in ambientContainer (global alpha 0.22) so they can never
+// compete with playfield readability — the docs/12 restraint rule.
+const WRAP_W = 440; // world-space wrap bounds (matches the ambient sprite wrap)
+const WRAP_H = 540;
+
+const HELL_EMBER_COUNT   = 18;
+const HELL_EMBER_COLOR   = 0xffaa44;
+const CAVERN_DUST_COUNT  = 16;
+const CAVERN_DUST_COLOR  = 0xbbaa99;
+const HEAVEN_MOTE_COUNT  = 10;
+const HEAVEN_MOTE_COLOR  = 0xfff4cc;
+const HEAVEN_CLOUD_KEYS  = ["heaven/Cloud", "heaven/Clouds", "heaven/HeavenClouds"];
+const VILLAGE_SHADOW_KEY = "village/enemies/VillageShadow";
+
+interface MoteParticle {
+  node: Graphics | Sprite;
+  x: number; y: number; vx: number; vy: number;
+  /** phase offset for the sway/flicker sine */
+  phase: number;
+}
+
 export class BackgroundLayer {
   readonly bgLayer = new Container();        // stage-level (behind world)
   readonly ambientContainer = new Container(); // world-level (behind play)
@@ -30,6 +53,8 @@ export class BackgroundLayer {
   private _lastBiome = "";
   private _ambientSprites: Ambient[] = [];
   private _lastAmbientBiome = "";
+  private _motes: MoteParticle[] = [];
+  private _moteClock = 0;
 
   constructor() {
     this.bgSprite.anchor.set(0);
@@ -68,6 +93,7 @@ export class BackgroundLayer {
       this._lastAmbientBiome = biome;
       for (const a of this._ambientSprites) this.ambientContainer.removeChild(a.sp);
       this._ambientSprites = [];
+      this._buildAtmosphere(biome, cellSize);
 
       if (biome === "village" || biome === "village-ghost" || biome === "village-boss") {
         // Spawn 2 ambient beholders drifting slowly across the board.
@@ -97,6 +123,62 @@ export class BackgroundLayer {
     }
   }
 
+  /** Build the biome's atmosphere kit (docs/12): embers / dust / fog shadows / clouds. */
+  private _buildAtmosphere(biome: string, cellSize: number): void {
+    for (const m of this._motes) this.ambientContainer.removeChild(m.node);
+    this._motes = [];
+    const base = biome.split("-")[0]; // "village-boss" → "village"
+
+    const addDot = (color: number, r: number, vx: number, vy: number, additive: boolean) => {
+      const g = new Graphics();
+      g.beginFill(color, 1).drawCircle(0, 0, r).endFill();
+      if (additive) g.blendMode = BLEND_MODES.ADD;
+      const x = Math.random() * WRAP_W;
+      const y = Math.random() * WRAP_H;
+      g.position.set(x, y);
+      this.ambientContainer.addChild(g);
+      this._motes.push({ node: g, x, y, vx, vy, phase: Math.random() * Math.PI * 2 });
+    };
+
+    const addSprite = (key: string, size: number, alpha: number, vx: number, tint?: number) => {
+      const t = atlasTex(key);
+      if (t === Texture.WHITE) return;
+      const sp = new Sprite(t);
+      sp.anchor.set(0.5);
+      const dim = Math.max(t.width, t.height, 1);
+      sp.scale.set(size / dim);
+      sp.alpha = alpha;
+      if (tint !== undefined) sp.tint = tint;
+      const x = Math.random() * WRAP_W;
+      const y = Math.random() * (WRAP_H * 0.5); // upper half — keeps the paddle zone clean
+      sp.position.set(x, y);
+      this.ambientContainer.addChild(sp);
+      this._motes.push({ node: sp, x, y, vx, vy: 0, phase: Math.random() * Math.PI * 2 });
+    };
+
+    switch (base) {
+      case "hell": // rising embers
+        for (let i = 0; i < HELL_EMBER_COUNT; i++)
+          addDot(HELL_EMBER_COLOR, 1.5 + Math.random() * 1.5, 0, -(0.01 + Math.random() * 0.02), true);
+        break;
+      case "cavern":
+      case "caverns": // falling dust motes
+        for (let i = 0; i < CAVERN_DUST_COUNT; i++)
+          addDot(CAVERN_DUST_COLOR, 1 + Math.random(), 0, 0.005 + Math.random() * 0.008, false);
+        break;
+      case "village": // drifting shadow silhouettes (fog reads via their slow motion)
+        addSprite(VILLAGE_SHADOW_KEY, cellSize * 4, 0.9, 0.008);
+        addSprite(VILLAGE_SHADOW_KEY, cellSize * 3, 0.7, -0.012);
+        break;
+      case "heaven": // drifting clouds + rising light motes
+        for (let i = 0; i < HEAVEN_CLOUD_KEYS.length; i++)
+          addSprite(HEAVEN_CLOUD_KEYS[i], cellSize * (4 + i * 2), 0.8, 0.006 + i * 0.004);
+        for (let i = 0; i < HEAVEN_MOTE_COUNT; i++)
+          addDot(HEAVEN_MOTE_COLOR, 1 + Math.random(), 0, -(0.004 + Math.random() * 0.008), true);
+        break;
+    }
+  }
+
   /** COVER-scale the background + parallax to fill the stage (called from fit()). */
   resize(screenW: number, screenH: number): void {
     const bw = this.bgSprite.texture.width;
@@ -120,6 +202,19 @@ export class BackgroundLayer {
 
   /** Advance the ambient sprite drift + frame cycling each frame. */
   updateAnim(dtMs: number): void {
+    // Atmosphere motes: drift, sway, wrap.
+    this._moteClock += dtMs / 1000;
+    for (const m of this._motes) {
+      m.x += m.vx * dtMs + Math.sin(this._moteClock + m.phase) * 0.06;
+      m.y += m.vy * dtMs;
+      if (m.y < -10) m.y += WRAP_H + 20;
+      if (m.y > WRAP_H + 10) m.y -= WRAP_H + 20;
+      if (m.x < -60) m.x += WRAP_W + 120;
+      if (m.x > WRAP_W + 60) m.x -= WRAP_W + 120;
+      m.node.x = m.x;
+      m.node.y = m.y;
+    }
+
     for (const a of this._ambientSprites) {
       // Advance frame.
       a.frameMs += dtMs;
