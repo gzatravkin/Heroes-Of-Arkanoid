@@ -97,10 +97,10 @@ export function mountSettings(host: HTMLElement) {
 
   inner.appendChild(panel);
 
-  // Version stamp
+  // Title stamp (was a dev build watermark — now the game title)
   const ver = document.createElement("div");
   ver.className = "set-version";
-  ver.textContent = "Arkanoid RPG — P7b";
+  ver.textContent = "Heroes of Arkanoid II";
   inner.appendChild(ver);
 
   root.appendChild(inner);

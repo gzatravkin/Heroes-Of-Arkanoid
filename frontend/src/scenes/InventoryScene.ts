@@ -36,7 +36,7 @@ export async function mountInventory(host: HTMLElement) {
   const crystalEl = document.createElement("div");
   crystalEl.id = "inv-crystals";
   crystalEl.className = "inv-crystals";
-  crystalEl.textContent = "💎 —";
+  crystalEl.innerHTML = `<img src="/ui/Gem.png" style="width:16px;height:16px;vertical-align:middle;image-rendering:pixelated;"> <span id="inv-crystal-count">—</span>`;
   header.appendChild(crystalEl);
 
   root.appendChild(header);
@@ -106,7 +106,9 @@ function render(
 }
 
 function updateCrystals(el: HTMLElement, crystals: number) {
-  el.textContent = `💎 ${crystals}`;
+  const count = el.querySelector("#inv-crystal-count");
+  if (count) count.textContent = String(crystals);
+  else el.textContent = String(crystals);
   el.dataset.crystals = String(crystals);
 }
 
@@ -219,13 +221,21 @@ function buildCard(item: ItemDef, equipped: string[], crystals: number): HTMLEle
     img.onerror = () => { img.src = `/items/${item.icon}.png`; img.onerror = null; };
     spriteWrap.appendChild(img);
   } else {
-    // Not owned — show locked icon
+    // Not owned — show the (dimmed) real item art with a small lock badge, so the
+    // shop reads as "items you can unlock" rather than a wall of identical padlocks.
+    spriteWrap.style.position = "relative";
     const img = document.createElement("img");
-    img.src = `/items/LockedItem.png`;
-    img.alt = "Locked";
+    img.src = `/items/${item.icon}.png`;
+    img.alt = item.name;
     img.className = "inv-item-sprite inv-item-locked";
-    img.onerror = () => { img.style.display = "none"; spriteWrap.textContent = "🔒"; };
+    img.style.cssText += ";filter:grayscale(1) brightness(0.55);";
     spriteWrap.appendChild(img);
+    const lock = document.createElement("img");
+    lock.src = "/items/LockedItem.png";
+    lock.alt = "Locked";
+    lock.style.cssText = "position:absolute;right:2px;bottom:2px;width:15px;height:15px;opacity:0.95;";
+    lock.onerror = () => { lock.style.display = "none"; };
+    spriteWrap.appendChild(lock);
   }
   card.appendChild(spriteWrap);
 
@@ -265,7 +275,7 @@ function buildCard(item: ItemDef, equipped: string[], crystals: number): HTMLEle
     const buyBtn = document.createElement("button");
     buyBtn.className = "inv-buy-btn" + (canAfford ? "" : " inv-btn-disabled");
     buyBtn.dataset.cost = String(nextCost);
-    buyBtn.textContent = tier === 0 ? `Buy 💎${nextCost}` : `Upgrade 💎${nextCost}`;
+    buyBtn.innerHTML = `${tier === 0 ? "Buy" : "Upgrade"} <img src="/ui/Gem.png" style="width:12px;height:12px;vertical-align:middle;image-rendering:pixelated;"> ${nextCost}`;
     buyBtn.disabled = !canAfford;
     actions.appendChild(buyBtn);
   } else if (tier === item.maxTier) {

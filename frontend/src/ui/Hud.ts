@@ -1,6 +1,7 @@
 import type { Connection } from "../net/Connection";
 import type { Snapshot } from "../net/Connection";
 import type { SpellDef, ItemDef } from "../net/metaApi";
+import { Texture } from "pixi.js";
 import { inferBossType, bossLabel } from "../render/Boss";
 import { tex as atlasTex } from "../render/assets";
 
@@ -394,7 +395,10 @@ export class Hud {
     // Try atlas tex (for full atlas paths like "paladin/spell_passiveshield/SpellShieldLargeIco").
     // atlasTex returns Texture.WHITE for unknown keys; check width > 1 to detect valid.
     const atlasFrame = atlasTex(iconKey);
-    if (atlasFrame && atlasFrame.width > 1) {
+    // NOTE: atlasTex returns the 16×16 Texture.WHITE for unknown keys (e.g. the Fire Mage
+    // short keys like "FireBallIco"), which would otherwise draw a blank white square.
+    // Exclude WHITE so those fall through to the real /art/ icons below.
+    if (atlasFrame && atlasFrame !== Texture.WHITE && atlasFrame.width > 1) {
       // Build an img from the atlas texture using its source image + UV.
       // Easiest cross-browser way: render to a canvas and use as dataURL.
       // But since we're in DOM, we can use the sprite canvas extraction.
