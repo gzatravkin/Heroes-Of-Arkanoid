@@ -4,16 +4,16 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "O......O",
-    ".AABBAA.",
-    ".AB..BA.",
-    ".ABDDBA.",
-    ".ABDDBA.",
-    ".AB..BA.",
-    ".AABBAA.",
+    "..O..O..",
+    ".OBDDBO.",
+    ".OBDDBO.",
+    ".OB..BO.",
+    ".OBBBBO.",
+    "OA....AO",
+    "OAABBAAO",
+    ".AA..AA.",
     "..AAAA..",
-    "........",
-    "........",
+    "...AA...",
     "........",
     "........",
     "........",
@@ -24,5 +24,6 @@
     "B": "hell_tough",
     "O": "hell_obsidian",
     "D": "hell_demon_boss"
-  }
+  },
+  "descendInterval": 14
 }

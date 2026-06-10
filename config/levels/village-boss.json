@@ -5,15 +5,15 @@
   "rows": 14,
   "rows_data": [
     ".A.AA.A.",
-    "AABBBBAA",
-    ".ABWWBA.",
-    ".ABWWBA.",
-    "AABBBBAA",
-    ".A.AA.A.",
-    ".AB..BA.",
-    ".AABBAA.",
-    "........",
-    "........",
+    ".ABBBBA.",
+    ".BBWWBB.",
+    ".BBWWBB.",
+    ".ABBBBA.",
+    "GG.AA.GG",
+    ".A.NN.A.",
+    "GG.AA.GG",
+    ".AGGGGA.",
+    "..A..A..",
     "........",
     "........",
     "........",
@@ -22,6 +22,8 @@
   "legend": {
     "A": "village_basic",
     "B": "village_tough",
+    "G": "village_ghost",
+    "N": "village_necromant",
     "W": "village_witch_boss"
   }
 }

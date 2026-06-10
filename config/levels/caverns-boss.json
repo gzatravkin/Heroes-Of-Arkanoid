@@ -4,14 +4,14 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "RR....RR",
-    ".AABBAA.",
-    ".ABGGBA.",
-    ".ABGGBA.",
-    ".ABBBBA.",
-    ".A....A.",
-    ".AABBAA.",
-    "..R..R..",
+    "R.AAAA.R",
+    ".XBBBBX.",
+    ".BX..XB.",
+    ".BXGGXB.",
+    ".BXGGXB.",
+    ".BX..XB.",
+    ".XBBBBX.",
+    "R.AAAA.R",
     "........",
     "........",
     "........",
@@ -23,6 +23,7 @@
     "A": "cavern_basic",
     "B": "cavern_tough",
     "R": "cavern_rock",
+    "X": "cavern_bomb",
     "G": "cavern_goblin_boss"
   }
 }

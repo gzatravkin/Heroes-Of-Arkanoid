@@ -4,14 +4,14 @@
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "S.HHHH.S",
-    ".HTTTTH.",
-    ".HTXXTH.",
-    ".HTXXTH.",
-    ".HTTTTH.",
-    "S.HHHH.S",
-    "S......S",
-    "........",
+    "P.HHHH.P",
+    "C.HHHH.C",
+    "B.HXXH.B",
+    "S.HXXH.S",
+    ".HMMMMH.",
+    ".DMTTMD.",
+    ".HHTTHH.",
+    "..HTTH..",
     "........",
     "........",
     "........",
@@ -23,6 +23,12 @@
     "H": "heaven_basic",
     "T": "heaven_tough",
     "S": "heaven_statue",
+    "M": "heaven_melee_statue",
+    "D": "heaven_shield_statue",
+    "P": "heaven_column_top",
+    "C": "heaven_column_mid",
+    "B": "heaven_column_bottom",
     "X": "heaven_angel_boss"
-  }
+  },
+  "escalateInterval": 8
 }
