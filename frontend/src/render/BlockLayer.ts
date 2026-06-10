@@ -1,9 +1,15 @@
-import { Container, Graphics, Sprite, Texture, BLEND_MODES } from "pixi.js";
+import { Container, Graphics, Sprite, TilingSprite, Texture, BLEND_MODES } from "pixi.js";
 import { tex } from "./textures";
-import { tex as atlasTex } from "./assets";
+import { tex as atlasTex, animStrip } from "./assets";
 
 // Block rendering (pooled): damage states, mirror flags, boss aura, teleporter ring,
-// ghost pulse, shield flash. Owns its own display layer; extracted from Renderer.
+// ghost pulse, shield flash — and NATIVE-ASPECT sizing (the original art is not
+// square: bricks are ~1.36:1, walls ~2.2:1, statues portrait). Sizing modes:
+//   contain — fit inside the cell keeping aspect (bricks get mortar gaps, skulls slim)
+//   wall    — TilingSprite filling the cell with undistorted repeating stone
+//   stand   — full cell width, natural height, feet on the cell floor (statues)
+//   hang    — full cell width, natural height, hanging from the cell ceiling
+//   fill    — stretch to the cell (columns: keeps stack continuity)
 
 const BOSS_SCALE_MULT       = 1.15;
 const BOSS_AURA_COLOR       = 0xcc0000;
@@ -23,8 +29,12 @@ const TELEPORTER_RING_PULSE_SPEED = 0.07;
 const TELEPORTER_RING_COLOR       = 0x44aaff;
 const TELEPORTER_RING_RADIUS_MULT = 0.72;
 
-// Damage states (A3): below DAMAGE_THRESHOLD of max HP, swap to the "destroyed/cracked" frame.
+// Damage states (A3): below DAMAGE_THRESHOLD of max HP, swap to cracked art.
+// NOTE: the "*Destroyed" assets are ANIMATION STRIPS (e.g. 388×34) — they must be
+// sliced via animStrip and sampled, never drawn whole (that was the squashed-
+// garbage near-death look). DAMAGE_FRAME picks an early-crack frame.
 const DAMAGE_THRESHOLD = 0.6;
+const DAMAGE_FRAME     = 1;
 const BLOCK_DAMAGED: Record<string, string> = {
   HellStandart:     "hell/StandartHellDestroyed",
   HellStandart2:    "hell/StandartHell2Destroyed",
@@ -34,7 +44,6 @@ const BLOCK_DAMAGED: Record<string, string> = {
   VillageStandart2: "village/blocks/VillageStandart2Destroyed",
   StandartHaven:    "heaven/StandartHavenDestroyed",
   Standart2Haven:   "heaven/Standart2HavenDestroyed",
-  // Enemy blocks crack too (docs/11 polish):
   ColumnTop:        "heaven/ColumnTopDestroyed",
   Column:           "heaven/ColumnDamaged",
   ColumnBottom:     "heaven/ColumnBottomDestroyed",
@@ -52,8 +61,8 @@ const ALLIED_VARIANT: Record<string, string> = {
   HeavenMeleeStatue: "heaven/HeavenMeleeStatueActive",
   HeavenDefender:    "heaven/HeavenDefenderActive",
 };
-const ALTAR_SPRITE        = "HeavenAltarV2";
-const ALTAR_ACTIVE        = "heaven/HeavenAltarV2Active";
+const ALTAR_SPRITE = "HeavenAltarV2";
+const ALTAR_ACTIVE = "heaven/HeavenAltarV2Active";
 
 // Telegraph flash (docs/11 R2): emitter about to fire pulses warm.
 const CHARGE_TINT        = 0xffdd66;
@@ -69,12 +78,33 @@ const WIND_AURA_PULSE      = 0.05;
 // Vase-levelled statues glow warm so the risk the player took is readable.
 const LEVELED_TINT = 0xffd9a0;
 
-// Cauldron bubbles by cycling the original Kotelok frames (the siphon is visible).
-const CAULDRON_FRAMES = ["village/blocks/Kotelok1", "village/blocks/Kotelok2", "village/blocks/Kotelok3"];
-const CAULDRON_FRAME_TICKS = 14;
-// Lava spawner pulses to its Active frame on the same cadence feel.
+// Cauldron: the Kotelok assets are 7-frame bubbling STRIPS — cycle real frames.
+const CAULDRON_STRIP_KEY   = "village/blocks/Kotelok1";
+const CAULDRON_FRAME_TICKS = 9;
+// Lava spawner pulses to its Active frame.
 const LAVA_SPAWNER_ACTIVE = "hell/LavaSpownerActive";
 const LAVA_SPAWNER_PULSE_TICKS = 24;
+
+// stand/hang sprites may overflow their cell, but no further than this — taller
+// figures scale down uniformly so they never hide a whole neighbouring brick.
+const MAX_OVERFLOW = 1.75;
+
+type SizeMode = "contain" | "wall" | "stand" | "hang" | "fill";
+const SIZE_MODES: Record<string, SizeMode> = {
+  // Structural walls: tile undistorted stone to seal channels.
+  HellInvulnerable:    "wall",
+  DungeonInvulnerable: "wall",
+  InvulnerableHaven:   "wall",
+  LavaMainPart:        "wall",
+  // Columns stretch so the stack stays continuous.
+  ColumnTop: "fill", Column: "fill", ColumnBottom: "fill",
+  // Figures stand on the cell floor at natural height.
+  HeavenMeleeStatue: "stand", HeavenDefender: "stand",
+  BatSleeping: "stand", HeavenVaza: "stand", Kotelok1: "stand",
+  // Stalactites hang from the cell ceiling.
+  Stalactite: "hang",
+  // default: contain
+};
 
 interface BlockDto {
   id: number; x: number; y: number; hp: number; maxHp: number; sprite: string;
@@ -83,17 +113,21 @@ interface BlockDto {
   charging?: boolean; allied?: boolean; level?: number;
 }
 
+interface Entry { sp: Sprite | TilingSprite; aura?: Graphics; ring?: Graphics; wind?: Sprite }
+
 export class BlockLayer {
   readonly container = new Container();
-  private pool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics; wind?: Sprite }>();
+  private pool = new Map<number, Entry>();
+  private _cauldronFrames: Texture[] | null = null;
 
   /** Block texture: allied *Active art, beholder damage tiers, cracked frames near death. */
-  private blockTex(b: BlockDto, anyAllied: boolean, tick = 0): Texture {
-    // Cauldron: bubble through the Kotelok frames.
+  private blockTex(b: BlockDto, anyAllied: boolean, tick: number): Texture {
+    // Cauldron: bubble through the real Kotelok strip frames.
     if (b.sprite === "Kotelok1") {
-      const frame = CAULDRON_FRAMES[Math.floor(tick / CAULDRON_FRAME_TICKS) % CAULDRON_FRAMES.length];
-      const t = atlasTex(frame);
-      if (t !== Texture.WHITE) return t;
+      this._cauldronFrames ??= animStrip(CAULDRON_STRIP_KEY);
+      const frames = this._cauldronFrames;
+      if (frames.length > 1)
+        return frames[Math.floor(tick / CAULDRON_FRAME_TICKS) % frames.length];
     }
     // Lava spawner: pulse to the Active frame.
     if (b.sprite === "LavaSpowner" && (tick % (LAVA_SPAWNER_PULSE_TICKS * 2)) < LAVA_SPAWNER_PULSE_TICKS) {
@@ -117,12 +151,56 @@ export class BlockLayer {
         if (t !== Texture.WHITE) return t;
       }
     }
+    // Cracked frame near death — sliced from the destroy STRIP, never drawn whole.
     const dmgKey = BLOCK_DAMAGED[b.sprite];
     if (dmgKey && b.maxHp > 0 && b.hp / b.maxHp < DAMAGE_THRESHOLD) {
-      const t = atlasTex(dmgKey);
-      if (t !== Texture.WHITE) return t;
+      const frames = animStrip(dmgKey);
+      if (frames.length > DAMAGE_FRAME) return frames[DAMAGE_FRAME];
+      if (frames.length === 1 && frames[0].width / Math.max(frames[0].height, 1) < 2)
+        return frames[0]; // a genuine single cracked frame
     }
     return tex(b.sprite);
+  }
+
+  /** Size + position the sprite by its sizing mode, preserving flip signs. */
+  private applySizing(sp: Sprite | TilingSprite, b: BlockDto, size: number): void {
+    const mode: SizeMode = b.boss ? "fill" : (SIZE_MODES[b.sprite] ?? "contain");
+    const nw = sp.texture.width  || 1;
+    const nh = sp.texture.height || 1;
+    const aspect = nh / nw;
+
+    let w = size, h = size, y = b.y;
+    if (sp instanceof TilingSprite) {
+      // wall: tile the texture at cell width, undistorted, sealing the cell.
+      sp.width = size; sp.height = size;
+      const s = size / nw;
+      sp.tileScale.set(s, s);
+      sp.position.set(b.x, b.y);
+      return;
+    }
+    switch (mode) {
+      case "contain":
+        if (aspect <= 1) { w = size; h = size * aspect; }
+        else { h = size; w = size / aspect; }
+        break;
+      case "stand": // feet on the cell floor; may rise above the cell (capped)
+        w = size; h = size * aspect;
+        if (h > size * MAX_OVERFLOW) { h = size * MAX_OVERFLOW; w = h / aspect; }
+        y = b.y + size / 2 - h / 2;
+        break;
+      case "hang": // hanging from the cell ceiling; may reach below (capped)
+        w = size; h = size * aspect;
+        if (h > size * MAX_OVERFLOW) { h = size * MAX_OVERFLOW; w = h / aspect; }
+        y = b.y - size / 2 + h / 2;
+        break;
+      case "fill":
+      default:
+        break;
+    }
+    sp.width = w; sp.height = h;
+    sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
+    sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
+    sp.position.set(b.x, y);
   }
 
   /** Hide a block's plain sprite (e.g. while the animated boss rig covers it). */
@@ -152,66 +230,21 @@ export class BlockLayer {
 
     for (const b of blocks) {
       const size = b.boss ? brickSize * BOSS_SCALE_MULT : brickSize;
-      const existing = this.pool.get(b.id);
+      let entry = this.pool.get(b.id);
 
-      if (existing) {
-        const { sp, aura, ring, wind } = existing;
-        sp.texture = this.blockTex(b, anyAllied, tick);
-        sp.width = size; sp.height = size;
-        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
-        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
-        sp.position.set(b.x, b.y);
-
-        if (wind) {
-          const wa = WIND_AURA_ALPHA_BASE + WIND_AURA_ALPHA_AMP * Math.sin(tick * WIND_AURA_PULSE);
-          wind.alpha = wa;
-          wind.width = wind.height = windRadius * 2;
-          wind.position.set(b.x, b.y);
-          wind.rotation = tick * WIND_AURA_PULSE;
-        }
-
-        if (b.boss) {
-          sp.alpha = 1.0;
-          if (aura) {
-            const a = BOSS_AURA_ALPHA + BOSS_AURA_ALPHA_AMP * Math.sin(tick * BOSS_AURA_PULSE_SPEED);
-            aura.clear().beginFill(BOSS_AURA_COLOR, a)
-              .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
-          }
-        } else if (b.ballPhases) {
-          sp.tint = GHOST_TINT;
-          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(tick * GHOST_PULSE_SPEED);
-        } else if (b.indestructible || b.teleporter) {
-          sp.alpha = 1.0;
-          if (ring) {
-            const a = TELEPORTER_RING_ALPHA_BASE + TELEPORTER_RING_ALPHA_AMP * Math.sin(tick * TELEPORTER_RING_PULSE_SPEED);
-            ring.clear().beginFill(TELEPORTER_RING_COLOR, a)
-              .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
-          }
-        } else {
-          sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-          // Telegraph pulse beats shield flash beats levelled glow beats neutral.
-          sp.tint = b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS
-            ? CHARGE_TINT
-            : b.shielded ? 0x66ddff
-            : (b.level ?? 0) > 0 ? LEVELED_TINT : 0xffffff;
-        }
-      } else {
+      if (!entry) {
         let aura: Graphics | undefined;
         let ring: Graphics | undefined;
         let wind: Sprite | undefined;
 
         if (b.boss) {
-          const a = BOSS_AURA_ALPHA + BOSS_AURA_ALPHA_AMP * Math.sin(tick * BOSS_AURA_PULSE_SPEED);
           aura = new Graphics();
           aura.blendMode = BLEND_MODES.ADD;
-          aura.beginFill(BOSS_AURA_COLOR, a).drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
           this.container.addChild(aura);
         }
         if (b.teleporter) {
-          const a = TELEPORTER_RING_ALPHA_BASE + TELEPORTER_RING_ALPHA_AMP * Math.sin(tick * TELEPORTER_RING_PULSE_SPEED);
           ring = new Graphics();
           ring.blendMode = BLEND_MODES.ADD;
-          ring.beginFill(TELEPORTER_RING_COLOR, a).drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
           this.container.addChild(ring);
         }
         if (b.sprite === WIND_SPRITE && windRadius > 0) {
@@ -221,28 +254,58 @@ export class BlockLayer {
             wind.anchor.set(0.5);
             wind.blendMode = BLEND_MODES.ADD;
             wind.alpha = WIND_AURA_ALPHA_BASE;
-            wind.width = wind.height = windRadius * 2;
-            wind.position.set(b.x, b.y);
             this.container.addChild(wind);
           }
         }
 
-        const sp = new Sprite(this.blockTex(b, anyAllied, tick));
+        const texture = this.blockTex(b, anyAllied, tick);
+        const isWall = !b.boss && SIZE_MODES[b.sprite] === "wall";
+        const sp = isWall
+          ? new TilingSprite(texture, size, size)
+          : new Sprite(texture);
         sp.anchor.set(0.5);
-        sp.width = size; sp.height = size;
-        sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
-        sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
-        sp.position.set(b.x, b.y);
-
-        if (b.boss) sp.alpha = 1.0;
-        else if (b.ballPhases) {
-          sp.tint = GHOST_TINT;
-          sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(tick * GHOST_PULSE_SPEED);
-        } else if (b.indestructible || b.teleporter) sp.alpha = 1.0;
-        else sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-
         this.container.addChild(sp);
-        this.pool.set(b.id, { sp, aura, ring, wind });
+        entry = { sp, aura, ring, wind };
+        this.pool.set(b.id, entry);
+      }
+
+      const { sp, aura, ring, wind } = entry;
+      const texture = this.blockTex(b, anyAllied, tick);
+      if (sp.texture !== texture) sp.texture = texture;
+      this.applySizing(sp, b, size);
+
+      if (wind) {
+        wind.alpha = WIND_AURA_ALPHA_BASE + WIND_AURA_ALPHA_AMP * Math.sin(tick * WIND_AURA_PULSE);
+        wind.width = wind.height = windRadius * 2;
+        wind.position.set(b.x, b.y);
+        wind.rotation = tick * WIND_AURA_PULSE;
+      }
+
+      if (b.boss) {
+        sp.alpha = 1.0;
+        if (aura) {
+          const a = BOSS_AURA_ALPHA + BOSS_AURA_ALPHA_AMP * Math.sin(tick * BOSS_AURA_PULSE_SPEED);
+          aura.clear().beginFill(BOSS_AURA_COLOR, a)
+            .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
+        }
+      } else if (b.ballPhases) {
+        sp.tint = GHOST_TINT;
+        sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(tick * GHOST_PULSE_SPEED);
+      } else if (b.indestructible || b.teleporter) {
+        sp.alpha = 1.0;
+        sp.tint = 0xffffff;
+        if (ring) {
+          const a = TELEPORTER_RING_ALPHA_BASE + TELEPORTER_RING_ALPHA_AMP * Math.sin(tick * TELEPORTER_RING_PULSE_SPEED);
+          ring.clear().beginFill(TELEPORTER_RING_COLOR, a)
+            .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
+        }
+      } else {
+        sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
+        // Telegraph pulse beats shield flash beats levelled glow beats neutral.
+        sp.tint = b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS
+          ? CHARGE_TINT
+          : b.shielded ? 0x66ddff
+          : (b.level ?? 0) > 0 ? LEVELED_TINT : 0xffffff;
       }
     }
   }

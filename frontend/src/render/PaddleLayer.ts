@@ -26,7 +26,11 @@ interface BallLike { id: number; y: number }
 
 export class PaddleLayer {
   readonly container = new Container();
-  private paddleSprite = new Sprite();
+  // The original bar art is a HALF sprite (the left wing, cut at the centre gem) —
+  // the legacy game mirrored it. We render two mirrored halves around the centre;
+  // drawing the half once, stretched, was the old asymmetric-paddle bug.
+  private leftHalf  = new Sprite();
+  private rightHalf = new Sprite();
   private turretSprite = new Sprite();
 
   // Per-class bar art keys (default fire mage; overridden by setClass).
@@ -44,12 +48,15 @@ export class PaddleLayer {
   private _baseScaleY = 1;
 
   constructor() {
-    this.paddleSprite.anchor.set(0.5);
-    this.paddleSprite.texture = Texture.WHITE;
+    // Both halves anchor on their inner (cut) edge so they meet at the centre.
+    this.leftHalf.anchor.set(1, 0.5);
+    this.leftHalf.texture = Texture.WHITE;
+    this.rightHalf.anchor.set(1, 0.5); // mirrored via negative X scale
+    this.rightHalf.texture = Texture.WHITE;
     this.turretSprite = new Sprite(Texture.WHITE);
     this.turretSprite.anchor.set(0.5, 1); // anchor at bottom-center
     this.turretSprite.visible = false;
-    this.container.addChild(this.paddleSprite, this.turretSprite);
+    this.container.addChild(this.leftHalf, this.rightHalf, this.turretSprite);
   }
 
   /** Switch the paddle bar art to the given class's 4-frame strip. */
@@ -73,24 +80,25 @@ export class PaddleLayer {
       }
     }
 
-    // --- paddle (sprite) ---
+    // --- paddle (two mirrored halves of the half-sprite bar art) ---
     // Swap to per-class atlas paddle texture on first draw (ticker advances frames).
     const paddleTex = atlasTex(this._spriteKey);
-    if (paddleTex !== Texture.WHITE) this.paddleSprite.texture = paddleTex;
-    this.paddleSprite.x = paddleX;
-    this.paddleSprite.y = paddleYCenter;
-    // Scale so the sprite width matches the sim paddle; keep natural aspect for height.
-    const paddleNaturalW = this.paddleSprite.texture.width;
-    const paddleNaturalH = this.paddleSprite.texture.height;
-    if (paddleNaturalW > 0) {
-      const wScale = paddleW / paddleNaturalW;
-      const spriteH = Math.max(paddleH, paddleNaturalH * wScale);
+    if (paddleTex !== Texture.WHITE) {
+      this.leftHalf.texture  = paddleTex;
+      this.rightHalf.texture = paddleTex;
+    }
+    this.leftHalf.position.set(paddleX, paddleYCenter);
+    this.rightHalf.position.set(paddleX, paddleYCenter);
+    // Each half spans paddleW/2 at the art's natural aspect.
+    const halfNaturalW = this.leftHalf.texture.width;
+    const halfNaturalH = this.leftHalf.texture.height;
+    if (halfNaturalW > 1) {
+      const wScale  = (paddleW / 2) / halfNaturalW;
+      const spriteH = Math.max(paddleH, halfNaturalH * wScale);
       this._baseScaleX = wScale;
-      this._baseScaleY = spriteH / paddleNaturalH;
+      this._baseScaleY = spriteH / halfNaturalH;
       // Only reset to base scale if no squash animation is running.
-      if (this._squashElapsed < 0) {
-        this.paddleSprite.scale.set(this._baseScaleX, this._baseScaleY);
-      }
+      if (this._squashElapsed < 0) this.applyScale(1, 1);
     }
 
     // --- turret indicator (atlas art: FireHeroTurret) ---
@@ -105,6 +113,12 @@ export class PaddleLayer {
     } else {
       this.turretSprite.visible = false;
     }
+  }
+
+  /** Apply scale multipliers to both halves (right half mirrors via negative X). */
+  private applyScale(xMult: number, yMult: number): void {
+    this.leftHalf.scale.set(this._baseScaleX * xMult, this._baseScaleY * yMult);
+    this.rightHalf.scale.set(-this._baseScaleX * xMult, this._baseScaleY * yMult);
   }
 
   /** Drives the squash/stretch timeline + the bar-frame cycling each frame. */
@@ -126,11 +140,10 @@ export class PaddleLayer {
         xScale = PADDLE_STRETCH_X_SCALE - (PADDLE_STRETCH_X_SCALE - 1.0) * p + overshoot;
         yScale = PADDLE_SQUASH_Y_SCALE + (1.0 - PADDLE_SQUASH_Y_SCALE) * p - overshoot;
       }
-      this.paddleSprite.scale.x = this._baseScaleX * xScale;
-      this.paddleSprite.scale.y = this._baseScaleY * yScale;
+      this.applyScale(xScale, yScale);
       if (t >= 1) {
         this._squashElapsed = -1;
-        this.paddleSprite.scale.set(this._baseScaleX, this._baseScaleY);
+        this.applyScale(1, 1);
       }
     }
 
@@ -140,7 +153,10 @@ export class PaddleLayer {
       this._animElapsed -= PADDLE_ANIM_MS_PER_FRAME;
       this._animFrame = (this._animFrame + 1) % this._animKeys.length;
       const nextTex = atlasTex(this._animKeys[this._animFrame]);
-      if (nextTex !== Texture.WHITE) this.paddleSprite.texture = nextTex;
+      if (nextTex !== Texture.WHITE) {
+        this.leftHalf.texture  = nextTex;
+        this.rightHalf.texture = nextTex;
+      }
     }
   }
 }
