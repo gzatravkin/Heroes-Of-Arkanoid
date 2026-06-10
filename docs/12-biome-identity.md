@@ -68,8 +68,11 @@ Add to `tools/gen-levels.mjs` validation (it currently checks only 8×14 + winna
 - ✅ Campaign re-authored to 21 levels (5+boss per biome arc): each biome gets its
   two idioms, a pacing showcase, a composite, and its boss; crescendo holds within
   each biome. Evidence: `tests/demo-screenshots/matrix-*.png`.
-- ⏳ Remaining from this doc: rift biome-matrix inheritance for generated floors
-  (G3 rift generator work), and pushing level count toward the 30+ target.
+- ✅ Rifts run matrix arcs: Ember Depths = hell-2/4/5 (spawners → press → breach),
+  Ghost Spire = village-2/4 + the heaven-4 trial — every rift floor carries its
+  biome's identity row. (A fully *procedural* rift generator remains G3 scope.)
+- ⏳ Remaining beyond this doc: the 30+ level count target (docs/09 G3) and the
+  music/SFX briefs (docs/09 G1 — blocked on audio asset approval).
 
 ## 3. What this changes in practice
 
