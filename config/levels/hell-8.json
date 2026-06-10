@@ -1,0 +1,32 @@
+{
+  "id": "hell-8",
+  "biome": "hell",
+  "cols": 10,
+  "rows": 16,
+  "rows_data": [
+    "ABABABABAB",
+    "AOBAABAOBA",
+    "PABBABBABP",
+    "AABBABABBA",
+    "OBABABABBO",
+    "AABSABABAA",
+    "QAABABAABQ",
+    "AABABAABAA",
+    "OBAABABAOB",
+    "PABABABABP",
+    "AABABABAAB",
+    "OABABABABO",
+    "A.A.A.A.A.",
+    ".A.A.A.A.A",
+    "..........",
+    ".........."
+  ],
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "O": "hell_obsidian",
+    "P": "hell_teleporter",
+    "Q": "hell_teleporter_blue",
+    "S": "hell_ballspawner"
+  }
+}

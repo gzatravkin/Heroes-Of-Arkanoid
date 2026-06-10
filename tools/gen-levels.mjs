@@ -122,15 +122,37 @@ const LEVELS = [
     "AAAAAAAA",
     "L......L",
   ]},
-  { id: "hell-boss", biome: "hell", boss: true, legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", D: "hell_demon_boss" }, rows: [
-    "O......O",
-    ".AABBAA.",
-    ".AB..BA.",
-    ".ABDDBA.",
-    ".ABDDBA.",
-    ".AB..BA.",
-    ".AABBAA.",
+  { id: "hell-8", biome: "hell", gridCols: 10, gridRows: 16, legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", P: "hell_teleporter", Q: "hell_teleporter_blue", S: "hell_ballspawner" }, rows: [
+    "ABABABABAB",  // THE GAUNTLET: survive the spawner, navigate the teleport maze (10×16)
+    "AOBAABAOBA",  // obsidian routing channels
+    "PABBABBABP",  // red teleporter pair on opposing walls — warp the ball to the far pocket
+    "AABBABABBA",
+    "OBABABABBO",  // obsidian flanking the sides
+    "AABSABABAA",  // ballspawner at col 3 guards access to the core
+    "QAABABAABQ",  // blue teleporter pair — second routing circuit
+    "AABABAABAA",
+    "OBAABABAOB",
+    "PABABABABP",  // second red teleporter pair deeper in the maze
+    "AABABABAAB",
+    "OABABABABO",
+    "A.A.A.A.A.",  // sparse lower section — reward for routing the maze
+    ".A.A.A.A.A",
+  ]},
+  // THE ADVANCE: demon enthroned at the top, its furnace ranks press one row down
+  // every 14s (descend). The boss block itself never descends — the player must clear
+  // the marching tough/basic ranks before they overrun the paddle, then finish the
+  // exposed demon. Obsidian horns + flank walls route the ball up the central kill shaft.
+  { id: "hell-boss", biome: "hell", boss: true, descendInterval: 14, legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", D: "hell_demon_boss" }, rows: [
+    "..O..O..",
+    ".OBDDBO.",
+    ".OBDDBO.",
+    ".OB..BO.",
+    ".OBBBBO.",
+    "OA....AO",
+    "OAABBAAO",
+    ".AA..AA.",
     "..AAAA..",
+    "...AA...",
   ]},
 
   // ════ CAVERNS — The Mine (CHAIN): bomb veins + ceilings; floors + timer ═════
@@ -222,15 +244,20 @@ const LEVELS = [
     "K.AAAA.K",
     "..AAAA..",
   ]},
-  { id: "caverns-boss", biome: "caverns", boss: true, legend: { A: "cavern_basic", B: "cavern_tough", R: "cavern_rock", G: "cavern_goblin_boss" }, rows: [
-    "RR....RR",
-    ".AABBAA.",
-    ".ABGGBA.",
-    ".ABGGBA.",
-    ".ABBBBA.",
-    ".A....A.",
-    ".AABBAA.",
-    "..R..R..",
+  // THE BARRICADE: the goblin is sealed in a tough-brick vault braced by rock corners.
+  // A connected vein of bombs runs down each wall — hit one and the whole side unzips,
+  // breaching the vault AND chipping the goblin's flank. Chaining beats chewing: clear
+  // the bombs to expose the goblin, then finish it. (Future backend work: let blasts
+  // crack indestructible rock for a literal rock barricade — today the vault is tough.)
+  { id: "caverns-boss", biome: "caverns", boss: true, legend: { A: "cavern_basic", B: "cavern_tough", R: "cavern_rock", X: "cavern_bomb", G: "cavern_goblin_boss" }, rows: [
+    "R.AAAA.R",
+    ".XBBBBX.",
+    ".BX..XB.",
+    ".BXGGXB.",
+    ".BXGGXB.",
+    ".BX..XB.",
+    ".XBBBBX.",
+    "R.AAAA.R",
   ]},
 
   // ════ WITCHLAND — The Haunt (RACE/PHASE): double board + guarded heart ══════
@@ -298,15 +325,36 @@ const LEVELS = [
     ".A.BB.A.",
     "AA.AA.AA",
   ]},
-  { id: "village-boss", biome: "village", boss: true, legend: { A: "village_basic", B: "village_tough", W: "village_witch_boss" }, rows: [
+  { id: "village-7", biome: "village", legend: { A: "village_basic", G: "village_ghost", N: "village_necromant", K: "village_cauldron" }, rows: [
+    "AAAAAAAA",  // THE LABYRINTH: ghost bricks hide the necromancers — find angles that matter
+    "AAAAAAAA",
+    "AGAGAGAG",  // ghost labyrinth: alternating grid rows teach ball-phasing
+    "KAGAGAGK",  // cauldrons at edges — secondary targets
+    "AGAGAGAG",
+    "GANAGAGA",  // necromant hidden at col 2 (behind ghost wall)
+    "KGAGAGAK",  // cauldrons at edges
+    "GAGAGAGA",
+    "AGAGAGAG",
+    "GAGAGNGA",  // necromant hidden at col 5 — must find the right angle
+    "AAAAAAAA",
+    "A.A.A.A.",
+  ]},
+  // THE WAVE SUMMONER: the witch sits in a tough shell the ball can crack, but her
+  // ghost "waves" below phase the ball straight through — only spells clear them — and
+  // the necromant pair at the heart keeps re-summoning every fallen wave. Silence the
+  // necromants first or the waves never stop. (Future backend work: spawn a fresh ghost
+  // row on each 75/50/25% HP threshold — today the necromant proxies the re-summon.)
+  { id: "village-boss", biome: "village", boss: true, legend: { A: "village_basic", B: "village_tough", G: "village_ghost", N: "village_necromant", W: "village_witch_boss" }, rows: [
     ".A.AA.A.",
-    "AABBBBAA",
-    ".ABWWBA.",
-    ".ABWWBA.",
-    "AABBBBAA",
-    ".A.AA.A.",
-    ".AB..BA.",
-    ".AABBAA.",
+    ".ABBBBA.",
+    ".BBWWBB.",
+    ".BBWWBB.",
+    ".ABBBBA.",
+    "GG.AA.GG",
+    ".A.NN.A.",
+    "GG.AA.GG",
+    ".AGGGGA.",
+    "..A..A..",
   ]},
 
   // ════ HEAVEN — The Trial (CONVERT): colonnade + sanctum choice; escalation ══
@@ -362,14 +410,42 @@ const LEVELS = [
     "S.MTTM.S",
     "H.HTTH.H",
   ]},
-  { id: "heaven-boss", biome: "heaven", boss: true, legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", X: "heaven_angel_boss" }, rows: [
-    "S.HHHH.S",
-    ".HTTTTH.",
-    ".HTXXTH.",
-    ".HTXXTH.",
-    ".HTTTTH.",
-    "S.HHHH.S",
-    "S......S",
+  { id: "heaven-7", biome: "heaven", surviveTime: 90, escalateInterval: 8, gridCols: 8, gridRows: 20, legend: { H: "heaven_basic", T: "heaven_tough", M: "heaven_melee_statue", D: "heaven_shield_statue", R: "heaven_altar", V: "heaven_vase", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom" }, rows: [
+    "MHDTTDHM",  // THE STATUE ASCENSION: survive 90s, statues escalate every 8s (8×20)
+    "HTTTTTTH",
+    "HPHTTHPH",  // column tops at cols 1,6 — crack them top-down
+    "HCMTTMCH",  // melee statues fire at the paddle; columns channel ball up centre
+    "HCDHHDCH",  // shield statues guard flanks
+    "HCMTTMCH",
+    "HCHHRHCH",  // altar at col 4 — convert statues to slow the escalation
+    "HCMTTMCH",
+    "HCDHHDCH",
+    "HCMTTMCH",
+    "HCHHRHCH",  // second altar — the deeper sanctuary
+    "HCMTTMCH",
+    "HCDHHDCH",
+    "HCMTTMCH",
+    "HBTTTTBH",  // column bottoms at cols 1,6
+    "V.V..V.V",  // scattered vases — harvest to enrage + reward
+    ".V..V...",
+    "V......V",
+    "........",  // paddle zone — clear
+    "........",
+  ]},
+  // THE GUARDIAN: a melee-statue wall stands directly between the paddle and the angel,
+  // and every 8s (escalate) every statue self-levels — faster fire, harder to clear.
+  // Shield statues keep the wall briefly immune. Rush the angel and the escalation
+  // outpaces you; break the wall first (and the shields that protect it) to stop the
+  // snowball, then burn the angel down. Column pillars channel the ball up the centre.
+  { id: "heaven-boss", biome: "heaven", boss: true, escalateInterval: 8, legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom", X: "heaven_angel_boss" }, rows: [
+    "P.HHHH.P",
+    "C.HHHH.C",
+    "B.HXXH.B",
+    "S.HXXH.S",
+    ".HMMMMH.",
+    ".DMTTMD.",
+    ".HHTTHH.",
+    "..HTTH..",
   ]},
 ];
 

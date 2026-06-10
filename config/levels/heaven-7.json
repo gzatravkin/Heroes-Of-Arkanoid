@@ -1,0 +1,41 @@
+{
+  "id": "heaven-7",
+  "biome": "heaven",
+  "cols": 8,
+  "rows": 20,
+  "rows_data": [
+    "MHDTTDHM",
+    "HTTTTTTH",
+    "HPHTTHPH",
+    "HCMTTMCH",
+    "HCDHHDCH",
+    "HCMTTMCH",
+    "HCHHRHCH",
+    "HCMTTMCH",
+    "HCDHHDCH",
+    "HCMTTMCH",
+    "HCHHRHCH",
+    "HCMTTMCH",
+    "HCDHHDCH",
+    "HCMTTMCH",
+    "HBTTTTBH",
+    "V.V..V.V",
+    ".V..V...",
+    "V......V",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "H": "heaven_basic",
+    "T": "heaven_tough",
+    "M": "heaven_melee_statue",
+    "D": "heaven_shield_statue",
+    "R": "heaven_altar",
+    "V": "heaven_vase",
+    "P": "heaven_column_top",
+    "C": "heaven_column_mid",
+    "B": "heaven_column_bottom"
+  },
+  "surviveTime": 90,
+  "escalateInterval": 8
+}

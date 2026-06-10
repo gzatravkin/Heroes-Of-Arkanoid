@@ -1,0 +1,28 @@
+{
+  "id": "village-7",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "AAAAAAAA",
+    "AAAAAAAA",
+    "AGAGAGAG",
+    "KAGAGAGK",
+    "AGAGAGAG",
+    "GANAGAGA",
+    "KGAGAGAK",
+    "GAGAGAGA",
+    "AGAGAGAG",
+    "GAGAGNGA",
+    "AAAAAAAA",
+    "A.A.A.A.",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "village_basic",
+    "G": "village_ghost",
+    "N": "village_necromant",
+    "K": "village_cauldron"
+  }
+}

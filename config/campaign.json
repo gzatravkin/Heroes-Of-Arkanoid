@@ -6,7 +6,8 @@
   { "id": "hell-5",        "label": "Hell — The Breach",     "biome": "hell",    "x": 4,  "y": 0, "requires": ["hell-4"] },
   { "id": "hell-6",        "label": "Hell — The Circuit",    "biome": "hell",    "x": 5,  "y": 0, "requires": ["hell-5"] },
   { "id": "hell-7",        "label": "Hell — Full Furnace",   "biome": "hell",    "x": 6,  "y": 0, "requires": ["hell-6"] },
-  { "id": "hell-boss",     "label": "Hell — Demon",          "biome": "hell",    "x": 7,  "y": 0, "requires": ["hell-7"] },
+  { "id": "hell-8",        "label": "Hell — The Gauntlet",   "biome": "hell",    "x": 6,  "y": 1, "requires": ["hell-7"] },
+  { "id": "hell-boss",     "label": "Hell — Demon",          "biome": "hell",    "x": 7,  "y": 0, "requires": ["hell-8"] },
   { "id": "caverns-1",     "label": "Caverns I",             "biome": "caverns", "x": 8,  "y": 0, "requires": ["hell-boss"] },
   { "id": "caverns-2",     "label": "Caverns II",            "biome": "caverns", "x": 9,  "y": 0, "requires": ["caverns-1"] },
   { "id": "caverns-3",     "label": "Caverns — Demolition",  "biome": "caverns", "x": 10, "y": 1, "requires": ["caverns-2"] },
@@ -22,12 +23,14 @@
   { "id": "village-4",     "label": "Witchland — The Heart", "biome": "village", "x": 20, "y": 0, "requires": ["village-ghost"] },
   { "id": "village-5",     "label": "Witchland — The Séance","biome": "village", "x": 21, "y": 1, "requires": ["village-4"] },
   { "id": "village-6",     "label": "Witchland — Witching Hour", "biome": "village", "x": 22, "y": 0, "requires": ["village-4"] },
-  { "id": "village-boss",  "label": "Witchland — Witch",     "biome": "village", "x": 23, "y": 0, "requires": ["village-6"] },
+  { "id": "village-7",     "label": "Witchland — The Labyrinth", "biome": "village", "x": 22, "y": 1, "requires": ["village-6"] },
+  { "id": "village-boss",  "label": "Witchland — Witch",     "biome": "village", "x": 23, "y": 0, "requires": ["village-7"] },
   { "id": "heaven-1",      "label": "Heaven I",              "biome": "heaven",  "x": 24, "y": 0, "requires": ["village-boss"] },
   { "id": "heaven-2",      "label": "Heaven II",             "biome": "heaven",  "x": 25, "y": 0, "requires": ["heaven-1"] },
   { "id": "heaven-3",      "label": "Heaven — Colonnade",    "biome": "heaven",  "x": 26, "y": 0, "requires": ["heaven-2"] },
   { "id": "heaven-4",      "label": "Heaven — The Trial",    "biome": "heaven",  "x": 27, "y": 0, "requires": ["heaven-3"] },
   { "id": "heaven-5",      "label": "Heaven — Twin Trials",  "biome": "heaven",  "x": 28, "y": 1, "requires": ["heaven-4"] },
   { "id": "heaven-6",      "label": "Heaven — The Ascension","biome": "heaven",  "x": 29, "y": 0, "requires": ["heaven-4"] },
-  { "id": "heaven-boss",   "label": "Heaven — Seraph",       "biome": "heaven",  "x": 30, "y": 0, "requires": ["heaven-6"] }
+  { "id": "heaven-7",      "label": "Heaven — Statue Ascension", "biome": "heaven", "x": 29, "y": 1, "requires": ["heaven-6"] },
+  { "id": "heaven-boss",   "label": "Heaven — Seraph",       "biome": "heaven",  "x": 30, "y": 0, "requires": ["heaven-7"] }
 ]}
