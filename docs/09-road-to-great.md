@@ -55,10 +55,11 @@
 - Playwright (mobile 390×844, render on, 4 workers): **124 passed, 2 failed (4.8 m)**.
   - `hud-live.spec` "mana fill / fireball affordability" — **flaky under 4-worker
     contention only**; passes serially. Tolerable, but worth a stabilization look.
-  - `editor.spec` "palette → paint → save round-trip" — **real defect**: the
-    `#btn-editor-save` button is outside the 390×844 viewport, so the editor cannot
-    save on a phone layout. Fix the EditorScene layout (likely fallout from the
-    `7461edb` extraction). **P1 housekeeping before any new feature.**
+  - `editor.spec` "palette → paint → save round-trip" — ~~real defect~~ **FIXED
+    2026-06-09**: the scene host clips overflow, so the too-tall editor could never
+    scroll its Save button into a phone viewport. The editor root now owns its
+    scrolling (`height:100vh; overflow-y:auto`) and the palette/actions wrap on
+    narrow screens. `editor.spec` green across repeats.
 - Housekeeping: 16 `tests/demo-screenshots/*.png` deletions are sitting uncommitted
   in the working tree — regenerate or commit the deletion before the next feature.
 

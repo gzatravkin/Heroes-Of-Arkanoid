@@ -1,4 +1,4 @@
 { "dungeons": [
-  { "id": "ember-depths", "name": "Ember Depths", "floors": ["hell-1","hell-teleport","caverns-1"], "rewardRelic": "pyroclasm", "rewardCrystals": 50 },
-  { "id": "ghost-spire",  "name": "Ghost Spire",  "floors": ["village-1","village-ghost","heaven-1"], "rewardRelic": "mana_battery", "rewardCrystals": 50 }
+  { "id": "ember-depths", "name": "Ember Depths", "floors": ["hell-2","hell-4","hell-5"], "rewardRelic": "pyroclasm", "rewardCrystals": 50 },
+  { "id": "ghost-spire",  "name": "Ghost Spire",  "floors": ["village-2","village-4","heaven-4"], "rewardRelic": "mana_battery", "rewardCrystals": 50 }
 ]}

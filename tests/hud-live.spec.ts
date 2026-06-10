@@ -27,24 +27,24 @@ test("HUD lives, balls and mana bar are present after battle opens", async ({ pa
 test("HUD mana fill and fireball affordability track setMana cheat", async ({ page }) => {
   await openBattle(page, "hell-1", 1);
 
-  // drain mana to 0 → fill ~0%, fireball unaffordable
+  // drain mana to 0 → fill ~0%, fireball unaffordable.
+  // Mana regen (14/s) refills continuously, so a post-wait re-read races regen
+  // under parallel-worker load (TOCTOU). The waitForFunction observation IS the
+  // assertion: capture what it saw via JSON return.
   await cheat(page, "setMana", 0);
-  await page.waitForFunction(() => {
+  const drained = await page.waitForFunction(() => {
     const fill = document.querySelector("#hud-mana-fill") as HTMLElement | null;
     const fb   = document.querySelector("#hud-spell-fireball");
-    if (!fill || !fb) return false;
+    if (!fill || !fb) return null;
     const w = parseFloat(fill.style.width ?? "100");
-    // mana regen (12/s) refills continuously, so assert "clearly drained" not "exactly 0"
-    // to avoid a TOCTOU race; the meaningful check is fireball affordability.
-    return w < 25 && fb.classList.contains("unaffordable");
+    return w < 25 && fb.classList.contains("unaffordable")
+      ? JSON.stringify({ w, unaffordable: true }) : null;
   }, null, { timeout: 10_000 });
+  const drainedSeen = JSON.parse((await drained.jsonValue()) as string);
+  expect(drainedSeen.w).toBeLessThan(25);
+  expect(drainedSeen.unaffordable).toBe(true);
 
-  const fill0 = page.locator("#hud-mana-fill");
-  const widthStr0 = await fill0.evaluate((el: HTMLElement) => el.style.width);
-  expect(parseFloat(widthStr0)).toBeLessThan(25);
-  await expect(page.locator("#hud-spell-fireball")).toHaveClass(/unaffordable/);
-
-  // set mana to 100 → fill ~100%, fireball affordable
+  // set mana to 100 → fill ~100%, fireball affordable (no regen race upward: 100 is max)
   await cheat(page, "setMana", 100);
   await page.waitForFunction(() => {
     const fill = document.querySelector("#hud-mana-fill") as HTMLElement | null;
@@ -54,7 +54,7 @@ test("HUD mana fill and fireball affordability track setMana cheat", async ({ pa
     return w > 90 && fb.classList.contains("affordable");
   }, null, { timeout: 10_000 });
 
-  const widthStr100 = await fill0.evaluate((el: HTMLElement) => el.style.width);
+  const widthStr100 = await page.locator("#hud-mana-fill").evaluate((el: HTMLElement) => el.style.width);
   expect(parseFloat(widthStr100)).toBeGreaterThan(90);
   await expect(page.locator("#hud-spell-fireball")).toHaveClass(/affordable/);
 });

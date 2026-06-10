@@ -23,7 +23,10 @@ export function mountEditor(host: HTMLElement) {
     "padding:20px",
     "color:#e8e8ff",
     "font-family:sans-serif",
-    "min-height:100vh",
+    // The editor is taller than a phone screen — it must own its scrolling,
+    // because the scene host clips overflow (the original mobile Save bug).
+    "height:100vh",
+    "overflow-y:auto",
     "background:#0d0d1a",
     "box-sizing:border-box",
   ].join(";");
@@ -152,24 +155,29 @@ export function mountEditor(host: HTMLElement) {
   root.appendChild(controls);
 
   // ── Main layout: palette + grid ────────────────────────────────────────────
+  // flex-wrap lets the palette stack ABOVE the grid on phone widths (390px)
+  // instead of overflowing horizontally and pushing the actions off-viewport.
   const layout = document.createElement("div");
   layout.style.cssText = [
     "display:flex",
-    "gap:20px",
+    "flex-wrap:wrap",
+    "gap:14px",
     "align-items:flex-start",
+    "justify-content:center",
     "width:100%",
     "max-width:900px",
   ].join(";");
 
-  // Palette
+  // Palette — a wrapping chip strip on narrow screens, a column on wide ones.
   const palette = document.createElement("div");
   palette.id = "editor-palette";
   palette.style.cssText = [
     "display:flex",
-    "flex-direction:column",
+    "flex-direction:row",
+    "flex-wrap:wrap",
     "gap:4px",
-    "min-width:140px",
-    "max-width:160px",
+    "min-width:0",
+    "max-width:100%",
     "background:#12122a",
     "border:1px solid #334",
     "border-radius:6px",
@@ -178,7 +186,7 @@ export function mountEditor(host: HTMLElement) {
 
   const paletteTitle = document.createElement("div");
   paletteTitle.textContent = "Palette";
-  paletteTitle.style.cssText = "font-size:12px;color:#889;margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase";
+  paletteTitle.style.cssText = "font-size:12px;color:#889;margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase;width:100%";
   palette.appendChild(paletteTitle);
 
   layout.appendChild(palette);
@@ -196,7 +204,7 @@ export function mountEditor(host: HTMLElement) {
 
   // ── Bottom action buttons ──────────────────────────────────────────────────
   const actions = document.createElement("div");
-  actions.style.cssText = "display:flex;gap:12px;margin-top:14px;align-items:center";
+  actions.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;align-items:center;justify-content:center";
 
   const saveBtn = btn("Save Level", "btn-editor-save", [
     "font-size:14px",
@@ -397,7 +405,7 @@ export function mountEditor(host: HTMLElement) {
     biomes.forEach(biome => {
       const bLabel = document.createElement("div");
       bLabel.textContent = biome.toUpperCase();
-      bLabel.style.cssText = "font-size:10px;color:#667;margin-top:6px;margin-bottom:2px;letter-spacing:0.06em";
+      bLabel.style.cssText = "font-size:10px;color:#667;margin-top:6px;margin-bottom:2px;letter-spacing:0.06em;width:100%";
       palette.appendChild(bLabel);
 
       blockTypes.filter(b => b.biome === biome).forEach(bt => {
