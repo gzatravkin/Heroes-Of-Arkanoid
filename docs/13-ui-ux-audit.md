@@ -86,3 +86,46 @@
 - **P3 — Polish.** Pressed/hover/disabled states, screen transitions, locked/unlocked rhythm on campaign + awards, empty-space art passes on menu/heroes.
 
 Every fix must be verified by re-screenshot at 390×844 **and** a desktop width, compared against this doc.
+
+---
+
+## Post-overhaul status (2026-06-10)
+
+| Scene | §1 Palette | §2 Hierarchy | §3 Text | §4 Art | §5 Feedback | §6 Space | §7 Touch | §8 HUD |
+|-------|-----------|-------------|---------|--------|------------|---------|---------|--------|
+| Menu | PASS | PASS | PASS | PASS | PASS | PASS | PASS | n/a |
+| Campaign | PASS | PASS | MINOR — node labels small (~12px) | PASS | PASS | PASS | PASS | n/a |
+| Battle | PASS | PASS | PASS | PASS (mobile) / WARN (desktop — bricks not visible at 1280×800) | n/a | n/a | PASS | PASS — bars top-left, no brick overlap |
+| Inventory | PASS | PASS | PASS | PASS | PASS | PASS | PASS | n/a |
+| Skills | PASS | PASS | PASS | PASS | PASS | PASS | PASS | n/a |
+| Characters | PASS | PASS | PASS | PASS | PASS | PASS | PASS | n/a |
+| Achievements | PASS | n/a | PASS | PASS | PASS | PASS | PASS | n/a |
+| Settings | PASS | PASS | PASS | PASS | PASS | WARN — large empty bottom half below 4 rows | PASS | n/a |
+| Dungeons | PASS | PASS | PASS | PASS | PASS | WARN — ~50% dead space below 2 dungeon entries | PASS | n/a |
+
+### Issues found
+
+1. **Battle desktop §4/§6 (1280×800)** — At desktop viewport, the portrait game canvas is letterboxed into a narrow center column (~390px wide). The 4 s screenshot shows the HUD bars and spell hotbar but no visible brick field. Either the bricks are above the clipped portion of the column, or the portrait canvas does not fit within 800px height when letterboxed, pushing bricks off-screen. The dark side gutters consume ~40% of total width with no decorative treatment (§6 dead space on all desktop scenes).
+
+2. **Settings §6** — Only 4 settings rows are present; the lower half of the 844px mobile canvas is empty dark space. Low priority, could be addressed with richer empty-state art or a footer.
+
+3. **Dungeons §6** — Two dungeon entries with generous padding leave the bottom ~50% of the screen blank. Intentional for future content but reads as unfinished at current content count.
+
+4. **Campaign §3** — Node label text under circular buttons reads at approximately 12px. Passes legibility at normal contrast but is near the §3 minimum threshold; warrants monitoring when label strings lengthen.
+
+5. **Test regression fixed: `p7b-new-screens.spec.ts`** — Selector `.sk-lvl-badge` was stale after the Wave B1 style overhaul renamed the level badge wrapper to `.sk-lvl-wrap`. Updated in `tests/p7b-new-screens.spec.ts:131`.
+
+### Test suite results
+
+| Spec | Result |
+|------|--------|
+| menu.spec.ts | 6/6 PASS |
+| inventory.spec.ts | 8/8 PASS |
+| campaign.spec.ts | 2/2 PASS |
+| characters.spec.ts | 1/1 PASS |
+| p7b-new-screens.spec.ts | 13/13 PASS (after selector fix) |
+| upgrade.spec.ts | 1/1 PASS |
+| hud-bars.spec.ts | 4/4 PASS |
+| battle-start.spec.ts | **0/1 FAIL** — `waitForPhase("Playing")` times out; `conn.serve()` auto-serve (triggered by `navigator.webdriver`) does not appear to reach the backend within the 10 s window. No `[cmd] Serve` entry visible in console. Pre-existing intermittent failure (see `faeda8c` de-flake commit); worsened or consistent post-overhaul. Not related to Wave A/B UI changes (BattleScene.ts untouched since p7c). |
+
+**Overall:** 35 / 36 pass. One persistent failure in `battle-start.spec.ts` requiring dedicated investigation of the auto-serve path.

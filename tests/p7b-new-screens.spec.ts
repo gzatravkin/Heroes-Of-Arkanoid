@@ -128,7 +128,7 @@ test("skills screen: renders with spell cards and level badges", async ({ page }
   const cards = page.locator(".sk-spell-card");
   await expect(cards.first()).toBeVisible();
   // Level badges
-  const badges = page.locator(".sk-lvl-badge");
+  const badges = page.locator(".sk-lvl-wrap");
   await expect(badges.first()).toBeVisible();
 });
 
