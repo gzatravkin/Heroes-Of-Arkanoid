@@ -1,0 +1,31 @@
+{
+  "id": "caverns-7",
+  "biome": "caverns",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "LXALAXAL",
+    "RA.AA.AR",
+    "AXCAACXA",
+    "R..XX..R",
+    "K.AAAA.K",
+    "..AAAA..",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "cavern_basic",
+    "C": "cavern_tough",
+    "R": "cavern_rock",
+    "X": "cavern_bomb",
+    "L": "cavern_stalactite",
+    "K": "cavern_cart"
+  },
+  "timeLimit": 100
+}

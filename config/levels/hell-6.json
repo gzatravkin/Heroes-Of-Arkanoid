@@ -1,0 +1,30 @@
+{
+  "id": "hell-6",
+  "biome": "hell",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "P.ABBA.Q",
+    "..ASSA..",
+    "G.ABBA.G",
+    "..AAAA..",
+    "Q.ABBA.P",
+    "..AAAA..",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "S": "hell_ballspawner",
+    "P": "hell_teleporter",
+    "Q": "hell_teleporter_blue",
+    "G": "hell_teleporter_green"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "hell-7",
+  "biome": "hell",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "AAAAAAAA",
+    "OABBBBAO",
+    "A.ASSA.A",
+    "OABBBBAO",
+    "AAAAAAAA",
+    "L......L",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "O": "hell_obsidian",
+    "S": "hell_ballspawner",
+    "L": "hell_lava"
+  },
+  "descendInterval": 12
+}

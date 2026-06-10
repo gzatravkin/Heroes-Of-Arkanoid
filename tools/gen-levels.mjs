@@ -91,6 +91,22 @@ const LEVELS = [
     "..AAAA..",
     "L......L",
   ]},
+  { id: "hell-6", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", S: "hell_ballspawner", P: "hell_teleporter", Q: "hell_teleporter_blue", G: "hell_teleporter_green" }, rows: [
+    "P.ABBA.Q",   // THE CIRCUIT: three colour-paired loops around guarded spawners
+    "..ASSA..",
+    "G.ABBA.G",
+    "..AAAA..",
+    "Q.ABBA.P",
+    "..AAAA..",
+  ]},
+  { id: "hell-7", biome: "hell", descendInterval: 12, legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", S: "hell_ballspawner", L: "hell_lava" }, rows: [
+    "AAAAAAAA",   // FULL FURNACE: the press returns with spawners and lava floor
+    "OABBBBAO",
+    "A.ASSA.A",
+    "OABBBBAO",
+    "AAAAAAAA",
+    "L......L",
+  ]},
   { id: "hell-boss", biome: "hell", boss: true, legend: { A: "hell_basic", B: "hell_tough", O: "hell_obsidian", D: "hell_demon_boss" }, rows: [
     "O......O",
     ".AABBAA.",
@@ -152,6 +168,45 @@ const LEVELS = [
         "...CC...",
       ],
     ]},
+  { id: "caverns-5", biome: "caverns", timeLimit: 90, legend: { A: "cavern_basic", C: "cavern_tough", X: "cavern_bomb", L: "cavern_stalactite", K: "cavern_cart" }, rows: [
+    "ALAALAAL",   // COLLAPSE RUN: the ceiling comes with you — 90s on the clock
+    "A.A.A.A.",
+    "CCAACCAA",
+    "A..XX..A",
+    "K......K",
+    "AA.AA.AA",
+  ]},
+  { id: "caverns-6", biome: "caverns", legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock", X: "cavern_bomb" },
+    rows: [
+      "RXAAAAXR",  // DEEP VEIN, floor 1 of 3
+      "RRA..ARR",
+      "AXAAAAXA",
+      "..RAAR..",
+      "...AA...",
+      "...CC...",
+    ],
+    floors: [
+      [
+        "AXAAAAXA",  // floor 2
+        "CCCAACCC",
+        "..XAAX..",
+        "...AA...",
+      ],
+      [
+        "CXCAACXC",  // floor 3: the hard pan
+        "CCCAACCC",
+        "...AA...",
+        "...CC...",
+      ],
+    ]},
+  { id: "caverns-7", biome: "caverns", timeLimit: 100, legend: { A: "cavern_basic", C: "cavern_tough", R: "cavern_rock", X: "cavern_bomb", L: "cavern_stalactite", K: "cavern_cart" }, rows: [
+    "LXALAXAL",   // THE MOTHERLODE: everything the mine has, on one clock
+    "RA.AA.AR",
+    "AXCAACXA",
+    "R..XX..R",
+    "K.AAAA.K",
+    "..AAAA..",
+  ]},
   { id: "caverns-boss", biome: "caverns", boss: true, legend: { A: "cavern_basic", B: "cavern_tough", R: "cavern_rock", G: "cavern_goblin_boss" }, rows: [
     "RR....RR",
     ".AABBAA.",
@@ -202,6 +257,22 @@ const LEVELS = [
     ".BBBBBB.",
     "..A..A..",
   ]},
+  { id: "village-5", biome: "village", legend: { A: "village_basic", G: "village_ghost", E: "village_beholder", K: "village_cauldron", B: "village_bat" }, rows: [
+    ".AABBAA.",   // THE SEANCE: eyes, wings and cauldrons around a ghost ring
+    "AG.EE.GA",
+    "AGKAAKGA",
+    "AG....GA",
+    ".AABBAA.",
+    "AA.AA.AA",
+  ]},
+  { id: "village-6", biome: "village", legend: { A: "village_basic", G: "village_ghost", E: "village_beholder", N: "village_necromant", P: "village_portal", B: "village_bat" }, rows: [
+    "PA.GG.AP",   // WITCHING HOUR: the full haunt — phase in, silence the pair
+    "AGGNNGGA",
+    "AG.EE.GA",
+    "AGGGGGGA",
+    ".A.BB.A.",
+    "AA.AA.AA",
+  ]},
   { id: "village-boss", biome: "village", boss: true, legend: { A: "village_basic", B: "village_tough", W: "village_witch_boss" }, rows: [
     ".A.AA.A.",
     "AABBBBAA",
@@ -249,6 +320,22 @@ const LEVELS = [
     "S......S",
     "H.MTTM.H",
     "D.HTTH.D",
+  ]},
+  { id: "heaven-5", biome: "heaven", legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", W: "heaven_windmaster", P: "heaven_column_top", C: "heaven_column_mid", B: "heaven_column_bottom", R: "heaven_altar", V: "heaven_vase" }, rows: [
+    "P.HTTH.P",   // TWIN TRIALS: wind in the colonnade, the choice at its heart
+    "C.DWWD.C",
+    "B.HTTH.B",
+    "H.R..V.H",
+    "S.MTTM.S",
+    "H.HTTH.H",
+  ]},
+  { id: "heaven-6", biome: "heaven", surviveTime: 75, escalateInterval: 10, legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", M: "heaven_melee_statue", D: "heaven_shield_statue", R: "heaven_altar", V: "heaven_vase" }, rows: [
+    "M.DTTD.M",   // THE ASCENSION: hold 75s while the host self-levels every 10s
+    "S.HTTH.S",
+    "H.R..V.H",
+    "D......D",
+    "S.MTTM.S",
+    "H.HTTH.H",
   ]},
   { id: "heaven-boss", biome: "heaven", boss: true, legend: { H: "heaven_basic", T: "heaven_tough", S: "heaven_statue", X: "heaven_angel_boss" }, rows: [
     "S.HHHH.S",

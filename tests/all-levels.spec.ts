@@ -6,10 +6,10 @@ import { openBattle, getState, cheat, waitForPhase } from "./helpers/game";
 // backend LevelLoader throw → the WS connection yields no blocks → this test fails. So this
 // is the safety net for hand- or AI-generated levels.
 const LEVELS = [
-  "hell-1", "hell-2", "hell-teleport", "hell-4", "hell-5", "hell-boss",
-  "caverns-1", "caverns-2", "caverns-3", "caverns-4", "caverns-boss",
-  "village-1", "village-2", "village-ghost", "village-4", "village-boss",
-  "heaven-1", "heaven-2", "heaven-3", "heaven-4", "heaven-boss",
+  "hell-1", "hell-2", "hell-teleport", "hell-4", "hell-5", "hell-6", "hell-7", "hell-boss",
+  "caverns-1", "caverns-2", "caverns-3", "caverns-4", "caverns-5", "caverns-6", "caverns-7", "caverns-boss",
+  "village-1", "village-2", "village-ghost", "village-4", "village-5", "village-6", "village-boss",
+  "heaven-1", "heaven-2", "heaven-3", "heaven-4", "heaven-5", "heaven-6", "heaven-boss",
   "hell-winnable",
 ];
 

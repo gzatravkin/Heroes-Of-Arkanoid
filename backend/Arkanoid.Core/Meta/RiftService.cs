@@ -25,7 +25,8 @@ public static class RiftService
     /// anything else (e.g. "roll") → probabilistic using <paramref name="riftChance"/>.
     /// Returns the dungeon offer, or null when no rift opens.
     /// </summary>
-    public static RiftOffer? Roll(string? mode, double riftChance, string clearedLevelId, int seed, DungeonCatalog catalog)
+    public static RiftOffer? Roll(string? mode, double riftChance, string clearedLevelId, int seed,
+        DungeonCatalog catalog, CampaignCatalog? campaign = null)
     {
         bool open;
         if (mode == "force") open = true;
@@ -34,7 +35,12 @@ public static class RiftService
 
         if (!open) return null;
 
-        var def = PickDungeon(clearedLevelId, catalog);
+        // With a campaign catalog the rift is GENERATED from the biome's matrix levels
+        // (docs/12 inheritance: every floor carries its biome's identity row);
+        // without one (legacy callers/tests) fall back to the fixed dungeons.
+        var def = campaign != null
+            ? GenerateRift(clearedLevelId, seed, catalog, campaign)
+            : PickDungeon(clearedLevelId, catalog);
         if (def is null) return null;
 
         return new RiftOffer
@@ -46,10 +52,67 @@ public static class RiftService
         };
     }
 
+    // Per-biome rift flavor: name + the biome-keyed relic it can pay out (docs/11).
+    private static readonly Dictionary<string, (string Name, string[] Relics)> BiomeFlavor = new()
+    {
+        ["hell"]    = ("Ember Depths",  new[] { "hellwalker", "pyroclasm", "ember_heart" }),
+        ["caverns"] = ("Stone Throat",  new[] { "sapper", "flint_core", "split_shot" }),
+        ["village"] = ("Ghost Spire",   new[] { "ghost_lens", "souljar", "second_wind" }),
+        ["heaven"]  = ("The Light Trial", new[] { "pillar_doctrine", "overcharge", "mana_battery" }),
+    };
+
+    /// <summary>Minimum non-boss floors in a generated rift (docs/04: runs are 2-5 levels).</summary>
+    private const int MinRunFloors = 2;
+    /// <summary>Random extra floors on top of the minimum (0-2 → 2-4 + boss = 3-5 total).</summary>
+    private const int ExtraRunFloorRange = 3;
+    /// <summary>Crystals paid for clearing a generated rift (matches the fixed dungeons).</summary>
+    private const int RiftRewardCrystals = 50;
+
     /// <summary>
-    /// Biome-appropriate dungeon: Witchland/Heaven clears lead to the Ghost Spire,
-    /// Hell/Caverns to the Ember Depths. Falls back to any dungeon if the
-    /// preferred one is absent.
+    /// Curated-shuffle rift generation (docs/12 §3): floors are a seeded pick from the
+    /// cleared biome's campaign levels (so each inherits the identity matrix), ending
+    /// at the biome's boss. Registered into the catalog under a per-biome id.
+    /// </summary>
+    public static DungeonDef? GenerateRift(string clearedLevelId, int seed,
+        DungeonCatalog catalog, CampaignCatalog campaign)
+    {
+        var biome = clearedLevelId.Split('-')[0];
+        if (!BiomeFlavor.TryGetValue(biome, out var flavor)) return PickDungeon(clearedLevelId, catalog);
+
+        var pool = campaign.Nodes
+            .Where(n => n.Biome == biome && !n.Id.EndsWith("-boss"))
+            .Select(n => n.Id).ToList();
+        if (pool.Count < MinRunFloors) return PickDungeon(clearedLevelId, catalog);
+
+        var rng    = new Rng(seed);
+        int floors = MinRunFloors + rng.Range(ExtraRunFloorRange);
+        floors     = System.Math.Min(floors, pool.Count);
+
+        var picks = new List<string>();
+        var avail = new List<string>(pool);
+        for (int i = 0; i < floors; i++)
+        {
+            int idx = rng.Range(avail.Count);
+            picks.Add(avail[idx]);
+            avail.RemoveAt(idx);
+        }
+        picks.Add($"{biome}-boss"); // every rift ends at the biome's boss
+
+        var def = new DungeonDef
+        {
+            Id             = $"rift-{biome}",
+            Name           = flavor.Name,
+            Floors         = picks,
+            RewardRelic    = flavor.Relics[rng.Range(flavor.Relics.Length)],
+            RewardCrystals = RiftRewardCrystals,
+        };
+        catalog.Register(def);
+        return def;
+    }
+
+    /// <summary>
+    /// Legacy fixed-dungeon pick (used when no campaign catalog is supplied):
+    /// Witchland/Heaven clears lead to the Ghost Spire, Hell/Caverns to the Ember Depths.
     /// </summary>
     private static DungeonDef? PickDungeon(string clearedLevelId, DungeonCatalog catalog)
     {

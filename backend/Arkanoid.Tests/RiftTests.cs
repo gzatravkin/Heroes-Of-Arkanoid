@@ -14,6 +14,50 @@ public class RiftTests
     ]}
     """);
 
+    // ── G3a: generated rifts (curated-shuffle over the biome's matrix levels) ──
+
+    private static CampaignCatalog Campaign() => CampaignCatalog.FromJson("""
+      { "nodes": [
+        { "id": "hell-1",    "label": "H1", "biome": "hell", "x": 0, "y": 0, "requires": [] },
+        { "id": "hell-2",    "label": "H2", "biome": "hell", "x": 1, "y": 0, "requires": ["hell-1"] },
+        { "id": "hell-4",    "label": "H4", "biome": "hell", "x": 2, "y": 0, "requires": ["hell-2"] },
+        { "id": "hell-5",    "label": "H5", "biome": "hell", "x": 3, "y": 0, "requires": ["hell-4"] },
+        { "id": "hell-boss", "label": "HB", "biome": "hell", "x": 4, "y": 0, "requires": ["hell-5"] }
+      ]}
+    """);
+
+    [Fact]
+    public void GeneratedRift_PicksBiomeFloors_EndsAtTheBoss_DeterministicBySeed()
+    {
+        var catalog = Catalog();
+        var rift = RiftService.GenerateRift("hell-2", seed: 7, catalog, Campaign());
+        Assert.NotNull(rift);
+        Assert.Equal("rift-hell", rift!.Id);
+
+        // 3-5 floors total, all from the hell biome, boss last (and only last).
+        Assert.InRange(rift.Floors.Count, 3, 5);
+        Assert.All(rift.Floors, f => Assert.StartsWith("hell", f));
+        Assert.Equal("hell-boss", rift.Floors[^1]);
+        Assert.DoesNotContain("hell-boss", rift.Floors.GetRange(0, rift.Floors.Count - 1));
+
+        // Registered for /dungeon/start lookup.
+        Assert.Equal(rift.Floors, catalog.Get("rift-hell").Floors);
+
+        // Deterministic by seed.
+        var again = RiftService.GenerateRift("hell-2", seed: 7, Catalog(), Campaign());
+        Assert.Equal(rift.Floors, again!.Floors);
+        Assert.Equal(rift.RewardRelic, again.RewardRelic);
+    }
+
+    [Fact]
+    public void Roll_WithCampaign_OffersTheGeneratedRift()
+    {
+        var rift = RiftService.Roll("force", 0.0, "hell-2", seed: 3, Catalog(), Campaign());
+        Assert.NotNull(rift);
+        Assert.Equal("rift-hell", rift!.DungeonId);
+        Assert.InRange(rift.Floors, 3, 5);
+    }
+
     [Fact]
     public void Force_AlwaysOpens_WithFloorCount()
     {

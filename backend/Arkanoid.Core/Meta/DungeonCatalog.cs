@@ -25,6 +25,9 @@ public sealed class DungeonCatalog
     public DungeonDef Get(string id) => _byId.TryGetValue(id, out var d) ? d
         : throw new KeyNotFoundException($"Dungeon '{id}' not found.");
 
+    /// <summary>Upsert a generated rift (one slot per id — regenerated offers replace the old one).</summary>
+    public void Register(DungeonDef def) => _byId[def.Id] = def;
+
     private sealed class Dto
     {
         [JsonPropertyName("dungeons")] public List<DungeonDef> Dungeons { get; set; } = new();

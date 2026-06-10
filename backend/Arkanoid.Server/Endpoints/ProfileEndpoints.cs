@@ -53,7 +53,10 @@ public static class ProfileEndpoints
             // mode: "force"/"none"/"roll" (default "none" so direct API callers are unaffected).
             var riftMode = ctx.Request.Query["rift"].FirstOrDefault();
             var riftSeed = unchecked((int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff) ^ levelId.GetHashCode());
-            var rift = RiftService.Roll(riftMode, progressionConfig.RiftChance, levelId, riftSeed, dungeonCatalog);
+            // Campaign catalog included: the rift is GENERATED from the cleared biome's
+            // matrix levels (docs/12 inheritance) and registered for /dungeon/start.
+            var rift = RiftService.Roll(riftMode, progressionConfig.RiftChance, levelId, riftSeed,
+                dungeonCatalog, campaignCatalog);
 
             return Results.Json(new { profile, reward, rift }, jsonOpts);
         });

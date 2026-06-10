@@ -1,0 +1,35 @@
+{
+  "id": "heaven-5",
+  "biome": "heaven",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "P.HTTH.P",
+    "C.DWWD.C",
+    "B.HTTH.B",
+    "H.R..V.H",
+    "S.MTTM.S",
+    "H.HTTH.H",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "H": "heaven_basic",
+    "T": "heaven_tough",
+    "S": "heaven_statue",
+    "M": "heaven_melee_statue",
+    "D": "heaven_shield_statue",
+    "W": "heaven_windmaster",
+    "P": "heaven_column_top",
+    "C": "heaven_column_mid",
+    "B": "heaven_column_bottom",
+    "R": "heaven_altar",
+    "V": "heaven_vase"
+  }
+}

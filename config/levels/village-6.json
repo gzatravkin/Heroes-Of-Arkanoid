@@ -1,0 +1,30 @@
+{
+  "id": "village-6",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    "PA.GG.AP",
+    "AGGNNGGA",
+    "AG.EE.GA",
+    "AGGGGGGA",
+    ".A.BB.A.",
+    "AA.AA.AA",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "village_basic",
+    "G": "village_ghost",
+    "E": "village_beholder",
+    "N": "village_necromant",
+    "P": "village_portal",
+    "B": "village_bat"
+  }
+}
