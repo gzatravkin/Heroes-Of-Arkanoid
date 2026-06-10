@@ -121,6 +121,16 @@ export const HUD_STYLES = `
       #hud-relics [data-relic-id] {
         cursor: default;
       }
+
+      /* Combo badge: scale-bounce when multiplier increases */
+      @keyframes combo-pop {
+        0%   { transform: scale(0.7); }
+        60%  { transform: scale(1.1); }
+        100% { transform: scale(1.0); }
+      }
+      #hud-combo.combo-pop {
+        animation: combo-pop 0.2s ease-out forwards;
+      }
       /* Landscape orientation: reduce bottom zone height */
       @media (orientation: landscape) and (max-height: 500px) {
         .hud-spell-frame {

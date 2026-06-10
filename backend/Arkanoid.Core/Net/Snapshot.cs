@@ -152,6 +152,10 @@ public sealed class Snapshot
     /// <summary>True while the Shield power-up is armed (one-touch ball save).</summary>
     [JsonPropertyName("shieldActive")]   public bool   ShieldActive   { get; set; }
 
+    // --- Combo multiplier (task 1.3) ---
+    /// <summary>Current combo multiplier (1–4). >1 means the player has a consecutive-hit streak.</summary>
+    [JsonPropertyName("comboMultiplier")] public int ComboMultiplier { get; set; } = 1;
+
     public static Snapshot From(GameInstance g, long tick)
     {
         var s = new Snapshot {
@@ -223,6 +227,7 @@ public sealed class Snapshot
         s.FireshotActive = g._fireshotActive;
         s.FireshotTimer  = g._fireshotTimer;
         s.ShieldActive   = g._shieldActive;
+        s.ComboMultiplier = g._comboMultiplier;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

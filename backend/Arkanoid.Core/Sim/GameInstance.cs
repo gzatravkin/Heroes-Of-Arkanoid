@@ -26,6 +26,11 @@ public sealed class GameInstance
 
     /// <summary>Counts destructible blocks destroyed this level; drives speed escalation (docs plan 2026-06-10).</summary>
     internal int _bricksDestroyedThisLevel = 0;
+
+    /// <summary>Consecutive brick destructions without paddle contact — drives the combo multiplier.</summary>
+    internal int _comboCount = 0;
+    /// <summary>Current combo multiplier (1–4). Every 3 consecutive destructions adds ×1; resets to ×1 on paddle contact.</summary>
+    internal int _comboMultiplier = 1;
     public List<Projectile> Projectiles { get; } = new();
 
     internal int _nextWallId = 1;

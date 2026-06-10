@@ -44,6 +44,9 @@ export interface Snapshot {
   fireshotActive?: boolean;
   fireshotTimer?: number;
   shieldActive?: boolean;
+  // --- Combo multiplier (task 1.3) ---
+  /** Consecutive-hit streak multiplier: 1 (none) … 4 (max). Resets on paddle contact. */
+  comboMultiplier?: number;
 }
 
 export class Connection {

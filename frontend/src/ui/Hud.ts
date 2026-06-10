@@ -84,6 +84,9 @@ export class Hud {
   private _itemsRowEl: HTMLElement | null = null;
   // Active power-up panel (top-right; task 1.2).
   private _powerupPanelEl: HTMLElement;
+  // Combo badge (top-right, below power-ups; task 1.3).
+  private _comboBadgeEl: HTMLElement;
+  private _prevComboMult = 1;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -201,6 +204,23 @@ export class Hud {
       "align-items:flex-end", "pointer-events:none",
     ].join(";");
     this.root.appendChild(this._powerupPanelEl);
+
+    // ---- combo multiplier badge (top-right, below power-up panel; task 1.3) ----
+    this._comboBadgeEl = this.createElement("div");
+    this._comboBadgeEl.id = "hud-combo";
+    this._comboBadgeEl.style.cssText = [
+      "position:absolute", "top:155px", "right:8px",
+      "display:none",
+      "color:var(--gold-bright,#ffc84e)",
+      "text-shadow:0 0 8px rgba(255,190,80,0.6)",
+      "font-family:var(--font-display,'Segoe UI',system-ui,sans-serif)",
+      "font-size:18px", "font-weight:bold",
+      "background:rgba(0,0,0,0.65)",
+      "border:1px solid rgba(255,190,80,0.4)",
+      "border-radius:6px", "padding:3px 10px",
+      "pointer-events:none",
+    ].join(";");
+    this.root.appendChild(this._comboBadgeEl);
 
     // ---- banner (center) ----
     this.banner = this.createElement("div", "hud-banner");
@@ -369,6 +389,8 @@ export class Hud {
     this.updateEffects(s);
     // -- active power-up indicators (top-right panel, task 1.2) --
     this.updatePowerups(s);
+    // -- combo multiplier badge (task 1.3) --
+    this.updateComboBadge(s);
 
     // -- banner --
     if (s.phase === "Won") {
@@ -490,6 +512,26 @@ export class Hud {
       const t = timer !== undefined ? ` ${Math.ceil(timer)}s` : "";
       return `<div class="hud-powerup-active" style="background:rgba(0,0,0,0.70);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
     }).join("");
+  }
+
+  // -----------------------------------------------------------------------
+  /** Combo multiplier badge — shows ×2/×3/×4 with a pop animation on increase (task 1.3). */
+  private updateComboBadge(s: Snapshot) {
+    const combo = s.comboMultiplier ?? 1;
+    if (combo > 1) {
+      if (combo !== this._prevComboMult) {
+        // Trigger scale-bounce animation by removing and re-adding the class.
+        this._comboBadgeEl.classList.remove("combo-pop");
+        // Force reflow so the browser registers the removal before re-adding.
+        void this._comboBadgeEl.offsetWidth;
+        this._comboBadgeEl.classList.add("combo-pop");
+      }
+      this._comboBadgeEl.style.display = "block";
+      this._comboBadgeEl.textContent = `×${combo}`;
+    } else {
+      this._comboBadgeEl.style.display = "none";
+    }
+    this._prevComboMult = combo;
   }
 
   private updateRelics(relics: { id: string; name: string; icon: string }[]) {

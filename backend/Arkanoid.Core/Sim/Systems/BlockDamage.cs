@@ -31,6 +31,11 @@ internal static class BlockDamage
             g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + Modifiers.KillManaGain(g));
             // Speed escalation: +5% per 20 bricks destroyed, capped at 1.4× (docs plan 2026-06-10).
             g._bricksDestroyedThisLevel++;
+            // Combo multiplier: every 3 consecutive kills (no paddle contact) advances ×1→×2→×3→×4.
+            g._comboCount++;
+            g._comboMultiplier = System.Math.Min(4, 1 + g._comboCount / 3);
+            // Base crystal reward (1 per block) scaled by the current combo multiplier.
+            g.Crystals += g._comboMultiplier;
             var speedMult = System.Math.Min(1.4, 1.0 + System.Math.Floor(g._bricksDestroyedThisLevel / 20.0) * 0.05);
             foreach (var ball in g.Balls)
             {

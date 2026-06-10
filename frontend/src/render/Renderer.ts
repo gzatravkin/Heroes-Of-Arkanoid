@@ -1,4 +1,4 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { HazardLayer } from "./HazardLayer";
@@ -141,6 +141,13 @@ export class Renderer {
   private _dangerBlocks: { x: number; y: number }[] = [];
   private _dangerBrickSize = 0;
 
+  // Floating score popups: pool of 10 Text objects reused to avoid GC pressure.
+  private _floaterPool: Text[] = [];
+  private _activeFloaters: { text: Text; elapsed: number }[] = [];
+  private _floaterContainer = new Container();
+  // Previous-frame block positions — used to detect block disappearances for floater spawning.
+  private _prevBlocks = new Map<number, { x: number; y: number }>();
+
   /** Switch the paddle/ball sprites to match the given class. */
   setClass(classId: string) {
     const paddleKeys = CLASS_PADDLE_KEYS[classId] ?? CLASS_PADDLE_KEYS.fire_mage;
@@ -200,6 +207,23 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
+    // Floating score popup pool: 10 pre-allocated PIXI.Text objects (task 1.3).
+    const floaterStyle = {
+      fontSize: 14,
+      fill: 0xd8a84e,
+      fontWeight: "bold" as const,
+      dropShadow: true,
+      dropShadowDistance: 2,
+      dropShadowAlpha: 0.8,
+    };
+    for (let i = 0; i < 10; i++) {
+      const t = new Text("", floaterStyle);
+      t.visible = false;
+      t.anchor.set(0.5, 1); // anchor at bottom-centre so text rises from block position
+      this._floaterPool.push(t);
+      this._floaterContainer.addChild(t);
+    }
+
     // Layer order: ambient → ballTrail → zones → blocks → dangerOverlay → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses → powerUps
     this.world.addChild(
       this.background.ambientContainer,
@@ -220,6 +244,7 @@ export class Renderer {
       this.hazardLayer.container,
       this.bonusLayer.container,
       this.powerUpLayer.container,
+      this._floaterContainer,  // floating score popups drawn over everything
     );
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
     this.damageFlash.alpha = 0;
@@ -288,9 +313,36 @@ export class Renderer {
         this._dangerOverlay.clear();
       }
 
+      // Floating score popups: rise and fade over 800 ms.
+      for (let fi = this._activeFloaters.length - 1; fi >= 0; fi--) {
+        const f = this._activeFloaters[fi];
+        f.elapsed += dtMs;
+        // Rise 40 world-units over 800 ms.
+        f.text.y -= 40 * (dtMs / 800);
+        f.text.alpha = Math.max(0, 1 - f.elapsed / 800);
+        if (f.elapsed >= 800) {
+          f.text.visible = false;
+          f.text.alpha = 1;
+          this._floaterPool.push(f.text);
+          this._activeFloaters.splice(fi, 1);
+        }
+      }
+
       // Ambient sprite drift animation (village beholders).
       this.background.updateAnim(dtMs);
     });
+  }
+
+  /** Spawn a floating "+1 ×M" score label rising from world position (wx, wy). */
+  private _spawnFloater(wx: number, wy: number, mult: number) {
+    if (this._floaterPool.length === 0) return; // pool exhausted — skip
+    const t = this._floaterPool.pop()!;
+    t.text = `+1 ×${mult}`;  // e.g. "+1 ×3"
+    t.x = wx;
+    t.y = wy;
+    t.alpha = 1;
+    t.visible = true;
+    this._activeFloaters.push({ text: t, elapsed: 0 });
   }
 
   private fit(s: Snapshot) {
@@ -350,6 +402,22 @@ export class Renderer {
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
     this.blockLayer.update(s.blocks, this._tick, brickSize, s.windRadius ?? 0);
+
+    // --- floating score popups: detect destroyed blocks, spawn floater when combo > 1 ---
+    const combo = s.comboMultiplier ?? 1;
+    if (this._prevBlocks.size > 0 && combo > 1) {
+      const currentIds = new Set(s.blocks.map(b => b.id));
+      for (const [id, pos] of this._prevBlocks) {
+        if (!currentIds.has(id)) {
+          this._spawnFloater(pos.x, pos.y, combo);
+        }
+      }
+    }
+    // Update prev-blocks map for next frame.
+    this._prevBlocks.clear();
+    for (const b of s.blocks) {
+      this._prevBlocks.set(b.id, { x: b.x, y: b.y });
+    }
 
     // --- last-brick highlight: track the final ≤3 destructible bricks for the pulsing overlay ---
     const destructible = s.blocks.filter(b => !b.indestructible && b.hp > 0);

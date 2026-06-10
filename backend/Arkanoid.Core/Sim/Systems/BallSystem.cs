@@ -42,7 +42,12 @@ internal static class BallSystem
             SpellSystem.OnTopWallBounce(g, b); // Paladin Last Day column smite
 
         if (Arkanoid.Core.Physics.BallPhysics.ResolvePaddle(b, g.Paddle, g.Config, out var t))
+        {
             SpellSystem.OnPaddleHit(g, b, t);
+            // Combo resets on every paddle contact (streak broken).
+            g._comboCount = 0;
+            g._comboMultiplier = 1;
+        }
 
         ResolveBarriers(g, b);
         ResolveBlocks(g, b);

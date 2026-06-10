@@ -102,6 +102,12 @@ internal static class CheatHandler
                     }
                 }
                 break;
+            case "setCombo":
+                // value = desired multiplier (1–4). Sets _comboCount to the minimum that produces it.
+                g._comboMultiplier = System.Math.Min(4, System.Math.Max(1, (int)value));
+                g._comboCount = (g._comboMultiplier - 1) * 3;
+                break;
+
             case "parkBallAbovePaddle":
                 if (g.Phase == GamePhase.Serving) g.Phase = GamePhase.Playing;
                 foreach (var b in g.Balls)
