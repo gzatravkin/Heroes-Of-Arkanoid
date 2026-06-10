@@ -109,6 +109,8 @@ public sealed class Snapshot
     [JsonPropertyName("paddleW")] public double PaddleW { get; set; }
     [JsonPropertyName("paddleH")] public double PaddleH { get; set; }
     [JsonPropertyName("cellSize")] public double CellSize { get; set; }
+    [JsonPropertyName("cols")]     public int    Cols      { get; set; }
+    [JsonPropertyName("rows")]     public int    Rows      { get; set; }
     [JsonPropertyName("balls")] public List<BallDto> Balls { get; set; } = new();
     [JsonPropertyName("blocks")] public List<BlockDto> Blocks { get; set; } = new();
     [JsonPropertyName("walls")] public List<WallDto> Walls { get; set; } = new();
@@ -149,7 +151,9 @@ public sealed class Snapshot
             BoardW = g.Level.Grid.Width, BoardH = g.Level.Grid.Height,
             Biome = g.Level.Biome,
             PaddleX = g.Paddle.Center.X, PaddleW = g.Paddle.Width, PaddleH = g.Paddle.Height,
-            CellSize = g.Config.CellSize
+            CellSize = g.Config.CellSize,
+            Cols = g.Level.Grid.Cols,
+            Rows = g.Level.Grid.Rows,
         };
         foreach (var b in g.Balls)
             s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0, Decayed = b.DecayHitsLeft > 0, Ghost = b.Ghost });

@@ -14,7 +14,14 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "config", "levels");
-const COLS = 8, ROWS = 14;
+
+// Default grid size for levels that don't specify cols/rows.
+const DEFAULT_COLS = 8, DEFAULT_ROWS = 14;
+
+// Valid grid configurations — tight / standard / wide / tall.
+// Any other combination is rejected with a clear error.
+const VALID_SIZES = new Set(["6x12", "8x14", "10x16", "8x20"]);
+const VALID_SIZES_DISPLAY = "6×12 (tight), 8×14 (standard), 10×16 (wide), 8×20 (tall)";
 
 // Block ids that count as needToKill (winnable). Used for validation.
 const DESTRUCTIBLE = new Set([
@@ -428,13 +435,23 @@ let count = 0;
 for (const lvl of LEVELS) {
   const tag = lvl.id;
 
+  // Per-level grid dimensions (default to 8×14 if not specified).
+  // NOTE: in the LEVELS array the row-data array is keyed as `lvl.rows`; the
+  // optional grid-dimension overrides use `lvl.gridCols` / `lvl.gridRows` to
+  // avoid shadowing it.
+  const nCols = lvl.gridCols ?? DEFAULT_COLS;
+  const nRows = lvl.gridRows ?? DEFAULT_ROWS;
+  const sizeKey = `${nCols}x${nRows}`;
+  if (!VALID_SIZES.has(sizeKey))
+    throw new Error(`${tag}: grid ${nCols}×${nRows} is not a valid size — accepted: ${VALID_SIZES_DISPLAY}`);
+
   // Width + pad.
-  const padRows = (rows) => {
-    for (const [i, r] of rows.entries())
-      if (r.length !== COLS) throw new Error(`${tag} row ${i} is ${r.length} chars: "${r}"`);
-    const out = [...rows];
-    while (out.length < ROWS) out.push(".".repeat(COLS));
-    if (out.length !== ROWS) throw new Error(`${tag} has ${out.length} rows`);
+  const padRows = (rowsIn) => {
+    for (const [i, r] of rowsIn.entries())
+      if (r.length !== nCols) throw new Error(`${tag} row ${i} is ${r.length} chars: "${r}"`);
+    const out = [...rowsIn];
+    while (out.length < nRows) out.push(".".repeat(nCols));
+    if (out.length !== nRows) throw new Error(`${tag} has ${out.length} rows (expected ${nRows})`);
     return out;
   };
   const rows_data = padRows(lvl.rows);
@@ -455,11 +472,14 @@ for (const lvl of LEVELS) {
     if (lvl[f] && !allowed.includes(f)) throw new Error(`${tag}: field "${f}" is not ${lvl.biome}'s pacing/objective`);
   if (lvl.floors?.length && !allowed.includes("floors")) throw new Error(`${tag}: floors are caverns-only`);
 
-  // Rule 4 — depth: ≥6 occupied rows within rows 0-9; rows 12-13 clear.
-  const occupied = rows_data.slice(0, 10).filter((r) => [...r].some((c) => lvl.legend[c])).length;
-  if (occupied < 6) throw new Error(`${tag}: only ${occupied} occupied rows in rows 0-9 (depth rule needs ≥6)`);
-  if (rows_data.slice(12).some((r) => [...r].some((c) => lvl.legend[c])))
-    throw new Error(`${tag}: rows 12-13 must stay clear (paddle zone)`);
+  // Rule 4 — depth: ≥6 occupied rows in rows 0..(nRows-5); last 2 rows clear (paddle zone).
+  // depthEnd = nRows-4 scales with grid height:  6×12→8, 8×14→10, 10×16→12, 8×20→16
+  const depthEnd    = nRows - 4;
+  const paddleStart = nRows - 2;
+  const occupied = rows_data.slice(0, depthEnd).filter((r) => [...r].some((c) => lvl.legend[c])).length;
+  if (occupied < 6) throw new Error(`${tag}: only ${occupied} occupied rows in rows 0-${depthEnd - 1} (depth rule needs ≥6)`);
+  if (rows_data.slice(paddleStart).some((r) => [...r].some((c) => lvl.legend[c])))
+    throw new Error(`${tag}: rows ${paddleStart}-${nRows - 1} must stay clear (paddle zone)`);
 
   if (!lvl.boss) {
     // Rule 1 — marker.
@@ -474,7 +494,7 @@ for (const lvl of LEVELS) {
     prevByBiome[lvl.biome] = lvl;
   }
 
-  const json = { id: lvl.id, biome: lvl.biome, cols: COLS, rows: ROWS, rows_data, legend: lvl.legend };
+  const json = { id: lvl.id, biome: lvl.biome, cols: nCols, rows: nRows, rows_data, legend: lvl.legend };
   if (lvl.descendInterval)  json.descendInterval  = lvl.descendInterval;
   if (lvl.timeLimit)        json.timeLimit        = lvl.timeLimit;
   if (lvl.surviveTime)      json.surviveTime      = lvl.surviveTime;

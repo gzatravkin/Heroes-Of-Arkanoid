@@ -35,6 +35,9 @@ export interface Snapshot {
   /** Multi-floor collapse progress (1-based; floorCount 1 = single floor). */
   floor?: number;
   floorCount?: number;
+  /** Grid dimensions in cells (populated from Grid.Cols / Grid.Rows). */
+  cols?: number;
+  rows?: number;
 }
 
 export class Connection {
