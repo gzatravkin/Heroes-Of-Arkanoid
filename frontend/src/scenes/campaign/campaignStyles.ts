@@ -146,10 +146,15 @@ export const CAMPAIGN_STYLES = `
       font-family: sans-serif;
       font-weight: 600;
       min-height: 36px;
-      transition: filter 0.15s;
+      transition: filter 0.15s, transform 0.1s;
     }
-    .camp-upgrade-btn:hover   { filter: brightness(1.15); }
+    .camp-upgrade-btn:hover:not(:disabled)   { filter: brightness(1.15); }
+    .camp-upgrade-btn:active:not(:disabled)  { transform: scale(0.96); }
     .camp-upgrade-btn.active  { filter: brightness(1.2) saturate(1.4); }
+    .camp-upgrade-btn:disabled {
+      filter: saturate(0.25) brightness(0.65);
+      cursor: default;
+    }
     .camp-upgrade-ico {
       width: 22px;
       height: 22px;
@@ -213,12 +218,13 @@ export const CAMPAIGN_STYLES = `
       border: none;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.15s;
+      transition: transform 0.15s, filter 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .camp-node:hover { transform: scale(1.08); }
-    .camp-node-locked { cursor: not-allowed; opacity: 0.7; }
-    .camp-node-locked:hover { transform: none; }
+    .camp-node:hover:not(.camp-node-locked) { transform: scale(1.08); filter: brightness(1.15); }
+    .camp-node:active:not(.camp-node-locked) { transform: scale(0.96); }
+    .camp-node-locked { cursor: default; opacity: 0.7; }
+    .camp-node-locked:hover { transform: none; filter: none; }
 
     .camp-node-img {
       width: 64px;
@@ -298,5 +304,19 @@ export const CAMPAIGN_STYLES = `
       transition: filter 0.15s, transform 0.1s;
     }
     .camp-plus-btn.can-afford:hover  { filter: brightness(1.2); transform: scale(1.1); }
-    .camp-plus-btn.cannot-afford { filter: grayscale(1) opacity(0.4); cursor: not-allowed; }
+    .camp-plus-btn.can-afford:active { transform: scale(0.96); }
+    .camp-plus-btn.cannot-afford { filter: grayscale(1) opacity(0.4); cursor: default; }
+
+    /* ── Campaign back-link (top-left of profile bar) ── */
+    .camp-back-link {
+      flex-shrink: 0;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      transition: filter 0.15s, transform 0.1s;
+    }
+    .camp-back-link:hover  { filter: brightness(1.15); color: var(--gold-bright); }
+    .camp-back-link:active { transform: scale(0.96); }
 `;

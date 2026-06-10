@@ -97,15 +97,15 @@ export function mountCampaign(host: HTMLElement) {
   btnUpgrade.className = "camp-upgrade-btn";
   btnUpgrade.innerHTML = `<img src="/ui/InterfaceSkillsButton.png" class="camp-upgrade-ico" alt=""> <span>Upgrades</span>`;
 
-  // Back button
+  // Back button — top-left of profile bar (Rulebook §7)
   const btnBack = document.createElement("a");
-  btnBack.className = "ui-link";
+  btnBack.className = "ui-link camp-back-link";
   btnBack.textContent = "← Menu";
   btnBack.href = "/?scene=menu";
-  css(btnBack, { textDecoration: "none", fontSize: "13px", padding: "12px 14px", minHeight: "44px", display: "flex", alignItems: "center", cursor: "pointer", transition: "filter 0.15s" });
 
+  // Back button goes FIRST (leftmost = top-left affordance)
+  profileBar.insertBefore(btnBack, profileBar.firstChild);
   profileBar.appendChild(btnUpgrade);
-  profileBar.appendChild(btnBack);
   root.appendChild(profileBar);
 
   // ── Main content ─────────────────────────────────────────────────────────

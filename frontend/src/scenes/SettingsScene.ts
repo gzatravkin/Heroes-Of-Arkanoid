@@ -290,7 +290,10 @@ function injectSettingsStyles() {
       position: relative; display: inline-block;
       width: 48px; height: 28px; flex-shrink: 0;
       cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
     }
+    .set-toggle:hover  { filter: brightness(1.15); }
+    .set-toggle:active { transform: scale(0.96); }
     .set-toggle input { opacity: 0; width: 0; height: 0; }
     .set-toggle-slider {
       position: absolute; inset: 0;

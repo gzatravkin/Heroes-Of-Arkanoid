@@ -16,6 +16,28 @@ export function mountDungeon(host: HTMLElement) {
   root.className = "dngrun-root";
   host.appendChild(root);
 
+  // Persistent topbar: back chip (top-left, ≥44px) · title · symmetry spacer
+  const topbar = document.createElement("div");
+  topbar.className = "dngrun-topbar";
+
+  const backChip = document.createElement("a");
+  backChip.href = "/?scene=campaign";
+  backChip.className = "ui-back";
+  backChip.setAttribute("aria-label", "Back to campaign");
+  topbar.appendChild(backChip);
+
+  const titleEl = document.createElement("h1");
+  titleEl.id = "dngrun-title";
+  titleEl.textContent = "Dungeon";
+  titleEl.className = "ui-title";
+  topbar.appendChild(titleEl);
+
+  const topSpacer = document.createElement("div");
+  topSpacer.className = "ui-topbar-spacer";
+  topbar.appendChild(topSpacer);
+
+  root.appendChild(topbar);
+
   async function load() {
     let state: DungeonRunState = {};
     try {
@@ -46,43 +68,24 @@ export function mountDungeon(host: HTMLElement) {
     msg.textContent = "No active run.";
     css(msg, { marginTop: "40px", fontSize: "1.1rem", color: "#8899cc" });
     root.appendChild(msg);
-
-    const link = document.createElement("a");
-    link.href = "/?scene=campaign";
-    link.textContent = "← Back to Campaign";
-    link.className = "ui-link";
-    root.appendChild(link);
+    // Back affordance is the persistent topbar back chip above.
   }
 
   function renderCleared() {
+    titleEl.textContent = "Dungeon Cleared!";
     const msg = document.createElement("div");
     msg.textContent = "Dungeon Cleared!";
     css(msg, { marginTop: "40px", fontSize: "1.5rem", fontWeight: "700", color: "#55ee88",
                textShadow: "0 0 16px rgba(50,220,100,0.5)" });
     root.appendChild(msg);
-
-    const link = document.createElement("a");
-    link.href = "/?scene=campaign";
-    link.textContent = "← Back to Campaign";
-    link.className = "ui-link";
-    root.appendChild(link);
+    // Back affordance is the persistent topbar back chip above.
   }
 
   function renderActive(state: { floors: string[]; floorIndex: number; relics: string[]; ballCores: string[]; dungeonId: string }) {
     const { floors, floorIndex, relics, ballCores } = state;
 
-    // Back link
-    const backBtn = document.createElement("a");
-    backBtn.href = "/?scene=campaign";
-    backBtn.textContent = "← Campaign";
-    backBtn.className = "ui-link";
-    root.appendChild(backBtn);
-
-    // Title
-    const h1 = document.createElement("h1");
-    h1.textContent = "Active Run";
-    h1.className = "ui-title";
-    root.appendChild(h1);
+    // Update persistent topbar title (back affordance already present)
+    titleEl.textContent = "Active Run";
 
     // Floor progress
     const progressEl = document.createElement("div");
@@ -165,6 +168,15 @@ function injectDungeonRunStyles() {
         radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
         linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
     }
+    /* Persistent topbar: back chip (top-left ≥44px) · centered title · spacer */
+    .dngrun-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      align-self: stretch;
+    }
+    .dngrun-topbar .ui-title { flex: 1; text-align: center; }
     .dngrun-progress {
       id: dungeon-floor-progress;
       font-size: 13px;

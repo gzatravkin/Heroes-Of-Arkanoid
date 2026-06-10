@@ -25,23 +25,32 @@ export function mountDungeons(host: HTMLElement) {
   root.className = "dng-root";
   host.appendChild(root);
 
-  // Back link
+  // Top bar: back chip (top-left, ≥44px) · centered title · symmetry spacer
+  const topbar = document.createElement("div");
+  topbar.className = "dng-topbar";
+
   const backBtn = document.createElement("a");
-  backBtn.href = "/";
-  backBtn.textContent = "← Menu";
-  backBtn.className = "ui-link";
-  root.appendChild(backBtn);
+  backBtn.href = "/?scene=menu";
+  backBtn.className = "ui-back";
+  backBtn.setAttribute("aria-label", "Back to menu");
+  topbar.appendChild(backBtn);
+
+  const h1 = document.createElement("h1");
+  h1.textContent = "Dungeons";
+  h1.className = "ui-title";
+  topbar.appendChild(h1);
+
+  const topSpacer = document.createElement("div");
+  topSpacer.className = "ui-topbar-spacer";
+  topbar.appendChild(topSpacer);
+
+  root.appendChild(topbar);
 
   // Flavor banner
   const banner = document.createElement("div");
   banner.className = "dng-flavor";
   banner.textContent = "A rift has opened — descend? Death here is permanent.";
   root.appendChild(banner);
-
-  const h1 = document.createElement("h1");
-  h1.textContent = "Dungeons";
-  h1.className = "ui-title";
-  root.appendChild(h1);
 
   // Dungeon list
   const list = document.createElement("div");
@@ -141,6 +150,15 @@ function injectDungeonStyles() {
         radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
         linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
     }
+    /* Top bar: back chip (top-left, ≥44px) · centered title · symmetry spacer */
+    .dng-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      align-self: stretch;
+    }
+    .dng-topbar .ui-title { flex: 1; text-align: center; }
     .dng-flavor {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
       padding: 12px 16px;
