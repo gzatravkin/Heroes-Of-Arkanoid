@@ -8,10 +8,6 @@ import { PROJECTILE_ID_THRESHOLD } from "./BallLayer";
 // bounce animation. update() positions them from the snapshot; updateAnim() drives
 // the bar cycling + squash timeline.
 
-// Paddle bar animation: cycle through 4 class bar frames at a slow rate.
-const PADDLE_ANIM_FPS = 6;
-const PADDLE_ANIM_MS_PER_FRAME = 1000 / PADDLE_ANIM_FPS;
-
 // Turret visual: barrel length and width as fractions of paddleH.
 const TURRET_BARREL_LENGTH_MULT = 1.8;
 const TURRET_BARREL_WIDTH_MULT  = 0.45;
@@ -40,7 +36,6 @@ export class PaddleLayer {
     "firemage/bars/v2FireHero3", "firemage/bars/v2FireHero4",
   ];
   private _animFrame = 0;
-  private _animElapsed = 0;
 
   // Squash/stretch state.
   private _squashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
@@ -167,16 +162,23 @@ export class PaddleLayer {
       }
     }
 
-    // Paddle bar animation: cycle through the 4 class bar frames.
-    this._animElapsed += dtMs;
-    if (this._animElapsed >= PADDLE_ANIM_MS_PER_FRAME) {
-      this._animElapsed -= PADDLE_ANIM_MS_PER_FRAME;
-      this._animFrame = (this._animFrame + 1) % this._animKeys.length;
-      const nextTex = atlasTex(this._animKeys[this._animFrame]);
-      if (nextTex !== Texture.WHITE) {
-        this.leftHalf.texture  = nextTex;
-        this.rightHalf.texture = nextTex;
-      }
+  }
+
+  /**
+   * Select the bar-frame from the mana ratio (0.0–1.0):
+   *   0.00–0.24 → frame 0 (compact simple paddle)
+   *   0.25–0.49 → frame 1
+   *   0.50–0.74 → frame 2
+   *   0.75–1.00 → frame 3 (wide elaborate dragon-head)
+   */
+  setMana(ratio: number): void {
+    const frame = Math.min(3, Math.floor(Math.max(0, ratio) * 4));
+    if (frame === this._animFrame) return;
+    this._animFrame = frame;
+    const nextTex = atlasTex(this._animKeys[frame]);
+    if (nextTex !== Texture.WHITE) {
+      this.leftHalf.texture  = nextTex;
+      this.rightHalf.texture = nextTex;
     }
   }
 }

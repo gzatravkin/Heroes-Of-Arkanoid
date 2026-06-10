@@ -14,6 +14,7 @@ import { maybeShowTutorial } from "./TutorialOverlay";
 
 export function mountBattle(host: HTMLElement, level: string, seed: number, run: string, from = "") {
   const r = new Renderer(host);
+  (window as any).__renderer = r;
   const hud = new Hud(host);
   const conn = new Connection(level, seed, run);
 

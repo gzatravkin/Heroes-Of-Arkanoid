@@ -97,7 +97,7 @@ export class Renderer {
   private effectsLayer: Effects;
   private fireWallLayer = new FireWallLayer();
   private hazardLayer = new HazardLayer();
-  private paddleLayer = new PaddleLayer();
+  readonly paddleLayer = new PaddleLayer();
   private ballLayer = new BallLayer();
   private ballTrail: BallTrail;
   private screenShake: ScreenShake;
@@ -409,6 +409,8 @@ export class Renderer {
 
     // --- paddle + turret (squash trigger, per-class bar sprite, turret indicator) ---
     this.paddleLayer.update(s.paddleX, s.paddleW, s.paddleH, s.boardH, s.cellSize, s.turretActive, s.balls);
+    // Drive the bar-frame from mana ratio so power-state art matches game state.
+    this.paddleLayer.setMana(s.mana / (s.manaMax || 100));
 
     // --- ball trail (drawn behind balls) ---
     const ballRadius = s.cellSize * 0.25;
