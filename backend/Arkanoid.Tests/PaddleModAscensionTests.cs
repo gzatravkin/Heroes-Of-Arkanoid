@@ -101,6 +101,31 @@ public class PaddleModAscensionTests
         Assert.Equal(4, g.Blocks[0].Hp);
     }
 
+    // ── Character unlocking (docs/04 §3: bosses earn the roster) ───────────────
+
+    [Fact]
+    public void BossClears_UnlockCharacters_FreshProfilesStartWithFireMage()
+    {
+        var p = Profile.NewDefault();
+        Assert.Equal(new[] { "fire_mage" }, p.UnlockedCharacters);
+
+        var cfg = new ProgressionConfig();
+        var r1 = Rewards.GrantLevelCompletion(p, "hell-boss", cfg);
+        Assert.Equal("paladin", r1.CharacterUnlocked);
+        Assert.Contains("paladin", p.UnlockedCharacters);
+
+        // Idempotent: a repeat clear unlocks nothing new.
+        var r2 = Rewards.GrantLevelCompletion(p, "hell-boss", cfg);
+        Assert.Null(r2.CharacterUnlocked);
+
+        Rewards.GrantLevelCompletion(p, "caverns-boss", cfg);
+        Rewards.GrantLevelCompletion(p, "village-boss", cfg);
+        Assert.Contains("engineer", p.UnlockedCharacters);
+        Assert.Contains("necromancer", p.UnlockedCharacters);
+        // Ordinary levels unlock nothing.
+        Assert.Null(Rewards.GrantLevelCompletion(p, "heaven-1", cfg).CharacterUnlocked);
+    }
+
     [Fact]
     public void GeneratedRift_CarriesTier_NameSuffix_AndScaledReward()
     {

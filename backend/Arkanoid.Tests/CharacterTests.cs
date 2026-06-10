@@ -113,14 +113,12 @@ public class CharacterTests
     }
 
     [Fact]
-    public void Profile_NewDefault_AllFourUnlocked()
+    public void Profile_NewDefault_StartsWithFireMageOnly()
     {
+        // Characters are EARNED (docs/04 §3): fresh saves get the Fire Mage; the
+        // rest unlock through boss clears (Rewards.CharacterUnlocks).
         var p = Profile.NewDefault();
-        Assert.Contains("fire_mage",   p.UnlockedCharacters);
-        Assert.Contains("paladin",     p.UnlockedCharacters);
-        Assert.Contains("engineer",    p.UnlockedCharacters);
-        Assert.Contains("necromancer", p.UnlockedCharacters);
-        Assert.Equal(4, p.UnlockedCharacters.Count);
+        Assert.Equal(new[] { "fire_mage" }, p.UnlockedCharacters);
     }
 
     // -------------------------------------------------------------------------

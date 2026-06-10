@@ -18,6 +18,7 @@ import { Vignette } from "./Vignette";
 import { BossRig, TelegraphWarning, inferBossType } from "./Boss";
 import { log } from "../log";
 import { consumeSfx } from "../audio/Sfx";
+import { setMusicBiome } from "../audio/Music";
 
 // Heavy GPU effects (GlowFilter/bloom render-to-texture passes) are gated behind
 // this flag so that Playwright's headless software-WebGL never pays the cost.
@@ -443,5 +444,6 @@ export class Renderer {
     this.effectsLayer.boardH = s.boardH;
     this.effectsLayer.consume(s.events, s.cellSize, s.biome);
     consumeSfx(s.events); // procedural Web Audio cues (G1) — same event stream
+    setMusicBiome(s.biome); // per-biome generative ambience (docs/12 briefs)
   }
 }

@@ -55,7 +55,10 @@ public sealed class Profile
                 ["turret"]   = 1,
             },
             SelectedCharacter  = "fire_mage",
-            UnlockedCharacters = new List<string> { "fire_mage", "paladin", "engineer", "necromancer" },
+            // Characters are EARNED (docs/04 §3): fresh saves start with the Fire Mage;
+            // boss clears unlock the rest (see Rewards.CharacterUnlocks). Existing
+            // saves persisted the full list and are untouched.
+            UnlockedCharacters = new List<string> { "fire_mage" },
             OwnedItems         = new Dictionary<string, int>(),
             EquippedItems      = new List<string>(),
         };

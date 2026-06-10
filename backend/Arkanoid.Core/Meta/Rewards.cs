@@ -8,10 +8,23 @@ public sealed class RewardResult
     public int  CrystalsGained { get; init; }
     public int  NewLevel       { get; init; }
     public bool LeveledUp      { get; init; }
+    /// <summary>Character id unlocked by this clear (boss firsts), or null.</summary>
+    public string? CharacterUnlocked { get; init; }
 }
 
 public static class Rewards
 {
+    /// <summary>
+    /// Boss clears unlock the next character (docs/04 §3: "reruns earn new ones").
+    /// Existing saves already persist all four unlocked — only fresh profiles earn.
+    /// </summary>
+    private static readonly Dictionary<string, string> CharacterUnlocks = new()
+    {
+        ["hell-boss"]    = "paladin",
+        ["caverns-boss"] = "engineer",
+        ["village-boss"] = "necromancer",
+    };
+
     /// <summary>
     /// Grants first-clear rewards to <paramref name="p"/> for completing <paramref name="levelId"/>.
     /// Idempotent: subsequent calls with the same levelId return FirstClear=false and grant nothing.
@@ -57,6 +70,15 @@ public static class Rewards
 
         p.Points += totalPointsFromLevelUps;
 
+        // Boss first-clears unlock the next character.
+        string? characterUnlocked = null;
+        if (CharacterUnlocks.TryGetValue(levelId, out var charId)
+            && !p.UnlockedCharacters.Contains(charId))
+        {
+            p.UnlockedCharacters.Add(charId);
+            characterUnlocked = charId;
+        }
+
         return new RewardResult
         {
             FirstClear     = true,
@@ -65,6 +87,7 @@ public static class Rewards
             CrystalsGained = totalCrystals,
             NewLevel       = p.Level,
             LeveledUp      = p.Level > startingLevel,
+            CharacterUnlocked = characterUnlocked,
         };
     }
 }

@@ -65,6 +65,14 @@ export function mountCharacters(host: HTMLElement) {
   root.appendChild(inner);
   host.appendChild(root);
 
+  // Characters are EARNED through boss clears (docs/04 §3); hints mirror
+  // Rewards.CharacterUnlocks on the backend.
+  const UNLOCK_HINTS: Record<string, string> = {
+    paladin:     "Defeat the Demon Lord in Hell to unlock",
+    engineer:    "Defeat the Goblin King in the Caverns to unlock",
+    necromancer: "Defeat the Witch in Witchland to unlock",
+  };
+
   async function render() {
     const data = await metaApi.getCharacters();
     const selectable = data.unlocked.length === 0
@@ -123,9 +131,9 @@ export function mountCharacters(host: HTMLElement) {
         card.appendChild(nameEl);
       }
 
-      // Passive text
+      // Passive text — locked characters show how to earn them instead.
       const passiveEl = document.createElement("div");
-      passiveEl.textContent = char.passive;
+      passiveEl.textContent = isSelectable ? char.passive : (UNLOCK_HINTS[char.id] ?? "Locked");
       passiveEl.className = "char-passive";
       card.appendChild(passiveEl);
 
