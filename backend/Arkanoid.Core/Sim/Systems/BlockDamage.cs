@@ -25,6 +25,16 @@ internal static class BlockDamage
             var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             g.RaiseEvent("blockDestroyed", c.X, c.Y);
             g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + Modifiers.KillManaGain(g));
+            // Speed escalation: +5% per 20 bricks destroyed, capped at 1.4× (docs plan 2026-06-10).
+            g._bricksDestroyedThisLevel++;
+            var speedMult = System.Math.Min(1.4, 1.0 + System.Math.Floor(g._bricksDestroyedThisLevel / 20.0) * 0.05);
+            foreach (var ball in g.Balls)
+            {
+                if (!ball.Alive || ball.Vel.Length < 1e-6) continue;
+                var targetSpeed = g.Config.BallSpeed * speedMult;
+                if (System.Math.Abs(ball.Vel.Length - targetSpeed) > 0.001)
+                    ball.Vel = ball.Vel.Normalized() * targetSpeed;
+            }
             // Danger pays (docs/11 R4): killing an enemy-behaviour block always drops
             // a bonus; plain bricks keep the random roll. Bosses pay via level rewards.
             if (blk.Behavior != BlockBehavior.None && !blk.Boss)

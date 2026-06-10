@@ -227,6 +227,8 @@ internal static class BallSystem
                     b.Vel = new Vec2(System.Math.Sign(dx) * System.Math.Abs(b.Vel.X), b.Vel.Y);
                 else
                     b.Vel = new Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
+                // Enforce minimum 20° angle from horizontal (prevents unplayable flat shots).
+                b.Vel = Arkanoid.Core.Physics.BallPhysics.EnforceMinAngle(b.Vel);
             }
 
             BlockDamage.DamageBlock(g, blk, dmg, igniteSource: ignited, decaySource: decayed);

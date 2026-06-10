@@ -133,6 +133,11 @@ export class Renderer {
   // Hit-stop state: remaining ms of visual freeze.
   private _hitStopRemaining = 0;
 
+  // Last-brick highlight: gold pulsing outline on the final ≤3 destructible bricks.
+  private _dangerOverlay = new Graphics();
+  private _dangerBlocks: { x: number; y: number }[] = [];
+  private _dangerBrickSize = 0;
+
   /** Switch the paddle/ball sprites to match the given class. */
   setClass(classId: string) {
     const paddleKeys = CLASS_PADDLE_KEYS[classId] ?? CLASS_PADDLE_KEYS.fire_mage;
@@ -192,12 +197,13 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ambient → ballTrail → zones → blocks → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses
+    // Layer order: ambient → ballTrail → zones → blocks → dangerOverlay → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses
     this.world.addChild(
       this.background.ambientContainer,
       this.ballTrail.container,
       this.spellFx.zonesContainer,
       this.blockLayer.container,
+      this._dangerOverlay,
       this.fireWallLayer.container,
       this.spellFx.barriersContainer,
       this._bossLayer,
@@ -265,6 +271,19 @@ export class Renderer {
         this.damageFlash.alpha = Math.max(0, this.damageFlash.alpha - DAMAGE_FLASH_FADE_SPEED * delta);
       }
 
+      // Last-brick highlight: gold pulsing outline on final ≤3 destructible bricks.
+      if (this._dangerBlocks.length > 0 && this._dangerBrickSize > 0) {
+        const pulseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 300);
+        this._dangerOverlay.clear();
+        this._dangerOverlay.lineStyle(3, 0xd8a84e, pulseAlpha);
+        const half = this._dangerBrickSize / 2;
+        for (const b of this._dangerBlocks) {
+          this._dangerOverlay.drawRect(b.x - half, b.y - half, this._dangerBrickSize, this._dangerBrickSize);
+        }
+      } else if (this._dangerBlocks.length === 0) {
+        this._dangerOverlay.clear();
+      }
+
       // Ambient sprite drift animation (village beholders).
       this.background.updateAnim(dtMs);
     });
@@ -327,6 +346,13 @@ export class Renderer {
     const gap = Math.max(s.cellSize * GAP_FRAC, 2);
     const brickSize = s.cellSize - gap;
     this.blockLayer.update(s.blocks, this._tick, brickSize, s.windRadius ?? 0);
+
+    // --- last-brick highlight: track the final ≤3 destructible bricks for the pulsing overlay ---
+    const destructible = s.blocks.filter(b => !b.indestructible && b.hp > 0);
+    this._dangerBrickSize = brickSize;
+    this._dangerBlocks = (destructible.length <= 3 && destructible.length > 0)
+      ? destructible.map(b => ({ x: b.x, y: b.y }))
+      : [];
 
     // --- boss rig: assemble / update / destroy animated multi-part boss ---
     // Compute the boss-block bounding region this frame.

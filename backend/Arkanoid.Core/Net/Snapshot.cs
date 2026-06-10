@@ -141,6 +141,8 @@ public sealed class Snapshot
     /// <summary>Multi-floor collapse: current floor (1-based) and total floors (1 = single).</summary>
     [JsonPropertyName("floor")]           public int    Floor         { get; set; }
     [JsonPropertyName("floorCount")]      public int    FloorCount    { get; set; }
+    /// <summary>Total destructible blocks destroyed this level — drives the speed-escalation HUD (docs plan 2026-06-10).</summary>
+    [JsonPropertyName("bricksDestroyedThisLevel")] public int BricksDestroyedThisLevel { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -209,6 +211,7 @@ public sealed class Snapshot
         { s.TimerMode = "limit"; s.TimeLeft = System.Math.Max(0, g.Level.TimeLimit - g.ElapsedPlayTime); }
         s.Floor      = g.FloorIndex + 1;
         s.FloorCount = g.Level.ExtraFloors.Count + 1;
+        s.BricksDestroyedThisLevel = g._bricksDestroyedThisLevel;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

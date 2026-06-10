@@ -38,6 +38,8 @@ export interface Snapshot {
   /** Grid dimensions in cells (populated from Grid.Cols / Grid.Rows). */
   cols?: number;
   rows?: number;
+  /** Blocks destroyed this level — the backend uses this to drive +5%/20-brick speed escalation. */
+  bricksDestroyedThisLevel?: number;
 }
 
 export class Connection {

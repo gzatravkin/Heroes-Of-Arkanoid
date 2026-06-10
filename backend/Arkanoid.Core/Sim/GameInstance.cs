@@ -23,6 +23,9 @@ public sealed class GameInstance
 
     internal int _nextBallId = 1;
     internal int _nextProjId = 1;
+
+    /// <summary>Counts destructible blocks destroyed this level; drives speed escalation (docs plan 2026-06-10).</summary>
+    internal int _bricksDestroyedThisLevel = 0;
     public List<Projectile> Projectiles { get; } = new();
 
     internal int _nextWallId = 1;

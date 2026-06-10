@@ -10,6 +10,27 @@ public static class BallPhysics
         if (b.Pos.X - b.Radius < 0) { b.Pos = new Vec2(b.Radius, b.Pos.Y); b.Vel = new Vec2(System.Math.Abs(b.Vel.X), b.Vel.Y); }
         else if (b.Pos.X + b.Radius > boardW) { b.Pos = new Vec2(boardW - b.Radius, b.Pos.Y); b.Vel = new Vec2(-System.Math.Abs(b.Vel.X), b.Vel.Y); }
         if (b.Pos.Y - b.Radius < 0) { b.Pos = new Vec2(b.Pos.X, b.Radius); b.Vel = new Vec2(b.Vel.X, System.Math.Abs(b.Vel.Y)); }
+        b.Vel = EnforceMinAngle(b.Vel);
+    }
+
+    /// <summary>
+    /// Enforce a minimum 20° angle from horizontal after wall/block bounces so the ball
+    /// can never lock into an unplayable flat trajectory.  Not applied to paddle deflection,
+    /// which has its own angle-clamping logic in ClampVertical / ResolvePaddle.
+    /// </summary>
+    public static Vec2 EnforceMinAngle(Vec2 vel)
+    {
+        const double MinAngleRad = 20.0 * System.Math.PI / 180.0;
+        var speed = vel.Length;
+        if (speed < 1e-6) return vel;
+        var absVy = System.Math.Abs(vel.Y);
+        var minVy = speed * System.Math.Sin(MinAngleRad);
+        if (absVy >= minVy) return vel;
+        // Nudge: preserve Y sign (prefer upward when exactly zero), raise |vy|, reduce |vx|
+        var ySign = vel.Y < 0 ? -1 : (vel.Y > 0 ? 1 : -1);
+        var vy = ySign * minVy;
+        var vx = (vel.X < 0 ? -1 : 1) * System.Math.Sqrt(System.Math.Max(0, speed * speed - minVy * minVy));
+        return new Vec2(vx, vy);
     }
 
     /// <summary>Paddle deflection by hit position. Returns true on contact; outputs normalized offset t in [-1,1].</summary>
