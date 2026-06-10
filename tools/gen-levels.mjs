@@ -63,6 +63,14 @@ const LEVELS = [
     "O......O",
     "..AAAA..",
   ]},
+  { id: "hell-3", biome: "hell", legend: { A: "hell_basic", G: "hell_teleporter_green" }, rows: [
+    "..AAAA..",
+    "..AAAA..",
+    "G.AAAA.G",   // green teleporter pair: ball enters one side, exits the other
+    "..AAAA..",
+    "...AA...",
+    "...AA...",
+  ]},
   { id: "hell-teleport", biome: "hell", legend: { A: "hell_basic", B: "hell_tough", P: "hell_teleporter", Q: "hell_teleporter_blue" }, rows: [
     "P.AAAA.P",   // red circuit up top…
     "..ABBA..",
@@ -237,13 +245,23 @@ const LEVELS = [
     "A.AGGA.A",
     "GA.AA.AG",
   ]},
-  { id: "village-ghost", biome: "village", legend: { A: "village_basic", G: "village_ghost", N: "village_necromant" }, rows: [
+  { id: "village-3", biome: "village", legend: { A: "village_basic", N: "village_necromant", G: "village_ghost" }, rows: [
+    "........",
+    "...AA...",
+    "..AAAA..",
+    "..A..A..",
+    "..ANAA..",   // necromant centre: watch it raise the fallen
+    "..AAAA..",
+    "..GGGG..",   // ghost bricks below — they'll keep coming back
+    "...GG...",
+  ]},
+  { id: "village-ghost", biome: "village", legend: { A: "village_basic", G: "village_ghost", N: "village_necromant", B: "village_bat" }, rows: [
     ".AAAAAA.",
     ".AGGGGA.",   // the double board: a ghost level inside the solid one
     ".AGGGGA.",
     "AGGNGGGA",   // the necromant hides on the ghost layer
     "AGGGGGGA",
-    ".AGGGGA.",
+    ".AGGGBA.",   // a bat lurks in the haunted layer
     ".AGGGGA.",
     ".AAAAAA.",
   ]},

@@ -1,17 +1,17 @@
 {
-  "id": "village-ghost",
+  "id": "village-3",
   "biome": "village",
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    ".AAAAAA.",
-    ".AGGGGA.",
-    ".AGGGGA.",
-    "AGGNGGGA",
-    "AGGGGGGA",
-    ".AGGGBA.",
-    ".AGGGGA.",
-    ".AAAAAA.",
+    "........",
+    "...AA...",
+    "..AAAA..",
+    "..A..A..",
+    "..ANAA..",
+    "..AAAA..",
+    "..GGGG..",
+    "...GG...",
     "........",
     "........",
     "........",
@@ -21,8 +21,7 @@
   ],
   "legend": {
     "A": "village_basic",
-    "G": "village_ghost",
     "N": "village_necromant",
-    "B": "village_bat"
+    "G": "village_ghost"
   }
 }
