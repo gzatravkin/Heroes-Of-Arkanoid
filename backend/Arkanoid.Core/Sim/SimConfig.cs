@@ -178,10 +178,20 @@ public sealed class SimConfig
     public int    ShieldStatueRadius   { get; init; } = 2;
     /// <summary>Seconds a block stays damage-immune after being shielded.</summary>
     public double ShieldDuration       { get; init; } = 2.5;
-    /// <summary>Seconds a Witchland bat holds the ball before releasing it.</summary>
-    public double BatHoldTime          { get; init; } = 2.0;
+    /// <summary>Downward speed at which a bat carries a grabbed ball toward the drain (units/sec).</summary>
+    public double BatCarrySpeed        { get; init; } = 70;
     /// <summary>Upward speed of the released bat's harmless flyaway hazard (units/sec).</summary>
     public double BatFlyAwaySpeed      { get; init; } = 140;
+    /// <summary>Damage an allied statue's bolt deals to a block (docs/11 convert system).</summary>
+    public int    AllyBoltDamage       { get; init; } = 1;
+    /// <summary>Damage an allied shield statue's corrupt pulse deals to each block in radius.</summary>
+    public int    CorruptDamage        { get; init; } = 1;
+    /// <summary>Fire-rate haste per statue level from a broken Vase (0.35 = 35% faster per level).</summary>
+    public double VaseLevelHaste       { get; init; } = 0.35;
+    /// <summary>Bonus mana per statue level granted when a levelled statue is killed (the Vase reward).</summary>
+    public double VaseKillManaPerLevel { get; init; } = 4.0;
+    /// <summary>Damage a falling stalactite deals to each block it passes through.</summary>
+    public int    StalactiteBlockDamage { get; init; } = 1;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

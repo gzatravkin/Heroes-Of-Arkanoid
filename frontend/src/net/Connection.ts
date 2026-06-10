@@ -5,7 +5,7 @@ export interface Snapshot {
   mana: number; manaMax: number; boardW: number; boardH: number; biome: string;
   paddleX: number; paddleW: number; paddleH: number; cellSize: number;
   balls: { id: number; x: number; y: number; ignited: boolean; decayed?: boolean; ghost?: boolean }[];
-  blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string; ballPhases: boolean; teleporter: boolean; indestructible: boolean; boss?: boolean; flipX?: boolean; flipY?: boolean; shielded?: boolean; charging?: boolean; allied?: boolean }[];
+  blocks: { id: number; x: number; y: number; hp: number; maxHp: number; sprite: string; ballPhases: boolean; teleporter: boolean; indestructible: boolean; boss?: boolean; flipX?: boolean; flipY?: boolean; shielded?: boolean; charging?: boolean; allied?: boolean; level?: number }[];
   hazards: { x: number; y: number; kind?: string }[];
   events: { type: string; x: number; y: number }[];
   walls: { y: number; width: number }[];

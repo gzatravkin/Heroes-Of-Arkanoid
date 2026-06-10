@@ -78,8 +78,10 @@ public sealed class Block
     public string MissileKind     { get; init; } = "";
     /// <summary>Shield: seconds of remaining damage-immunity granted to this block (mutable).</summary>
     public double ShieldTimer     { get; set; }
-    /// <summary>Statue: seconds remaining pacified (allied) by an Altar/Vase — emits/shields nothing (mutable).</summary>
+    /// <summary>Statue: seconds remaining ALLIED by an Altar — fights for the player (mutable).</summary>
     public double AllyTimer        { get; set; }
+    /// <summary>Statue: permanent level-ups from broken Vases — faster fire, bigger kill reward (mutable).</summary>
+    public int    StatueLevel     { get; set; }
 
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }

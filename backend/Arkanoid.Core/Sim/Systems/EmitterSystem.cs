@@ -29,13 +29,49 @@ internal static class EmitterSystem
             }
 
             if (!blk.Emitter) continue;
-            if (blk.AllyTimer > 0) continue; // pacified by an Altar/Vase — holds fire
             var interval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
+            // Vase level-ups make statues fire faster (the risk half of the trade).
+            if (blk.StatueLevel > 0)
+                interval /= 1 + blk.StatueLevel * g.Config.VaseLevelHaste;
             blk.EmitAccumulator += dt;
             if (blk.EmitAccumulator < interval) continue;
             blk.EmitAccumulator -= interval;
-            Fire(g, blk);
+            // Allied (Altar) statues fight FOR the player: bolts at blocks, not the paddle.
+            if (blk.AllyTimer > 0) FireAllyBolt(g, blk);
+            else Fire(g, blk);
         }
+    }
+
+    /// <summary>Allied statue shot: a friendly bolt at the nearest destructible block (docs/11 convert).</summary>
+    private static void FireAllyBolt(GameInstance g, Block blk)
+    {
+        var origin = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+        Block? target = null;
+        double best = double.MaxValue;
+        foreach (var nb in g.Blocks)
+        {
+            if (nb.Dead || nb == blk || nb.Indestructible || nb.IsStatue || nb.Boss) continue;
+            var nc = g.Level.Grid.CellCenter(nb.Col, nb.Row);
+            var d  = (nc - origin).Length;
+            if (d < best) { best = d; target = nb; }
+        }
+        if (target == null) return; // nothing left to shoot — hold fire
+
+        var tc  = g.Level.Grid.CellCenter(target.Col, target.Row);
+        var dir = (tc - origin).Normalized();
+        g.Projectiles.Add(new Projectile
+        {
+            Id     = g._nextHazardId++,
+            // Spawn outside the statue's own cell so the bolt doesn't hit its caster.
+            Pos    = origin + dir * g.Config.CellSize * 0.75,
+            Vel    = dir * g.Config.EnemyHazardSpeed,
+            Damage = g.Config.AllyBoltDamage,
+            Radius = g.Config.EnemyHazardRadius,
+            Alive  = true,
+            Kind   = "allybolt",
+        });
+        g.RaiseEvent("allyShot", origin.X, origin.Y);
+        g._log.Log(g.TickCount, "emitter", "ally bolt", $"id={blk.Id} target={target.Id}");
     }
 
     /// <summary>Roll a cart hazard along the paddle line, left→right — the paddle must dodge it.</summary>

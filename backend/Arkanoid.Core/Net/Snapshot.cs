@@ -40,6 +40,8 @@ public sealed class BlockDto
     [JsonPropertyName("charging")] public bool Charging { get; set; }
     /// <summary>Statue pacified by an Altar/Vase — renderer swaps to the *Active art.</summary>
     [JsonPropertyName("allied")] public bool Allied { get; set; }
+    /// <summary>Statue level from broken Vases — renderer tints levelled statues.</summary>
+    [JsonPropertyName("level")] public int Level { get; set; }
 }
 
 public sealed class HazardDto
@@ -154,7 +156,7 @@ public sealed class Snapshot
             var emitInterval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
             var charging = blk.Emitter && blk.AllyTimer <= 0
                 && emitInterval - blk.EmitAccumulator <= g.Config.EmitTelegraphWindow;
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ShieldTimer > 0, Charging = charging, Allied = blk.AllyTimer > 0 });
+            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ShieldTimer > 0, Charging = charging, Allied = blk.AllyTimer > 0, Level = blk.StatueLevel });
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });

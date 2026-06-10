@@ -232,53 +232,58 @@ public class EnemyTests
 
     // ── Bat (grabs the ball, then releases + flies away) ──────────────────────
 
+    private const string BatBlocksJson =
+        "{\"types\":[" +
+        "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"bat\"}," +
+        "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+    private const string BatLevelJson =
+        "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":6,\"rows_data\":[\"v.k\",\"...\",\"...\",\"...\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}";
+
     [Fact]
-    public void Bat_GrabsBall_ThenReleasesAndFliesAway()
+    public void Bat_CarriesBallTowardDrain_AndDrainsItIfUnanswered()
     {
-        var g = Make(
-            "{\"types\":[" +
-            "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"bat\"}," +
-            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
-            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"v.k\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}");
-        var bat = g.Blocks[0];
+        var g = Make(BatBlocksJson, BatLevelJson);
+        var bat    = g.Blocks[0];
+        int spares = g.SpareBalls;
 
         BallHit(g, bat);
-        Assert.True(g.Balls[0].GrabbedTimer > 0, "ball is held by the bat");
-        Assert.Equal(0, g.Balls[0].Vel.Length, 3); // pinned
+        Assert.True(bat.Dead, "bat block becomes the moving carrier");
+        var carrier = g.Hazards.FirstOrDefault(h => h.Kind == "bat" && h.CarriedBallId == g.Balls[0].Id);
+        Assert.NotNull(carrier);
+        Assert.True(carrier!.Vel.Y > 0, "carrier drags the ball DOWN toward the drain");
+        Assert.Equal(0, carrier.Damage); // never a paddle threat — the stolen ball is the threat
 
-        // Hold elapses → ball released (moving again) and the bat flew away.
-        for (int i = 0; i < (int)(SimConfig.Default.BatHoldTime / SimConfig.Default.FixedDt) + 3; i++)
-            g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(bat.Dead, "bat flew away after releasing the ball");
-        Assert.True(g.Balls[0].Vel.Length > 0, "ball is moving again after release");
-        Assert.True(g.Balls[0].GrabbedTimer <= 0);
+        // The ball rides the carrier.
+        var yBefore = g.Balls[0].Pos.Y;
+        for (int i = 0; i < 30; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(g.Balls[0].Pos.Y > yBefore, "carried ball moves down with the bat");
+
+        // Unanswered: the carrier reaches the drain and the ball is lost (spare consumed).
+        for (int i = 0; i < 1200 && g.SpareBalls == spares; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(spares - 1, g.SpareBalls);
     }
 
     [Fact]
-    public void BatRelease_SpawnsHarmlessFlyaway_ThatDespawnsAboveBoard()
+    public void Bat_Carrier_PoppedBySecondBall_RescuesTheBall()
     {
-        var g = Make(
-            "{\"types\":[" +
-            "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"bat\"}," +
-            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
-            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"v.k\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}");
-        var bat   = g.Blocks[0];
-        int lives = g.Lives;
-
+        var g = Make(BatBlocksJson, BatLevelJson);
+        var bat = g.Blocks[0];
         BallHit(g, bat);
-        for (int i = 0; i < (int)(SimConfig.Default.BatHoldTime / SimConfig.Default.FixedDt) + 3; i++)
-            g.Tick(SimConfig.Default.FixedDt);
+        var carrier = g.Hazards.First(h => h.Kind == "bat" && h.CarriedBallId > 0);
 
-        // Release spawned the visual flyaway: harmless, flying upward.
-        var fly = g.Hazards.FirstOrDefault(h => h.Kind == "bat");
-        Assert.NotNull(fly);
-        Assert.Equal(0, fly!.Damage);
-        Assert.True(fly.Vel.Y < 0, "flyaway bat drifts upward");
+        // A second ball overlapping the carrier pops it.
+        g.Balls.Add(new Ball
+        {
+            Id = 999, Radius = SimConfig.Default.BallRadius,
+            Pos = carrier.Pos, Vel = new Arkanoid.Core.Math.Vec2(0, 0), Alive = true,
+        });
+        g.Tick(SimConfig.Default.FixedDt);
 
-        // It despawns above the board without ever costing HP.
-        for (int i = 0; i < 600; i++) g.Tick(SimConfig.Default.FixedDt);
-        Assert.DoesNotContain(g.Hazards, h => h.Kind == "bat");
-        Assert.Equal(lives, g.Lives);
+        Assert.DoesNotContain(g.Hazards, h => h.Kind == "bat" && h.CarriedBallId > 0);
+        Assert.Equal(0, g.Balls[0].GrabberId);
+        Assert.True(g.Balls[0].Vel.Y < 0, "rescued ball is released upward");
+        // The bat flees as the harmless flyaway.
+        Assert.Contains(g.Hazards, h => h.Kind == "bat" && h.CarriedBallId == 0 && h.Vel.Y < 0);
     }
 
     // ── Emitter missile kinds (renderer draws real art from these tags) ───────
@@ -292,6 +297,103 @@ public class EnemyTests
         for (int i = 0; i < 40; i++) g.Tick(0.016);
         Assert.NotEmpty(g.Hazards);
         Assert.All(g.Hazards, h => Assert.Equal("beholdermissile", h.Kind));
+    }
+
+    // ── Convert system (docs/11): Altar = ally, Vase = level up ───────────────
+
+    [Fact]
+    public void AlliedMeleeStatue_FiresAllyBolts_ThatDamageBlocks()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"a\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"altar\"}," +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.3,\"emitAim\":\"paddle\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5,\"rows_data\":[\"a.m.k\",\".....\",\".....\",\".....\",\".....\"],\"legend\":{\"a\":\"a\",\"m\":\"m\",\"k\":\"k\"}}");
+        var brick = g.Blocks[2];
+        int hpBefore = brick.Hp;
+
+        BallHit(g, g.Blocks[0]); // ally via altar
+        Park(g);
+        // Past the cadence: the allied statue shoots BLOCKS (Projectiles), not the paddle (Hazards).
+        for (int i = 0; i < 120 && brick.Hp == hpBefore; i++) g.Tick(SimConfig.Default.FixedDt);
+
+        Assert.Empty(g.Hazards);
+        Assert.True(brick.Hp < hpBefore, "ally bolt damaged the brick");
+    }
+
+    [Fact]
+    public void AlliedShieldStatue_CorruptsNeighbours_InsteadOfShielding()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"a\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"altar\"}," +
+            "{\"id\":\"d\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"shieldStatue\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":4,\"rows\":4,\"rows_data\":[\"a.dk\",\"....\",\"....\",\"....\"],\"legend\":{\"a\":\"a\",\"d\":\"d\",\"k\":\"k\"}}");
+        var brick = g.Blocks[2];
+        int hpBefore = brick.Hp;
+
+        BallHit(g, g.Blocks[0]); // ally via altar
+        Park(g);
+        var pulseTicks = (int)(SimConfig.Default.ShieldStatueInterval / SimConfig.Default.FixedDt) + 5;
+        for (int i = 0; i < pulseTicks; i++) g.Tick(SimConfig.Default.FixedDt);
+
+        Assert.True(brick.Hp < hpBefore, "allied shield statue corrupts (damages) its neighbours");
+        Assert.True(brick.ShieldTimer <= 0, "no shield granted while allied");
+    }
+
+    [Fact]
+    public void VaseBreak_LevelsStatues_FasterFire_AndBiggerKillReward()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"v\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"vase\"}," +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":1.0,\"emitAim\":\"paddle\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5,\"rows_data\":[\"v.m.k\",\".....\",\".....\",\".....\",\".....\"],\"legend\":{\"v\":\"v\",\"m\":\"m\",\"k\":\"k\"}}");
+        var statue = g.Blocks[1];
+
+        BallHit(g, g.Blocks[0]); // break the vase
+        Assert.Equal(1, statue.StatueLevel);
+
+        // Faster fire: interval 1.0 / (1 + 0.35) ≈ 0.74s → a hazard exists by 0.9s.
+        Park(g);
+        for (int i = 0; i < (int)(0.9 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.NotEmpty(g.Hazards);
+
+        // Bigger reward: killing the levelled statue pays bonus mana.
+        g.ManaValue = 0;
+        BallHit(g, statue);
+        BallHit(g, statue);
+        Assert.True(statue.Dead);
+        Assert.True(g.ManaValue >= SimConfig.Default.VaseKillManaPerLevel,
+            $"levelled statue kill must pay bonus mana (got {g.ManaValue})");
+    }
+
+    // ── Stalactite as a weapon (docs/11): falling spikes damage blocks ─────────
+
+    [Fact]
+    public void FallingStalactite_DamagesBlocksItPassesThrough()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"s\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"indestructible\":true,\"behavior\":\"stalactite\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":6,\"rows_data\":[\"s..\",\"...\",\"k..\",\"...\",\"...\",\"...\"],\"legend\":{\"s\":\"s\",\"k\":\"k\"}}");
+        var brick = g.Blocks[1];
+        int hpBefore = brick.Hp;
+
+        // Park the ball under the stalactite's column to trigger the drop.
+        var sc = g.Level.Grid.CellCenter(g.Blocks[0].Col, g.Blocks[0].Row);
+        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(sc.X, sc.Y + SimConfig.Default.CellSize * 4);
+        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, 0);
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.Contains(g.Hazards, h => h.Kind == "stalactite");
+
+        // The falling spike smashes the brick beneath on its way down.
+        for (int i = 0; i < 240 && brick.Hp == hpBefore; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(brick.Hp < hpBefore, "stalactite damaged the block it fell through");
     }
 
     // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────

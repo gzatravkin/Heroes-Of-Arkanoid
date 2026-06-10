@@ -23,21 +23,29 @@ internal static class ShieldSystem
 
         foreach (var st in statues)
         {
-            if (st.AllyTimer > 0) continue; // pacified — no shielding
+            var interval = g.Config.ShieldStatueInterval;
+            // Vase level-ups make shield statues pulse faster too (risk half of the trade).
+            if (st.StatueLevel > 0) interval /= 1 + st.StatueLevel * g.Config.VaseLevelHaste;
             st.EmitAccumulator += dt; // reuse the cadence accumulator (statues aren't emitters)
-            if (st.EmitAccumulator < g.Config.ShieldStatueInterval) continue;
-            st.EmitAccumulator -= g.Config.ShieldStatueInterval;
+            if (st.EmitAccumulator < interval) continue;
+            st.EmitAccumulator -= interval;
 
             int r = g.Config.ShieldStatueRadius;
+            var c = g.Level.Grid.CellCenter(st.Col, st.Row);
+            var allied = st.AllyTimer > 0;
             foreach (var nb in g.Blocks)
             {
                 if (nb.Dead || nb == st || nb.ShieldStatue || nb.Indestructible) continue;
                 int dist = System.Math.Max(System.Math.Abs(nb.Col - st.Col), System.Math.Abs(nb.Row - st.Row));
-                if (dist <= r) nb.ShieldTimer = g.Config.ShieldDuration;
+                if (dist > r) continue;
+                if (allied)
+                    // Allied (Altar) shield statue CORRUPTS: it damages what it once protected.
+                    BlockDamage.DamageBlock(g, nb, g.Config.CorruptDamage, igniteSource: false);
+                else
+                    nb.ShieldTimer = g.Config.ShieldDuration;
             }
-            var c = g.Level.Grid.CellCenter(st.Col, st.Row);
-            g.RaiseEvent("shield", c.X, c.Y);
-            g._log.Log(g.TickCount, "shield", "pulse", $"id={st.Id}");
+            g.RaiseEvent(allied ? "corrupt" : "shield", c.X, c.Y);
+            g._log.Log(g.TickCount, "shield", allied ? "corrupt pulse" : "pulse", $"id={st.Id}");
         }
     }
 }

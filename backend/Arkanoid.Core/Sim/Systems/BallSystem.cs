@@ -16,39 +16,18 @@ internal static class BallSystem
         // Decrement teleport cooldown once per tick (min 0)
         if (b.TeleportCooldown > 0) b.TeleportCooldown--;
 
-        // Held by a Witchland bat: pinned in place until the timer expires, then released
-        // upward with a small lean and the bat flies away (block removed).
-        if (b.GrabbedTimer > 0)
+        // Carried by a Witchland bat toward the drain (docs/11 redesign): the ball rides
+        // the carrier hazard; CombatSystem owns the rescue/escape outcomes.
+        if (b.GrabberId > 0)
         {
-            b.GrabbedTimer -= dt;
-            b.Pos = b.GrabPos;
-            b.Vel = new Vec2(0, 0);
-            if (b.GrabbedTimer <= 0)
+            var carrier = g.Hazards.FirstOrDefault(h => h.Alive && h.Id == b.GrabberId && h.Kind == "bat");
+            if (carrier != null)
             {
-                var lean = g.Rng.Range(-0.3, 0.3);
-                b.Vel = new Vec2(lean, -1).Normalized() * g.Config.BallSpeed;
-                var bat = g.Blocks.FirstOrDefault(x => x.Id == b.GrabberId);
-                if (bat != null)
-                {
-                    bat.Dead = true;
-                    // Visual flyaway: a harmless (Damage=0) "bat" hazard drifts up and
-                    // off-screen so the player sees the bat leave instead of vanishing.
-                    g.Hazards.Add(new Projectile
-                    {
-                        Id     = g._nextHazardId++,
-                        Pos    = b.GrabPos,
-                        Vel    = new Vec2(lean * g.Config.BatFlyAwaySpeed * 0.4, -g.Config.BatFlyAwaySpeed),
-                        Damage = 0,
-                        Radius = g.Config.EnemyHazardRadius,
-                        Alive  = true,
-                        Kind   = "bat",
-                    });
-                }
-                b.GrabberId = 0;
-                g.RaiseEvent("batRelease", b.Pos.X, b.Pos.Y);
-                g._log.Log(g.TickCount, "bat", "released ball + flyaway", $"ball={b.Id}");
+                b.Pos = carrier.Pos;
+                b.Vel = new Vec2(0, 0);
+                return; // no own movement/collision while carried
             }
-            return; // no movement/collision while grabbed
+            b.GrabberId = 0; // carrier gone — CombatSystem already set our release velocity
         }
 
         b.Pos += b.Vel * dt;
@@ -87,11 +66,20 @@ internal static class BallSystem
         }
     }
 
-    /// <summary>Altar/Vase: pacify (ally) every Heaven statue so it stops attacking/shielding.</summary>
+    /// <summary>Altar: ally every Heaven statue — they fight FOR the player while the timer holds.</summary>
     internal static void PacifyStatues(GameInstance g)
     {
         foreach (var s in g.Blocks)
             if (!s.Dead && s.IsStatue) s.AllyTimer = g.Config.AltarAllyDuration;
+    }
+
+    /// <summary>Vase: permanently level every statue up — faster fire, but bigger kill rewards.</summary>
+    internal static void LevelUpStatues(GameInstance g)
+    {
+        foreach (var s in g.Blocks)
+            if (!s.Dead && s.IsStatue) s.StatueLevel++;
+        g.RaiseEvent("vaseLevelUp", 0, 0);
+        g._log.Log(g.TickCount, "vase", "statues levelled up");
     }
 
     private static void ResolveBlocks(GameInstance g, Ball b)
@@ -141,15 +129,27 @@ internal static class BallSystem
                 continue; // always pass through the portal block itself
             }
 
-            // Bat: grab the ball, holding it in place for a moment, then it flies off.
+            // Bat: snatches the ball and CARRIES it toward the drain. Counterplay: pop
+            // the carrier with a second ball or any spell projectile (docs/11 redesign).
             if (blk.Bat)
             {
-                b.GrabbedTimer = g.Config.BatHoldTime;
-                b.GrabberId    = blk.Id;
-                b.GrabPos      = c;
-                b.Vel          = new Vec2(0, 0);
+                blk.Dead = true; // the block becomes the moving carrier
+                var carrier = new Projectile
+                {
+                    Id     = g._nextHazardId++,
+                    Pos    = c,
+                    Vel    = new Vec2(0, g.Config.BatCarrySpeed),
+                    Damage = 0, // never harms the paddle — the threat is the stolen ball
+                    Radius = g.Config.EnemyHazardRadius,
+                    Alive  = true,
+                    Kind   = "bat",
+                    CarriedBallId = b.Id,
+                };
+                g.Hazards.Add(carrier);
+                b.GrabberId = carrier.Id;
+                b.Vel       = new Vec2(0, 0);
                 g.RaiseEvent("batGrab", c.X, c.Y);
-                g._log.Log(g.TickCount, "bat", "grabbed ball", $"ball={b.Id} bat={blk.Id}");
+                g._log.Log(g.TickCount, "bat", "carrying ball to drain", $"ball={b.Id} carrier={carrier.Id}");
                 return; // ball is now held
             }
 

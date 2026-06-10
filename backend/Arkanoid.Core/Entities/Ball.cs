@@ -16,8 +16,6 @@ public sealed class Ball
     /// instead collides with ghost (ballPhases) blocks. Toggled by a Portal block.</summary>
     public bool Ghost = false;
 
-    // --- Bat grab (Witchland): a bat holds the ball motionless, then releases + flies off. ---
-    public double GrabbedTimer = 0;   // >0 while held by a bat
-    public int    GrabberId    = 0;   // the bat block's Id
-    public Vec2   GrabPos;            // pinned position while grabbed
+    // --- Bat carry (Witchland): a bat carrier hazard drags the ball toward the drain. ---
+    public int GrabberId = 0;   // the carrier hazard's Id (0 = free)
 }

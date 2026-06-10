@@ -38,7 +38,11 @@ internal static class BlockDamage
             if (blk.Bomb)
                 Explode(g, blk);
             if (blk.Vase)
-                BallSystem.PacifyStatues(g); // breaking the vase pacifies the statues
+                BallSystem.LevelUpStatues(g); // risk/reward: statues get stronger, but pay more
+            // Vase reward side: a levelled statue pays bonus mana on death.
+            if (blk.IsStatue && blk.StatueLevel > 0)
+                g.ManaValue = System.Math.Min(g.ManaMaxValue,
+                    g.ManaValue + blk.StatueLevel * g.Config.VaseKillManaPerLevel);
             NecromantSystem.OnBlockDestroyed(g, blk);
         }
     }

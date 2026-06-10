@@ -17,4 +17,8 @@ public sealed class Projectile
     public bool Homing = false;
     /// <summary>Rocket: AoE radius when this projectile kills a block (0 = none).</summary>
     public double AoeRadius = 0;
+    /// <summary>Bat carrier hazard: id of the ball it is dragging toward the drain (0 = none).</summary>
+    public int CarriedBallId = 0;
+    /// <summary>Stalactite hazard: block ids already damaged while falling through (one hit each).</summary>
+    public HashSet<int>? HitBlockIds;
 }

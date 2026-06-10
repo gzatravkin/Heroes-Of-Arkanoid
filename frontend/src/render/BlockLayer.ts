@@ -66,11 +66,14 @@ const WIND_AURA_ALPHA_BASE = 0.22;
 const WIND_AURA_ALPHA_AMP  = 0.10;
 const WIND_AURA_PULSE      = 0.05;
 
+// Vase-levelled statues glow warm so the risk the player took is readable.
+const LEVELED_TINT = 0xffd9a0;
+
 interface BlockDto {
   id: number; x: number; y: number; hp: number; maxHp: number; sprite: string;
   boss?: boolean; ballPhases: boolean; indestructible: boolean; teleporter: boolean;
   flipX?: boolean; flipY?: boolean; shielded?: boolean;
-  charging?: boolean; allied?: boolean;
+  charging?: boolean; allied?: boolean; level?: number;
 }
 
 export class BlockLayer {
@@ -168,10 +171,11 @@ export class BlockLayer {
           }
         } else {
           sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-          // Telegraph pulse beats shield flash beats neutral.
+          // Telegraph pulse beats shield flash beats levelled glow beats neutral.
           sp.tint = b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS
             ? CHARGE_TINT
-            : b.shielded ? 0x66ddff : 0xffffff;
+            : b.shielded ? 0x66ddff
+            : (b.level ?? 0) > 0 ? LEVELED_TINT : 0xffffff;
         }
       } else {
         let aura: Graphics | undefined;

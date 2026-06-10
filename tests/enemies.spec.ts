@@ -42,7 +42,7 @@ test("Heaven boss finale renders with the Heaven rig (not a fallback)", async ({
   await page.screenshot({ path: path.join(SHOTS, "enemy-heaven-boss.png") });
 });
 
-test("Witchland bat grabs the ball, then a flyaway bat departs upward", async ({ page }) => {
+test("Witchland bat carries the ball toward the drain (costs a spare if unanswered)", async ({ page }) => {
   await openBattle(page, "village-1");
   // Drive the ball into the first bat block (public collision path via cheat).
   const batId = await page.evaluate(() => {
@@ -50,15 +50,18 @@ test("Witchland bat grabs the ball, then a flyaway bat departs upward", async ({
     return s.blocks.find((b: any) => b.sprite === "BatSleeping")?.id;
   });
   expect(batId, "village-1 must contain a bat block").toBeTruthy();
+  const sparesBefore = await page.evaluate(() => (window as any).__game.getState().spareBalls);
   await cheat(page, "ballToBlock", batId);
-  await cheat(page, "fastForward", 10); // collide + grab
-  // Hold expires (BatHoldTime 2s @120Hz) → harmless flyaway hazard kind="bat" appears.
-  await cheat(page, "fastForward", 260);
+  await cheat(page, "fastForward", 10); // collide → the bat snatches the ball
   await page.waitForFunction(() => {
     const s = (window as any).__game.getState();
     return s && s.hazards.some((h: any) => h.kind === "bat");
   }, null, { timeout: 8000 });
-  await page.screenshot({ path: path.join(SHOTS, "enemy-bat-flyaway.png") });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-bat-flyaway.png") }); // bat carrying the ball
+  // Unanswered, the carrier reaches the drain — the stolen ball costs a spare.
+  await cheat(page, "fastForward", 1200);
+  await page.waitForFunction((n) =>
+    (window as any).__game.getState().spareBalls < n, sparesBefore, { timeout: 8000 });
 });
 
 test("Witch boss casts magic bolts (witchmagic hazards)", async ({ page }) => {
@@ -126,11 +129,11 @@ test("Witchland necromant present (revives destroyed blocks)", async ({ page }) 
 
 test("emitter telegraphs before firing (charging flag + flash)", async ({ page }) => {
   await openBattle(page, "hell-2");
-  // Spawner interval 1.8s, telegraph window 0.5s → charging from 1.3s (78 ticks @60Hz).
-  await cheat(page, "fastForward", 85);
-  const charging = await page.evaluate(() =>
-    (window as any).__game.getState().blocks.some((b: any) => b.sprite === "HellBallSpawner" && b.charging));
-  expect(charging, "spawner must flag charging inside the telegraph window").toBeTruthy();
+  // The spawner is charging for 0.5s of every 1.8s cycle — poll the live sim until
+  // the window comes around (single-sample timing is phase-dependent).
+  await page.waitForFunction(() =>
+    (window as any).__game.getState()?.blocks
+      .some((b: any) => b.sprite === "HellBallSpawner" && b.charging), null, { timeout: 8000 });
   await page.screenshot({ path: path.join(SHOTS, "enemy-telegraph-charging.png") });
 });
 

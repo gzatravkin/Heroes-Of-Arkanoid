@@ -75,6 +75,9 @@ internal static partial class SpellSystem
             foreach (var blk in g.Blocks)
             {
                 if (blk.Dead) continue;
+                // Ally bolts (allied statues) never hit fellow statues or walls — they
+                // exist to clear the field for the player, not to eat themselves.
+                if (pr.Kind == "allybolt" && (blk.IsStatue || blk.Indestructible)) continue;
                 var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
                 var box = Arkanoid.Core.Math.Aabb.FromCenter(c, cell / 2, cell / 2);
                 if (!box.IntersectsCircle(pr.Pos, pr.Radius)) continue;
