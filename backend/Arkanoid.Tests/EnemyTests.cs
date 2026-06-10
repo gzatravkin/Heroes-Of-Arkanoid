@@ -396,6 +396,69 @@ public class EnemyTests
         Assert.True(brick.Hp < hpBefore, "stalactite damaged the block it fell through");
     }
 
+    // ── Cauldron (docs/11 Economy axis): siphons mana, refunds on death ────────
+
+    [Fact]
+    public void Cauldron_SiphonsMana_WhileAlive_AndRefundsOnKill()
+    {
+        var catalog = BlockCatalog.FromJson(
+            "{\"types\":[" +
+            "{\"id\":\"c\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"cauldron\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}");
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"c.k\",\"...\",\"...\"],\"legend\":{\"c\":\"c\",\"k\":\"k\"}}",
+            catalog);
+        // Regen off so the siphon is observable in isolation.
+        var g = new GameInstance(level, new SimConfig { ManaRegenPerSec = 0 }, seed: 1);
+        g.Serve();
+        var cauldron = g.Blocks[0];
+        g.ManaValue = 50;
+        Park(g);
+
+        // 2 seconds of siphon at the configured rate.
+        for (int i = 0; i < (int)(2.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        var expectedSiphon = 2.0 * SimConfig.Default.CauldronSiphonPerSec;
+        Assert.True(g.ManaValue < 50, "cauldron siphons the player's mana");
+        Assert.True(cauldron.StoredMana > expectedSiphon * 0.9, $"stored {cauldron.StoredMana:F1}");
+
+        // Killing it refunds everything it stole.
+        var manaBeforeKill = g.ManaValue;
+        BallHit(g, cauldron);
+        Assert.True(cauldron.Dead);
+        Assert.True(g.ManaValue >= manaBeforeKill + cauldron.StoredMana * 0.9,
+            $"refund expected: before={manaBeforeKill:F1} after={g.ManaValue:F1}");
+    }
+
+    // ── Lava spawner (docs/11 lava reform): creep + retract counterplay ────────
+
+    [Fact]
+    public void LavaSpawner_CreepsLava_AndRetractsWhenKilled()
+    {
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"s\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"lavaSpawner\"}," +
+            "{\"id\":\"k\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5,\"rows_data\":[\"....k\",\"..S..\",\".....\",\".....\",\".....\"],\"legend\":{\"S\":\"s\",\"k\":\"k\"}}");
+        var spawner = g.Blocks.First(b => b.LavaSpawner);
+        Park(g);
+
+        // Two creep intervals → two lava cells owned by the spawner.
+        var creepTicks = (int)(SimConfig.Default.LavaCreepInterval / SimConfig.Default.FixedDt) + 2;
+        for (int i = 0; i < creepTicks * 2; i++) g.Tick(SimConfig.Default.FixedDt);
+        var crept = g.Blocks.Where(b => !b.Dead && b.Lava && b.OwnerId == spawner.Id).ToList();
+        Assert.True(crept.Count >= 2, $"expected ≥2 crept lava cells, got {crept.Count}");
+
+        // The cap holds.
+        for (int i = 0; i < creepTicks * 10; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(g.Blocks.Count(b => !b.Dead && b.Lava && b.OwnerId == spawner.Id)
+            <= SimConfig.Default.LavaCreepMax, "creep cap respected");
+
+        // Counterplay: kill the spawner → its lava retracts.
+        BallHit(g, spawner);
+        Assert.True(spawner.Dead);
+        Assert.DoesNotContain(g.Blocks, b => !b.Dead && b.Lava && b.OwnerId == spawner.Id);
+    }
+
     // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
 
     [Fact]

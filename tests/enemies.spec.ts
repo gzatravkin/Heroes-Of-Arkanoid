@@ -196,6 +196,24 @@ test("killing an enemy block always drops a bonus (danger pays)", async ({ page 
   await page.screenshot({ path: path.join(SHOTS, "enemy-danger-pays.png") });
 });
 
+test("Witchland cauldron bubbles in village-2 (mana siphon enemy)", async ({ page }) => {
+  await openBattle(page, "village-2");
+  const present = await page.evaluate(() =>
+    (window as any).__game.getState().blocks.some((b: any) => b.sprite === "Kotelok1"));
+  expect(present, "village-2 must contain cauldrons").toBeTruthy();
+  await page.screenshot({ path: path.join(SHOTS, "enemy-cauldron.png") });
+});
+
+test("Hell lava spawner creeps new lava cells over time", async ({ page }) => {
+  await openBattle(page, "hell-1");
+  const before = await page.evaluate(() => (window as any).__game.getState().blocks.length);
+  // Two creep intervals (6s each @60Hz) — the field should grow.
+  await cheat(page, "fastForward", 800);
+  await page.waitForFunction((n) =>
+    (window as any).__game.getState().blocks.length > n, before, { timeout: 8000 });
+  await page.screenshot({ path: path.join(SHOTS, "enemy-lava-creep.png") });
+});
+
 test("Caverns stalactites fall as hazards", async ({ page }) => {
   await openBattle(page, "caverns-1");
   await cheat(page, "dropStalactites", 4);

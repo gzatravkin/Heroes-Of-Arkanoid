@@ -35,5 +35,7 @@
   { "id": "hell_lava",            "biome": "hell",    "hp": 1, "sprite": "LavaMainPart",   "needToKill": false, "indestructible": true, "behavior": "lava" },
   { "id": "heaven_altar",         "biome": "heaven",  "hp": 1, "sprite": "HeavenAltarV2",  "needToKill": false, "indestructible": true, "behavior": "altar" },
   { "id": "heaven_vase",          "biome": "heaven",  "hp": 2, "sprite": "HeavenVaza",     "needToKill": true,  "behavior": "vase" },
-  { "id": "cavern_cart",          "biome": "caverns", "hp": 1, "sprite": "DungeonCart",    "needToKill": false, "indestructible": true, "behavior": "cart" }
+  { "id": "cavern_cart",          "biome": "caverns", "hp": 1, "sprite": "DungeonCart",    "needToKill": false, "indestructible": true, "behavior": "cart" },
+  { "id": "village_cauldron",     "biome": "village", "hp": 3, "sprite": "Kotelok1",       "needToKill": true,  "behavior": "cauldron" },
+  { "id": "hell_lava_spawner",    "biome": "hell",    "hp": 5, "sprite": "LavaSpowner",    "needToKill": false, "behavior": "lavaSpawner" }
 ]}

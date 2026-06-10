@@ -192,6 +192,12 @@ public sealed class SimConfig
     public double VaseKillManaPerLevel { get; init; } = 4.0;
     /// <summary>Damage a falling stalactite deals to each block it passes through.</summary>
     public int    StalactiteBlockDamage { get; init; } = 1;
+    /// <summary>Mana per second a living Cauldron siphons from the player (refunded on its death). A felt tax against the 14/s regen.</summary>
+    public double CauldronSiphonPerSec  { get; init; } = 6.0;
+    /// <summary>Seconds between a Lava Spawner creeping one new lava cell.</summary>
+    public double LavaCreepInterval     { get; init; } = 6.0;
+    /// <summary>Maximum lava cells a single spawner can creep (cap keeps levels winnable).</summary>
+    public int    LavaCreepMax          { get; init; } = 6;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

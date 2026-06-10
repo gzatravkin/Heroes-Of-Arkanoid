@@ -23,6 +23,8 @@ public enum BlockBehavior
     Altar,         // ball-hit pacifies (allies) the Heaven statues for a while
     Vase,          // on death, pacifies the Heaven statues
     Cart,          // periodically rolls a cart hazard across the board (Caverns)
+    Cauldron,      // siphons the player's mana while alive; refunds it on death (Witchland)
+    LavaSpawner,   // creeps lava into adjacent empty cells; killing it retracts its lava (Hell)
 }
 
 public sealed class Block
@@ -60,6 +62,8 @@ public sealed class Block
     public bool Altar        => Behavior == BlockBehavior.Altar;
     public bool Vase         => Behavior == BlockBehavior.Vase;
     public bool Cart         => Behavior == BlockBehavior.Cart;
+    public bool Cauldron     => Behavior == BlockBehavior.Cauldron;
+    public bool LavaSpawner  => Behavior == BlockBehavior.LavaSpawner;
     /// <summary>True for Heaven statues that the Altar/Vase can pacify.</summary>
     public bool IsStatue     => Emitter && EmitAim == "paddle" || ShieldStatue;
 
@@ -82,6 +86,12 @@ public sealed class Block
     public double AllyTimer        { get; set; }
     /// <summary>Statue: permanent level-ups from broken Vases — faster fire, bigger kill reward (mutable).</summary>
     public int    StatueLevel     { get; set; }
+    /// <summary>Cauldron: mana siphoned from the player so far — refunded when it dies (mutable).</summary>
+    public double StoredMana      { get; set; }
+    /// <summary>Runtime-spawned block (creeping lava): id of the spawner that created it (mutable).</summary>
+    public int    OwnerId         { get; set; }
+    /// <summary>LavaSpawner: how many lava cells it has crept so far (mutable).</summary>
+    public int    SpawnedCount    { get; set; }
 
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }

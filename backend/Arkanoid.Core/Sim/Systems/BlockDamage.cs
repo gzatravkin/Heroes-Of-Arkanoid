@@ -39,6 +39,16 @@ internal static class BlockDamage
                 Explode(g, blk);
             if (blk.Vase)
                 BallSystem.LevelUpStatues(g); // risk/reward: statues get stronger, but pay more
+            // Cauldron refund: everything it siphoned comes back (docs/11 Economy axis).
+            if (blk.Cauldron && blk.StoredMana > 0)
+            {
+                g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + blk.StoredMana);
+                g.RaiseEvent("manaRefund", c.X, c.Y);
+                g._log.Log(g.TickCount, "cauldron", "refunded", $"mana={blk.StoredMana:F0}");
+            }
+            // Lava spawner death: its crept lava retracts (the counterplay).
+            if (blk.LavaSpawner)
+                LavaSystem.RetractLava(g, blk);
             // Vase reward side: a levelled statue pays bonus mana on death.
             if (blk.IsStatue && blk.StatueLevel > 0)
                 g.ManaValue = System.Math.Min(g.ManaMaxValue,

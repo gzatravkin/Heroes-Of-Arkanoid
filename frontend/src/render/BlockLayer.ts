@@ -69,6 +69,13 @@ const WIND_AURA_PULSE      = 0.05;
 // Vase-levelled statues glow warm so the risk the player took is readable.
 const LEVELED_TINT = 0xffd9a0;
 
+// Cauldron bubbles by cycling the original Kotelok frames (the siphon is visible).
+const CAULDRON_FRAMES = ["village/blocks/Kotelok1", "village/blocks/Kotelok2", "village/blocks/Kotelok3"];
+const CAULDRON_FRAME_TICKS = 14;
+// Lava spawner pulses to its Active frame on the same cadence feel.
+const LAVA_SPAWNER_ACTIVE = "hell/LavaSpownerActive";
+const LAVA_SPAWNER_PULSE_TICKS = 24;
+
 interface BlockDto {
   id: number; x: number; y: number; hp: number; maxHp: number; sprite: string;
   boss?: boolean; ballPhases: boolean; indestructible: boolean; teleporter: boolean;
@@ -81,7 +88,18 @@ export class BlockLayer {
   private pool = new Map<number, { sp: Sprite; aura?: Graphics; ring?: Graphics; wind?: Sprite }>();
 
   /** Block texture: allied *Active art, beholder damage tiers, cracked frames near death. */
-  private blockTex(b: BlockDto, anyAllied: boolean): Texture {
+  private blockTex(b: BlockDto, anyAllied: boolean, tick = 0): Texture {
+    // Cauldron: bubble through the Kotelok frames.
+    if (b.sprite === "Kotelok1") {
+      const frame = CAULDRON_FRAMES[Math.floor(tick / CAULDRON_FRAME_TICKS) % CAULDRON_FRAMES.length];
+      const t = atlasTex(frame);
+      if (t !== Texture.WHITE) return t;
+    }
+    // Lava spawner: pulse to the Active frame.
+    if (b.sprite === "LavaSpowner" && (tick % (LAVA_SPAWNER_PULSE_TICKS * 2)) < LAVA_SPAWNER_PULSE_TICKS) {
+      const t = atlasTex(LAVA_SPAWNER_ACTIVE);
+      if (t !== Texture.WHITE) return t;
+    }
     // Pacified statues (and the altar, while its blessing holds) show the Active art.
     const activeKey = b.allied ? ALLIED_VARIANT[b.sprite]
       : (anyAllied && b.sprite === ALTAR_SPRITE) ? ALTAR_ACTIVE : undefined;
@@ -138,7 +156,7 @@ export class BlockLayer {
 
       if (existing) {
         const { sp, aura, ring, wind } = existing;
-        sp.texture = this.blockTex(b, anyAllied);
+        sp.texture = this.blockTex(b, anyAllied, tick);
         sp.width = size; sp.height = size;
         sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);
         sp.scale.y = Math.abs(sp.scale.y) * (b.flipY ? -1 : 1);
@@ -209,7 +227,7 @@ export class BlockLayer {
           }
         }
 
-        const sp = new Sprite(this.blockTex(b, anyAllied));
+        const sp = new Sprite(this.blockTex(b, anyAllied, tick));
         sp.anchor.set(0.5);
         sp.width = size; sp.height = size;
         sp.scale.x = Math.abs(sp.scale.x) * (b.flipX ? -1 : 1);

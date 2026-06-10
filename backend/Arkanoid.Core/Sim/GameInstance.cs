@@ -44,6 +44,15 @@ public sealed class GameInstance
     /// <summary>Falling bonus pickups dropped by destroyed blocks.</summary>
     public List<Bonus> Bonuses { get; } = new();
 
+    private int _nextBlockId;
+    /// <summary>Id for runtime-spawned blocks (creeping lava) — continues after the level's ids.</summary>
+    public int NextBlockId()
+    {
+        if (_nextBlockId == 0)
+            _nextBlockId = Blocks.Count == 0 ? 1 : Blocks.Max(b => b.Id) + 1;
+        return _nextBlockId++;
+    }
+
     /// <summary>Blocks queued for Necromant revival: (block, seconds remaining).</summary>
     internal readonly List<(Entities.Block Block, double Timer)> _reviveQueue = new();
 
@@ -296,6 +305,8 @@ public sealed class GameInstance
         NecromantSystem.Update(this, dt);
         WindSystem.Update(this, dt);
         ShieldSystem.Update(this, dt);
+        CauldronSystem.Update(this, dt);
+        LavaSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);

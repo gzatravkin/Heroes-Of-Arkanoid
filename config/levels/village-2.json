@@ -8,7 +8,7 @@
     "A.AGGA.A",
     "PAA..AAP",
     "GA.EE.AG",
-    ".AA..AA.",
+    ".AAKKAA.",
     "A.AGGA.A",
     "GA.AA.AG",
     "........",
@@ -23,6 +23,7 @@
     "A": "village_basic",
     "G": "village_ghost",
     "E": "village_beholder",
-    "P": "village_portal"
+    "P": "village_portal",
+    "K": "village_cauldron"
   }
 }

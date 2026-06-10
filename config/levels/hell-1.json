@@ -10,7 +10,7 @@
     ".AAAAAA.",
     "..AAAA..",
     "...AA...",
-    "........",
+    "...S....",
     "........",
     "L......L",
     "........",
@@ -22,6 +22,7 @@
   "legend": {
     "A": "hell_basic",
     "B": "hell_tough",
-    "L": "hell_lava"
+    "L": "hell_lava",
+    "S": "hell_lava_spawner"
   }
 }
