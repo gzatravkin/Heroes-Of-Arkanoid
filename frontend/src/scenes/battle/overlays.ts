@@ -11,6 +11,20 @@ const RELIC_NAMES: Record<string, string> = {
   flint_core: "Flint Core",
   pyroclasm: "Pyroclasm",
   mana_battery: "Mana Battery",
+  // G2 relic web
+  conductor: "Conductor",
+  overcharge: "Overcharge",
+  split_shot: "Split Shot",
+  souljar: "Souljar",
+  lodestone: "Lodestone",
+  ember_heart: "Ember Heart",
+  second_wind: "Second Wind",
+  midas: "Midas Touch",
+  lead_paddle: "Lead Paddle",
+  sapper: "Sapper's Charge",
+  hellwalker: "Hellwalker",
+  ghost_lens: "Ghost Lens",
+  pillar_doctrine: "Pillar Doctrine",
 };
 
 const RELIC_ICONS: Record<string, string> = {
@@ -18,19 +32,65 @@ const RELIC_ICONS: Record<string, string> = {
   flint_core: "/art/ItemDrill.png",
   pyroclasm: "/art/ItemTorch.png",
   mana_battery: "/art/ItemGem.png",
+  // G2 relic web
+  conductor: "/items/ItemMotor.png",
+  overcharge: "/items/ItemOrb.png",
+  split_shot: "/items/ItemJadeBall.png",
+  souljar: "/items/ItemMark.png",
+  lodestone: "/items/ItemForceRing.png",
+  ember_heart: "/items/ItemPhoenix.png",
+  second_wind: "/items/ItemHelm.png",
+  midas: "/items/ItemMagicCrown.png",
+  lead_paddle: "/items/ItemStaff.png",
+  sapper: "/items/ItemSun.png",
+  hellwalker: "/items/ItemFlask.png",
+  ghost_lens: "/items/ItemRing.png",
+  pillar_doctrine: "/items/ItemTomOfKnowladge.png",
 };
 
 const BALL_CORE_NAMES: Record<string, string> = {
   heavy: "Heavy Core",
   split: "Split Core",
   ember: "Ember Core",
+  ghost: "Ghost Core",
+  echo: "Echo Core",
+  frost: "Frost Core",
 };
 
 const BALL_CORE_ICONS: Record<string, string> = {
   heavy: "/ui/BonusRock.png",
   split: "/ui/BonusSplit.png",
   ember: "/ui/BonusFire.png",
+  ghost: "/ui/BonusProtection.png",
+  echo: "/ui/BonusRandomSpell.png",
+  frost: "/ui/BonusMana.png",
 };
+
+// Synergy web (docs/04 §7): an offered pick highlights when it combos with what
+// you already hold. Pairs are symmetric; fusions are the strongest hints.
+const SYNERGIES: Record<string, string[]> = {
+  heavy:       ["ember"],            // Molten fusion
+  ember:       ["heavy", "pyroclasm", "ember_heart"],
+  ghost:       ["split", "ghost_lens"], // Phantom fusion
+  split:       ["ghost", "split_shot"],
+  echo:        ["frost"],            // Stasis fusion
+  frost:       ["echo"],
+  pyroclasm:   ["ember", "ember_heart"],
+  ember_heart: ["ember", "pyroclasm"],
+  ghost_lens:  ["ghost"],
+  split_shot:  ["split"],
+  flint_core:  ["pillar_doctrine"],
+  pillar_doctrine: ["flint_core"],
+  lodestone:   ["midas"],
+  midas:       ["lodestone"],
+};
+
+/** The first owned id this choice combos with, or null. */
+export function synergyWith(choiceId: string, owned: string[]): string | null {
+  const partners = SYNERGIES[choiceId] ?? [];
+  for (const p of partners) if (owned.includes(p)) return p;
+  return null;
+}
 
 export function buffName(id: string): string {
   return RELIC_NAMES[id] ?? BALL_CORE_NAMES[id] ?? id;
@@ -177,6 +237,20 @@ function injectOverlayStyles() {
       text-align: center;
       color: #e8d8b0;
       line-height: 1.3;
+    }
+
+    /* Synergy hint (docs/04 §7): the pick glows and names its combo partner */
+    .ov-bonus-synergy {
+      border-color: rgba(120, 220, 140, 0.85);
+      box-shadow: 0 0 14px rgba(120, 220, 140, 0.35);
+    }
+    .ov-bonus-hint {
+      font-size: 9px;
+      font-weight: 700;
+      text-align: center;
+      color: #8fe3a0;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
     }
 
     .ov-bonus-row {
@@ -337,6 +411,7 @@ export function buildDefeatOverlay(
 export function buildPickOverlay(
   choices: string[],
   onPick: (choiceId: string) => void,
+  owned: string[] = [],
 ): HTMLElement {
   injectOverlayStyles();
 
@@ -367,6 +442,17 @@ export function buildPickOverlay(
     nameEl.textContent = buffName(choiceId);
     nameEl.className = "ov-bonus-name";
     card.appendChild(nameEl);
+
+    // Synergy hint (docs/04 §7): show when this pick combos with something owned.
+    const partner = synergyWith(choiceId, owned);
+    if (partner) {
+      card.classList.add("ov-bonus-synergy");
+      card.setAttribute("data-synergy", partner);
+      const hint = document.createElement("div");
+      hint.textContent = `Combos with ${buffName(partner)}`;
+      hint.className = "ov-bonus-hint";
+      card.appendChild(hint);
+    }
 
     card.addEventListener("click", () => onPick(choiceId));
     row.appendChild(card);

@@ -31,6 +31,8 @@ export function createDungeonFlow() {
                 console.error("dungeon pick failed", e);
               }
             },
+            // Owned relics + cores power the synergy hints (docs/04 §7).
+            [...(data.run?.relics ?? []), ...(data.run?.ballCores ?? [])],
           );
           document.body.appendChild(el);
         }
