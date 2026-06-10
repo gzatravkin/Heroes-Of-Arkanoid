@@ -31,9 +31,10 @@ public enum BlockBehavior
 public sealed class Block
 {
     public int Id { get; init; }          // stable runtime id for snapshots
-    // Col is mutable: the Goblin boss hops between anchors (docs/11 boss verbs).
+    // Col/Row are mutable: the Goblin boss hops between anchors, and the Hell
+    // descend pacing mode presses every block downward (docs/11 + docs/12).
     public int Col { get; set; }
-    public int Row { get; init; }
+    public int Row { get; set; }
     public int Hp { get; set; }
     public int MaxHp { get; init; }
     public string TypeId { get; init; } = "";

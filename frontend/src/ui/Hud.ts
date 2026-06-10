@@ -67,6 +67,8 @@ export class Hud {
   private bossNameEl: HTMLElement;
   // Active bonus effects indicator row.
   private effectsEl: HTMLElement;
+  // Objective timer (survive/limit) — docs/12 objective flavors.
+  private timerEl!: HTMLElement;
 
   // Active spells for the current class (populated by loadSpells).
   private _spells: SpellDef[] = [];
@@ -153,6 +155,17 @@ export class Hud {
     this.bossBarEl   = bossBar.outer;
     this.bossBarFill = bossBar.fill;
     this.bossNameEl  = bossBar.name;
+
+    // ---- objective timer (top center, under the boss bar; docs/12 objectives) ----
+    this.timerEl = this.createElement("div", "hud-timer");
+    this.timerEl.id = "hud-timer";
+    this.timerEl.style.cssText = [
+      "position:absolute", "top:44px", "left:50%", "transform:translateX(-50%)",
+      "display:none", "padding:2px 14px", "border-radius:10px",
+      "font-size:18px", "font-weight:800", "letter-spacing:1px",
+      "background:rgba(0,0,0,0.45)", "pointer-events:none",
+    ].join(";");
+    this.root.appendChild(this.timerEl);
 
     // ---- active bonus effects row (top-left, below lives) ----
     this.effectsEl = this.createElement("div", "hud-effects");
@@ -304,6 +317,27 @@ export class Hud {
       }
     } else {
       this.bossBarEl.style.display = "none";
+    }
+
+    // -- objective timer (survive = gold "hold out", limit = red countdown) --
+    if (s.timerMode && (s.timeLeft ?? 0) >= 0 && s.phase === "Playing") {
+      this.timerEl.style.display = "block";
+      const t = Math.ceil(s.timeLeft ?? 0);
+      const mm = Math.floor(t / 60), ss = (t % 60).toString().padStart(2, "0");
+      if (s.timerMode === "survive") {
+        this.timerEl.style.color = "#ffd700";
+        this.timerEl.textContent = `SURVIVE ${mm}:${ss}`;
+      } else {
+        this.timerEl.style.color = t <= 10 ? "#ff5544" : "#ffffff";
+        this.timerEl.textContent = `TIME ${mm}:${ss}`;
+      }
+    } else if ((s.floorCount ?? 1) > 1 && s.phase === "Playing") {
+      // Multi-floor collapse: show progress through the mine shaft.
+      this.timerEl.style.display = "block";
+      this.timerEl.style.color = "#ccbbaa";
+      this.timerEl.textContent = `FLOOR ${s.floor}/${s.floorCount}`;
+    } else {
+      this.timerEl.style.display = "none";
     }
 
     // -- active bonus effects --

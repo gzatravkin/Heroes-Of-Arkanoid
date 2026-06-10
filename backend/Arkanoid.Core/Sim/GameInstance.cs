@@ -82,6 +82,14 @@ public sealed class GameInstance
     /// <summary>Heaven Seraph: alternates summoning a statue add vs a fused boss vase.</summary>
     internal bool   _seraphSummonVase;
 
+    // --- Objective timers + pacing modes (docs/12) ---
+    /// <summary>Seconds of Playing-phase time elapsed (drives timeLimit/surviveTime).</summary>
+    public double ElapsedPlayTime { get; internal set; }
+    /// <summary>Multi-floor collapse: current floor (0 = the level's first layout).</summary>
+    public int FloorIndex { get; internal set; }
+    internal double _descendAccumulator;
+    internal double _escalateAccumulator;
+
     internal double _turretRemaining;
     internal double _turretAccumulator;
     public bool TurretActive => _turretRemaining > 0;
@@ -293,6 +301,7 @@ public sealed class GameInstance
     {
         if (Phase != GamePhase.Playing) return;
         TickCount++;
+        ElapsedPlayTime += dt;
         if (_log.Verbose)
             _log.Log(TickCount, "tick", "", $"balls={Balls.Count(b=>b.Alive)} mana={ManaValue:F0} blocks={Blocks.Count(b=>!b.Dead)}");
         SpellSystem.RegenMana(this, dt);
@@ -314,6 +323,7 @@ public sealed class GameInstance
         ShieldSystem.Update(this, dt);
         CauldronSystem.Update(this, dt);
         LavaSystem.Update(this, dt);
+        PacingSystem.Update(this, dt);
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);

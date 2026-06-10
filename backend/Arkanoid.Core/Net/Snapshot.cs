@@ -132,6 +132,13 @@ public sealed class Snapshot
     [JsonPropertyName("treasureBonus")]   public int  TreasureBonus   { get; set; }
     /// <summary>WindMaster push radius in world units — the renderer draws the aura circle at this size.</summary>
     [JsonPropertyName("windRadius")]      public double WindRadius    { get; set; }
+    /// <summary>Objective timer mode: "" | "survive" (win at 0) | "limit" (lose at 0).</summary>
+    [JsonPropertyName("timerMode")]       public string TimerMode     { get; set; } = "";
+    /// <summary>Seconds remaining on the objective timer (0 when no timer).</summary>
+    [JsonPropertyName("timeLeft")]        public double TimeLeft      { get; set; }
+    /// <summary>Multi-floor collapse: current floor (1-based) and total floors (1 = single).</summary>
+    [JsonPropertyName("floor")]           public int    Floor         { get; set; }
+    [JsonPropertyName("floorCount")]      public int    FloorCount    { get; set; }
 
     public static Snapshot From(GameInstance g, long tick)
     {
@@ -192,6 +199,12 @@ public sealed class Snapshot
         s.DrainActive     = g.DrainActive;
         s.TreasureBonus   = g.ItemTreasureBonus;
         s.WindRadius      = g.Config.WindMasterRadius;
+        if (g.Level.SurviveTime > 0)
+        { s.TimerMode = "survive"; s.TimeLeft = System.Math.Max(0, g.Level.SurviveTime - g.ElapsedPlayTime); }
+        else if (g.Level.TimeLimit > 0)
+        { s.TimerMode = "limit"; s.TimeLeft = System.Math.Max(0, g.Level.TimeLimit - g.ElapsedPlayTime); }
+        s.Floor      = g.FloorIndex + 1;
+        s.FloorCount = g.Level.ExtraFloors.Count + 1;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

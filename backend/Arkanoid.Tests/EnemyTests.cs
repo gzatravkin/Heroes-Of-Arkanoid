@@ -459,6 +459,98 @@ public class EnemyTests
         Assert.DoesNotContain(g.Blocks, b => !b.Dead && b.Lava && b.OwnerId == spawner.Id);
     }
 
+    // ── Objective flavors + pacing modes (docs/12 identity matrix) ─────────────
+
+    private const string PlainBlocksJson =
+        "{\"types\":[{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+
+    [Fact]
+    public void SurviveTimer_WinsTheLevel_WhenItExpires()
+    {
+        var catalog = BlockCatalog.FromJson(PlainBlocksJson);
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"k..\",\"...\",\"...\"],\"legend\":{\"k\":\"k\"},\"surviveTime\":1.0}",
+            catalog);
+        var g = new GameInstance(level, SimConfig.Default, seed: 1);
+        g.Serve();
+        Park(g);
+        for (int i = 0; i < (int)(1.2 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(GamePhase.Won, g.Phase);
+    }
+
+    [Fact]
+    public void TimeLimit_LosesTheLevel_WhenItExpires()
+    {
+        var catalog = BlockCatalog.FromJson(PlainBlocksJson);
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"k..\",\"...\",\"...\"],\"legend\":{\"k\":\"k\"},\"timeLimit\":1.0}",
+            catalog);
+        var g = new GameInstance(level, SimConfig.Default, seed: 1);
+        g.Serve();
+        Park(g);
+        for (int i = 0; i < (int)(1.2 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(GamePhase.Lost, g.Phase);
+    }
+
+    [Fact]
+    public void DescendingBlocks_PressDown_AndOverrunLoses()
+    {
+        var catalog = BlockCatalog.FromJson(PlainBlocksJson);
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\"k..\",\"...\",\"...\",\"...\"],\"legend\":{\"k\":\"k\"},\"descendInterval\":0.5}",
+            catalog);
+        var g = new GameInstance(level, SimConfig.Default, seed: 1);
+        g.Serve();
+        Park(g);
+        var blk = g.Blocks[0];
+        Assert.Equal(0, blk.Row);
+
+        for (int i = 0; i < (int)(0.6 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(1, blk.Row);
+
+        // Two more descents reach the bottom row (3) → overrun → lost.
+        for (int i = 0; i < (int)(1.2 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.Equal(GamePhase.Lost, g.Phase);
+    }
+
+    [Fact]
+    public void MultiFloor_AdvancesToNextFloor_ThenWins()
+    {
+        var catalog = BlockCatalog.FromJson(PlainBlocksJson);
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\"k..\",\"...\",\"...\",\"...\"]," +
+            "\"legend\":{\"k\":\"k\"},\"floors\":[[\"..k\",\"...\",\"...\",\"...\"]]}",
+            catalog);
+        var g = new GameInstance(level, SimConfig.Default, seed: 1);
+        g.Serve();
+
+        BallHit(g, g.Blocks[0]); // clear floor 1
+        Assert.Equal(GamePhase.Playing, g.Phase);
+        Assert.Equal(1, g.FloorIndex);
+        var nextBlock = g.Blocks.Single(b => !b.Dead);
+        Assert.Equal(2, nextBlock.Col); // floor 2's layout
+
+        BallHit(g, nextBlock); // clear floor 2 → win
+        Assert.Equal(GamePhase.Won, g.Phase);
+    }
+
+    [Fact]
+    public void StatueEscalation_LevelsStatues_OnTheInterval()
+    {
+        var g2catalog = BlockCatalog.FromJson(
+            "{\"types\":[" +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":99,\"emitAim\":\"paddle\"}]}");
+        var level = LevelLoader.FromJson(
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"m..\",\"...\",\"...\"],\"legend\":{\"m\":\"m\"},\"escalateInterval\":0.5}",
+            g2catalog);
+        var g = new GameInstance(level, SimConfig.Default, seed: 1);
+        g.Serve();
+        Park(g);
+        var statue = g.Blocks[0];
+        for (int i = 0; i < (int)(1.2 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(statue.StatueLevel >= 2, $"expected ≥2 escalations, got {statue.StatueLevel}");
+    }
+
     // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
 
     [Fact]

@@ -29,6 +29,12 @@ export interface Snapshot {
   treasureBonus?: number;
   /** WindMaster push radius in world units (renderer draws the aura at this size). */
   windRadius?: number;
+  /** Objective timer (docs/12): "" | "survive" | "limit", with seconds remaining. */
+  timerMode?: string;
+  timeLeft?: number;
+  /** Multi-floor collapse progress (1-based; floorCount 1 = single floor). */
+  floor?: number;
+  floorCount?: number;
 }
 
 export class Connection {

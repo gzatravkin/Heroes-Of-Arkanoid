@@ -9,8 +9,38 @@ internal static class WinLoseSystem
 {
     internal static void ResolveDrainAndWin(GameInstance g)
     {
+        // Heaven Judgement (docs/12): survive the trial — win on the timer alone.
+        if (g.Level.SurviveTime > 0 && g.ElapsedPlayTime >= g.Level.SurviveTime)
+        {
+            g.Phase = GamePhase.Won;
+            g._log.Log(g.TickCount, "win", "survived the trial");
+            g.RaiseEvent("levelWon", 0, 0);
+            return;
+        }
+
+        // Caverns Demolition (docs/12): the clock ran out before the collapse.
+        if (g.Level.TimeLimit > 0 && g.ElapsedPlayTime >= g.Level.TimeLimit)
+        {
+            g.Phase = GamePhase.Lost;
+            g._log.Log(g.TickCount, "lose", "time limit expired");
+            g.RaiseEvent("timeUp", 0, 0);
+            g.RaiseEvent("levelLost", 0, 0);
+            return;
+        }
+
         if (!g.Blocks.Any(b => b.NeedToKill && !b.Dead))
         {
+            // Multi-floor collapse (docs/12 Caverns): clear a floor → the next slides in.
+            if (g.FloorIndex < g.Level.ExtraFloors.Count)
+            {
+                var next = g.Level.ExtraFloors[g.FloorIndex];
+                g.FloorIndex++;
+                g.Blocks.RemoveAll(b => !b.Boss); // keep a live boss across floors, drop debris
+                g.Blocks.AddRange(next);
+                g.RaiseEvent("floorDown", 0, 0);
+                g._log.Log(g.TickCount, "floor", "collapsed to next floor", $"floor={g.FloorIndex}");
+                return;
+            }
             g.Phase = GamePhase.Won;
             g._log.Log(g.TickCount, "win", "all needToKill cleared");
             g.RaiseEvent("levelWon", 0, 0);
