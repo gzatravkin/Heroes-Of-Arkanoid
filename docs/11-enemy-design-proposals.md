@@ -152,16 +152,17 @@ The shared pattern system is a fine *base layer*, but the four fights must diver
 
 ---
 
-## 6. Build order (slots into docs/09 milestones)
+## 6. Build order — STATUS (2026-06-09)
 
-1. **R4 danger-pays rule + emitter telegraphs + WindMaster aura + statue state art**
-   — one slice, mostly renderer, transforms feel. *(with G1 Sound & Feel)*
-2. **Altar/Vase convert system + bat carry + stalactite-as-weapon** — the decision
-   restorations. *(early G2 — they create the targets relics can synergize with)*
-3. **Cauldron + lava reform (incl. Frost counterplay)** — needs imbues/relics from G2.
-4. **Boss signature mechanics** — one per boss, Demon first. *(G3, alongside
-   encounter design — docs/09 already plans levels that combine 2-3 enemies per
-   biome's back half)*
+1. ✅ **R4 danger-pays + emitter telegraphs + WindMaster aura + statue state art +
+   beholder tiers + death-sphere markers** — shipped (commit `feat(enemies): slice 1`).
+2. ✅ **Altar/Vase convert system + bat carry + stalactite-as-weapon** — shipped
+   (slice 3). Vase = level-up risk/reward; allied statues fight for you; the bat
+   carries the ball to the drain with pop counterplay.
+3. ✅ **Cauldron + lava reform** — shipped (slice 4). Counterplay landed as
+   "kill the spawner retracts its lava" (no Frost imbue exists yet; revisit the
+   Frost-solidify idea when imbues expand in G2).
+4. ✅ **Boss signature mechanics** — shipped (slice 5): Demon fist columns,
+   Goblin hops, Witch ball-grab, Seraph summons + fused vase.
 
-Each item gates through the house process: feature-critic → demo scene → approval →
-tests. Items marked S≤3 are real features, not patches — they get their own demos.
+All four slices verified by xUnit + Playwright with screenshots; see git log.

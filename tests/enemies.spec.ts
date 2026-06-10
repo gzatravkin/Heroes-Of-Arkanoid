@@ -97,7 +97,7 @@ test("Witchland ghost portal toggles the ball's phase", async ({ page }) => {
 });
 
 test("Heaven shield statue shields neighbours (immune flash)", async ({ page }) => {
-  await openBattle(page, "heaven-1");
+  await openBattle(page, "heaven-2");
   expect((await page.evaluate(() => (window as any).__game.getState()))
     .blocks.some((b: any) => b.sprite === "HeavenDefender")).toBeTruthy();
   // fast-forward past a shield pulse, then a block should report shielded
@@ -159,7 +159,9 @@ test("windmaster aura radius is exposed and drawn", async ({ page }) => {
 });
 
 test("necromant marks and revives a killed block (end-to-end)", async ({ page }) => {
-  await openBattle(page, "village-ghost");
+  // village-4 keeps TWO necromants behind a tough ring — the live ball can't
+  // realistically cancel the revive by killing both during real-time gaps.
+  await openBattle(page, "village-4");
   const brickId = await page.evaluate(() =>
     (window as any).__game.getState().blocks.find((b: any) => b.sprite === "VillageStandart")?.id);
   expect(brickId).toBeTruthy();
@@ -173,6 +175,9 @@ test("necromant marks and revives a killed block (end-to-end)", async ({ page })
       !(window as any).__game.getState().blocks.some((b: any) => b.id === id), brickId);
   }
   expect(dead, "target brick must die within 12 driven hits").toBeTruthy();
+  const necroAlive = await page.evaluate(() =>
+    (window as any).__game.getState().blocks.some((b: any) => b.sprite === "VillageDeath"));
+  expect(necroAlive, "a necromant must still be alive for the revive").toBeTruthy();
   await page.screenshot({ path: path.join(SHOTS, "enemy-deathmark.png") }); // sphere over the corpse
   // The necromant revives it (delay default → fast-forward well past it).
   await cheat(page, "fastForward", 400);
@@ -204,7 +209,7 @@ test("Witchland cauldron bubbles in village-2 (mana siphon enemy)", async ({ pag
 });
 
 test("Hell lava spawner creeps new lava cells over time", async ({ page }) => {
-  await openBattle(page, "hell-1");
+  await openBattle(page, "hell-5");
   const before = await page.evaluate(() => (window as any).__game.getState().blocks.length);
   // Two creep intervals (6s each @60Hz) — the field should grow.
   await cheat(page, "fastForward", 800);

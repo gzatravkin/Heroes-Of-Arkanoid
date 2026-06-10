@@ -1,18 +1,18 @@
 {
-  "id": "hell-1",
+  "id": "hell-4",
   "biome": "hell",
   "cols": 8,
   "rows": 14,
   "rows_data": [
     "AAAAAAAA",
-    "AAAAAAAA",
-    "O.BBBB.O",
+    "ABBAABBA",
     "O.AAAA.O",
+    "O.ABBA.O",
+    "G.AAAA.G",
     "..AAAA..",
     "...AA...",
     "........",
     "........",
-    "L......L",
     "........",
     "........",
     "........",
@@ -23,6 +23,7 @@
     "A": "hell_basic",
     "B": "hell_tough",
     "O": "hell_obsidian",
-    "L": "hell_lava"
-  }
+    "G": "hell_teleporter_green"
+  },
+  "descendInterval": 10
 }

@@ -1,18 +1,18 @@
 {
-  "id": "hell-1",
+  "id": "hell-5",
   "biome": "hell",
   "cols": 8,
   "rows": 14,
   "rows_data": [
-    "AAAAAAAA",
-    "AAAAAAAA",
-    "O.BBBB.O",
-    "O.AAAA.O",
     "..AAAA..",
-    "...AA...",
-    "........",
-    "........",
+    ".OO..OO.",
+    ".OBBBBO.",
+    ".O.SS.O.",
+    ".OBBBBO.",
+    ".OO..OO.",
+    "..AAAA..",
     "L......L",
+    "........",
     "........",
     "........",
     "........",
@@ -23,6 +23,7 @@
     "A": "hell_basic",
     "B": "hell_tough",
     "O": "hell_obsidian",
+    "S": "hell_lava_spawner",
     "L": "hell_lava"
   }
 }

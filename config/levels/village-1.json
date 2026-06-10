@@ -6,8 +6,8 @@
   "rows_data": [
     ".AA..AA.",
     ".AABBAA.",
-    "AA.AA.AA",
-    "AA.AA.AA",
+    "AA.GG.AA",
+    "AA.GG.AA",
     ".AA..AA.",
     ".AA..AA.",
     "AA.AA.AA",
@@ -21,6 +21,7 @@
   ],
   "legend": {
     "A": "village_basic",
-    "B": "village_bat"
+    "B": "village_bat",
+    "G": "village_ghost"
   }
 }

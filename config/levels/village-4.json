@@ -1,0 +1,29 @@
+{
+  "id": "village-4",
+  "biome": "village",
+  "cols": 8,
+  "rows": 14,
+  "rows_data": [
+    ".BBBBBB.",
+    "BGGGGGGB",
+    "BG.KK.GB",
+    "BG.NN.GB",
+    "BG....GB",
+    "BGGGGGGB",
+    ".BBBBBB.",
+    "..A..A..",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "legend": {
+    "A": "village_basic",
+    "B": "village_tough",
+    "G": "village_ghost",
+    "K": "village_cauldron",
+    "N": "village_necromant"
+  }
+}

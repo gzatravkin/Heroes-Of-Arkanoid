@@ -35,15 +35,16 @@ test("hell-boss: has boss blocks and spawns hazards, then can be won", async ({ 
     (window as any).__autoServeInterval = interval;
   });
 
-  // Wait for hazards to spawn (the boss shoots projectiles).
-  // BossAttackInterval is 1.6s, so first wave fires at ~1.6s of Playing time.
+  // Wait for evidence the boss is attacking. The Demon's AimedShot is a FIST SLAM
+  // (no hazard — it chips the paddle/column instead), so accept either a hazard in
+  // flight (Rain/Spread rolled) or HP lost to a slam.
   await page.waitForFunction(
     () => {
       const s = (window as any).__game?.getState();
-      return s && Array.isArray(s.hazards) && s.hazards.length > 0;
+      return s && ((Array.isArray(s.hazards) && s.hazards.length > 0) || s.lives < 3);
     },
     null,
-    { timeout: 15000 }
+    { timeout: 20000 }
   );
 
   // Stop the keepalive interval.

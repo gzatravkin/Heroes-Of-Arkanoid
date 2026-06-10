@@ -64,11 +64,14 @@ test("hell-boss: bossActive, boss HP bar visible, hazards spawn, telegraph fires
     (window as any).__keepAliveIv = iv;
   });
 
-  // 4. Wait until at least one hazard spawns (confirms boss is actively attacking).
+  // 4. Wait until the boss is actively attacking: a hazard in flight (Rain/Spread)
+  //    OR an intercepted bossTelegraph/bossAttack (the Demon's fist slam spawns no
+  //    hazard, but always telegraphs + attacks on the WS stream).
   await page.waitForFunction(
     () => {
       const s = (window as any).__game?.getState();
-      return s?.hazards?.length > 0;
+      const events = (window as any).__bossEventsIntercepted?.length ?? 0;
+      return (s?.hazards?.length > 0) || events > 0;
     },
     null,
     { timeout: 20_000 },

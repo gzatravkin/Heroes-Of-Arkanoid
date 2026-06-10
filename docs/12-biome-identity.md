@@ -55,6 +55,22 @@ Add to `tools/gen-levels.mjs` validation (it currently checks only 8×14 + winna
    level N (new enemy, new idiom, or the pacing mode) — the biome's nature *unfolds*
    instead of repeating.
 
+## 2b. STATUS (2026-06-09) — implemented
+
+- ✅ Atmosphere kits (embers / dust / shadows / clouds) — `BackgroundLayer`.
+- ✅ Objective flavors: `surviveTime` (Judgement), `timeLimit` (Demolition), breach
+  via needToKill subsets; HUD timer (SURVIVE / TIME / FLOOR n/m).
+- ✅ Pacing modes: `descendInterval` (Hell press, overrun loses),
+  `floors[]` (Caverns collapse), `escalateInterval` (Heaven escalation),
+  necromant revive clock (Witchland, pre-existing).
+- ✅ All 5 lint rules live in `tools/gen-levels.mjs`; the generator fails the build
+  on any violation.
+- ✅ Campaign re-authored to 21 levels (5+boss per biome arc): each biome gets its
+  two idioms, a pacing showcase, a composite, and its boss; crescendo holds within
+  each biome. Evidence: `tests/demo-screenshots/matrix-*.png`.
+- ⏳ Remaining from this doc: rift biome-matrix inheritance for generated floors
+  (G3 rift generator work), and pushing level count toward the 30+ target.
+
 ## 3. What this changes in practice
 
 - **Now (with doc 11 slice 1):** atmosphere kits are pure renderer work — ember/fog/
