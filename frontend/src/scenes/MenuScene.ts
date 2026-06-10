@@ -22,6 +22,21 @@ const DOCK: DockEntry[] = [
   { id: "btn-settings",     label: "Settings", scene: "settings",     icon: "/ui/SettingsGear.svg" },
 ];
 
+// Ember particle definitions: left (cqw), delay (s), duration (s), size (px), bottom (cqh).
+// 10 particles spread across horizontal range — varied timing to avoid lockstep.
+const EMBER_PARTICLES = [
+  { left: 10, delay:  0.0, dur:  9, size: 3, bottom: 22 },
+  { left: 22, delay:  2.5, dur: 12, size: 4, bottom: 26 },
+  { left: 35, delay:  5.0, dur: 10, size: 3, bottom: 20 },
+  { left: 48, delay:  1.0, dur: 14, size: 5, bottom: 18 },
+  { left: 60, delay:  7.0, dur:  8, size: 3, bottom: 30 },
+  { left: 72, delay:  3.5, dur: 11, size: 4, bottom: 24 },
+  { left: 83, delay:  9.0, dur: 13, size: 3, bottom: 28 },
+  { left: 18, delay:  6.0, dur: 10, size: 4, bottom: 21 },
+  { left: 54, delay:  4.0, dur:  9, size: 3, bottom: 25 },
+  { left: 90, delay:  8.0, dur: 12, size: 4, bottom: 23 },
+];
+
 /** Furthest *playable* node = the deepest node still unlocked (the campaign frontier). */
 function furthestNode(nodes: CampaignNode[]): CampaignNode | null {
   const playable = nodes.filter((n) => n.unlocked);
@@ -40,14 +55,38 @@ export function mountMenu(host: HTMLElement) {
   el.id = "menu";
   el.className = "menu-root";
 
+  // ── Layer 0: deep warm background ──────────────────────────────────────────
   const bg = document.createElement("div");
   bg.className = "menu-bg";
   el.appendChild(bg);
 
-  // (The old .menu-char-art div rendered MainCharacter.png here — which turned
-  // out to be a legacy "F33 Волшебная Бита" logo badge, clipped behind the dock.
-  // Removed per docs/13 §S2; a real composition pass is planned in P3.)
+  // ── Layer 1: key-art slot (z-index 1) ──────────────────────────────────────
+  // Placeholder behind the column; swap in the hero illustration when art ships.
+  const keyart = document.createElement("div");
+  keyart.className = "menu-keyart";
+  /* future: commissioned hero illustration (docs/13 asset gap #1) */
+  el.appendChild(keyart);
 
+  // ── Layer 2a: ember glow — large dim radial behind the CTA block ───────────
+  const emberGlow = document.createElement("div");
+  emberGlow.className = "menu-ember-glow";
+  el.appendChild(emberGlow);
+
+  // ── Layer 2b: ember particles — slowly drifting gold dots ─────────────────
+  const particlesWrap = document.createElement("div");
+  particlesWrap.className = "menu-particles";
+  EMBER_PARTICLES.forEach((p) => {
+    const dot = document.createElement("div");
+    dot.className = "menu-ember";
+    dot.style.cssText =
+      `left:${p.left}cqw;bottom:${p.bottom}cqh;` +
+      `animation-delay:-${p.delay}s;animation-duration:${p.dur}s;` +
+      `width:${p.size}px;height:${p.size}px;`;
+    particlesWrap.appendChild(dot);
+  });
+  el.appendChild(particlesWrap);
+
+  // ── Layer 3: content column ─────────────────────────────────────────────────
   const col = document.createElement("div");
   col.className = "menu-col";
 
@@ -57,11 +96,18 @@ export function mountMenu(host: HTMLElement) {
   h1.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;";
   col.appendChild(h1);
 
+  // Logo — anchored near the top (~12% from top via column padding-top).
   const logo = document.createElement("div");
   logo.className = "menu-logo";
   col.appendChild(logo);
 
-  // ── Primary: Continue (resumes the furthest playable node) ──────────────────
+  // ── CTA wrapper — vertically centered in remaining space above dock ─────────
+  // margin-top: auto; margin-bottom: auto distributes the free space evenly so the
+  // block floats in the middle rather than piling up under the logo.
+  const ctaWrap = document.createElement("div");
+  ctaWrap.className = "menu-cta-wrap";
+
+  // Primary: Continue (resumes the furthest playable node).
   const playBtn = document.createElement("button");
   playBtn.id = "btn-continue";
   playBtn.setAttribute("data-level", FALLBACK_LEVEL); // updated once campaign loads
@@ -74,9 +120,9 @@ export function mountMenu(host: HTMLElement) {
     log("menu", "continue", { level });
     navigateTo(`/?scene=battle&level=${level}&from=campaign`);
   });
-  col.appendChild(playBtn);
+  ctaWrap.appendChild(playBtn);
 
-  // ── Secondary: Campaign Map (the node-graph navigation) ─────────────────────
+  // Secondary: Campaign Map (the node-graph navigation).
   const mapBtn = document.createElement("button");
   mapBtn.id = "btn-campaign";
   mapBtn.className = "menu-art-btn menu-btn-map";
@@ -85,7 +131,9 @@ export function mountMenu(host: HTMLElement) {
     log("menu", "open-map");
     navigateTo("/?scene=campaign");
   });
-  col.appendChild(mapBtn);
+  ctaWrap.appendChild(mapBtn);
+
+  col.appendChild(ctaWrap);
 
   // ── Docked secondary destinations (icons along the bottom edge) ─────────────
   const dock = document.createElement("div");
@@ -138,6 +186,7 @@ function injectMenuStyles() {
       font-family: sans-serif;
     }
 
+    /* ── Background ── */
     .menu-bg {
       position: absolute;
       inset: 0;
@@ -147,22 +196,101 @@ function injectMenuStyles() {
       z-index: 0;
     }
 
+    /* ── Key-art slot (z-index 1) — future hero illustration ── */
+    .menu-keyart {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      /* future: commissioned hero illustration (docs/13 asset gap #1) */
+    }
+
+    /* ── Ember glow — large dim radial behind the CTA block (z-index 2) ── */
+    .menu-ember-glow {
+      position: absolute;
+      top: 28cqh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92cqw;
+      height: 55cqh;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(200, 100, 20, 0.13) 0%,
+        rgba(160,  70, 10, 0.06) 45%,
+        transparent 72%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── Ember particles container ── */
+    .menu-particles {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Individual ember dot — hidden by default; animation applied only when
+       motion is acceptable (reduced-motion block below). */
+    .menu-ember {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(255, 190, 60, 0.9)  0%,
+        rgba(255, 140, 30, 0.45) 55%,
+        transparent              100%);
+      filter: blur(1.5px);
+      opacity: 0;
+    }
+
+    @keyframes ember-rise {
+      0%   { transform: translateY(0)       translateX(0);    opacity: 0;    }
+      8%   { opacity: 0.30; }
+      50%  { transform: translateY(-34cqh)  translateX(7px);  opacity: 0.25; }
+      88%  { opacity: 0.10; }
+      100% { transform: translateY(-64cqh)  translateX(-6px); opacity: 0;    }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .menu-ember {
+        animation-name: ember-rise;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+    }
+
+    /* ── Content column ──
+       Logo anchored near the top (padding-top ≈ 12cqh).
+       CTA wrapper gets margin-top:auto + margin-bottom:auto, which distributes
+       the remaining free space evenly above and below it — centering the CTA
+       block in the space above the dock. Dock sits flush at the bottom. */
     .menu-col {
       position: relative;
-      z-index: 2;
+      z-index: 3;
       display: flex;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      padding: max(env(safe-area-inset-top, 0px), 28px) 0 env(safe-area-inset-bottom, 16px) 0;
-      gap: 0;
+      min-height: 100cqh;
+      padding: max(env(safe-area-inset-top, 0px), 12cqh) 0 env(safe-area-inset-bottom, 16px) 0;
     }
 
     .menu-logo {
       width: min(340px, 88cqw);
       height: 80px;
       background: url('/ui/LogoArkanoid.png') no-repeat center / contain;
-      margin-bottom: 36px;
+      flex-shrink: 0;
+    }
+
+    /* CTA wrapper — floats in center of remaining space above the dock */
+    .menu-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: auto;
+      margin-bottom: auto;
+      flex-shrink: 0;
     }
 
     .menu-art-btn {
@@ -190,7 +318,6 @@ function injectMenuStyles() {
     .menu-btn-continue {
       height: 76px;
       gap: 2px;
-      margin-bottom: 14px;
     }
     .menu-btn-kicker {
       color: #ffe9b0;
@@ -221,13 +348,15 @@ function injectMenuStyles() {
       pointer-events: none;
     }
 
-    /* ── Docked secondary destinations ── */
+    /* ── Docked secondary destinations ──
+       Sits flush at the bottom of the column; ≥18px top-padding gives the dock
+       breathing room above the icon row (§6 compliant). */
     .menu-dock {
       display: flex;
       justify-content: center;
       gap: 10px;
       width: min(360px, 94cqw);
-      margin-top: auto;
+      flex-shrink: 0;
       padding: 18px 8px calc(env(safe-area-inset-bottom, 0px) + 10px) 8px;
     }
     .menu-dock-btn {
