@@ -79,7 +79,7 @@ export const CAMPAIGN_STYLES = `
     .camp-profile-bar {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       padding: 8px 16px;
       background: url('/ui/LvlUpInterfaceTopBottomPanel.png') repeat-x center / auto 100%;
       border-bottom: 2px solid rgba(180,140,60,0.4);
@@ -90,7 +90,7 @@ export const CAMPAIGN_STYLES = `
     .camp-profile-level {
       font-weight: 700;
       font-size: 15px;
-      color: #ffd700;
+      color: var(--gold);
       text-shadow: 0 0 8px rgba(255,200,0,0.6);
       white-space: nowrap;
     }
@@ -100,28 +100,29 @@ export const CAMPAIGN_STYLES = `
       gap: 5px;
     }
     .camp-exp-label {
-      color: #88aaff;
+      color: var(--text-dim);
       font-size: 11px;
       white-space: nowrap;
     }
     .camp-exp-outer {
       position: relative;
-      width: 80px;
-      height: 14px;
-      background-size: 100% 100%;
-      background-repeat: no-repeat;
-      border-radius: 3px;
+      width: 110px;
+      height: 16px;
+      border-style: solid;
+      border-width: 7px 18px;
+      border-image: url('/ui/ExpBarEmptyMainMenu.png') 26 70 26 70 fill stretch;
+      box-sizing: border-box;
       overflow: hidden;
     }
     .camp-exp-fill {
       position: absolute;
-      left: 0; top: 0; bottom: 0;
-      background-size: auto 100%;
-      background-repeat: no-repeat;
+      left: 18px; top: 7px; bottom: 7px; right: 18px;
+      background: linear-gradient(180deg, #ffe06a, #d89a2e);
+      border-radius: 2px;
       transition: width 0.3s;
     }
     .camp-profile-points {
-      color: #ffcc44;
+      color: var(--text-dim);
       font-size: 12px;
       white-space: nowrap;
     }
@@ -130,7 +131,7 @@ export const CAMPAIGN_STYLES = `
       align-items: center;
       gap: 3px;
       font-size: 13px;
-      color: #44ddff;
+      color: var(--gold-bright);
     }
     .camp-upgrade-btn {
       display: flex;

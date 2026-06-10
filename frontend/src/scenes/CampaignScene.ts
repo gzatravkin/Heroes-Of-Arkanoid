@@ -59,12 +59,10 @@ export function mountCampaign(host: HTMLElement) {
   expLabel.className = "camp-exp-label";
   const expBarOuter = document.createElement("div");
   expBarOuter.className = "camp-exp-outer";
-  // background = empty bar art, fill = full bar art via clip
-  expBarOuter.style.backgroundImage = "url('/ui/ExpBarEmptyMainMenu.png')";
+  // 3-slice frame via CSS border-image, fill as absolute-positioned gradient div
   const expBarFill = document.createElement("div");
   expBarFill.id = "profile-exp-fill";
   expBarFill.className = "camp-exp-fill";
-  expBarFill.style.backgroundImage = "url('/ui/ExpBarFullMainMenu.png')";
   expBarOuter.appendChild(expBarFill);
   expBar.appendChild(expLabel);
   expBar.appendChild(expBarOuter);
@@ -101,9 +99,10 @@ export function mountCampaign(host: HTMLElement) {
 
   // Back button
   const btnBack = document.createElement("a");
+  btnBack.className = "ui-link";
   btnBack.textContent = "← Menu";
   btnBack.href = "/?scene=menu";
-  css(btnBack, { color: "#b8a070", textDecoration: "none", fontSize: "13px", padding: "6px 10px" });
+  css(btnBack, { textDecoration: "none", fontSize: "13px", padding: "12px 14px", minHeight: "44px", display: "flex", alignItems: "center", cursor: "pointer", transition: "filter 0.15s" });
 
   profileBar.appendChild(btnUpgrade);
   profileBar.appendChild(btnBack);
