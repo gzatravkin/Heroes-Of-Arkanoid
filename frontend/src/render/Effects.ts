@@ -72,6 +72,7 @@ const FIST_TELEGRAPH_COLOR = 0xffaa33;
 const FIST_TELEGRAPH_MS    = 700;
 const FIST_SLAM_COLOR      = 0xff3311;
 const FIST_SLAM_MS         = 350;
+const JUDGEMENT_COLOR      = 0xffd24a; // Paladin Last Day gold
 const FIST_COLUMN_ALPHA    = 0.32;
 
 interface ColumnFlash { gfx: Graphics; life: number; elapsed: number }
@@ -137,6 +138,9 @@ export class Effects {
         case "fistSlam":
           this.spawnColumnFlash(ev.x, cellSize, FIST_SLAM_COLOR, FIST_SLAM_MS);
           this.spawnBlockDestroy(ev.x, this.boardH * 0.5, cellSize, biome ?? "hell");
+          break;
+        case "judgement": // Paladin Last Day: a golden column smite
+          this.spawnColumnFlash(ev.x, cellSize, JUDGEMENT_COLOR, FIST_SLAM_MS);
           break;
       }
     }

@@ -37,6 +37,8 @@ internal static partial class SpellSystem
         }
         // Echo core: arm the bonus-damage strike for the next block hit.
         if (g.BallCores.Contains("echo")) b.EchoArmed = true;
+        // Paladin Penetration: armed cast lands on this deflect.
+        ApplyPenetrationOnDeflect(g, b);
         ApplyIgniteOnDeflect(g, b);
         ApplyDecayOnDeflect(g, b);
     }

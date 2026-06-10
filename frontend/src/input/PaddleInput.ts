@@ -43,5 +43,6 @@ export function attachPaddleInput(canvas: HTMLCanvasElement, conn: Connection, g
     if (e.key === "e" || e.key === "E") conn.castFireball();
     if (e.key === "w" || e.key === "W") conn.castFireWall();
     if (e.key === "r" || e.key === "R") conn.castTurret();
+    if (e.key === "t" || e.key === "T") conn.castSlot(4); // 5th kit slot (G2c)
   });
 }

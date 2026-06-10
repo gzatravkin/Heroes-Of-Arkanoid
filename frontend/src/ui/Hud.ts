@@ -24,10 +24,18 @@ const SPELL_COSTS: Record<string, number> = {
   decay:     0,
   skeleton:  25,
   drain:     20,
+  // G2c kit-completion spells
+  phoenix:     30,
+  penetration: 20,
+  lastday:     35,
+  magnet:      20,
+  overload:    25,
+  golem:       30,
+  mage:        25,
 };
 
-// Key labels by slot index (0→Q, 1→E, 2→W, 3→R).
-const SLOT_KEYS = ["Q", "E", "W", "R"];
+// Key labels by slot index (0→Q, 1→E, 2→W, 3→R, 4→T).
+const SLOT_KEYS = ["Q", "E", "W", "R", "T"];
 
 // The 3-slice HUD value bars (HP / balls / mana / boss) live in ./hud/bars.
 

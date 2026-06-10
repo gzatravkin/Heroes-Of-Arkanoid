@@ -255,6 +255,43 @@ public sealed class SimConfig
     public double StasisFreezeMult     { get; init; } = 2.0;
     /// <summary>Molten fusion (heavy+ember): extra fire-spread chip damage.</summary>
     public int    MoltenChipBonus      { get; init; } = 1;
+
+    // --- G2c kit completion: the fifth spells (docs/09 G2; legacy kit ports) ---
+    /// <summary>Fire Mage Phoenix: mana cost / active seconds / sear radius / damage cadence.</summary>
+    public double PhoenixCost          { get; init; } = 30;
+    public double PhoenixDuration      { get; init; } = 6.0;
+    public double PhoenixRadius        { get; init; } = 56;
+    public double PhoenixTickInterval  { get; init; } = 0.6;
+    public int    PhoenixDamage        { get; init; } = 1;
+    /// <summary>Paladin Penetration: arms the next deflect with phase-through hits.</summary>
+    public double PenetrationCost      { get; init; } = 20;
+    public int    PenetrationHits      { get; init; } = 3;
+    /// <summary>Paladin Last Day: for the duration, every top-wall bounce smites the ball's column.</summary>
+    public double LastDayCost          { get; init; } = 35;
+    public double LastDayDuration      { get; init; } = 8.0;
+    public int    LastDayDamage        { get; init; } = 1;
+    /// <summary>Seconds between Last Day column smites (prevents multi-trigger on one bounce).</summary>
+    public double LastDayCooldown      { get; init; } = 0.5;
+    /// <summary>Engineer Magnet: balls steer toward the nearest block for the duration.</summary>
+    public double MagnetCost           { get; init; } = 20;
+    public double MagnetDuration       { get; init; } = 4.0;
+    /// <summary>Magnet steering rate in degrees per second.</summary>
+    public double MagnetSteerDegPerSec { get; init; } = 120;
+    /// <summary>Engineer Overload: places a friendly chain-bomb block above the paddle.</summary>
+    public double OverloadCost         { get; init; } = 25;
+    public int    OverloadRadius       { get; init; } = 1;
+    /// <summary>Rows above the paddle line where the Overload bomb is placed.</summary>
+    public int    OverloadPlacementRow { get; init; } = 3;
+    /// <summary>Necromancer Bone Golem: a slow heavy projectile that pierces several blocks.</summary>
+    public double GolemCost            { get; init; } = 30;
+    public int    GolemDamage          { get; init; } = 2;
+    public int    GolemPierce          { get; init; } = 4;
+    public double GolemSpeed           { get; init; } = 140;
+    /// <summary>Necromancer Skeletal Mage: a fan of skeleton bolts from the paddle.</summary>
+    public double MageCost             { get; init; } = 25;
+    public int    MageBolts            { get; init; } = 3;
+    /// <summary>Half-angle of the mage bolt fan (degrees).</summary>
+    public double MageFanHalfAngleDeg  { get; init; } = 25;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

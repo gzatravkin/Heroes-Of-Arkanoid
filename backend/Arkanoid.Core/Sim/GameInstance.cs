@@ -165,10 +165,10 @@ public sealed class GameInstance
     /// </summary>
     private static readonly Dictionary<string, string[]> SpellKits = new()
     {
-        ["fire_mage"]   = new[] { "ignite",   "fireball",  "firewall",  "turret"    },
-        ["paladin"]     = new[] { "shield",   "spear",     "duplicate"              },
-        ["engineer"]    = new[] { "lightning","rocket",    "radiation"              },
-        ["necromancer"] = new[] { "decay",    "skeleton",  "drain"                 },
+        ["fire_mage"]   = new[] { "ignite",    "fireball", "firewall",  "turret",    "phoenix"  },
+        ["paladin"]     = new[] { "shield",    "spear",    "duplicate", "penetration", "lastday" },
+        ["engineer"]    = new[] { "lightning", "rocket",   "radiation", "magnet",    "overload" },
+        ["necromancer"] = new[] { "decay",     "skeleton", "drain",     "golem",     "mage"     },
     };
 
     /// <summary>
@@ -200,6 +200,14 @@ public sealed class GameInstance
             case "decay":     Arkanoid.Core.Sim.Systems.SpellSystem.CastDecay(this);     break;
             case "skeleton":  Arkanoid.Core.Sim.Systems.SpellSystem.CastSkeleton(this);  break;
             case "drain":     Arkanoid.Core.Sim.Systems.SpellSystem.CastDrain(this);     break;
+            // G2c kit-completion spells
+            case "phoenix":     Arkanoid.Core.Sim.Systems.SpellSystem.CastPhoenix(this);     break;
+            case "penetration": Arkanoid.Core.Sim.Systems.SpellSystem.CastPenetration(this); break;
+            case "lastday":     Arkanoid.Core.Sim.Systems.SpellSystem.CastLastDay(this);     break;
+            case "magnet":      Arkanoid.Core.Sim.Systems.SpellSystem.CastMagnet(this);      break;
+            case "overload":    Arkanoid.Core.Sim.Systems.SpellSystem.CastOverload(this);    break;
+            case "golem":       Arkanoid.Core.Sim.Systems.SpellSystem.CastGolem(this);       break;
+            case "mage":        Arkanoid.Core.Sim.Systems.SpellSystem.CastMage(this);        break;
         }
     }
 
@@ -226,6 +234,14 @@ public sealed class GameInstance
     internal int  _killsSinceSouljar;
     internal bool _secondWindUsed;
     internal bool _hellwalkerUsedThisServe;
+
+    // --- G2c kit-completion spell state ---
+    internal double _phoenixRemaining;
+    internal double _phoenixAccum;
+    internal bool   _penetrationArmed;
+    internal double _lastDayRemaining;
+    internal double _lastDayCooldown;
+    internal double _magnetRemaining;
 
     public void AddRelic(string id)
     {
@@ -335,6 +351,7 @@ public sealed class GameInstance
         SpellSystem.UpdateZones(this, dt);
         SpellSystem.UpdateSkeleton(this, dt);
         SpellSystem.UpdateDrain(this, dt);
+        SpellSystem.UpdateKitSpells(this, dt);
         BossSystem.Update(this, dt);
         BossSystem.UpdateVaseFuses(this, dt);
         EmitterSystem.Update(this, dt);

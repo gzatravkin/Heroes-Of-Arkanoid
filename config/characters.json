@@ -8,7 +8,8 @@
       { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall" },
       { "id": "fireball", "name": "Fireball", "icon": "FireBallIco" },
       { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco" },
-      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco" }
+      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco" },
+      { "id": "phoenix",  "name": "Phoenix",  "icon": "firemage/spell_phonex/ChosePhoenixLargeIco" }
     ]
   },
   {
@@ -17,9 +18,11 @@
     "passive": "Once per level, a lost ball is saved.",
     "icon": "HPFull",
     "spells": [
-      { "id": "shield",    "name": "Shield",    "icon": "paladin/spell_passiveshield/SpellShieldLargeIco" },
-      { "id": "spear",     "name": "Spear",     "icon": "paladin/spell_spear/SpearLargeLargeIco" },
-      { "id": "duplicate", "name": "Duplicate", "icon": "paladin/spell_duplication/SplitLargeIco" }
+      { "id": "shield",      "name": "Shield",      "icon": "paladin/spell_passiveshield/SpellShieldLargeIco" },
+      { "id": "spear",       "name": "Spear",       "icon": "paladin/spell_spear/SpearLargeLargeIco" },
+      { "id": "duplicate",   "name": "Duplicate",   "icon": "paladin/spell_duplication/SplitLargeIco" },
+      { "id": "penetration", "name": "Penetration", "icon": "paladin/spell_penteration/MightyStrikeLargeIco" },
+      { "id": "lastday",     "name": "Last Day",    "icon": "paladin/spell_lastday/LastJudgmentLargeIco" }
     ]
   },
   {
@@ -30,7 +33,9 @@
     "spells": [
       { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/LightingLargeIco" },
       { "id": "rocket",    "name": "Rocket",    "icon": "engineer/spell_rocket/RocketLargeIco" },
-      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco" }
+      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco" },
+      { "id": "magnet",    "name": "Magnet",    "icon": "engineer/spell_magnet/MagnetLargeIco" },
+      { "id": "overload",  "name": "Overload",  "icon": "dungeon/GrateBomb" }
     ]
   },
   {
@@ -41,7 +46,9 @@
     "spells": [
       { "id": "decay",    "name": "Decay",    "icon": "necromancer/spell_passiveshield/SpellShieldLargeIco" },
       { "id": "skeleton", "name": "Skeleton", "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon" },
-      { "id": "drain",    "name": "Drain",    "icon": "necromancer/spell_lastday/LastJudgmentLargeIco" }
+      { "id": "drain",    "name": "Drain",    "icon": "necromancer/spell_lastday/LastJudgmentLargeIco" },
+      { "id": "golem",    "name": "Bone Golem",   "icon": "necromancer/spell_lastday/BoneGolem" },
+      { "id": "mage",     "name": "Skeletal Mage","icon": "necromancer/spell_duplication/RiseSkeletalMageLargeIcon" }
     ]
   }
 ]}

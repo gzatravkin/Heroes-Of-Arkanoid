@@ -35,7 +35,11 @@ internal static class BallSystem
         if (g._log.Verbose)
             g._log.Log(g.TickCount, "ball", "move", $"id={b.Id} x={b.Pos.X:F1} y={b.Pos.Y:F1}");
 
+        // Top-wall contact this tick (read before ResolveWalls flips the velocity).
+        var hitTop = b.Pos.Y - b.Radius < 0 && b.Vel.Y < 0;
         Arkanoid.Core.Physics.BallPhysics.ResolveWalls(b, g.Level.Grid.Width, g.Config);
+        if (hitTop)
+            SpellSystem.OnTopWallBounce(g, b); // Paladin Last Day column smite
 
         if (Arkanoid.Core.Physics.BallPhysics.ResolvePaddle(b, g.Paddle, g.Config, out var t))
             SpellSystem.OnPaddleHit(g, b, t);
