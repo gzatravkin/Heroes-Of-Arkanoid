@@ -31,19 +31,19 @@ export interface AchievementDef {
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: "first_win",           name: "First Victory",       description: "Win your first battle.", tier: 1 },
-  { id: "equip_item",          name: "Geared Up",           description: "Equip an item.", tier: 1 },
-  { id: "clear_biome_hell",    name: "Hell Survivor",        description: "Clear a Hell biome level.", tier: 2 },
-  { id: "clear_biome_dungeon", name: "Dungeon Crawler",      description: "Clear a Dungeon biome level.", tier: 2 },
-  { id: "clear_biome_village", name: "Village Cleared",      description: "Clear a Village biome level.", tier: 2 },
-  { id: "clear_biome_heaven",  name: "Ascended",             description: "Clear a Heaven biome level.", tier: 3 },
-  { id: "beat_boss",           name: "Boss Slayer",          description: "Defeat a boss.", tier: 3 },
-  { id: "clear_dungeon",       name: "Dungeon Delver",       description: "Complete a dungeon run.", tier: 4 },
-  { id: "win_fire_mage",       name: "Pyromancer",           description: "Win a battle as Fire Mage.", tier: 2 },
-  { id: "win_paladin",         name: "Holy Knight",          description: "Win a battle as Paladin.", tier: 2 },
-  { id: "win_engineer",        name: "Tech Master",          description: "Win a battle as Engineer.", tier: 2 },
-  { id: "win_necromancer",     name: "Undying",              description: "Win a battle as Necromancer.", tier: 2 },
-  { id: "campaign_complete",   name: "World Saved",          description: "Complete all campaign levels.", tier: 5 },
+  { id: "first_win",           name: "First Victory",       description: "The first brick falls. Hell noticed.", tier: 1 },
+  { id: "equip_item",          name: "Geared Up",           description: "Iron does not grant power; it confesses the need for it.", tier: 1 },
+  { id: "clear_biome_hell",    name: "Hell Survivor",        description: "Three floors of fire, and you came back changed.", tier: 2 },
+  { id: "clear_biome_dungeon", name: "Dungeon Crawler",      description: "The descent is voluntary. The return is not guaranteed.", tier: 2 },
+  { id: "clear_biome_village", name: "Village Cleared",      description: "The village prayed for a savior; it got you instead.", tier: 2 },
+  { id: "clear_biome_heaven",  name: "Ascended",             description: "The angels did not welcome you. They stepped aside.", tier: 3 },
+  { id: "beat_boss",           name: "Boss Slayer",          description: "Demons have names. You took one.", tier: 3 },
+  { id: "clear_dungeon",       name: "Dungeon Delver",       description: "The stones remember every screaming soul; yours merely survived.", tier: 4 },
+  { id: "win_fire_mage",       name: "Pyromancer",           description: "The fire answered your call before you knew its name.", tier: 2 },
+  { id: "win_paladin",         name: "Holy Knight",          description: "The blessing was freely given; the mercy was not.", tier: 2 },
+  { id: "win_engineer",        name: "Tech Master",          description: "Where others prayed, you calculated—and the machine did not disappoint.", tier: 2 },
+  { id: "win_necromancer",     name: "Undying",              description: "Death studied you closely, learned nothing, and moved on.", tier: 2 },
+  { id: "campaign_complete",   name: "World Saved",          description: "The world survives—scarred, grateful, and afraid of what it owes you.", tier: 5 },
 ];
 
 // ── Badge art mapping: tier → unlocked image ─────────────────────────────────
