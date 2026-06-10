@@ -141,7 +141,16 @@ export class Renderer {
   }
 
   constructor(host: HTMLElement) {
-    this.app = new Application({ resizeTo: host, background: "#0b0b12", antialias: true });
+    // resolution + autoDensity: render at the device pixel ratio (capped at 2)
+    // so Windows display scaling (dpr 1.25–1.5) and retina phones get a sharp
+    // canvas instead of a stretched 1x buffer (docs/13 §S5).
+    this.app = new Application({
+      resizeTo: host,
+      background: "#0b0b12",
+      antialias: true,
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      autoDensity: true,
+    });
     host.appendChild(this.app.view as HTMLCanvasElement);
 
     this.effectsLayer = new Effects();
@@ -183,7 +192,7 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ambient → ballTrail → zones → blocks → fireWalls → barriers → bossLayer → effects → ballAuras → balls → paddle/turret → skeleton → hazards → bonuses
+    // Layer order: ambient → ballTrail → zones → blocks → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses
     this.world.addChild(
       this.background.ambientContainer,
       this.ballTrail.container,
@@ -193,9 +202,11 @@ export class Renderer {
       this.spellFx.barriersContainer,
       this._bossLayer,
       this.effectsLayer.container,
+      this.paddleLayer.container,
+      // Balls draw over the paddle: the bar art is much taller than the physics
+      // band, so a served ball resting on the paddle top must not hide behind it.
       this.ballLayer.auraContainer,
       this.ballLayer.container,
-      this.paddleLayer.container,
       this.spellFx.skeletonAnim.container,
       this.hazardLayer.container,
       this.bonusLayer.container,
@@ -262,18 +273,20 @@ export class Renderer {
   private fit(s: Snapshot) {
     // Include paddle zone below the block grid so the paddle is never clipped.
     const effectiveH = s.boardH + s.cellSize * PADDLE_ZONE_CELLS;
+    // Reserve space at the top for the DOM HUD (HP + lives bars, two 20px bars
+    // plus margins) — the playfield used to start at y≈0 and the top brick rows
+    // rendered underneath the bars (docs/13 battle audit).
+    const HUD_TOP_INSET = 58;
+    const availableH = this.app.screen.height - HUD_TOP_INSET;
     // Portrait-first: prefer filling the full height, then constrain by width.
-    // Use 0.97 instead of 0.95 to maximise use of vertical space on tall phones.
     const scale = Math.min(
       this.app.screen.width / s.boardW,
-      this.app.screen.height / effectiveH,
+      availableH / effectiveH,
     ) * 0.97;
     this.world.scale.set(scale);
-    // Centre horizontally; align to top with a small top margin so blocks are
-    // visible near the top of the screen (not centred vertically, which wastes space).
-    const topMargin = this.app.screen.height * 0.01;
+    // Centre horizontally; align below the HUD band so blocks start clear of it.
     this._fitX = (this.app.screen.width - s.boardW * scale) / 2;
-    this._fitY = Math.max(topMargin, (this.app.screen.height - effectiveH * scale) / 2);
+    this._fitY = Math.max(HUD_TOP_INSET, HUD_TOP_INSET + (availableH - effectiveH * scale) / 2);
     this.world.position.set(this._fitX, this._fitY);
 
     // Resize background + parallax to cover the full stage.

@@ -104,7 +104,7 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
     "gap:3px",
     "pointer-events:none",
     "z-index:20",
-    "min-width:min(260px,72vw)",
+    "min-width:min(260px,72cqw)",
   ].join(";");
 
   const name = el("div");
@@ -131,7 +131,7 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
 export function buildManaBar(): HTMLElement {
   const { outer } = buildBar({
     id: "hud-mana", fillId: "hud-mana-fill",
-    width: "min(220px,80vw)", height: BAR_H,
+    width: "min(220px,80cqw)", height: BAR_H,
     emptySrc: "/ui/BattleMPEmpty.png",
     gradient: "linear-gradient(to right,#1f9fb8,#5fe6f5)",
   });

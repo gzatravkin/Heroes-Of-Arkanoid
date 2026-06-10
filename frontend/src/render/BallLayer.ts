@@ -11,7 +11,10 @@ import { AnimSystem } from "./AnimSystem";
 // Projectile id threshold: turret bullets + fireballs use id >= this value.
 export const PROJECTILE_ID_THRESHOLD = 10000;
 
-const BALL_SPRITE_SCALE = 2.2; // sprite is slightly larger than the physics circle
+// Sprite vs physics circle: keep these close. 2.2 made the ball render wider
+// than a brick (docs/13 battle audit — "ball is super huge"); 1.15 leaves just
+// enough halo allowance while matching the collision size players feel.
+const BALL_SPRITE_SCALE = 1.15;
 const BALL_RADIUS_FRAC  = 0.25; // ball radius as a fraction of cellSize
 
 // Halo drawn behind ignited balls.

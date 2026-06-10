@@ -192,7 +192,7 @@ export class Hud {
       "position:absolute", "top:50%", "left:50%",
       "transform:translate(-50%,-50%)",
       "display:none", "padding:18px 48px", "border-radius:8px",
-      "font-size:clamp(28px,8vw,48px)", "font-weight:900", "letter-spacing:4px",
+      "font-size:clamp(28px,8cqw,48px)", "font-weight:900", "letter-spacing:4px",
       "text-shadow:0 0 20px currentColor",
     ].join(";");
 

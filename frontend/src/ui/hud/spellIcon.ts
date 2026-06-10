@@ -34,26 +34,28 @@ export function buildSpellIcon(wrap: HTMLElement, spell: SpellDef): void {
         const img = document.createElement("img");
         img.src = canvas.toDataURL();
         img.alt = spell.name;
-        img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
+        img.style.cssText = "width:28px;height:28px;object-fit:contain;";
         wrap.appendChild(img);
         return;
       }
     }
   }
 
-  // Legacy /art/ path fallback.
+  // Legacy /art/ path fallback. These are the square Chose*Ico icons copied from
+  // the Sprites tree — the old /art/*Ico.png files were letterboxed wide crops
+  // that rendered as muddy rectangles in the hotbar (docs/13 battle audit).
   const legacyPaths: Record<string, string> = {
-    FireHeroBall:  "/art/FireHeroBall.png",
-    FireBallIco:   "/art/FireBallIco.png",
-    FireWallIco:   "/art/FireWallIco.png",
-    FireTurretIco: "/art/FireTurretIco.png",
+    FireHeroBall:  "/art/SpellIgnite.png",
+    FireBallIco:   "/art/SpellFireball.png",
+    FireWallIco:   "/art/SpellFirewall.png",
+    FireTurretIco: "/art/SpellTurret.png",
   };
   const legacySrc = legacyPaths[iconKey];
   if (legacySrc) {
     const img = document.createElement("img");
     img.src = legacySrc;
     img.alt = spell.name;
-    img.style.cssText = "width:28px;height:28px;object-fit:contain;image-rendering:pixelated;";
+    img.style.cssText = "width:28px;height:28px;object-fit:contain;";
     const emoji = getSpellFallback(spell.id);
     img.onerror = () => { img.style.display = "none"; wrap.textContent = emoji; };
     wrap.appendChild(img);

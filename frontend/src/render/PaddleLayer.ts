@@ -46,6 +46,8 @@ export class PaddleLayer {
   private _squashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
   private _baseScaleX = 1;
   private _baseScaleY = 1;
+  // Previous y per ball id — squash triggers on band ENTRY, not presence.
+  private _prevBallY = new Map<number, number>();
 
   constructor() {
     // Both halves anchor on their inner (cut) edge so they meet at the centre.
@@ -70,14 +72,26 @@ export class PaddleLayer {
     paddleX: number, paddleW: number, paddleH: number,
     boardH: number, cellSize: number, turretActive: boolean, balls: BallLike[],
   ): void {
-    // --- paddle squash trigger: detect a non-projectile ball passing the paddle y-band ---
+    // --- paddle squash trigger: a ball ENTERING the paddle y-band from above ---
+    // Edge-triggered on the band boundary. The old level-trigger restarted the
+    // squash every snapshot while a served ball rested on the paddle, so the
+    // bar pulsed forever (docs/13: "constantly changing size").
     const paddleYCenter = (boardH + cellSize) - paddleH / 2;
     const paddleBounceZone = paddleH * 2.5;
+    const zoneTop = paddleYCenter - paddleBounceZone;
+    const seen = new Set<number>();
     for (const ball of balls) {
       if (ball.id >= PROJECTILE_ID_THRESHOLD) continue; // skip turret bullets
-      if (Math.abs(ball.y - paddleYCenter) < paddleBounceZone && this._squashElapsed < 0) {
+      seen.add(ball.id);
+      const prevY = this._prevBallY.get(ball.id);
+      if (prevY !== undefined && prevY < zoneTop && ball.y >= zoneTop && this._squashElapsed < 0) {
         this._squashElapsed = 0; // start squash animation
       }
+      this._prevBallY.set(ball.id, ball.y);
+    }
+    // Drop stale entries so the map doesn't grow over a long level.
+    for (const id of this._prevBallY.keys()) {
+      if (!seen.has(id)) this._prevBallY.delete(id);
     }
 
     // --- paddle (two mirrored halves of the half-sprite bar art) ---
@@ -89,14 +103,20 @@ export class PaddleLayer {
     }
     this.leftHalf.position.set(paddleX, paddleYCenter);
     this.rightHalf.position.set(paddleX, paddleYCenter);
-    // Each half spans paddleW/2 at the art's natural aspect.
-    const halfNaturalW = this.leftHalf.texture.width;
-    const halfNaturalH = this.leftHalf.texture.height;
-    if (halfNaturalW > 1) {
-      const wScale  = (paddleW / 2) / halfNaturalW;
-      const spriteH = Math.max(paddleH, halfNaturalH * wScale);
+    // Scale is anchored to the FIRST animation frame, not the current one: the
+    // 4-frame strips vary in width (fire mage: 240→369 px at a constant 171 px
+    // height — the wings flare outward). Per-frame width compensation made the
+    // bar's rendered height pulse 1.5× at 6 fps (docs/13: "constantly changing
+    // size"). With one uniform scale, height stays constant and wide frames
+    // flare past the collision width as the art intends.
+    const baseTex = atlasTex(this._animKeys[0]);
+    const baseW = baseTex !== Texture.WHITE ? baseTex.width  : this.leftHalf.texture.width;
+    const baseH = baseTex !== Texture.WHITE ? baseTex.height : this.leftHalf.texture.height;
+    if (baseW > 1) {
+      const wScale  = (paddleW / 2) / baseW;
+      const spriteH = Math.max(paddleH, baseH * wScale);
       this._baseScaleX = wScale;
-      this._baseScaleY = spriteH / halfNaturalH;
+      this._baseScaleY = spriteH / baseH;
       // Only reset to base scale if no squash animation is running.
       if (this._squashElapsed < 0) this.applyScale(1, 1);
     }
