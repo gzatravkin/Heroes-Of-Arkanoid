@@ -55,6 +55,10 @@ const BALL_CORE_NAMES: Record<string, string> = {
   ghost: "Ghost Core",
   echo: "Echo Core",
   frost: "Frost Core",
+  // Paddle mods — the fourth build axis (docs/04 §4.4)
+  mod_wide: "Wide Frame",
+  mod_grip: "Grip Tape",
+  mod_cannons: "Side Cannons",
 };
 
 const BALL_CORE_ICONS: Record<string, string> = {
@@ -64,6 +68,10 @@ const BALL_CORE_ICONS: Record<string, string> = {
   ghost: "/ui/BonusProtection.png",
   echo: "/ui/BonusRandomSpell.png",
   frost: "/ui/BonusMana.png",
+  // Paddle mods
+  mod_wide: "/ui/BonusLargerBita.png",
+  mod_grip: "/ui/BonusLargerBall.png",
+  mod_cannons: "/art/FireHeroTurret.png",
 };
 
 // Synergy web (docs/04 §7): an offered pick highlights when it combos with what

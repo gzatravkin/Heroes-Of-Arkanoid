@@ -292,6 +292,14 @@ public sealed class SimConfig
     public int    MageBolts            { get; init; } = 3;
     /// <summary>Half-angle of the mage bolt fan (degrees).</summary>
     public double MageFanHalfAngleDeg  { get; init; } = 25;
+
+    // --- G2 paddle mods: the fourth build axis (docs/04 §4.4) ---
+    /// <summary>mod_wide: paddle width multiplier for the run.</summary>
+    public double PaddleModWideMult     { get; init; } = 1.2;
+    /// <summary>mod_grip: extra max deflect angle (degrees) — finer aim control.</summary>
+    public double PaddleModGripBonusDeg { get; init; } = 10;
+    /// <summary>mod_cannons: seconds between side-cannon volleys (permanent slow auto-fire).</summary>
+    public double PaddleModCannonInterval { get; init; } = 2.5;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

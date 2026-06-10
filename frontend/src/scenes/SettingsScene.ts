@@ -55,14 +55,14 @@ export function mountSettings(host: HTMLElement) {
     }),
   }));
 
-  // ── Audio toggle (placeholder) ───────────────────────────────────────────────
+  // ── Audio toggle (procedural Web Audio SFX — docs/09 G1) ────────────────────
   const audioEnabled = localStorage.getItem("arkanoid_audio") !== "0";
   const audioToggle = buildToggle("set-toggle-audio", audioEnabled, (val) => {
     localStorage.setItem("arkanoid_audio", val ? "1" : "0");
   });
   panel.appendChild(buildRow({
     label: "Audio",
-    description: "Sound effects (placeholder — no audio yet)",
+    description: "Sound effects (synthesized — impacts, spells, bosses)",
     control: audioToggle,
   }));
 

@@ -147,6 +147,31 @@ internal static partial class SpellSystem
             }
         }
 
+        // mod_cannons paddle mod: permanent slow side-cannon volleys (docs/04 §4.4).
+        if (g.PaddleMods.Contains("mod_cannons"))
+        {
+            g._cannonAccumulator += dt;
+            if (g._cannonAccumulator >= g.Config.PaddleModCannonInterval)
+            {
+                g._cannonAccumulator -= g.Config.PaddleModCannonInterval;
+                var py = g.Paddle.Center.Y - g.Paddle.Height / 2;
+                foreach (var px in new[] { g.Paddle.Center.X - g.Paddle.Width / 2,
+                                           g.Paddle.Center.X + g.Paddle.Width / 2 })
+                {
+                    g.Projectiles.Add(new Projectile
+                    {
+                        Id     = g._nextProjId++,
+                        Pos    = new Vec2(px, py),
+                        Vel    = new Vec2(0, -g.Config.TurretBulletSpeed),
+                        Damage = g.Config.TurretDamage,
+                        Radius = g.Config.BallRadius * 0.6,
+                        Kind   = "turret",
+                    });
+                }
+                g.RaiseEvent("turretShot", g.Paddle.Center.X, py);
+            }
+        }
+
         // Last Day: tick down the smite window and its per-bounce cooldown.
         if (g._lastDayRemaining > 0) g._lastDayRemaining -= dt;
         if (g._lastDayCooldown  > 0) g._lastDayCooldown  -= dt;

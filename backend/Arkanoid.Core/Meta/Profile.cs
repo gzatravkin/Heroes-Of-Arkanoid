@@ -35,6 +35,10 @@ public sealed class Profile
     [JsonPropertyName("achievements")]
     public List<string> Achievements { get; set; } = new();
 
+    /// <summary>Rift ascension: the tier the NEXT generated rift opens at (rises by clearing rifts; docs/04 §10).</summary>
+    [JsonPropertyName("riftAscension")]
+    public int RiftAscension { get; set; }
+
     /// <summary>True after the first battle has been seen; suppresses tutorial on subsequent sessions.</summary>
     [JsonPropertyName("tutorialSeen")]
     public bool TutorialSeen { get; set; } = false;

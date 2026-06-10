@@ -18,6 +18,8 @@ public static class DungeonService
         "sapper", "hellwalker", "ghost_lens", "pillar_doctrine",
     };
     private static readonly string[] BallCorePool = { "heavy", "split", "ember", "ghost", "echo", "frost" };
+    /// <summary>Paddle mods — the fourth build axis (docs/04 §4.4).</summary>
+    private static readonly string[] PaddleModPool = { "mod_wide", "mod_grip", "mod_cannons" };
 
     /// <summary>
     /// Creates a new active run from the given dungeon definition.
@@ -32,10 +34,12 @@ public static class DungeonService
             FloorIndex     = 0,
             Relics         = new List<string>(),
             BallCores      = new List<string>(),
+            PaddleMods     = new List<string>(),
             PendingChoices = new List<string>(),
             Active         = true,
             Cleared        = false,
             Seed           = seed,
+            Tier           = def.Tier,
         };
     }
 
@@ -76,11 +80,29 @@ public static class DungeonService
 
         if (IsRelic(choiceId))
             run.Relics.Add(choiceId);
+        else if (IsPaddleMod(choiceId))
+            run.PaddleMods.Add(choiceId);
         else
             run.BallCores.Add(choiceId);
 
         run.PendingChoices.Clear();
         run.FloorIndex++;
+    }
+
+    /// <summary>
+    /// Ascension (docs/04 §10): tier N hardens every destructible non-boss block by
+    /// +N HP. Called by the server when a dungeon-floor battle instance starts.
+    /// </summary>
+    public static void ApplyTier(GameInstance g, int tier)
+    {
+        if (tier <= 0) return;
+        foreach (var b in g.Blocks)
+        {
+            if (b.Dead || b.Indestructible || b.Boss || !b.NeedToKill) continue;
+            b.Hp    += tier;
+            b.MaxHp += tier;
+        }
+        g._log.Log(g.TickCount, "ascension", "blocks hardened", $"tier={tier}");
     }
 
     /// <summary>Permadeath: the run ends without clearing. All buffs are lost.</summary>
@@ -93,15 +115,18 @@ public static class DungeonService
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private static bool IsRelic(string id) => System.Array.IndexOf(RelicPool, id) >= 0;
+    private static bool IsPaddleMod(string id) => System.Array.IndexOf(PaddleModPool, id) >= 0;
 
     private static List<string> GenerateChoices(DungeonRun run, int count)
     {
-        // Combined pool minus already-owned relics/ball-cores when possible.
+        // Combined pool minus already-owned picks when possible.
         var pool = new List<string>();
         foreach (var id in RelicPool)
             if (!run.Relics.Contains(id)) pool.Add(id);
         foreach (var id in BallCorePool)
             if (!run.BallCores.Contains(id)) pool.Add(id);
+        foreach (var id in PaddleModPool)
+            if (!run.PaddleMods.Contains(id)) pool.Add(id);
 
         // If pool is smaller than count, fall back to full pool (repeats allowed as last resort).
         if (pool.Count < count)
@@ -109,6 +134,7 @@ public static class DungeonService
             pool.Clear();
             pool.AddRange(RelicPool);
             pool.AddRange(BallCorePool);
+            pool.AddRange(PaddleModPool);
         }
 
         // Deterministic RNG seeded by run.Seed XOR'd with FloorIndex so each floor is distinct.

@@ -85,6 +85,9 @@ public sealed class GameSession
                 _game.AddRelic(relicId);
             foreach (var coreId in run.BallCores)
                 _game.AddBallCore(coreId);
+            foreach (var modId in run.PaddleMods)
+                _game.AddPaddleMod(modId);
+            DungeonService.ApplyTier(_game, run.Tier); // ascension hardening
         }
     }
 

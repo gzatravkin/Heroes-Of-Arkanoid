@@ -23,7 +23,7 @@ public static class BallPhysics
         if (!(overlapX && atTop)) return false;
 
         t = System.Math.Clamp((b.Pos.X - p.Center.X) / half, -1, 1);
-        var maxRad = cfg.PaddleMaxDeflectAngleDeg * System.Math.PI / 180.0;
+        var maxRad = (cfg.PaddleMaxDeflectAngleDeg + p.DeflectAngleBonusDeg) * System.Math.PI / 180.0;
         var angle = t * maxRad;                    // 0 = straight up, ± = lean
         var speed = cfg.BallSpeed;
         var vx = System.Math.Sin(angle) * speed;

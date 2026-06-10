@@ -55,8 +55,9 @@ public static class ProfileEndpoints
             var riftSeed = unchecked((int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff) ^ levelId.GetHashCode());
             // Campaign catalog included: the rift is GENERATED from the cleared biome's
             // matrix levels (docs/12 inheritance) and registered for /dungeon/start.
+            // The player's ascension level sets the offered tier (harder + better paid).
             var rift = RiftService.Roll(riftMode, progressionConfig.RiftChance, levelId, riftSeed,
-                dungeonCatalog, campaignCatalog);
+                dungeonCatalog, campaignCatalog, profile.RiftAscension);
 
             return Results.Json(new { profile, reward, rift }, jsonOpts);
         });

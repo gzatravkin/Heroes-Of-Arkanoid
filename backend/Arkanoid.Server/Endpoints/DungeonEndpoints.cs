@@ -63,6 +63,9 @@ public static class DungeonEndpoints
                 if (!profile.UnlockedRelics.Contains(def.RewardRelic))
                     profile.UnlockedRelics.Add(def.RewardRelic);
                 profile.Crystals += def.RewardCrystals;
+                // Ascension: clearing a tier-N rift unlocks tier N+1 offers (capped).
+                profile.RiftAscension = System.Math.Max(profile.RiftAscension,
+                    System.Math.Min(run.Tier + 1, RiftService.MaxAscension));
                 profileStore.Save(profile, pid);
                 updatedProfile = profile;
             }

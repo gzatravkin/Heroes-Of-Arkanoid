@@ -9,6 +9,8 @@ public sealed class DungeonDef
     [JsonPropertyName("floors")]         public List<string> Floors   { get; set; } = new();
     [JsonPropertyName("rewardRelic")]    public string RewardRelic    { get; set; } = "";
     [JsonPropertyName("rewardCrystals")] public int    RewardCrystals { get; set; }
+    /// <summary>Ascension tier (0 = base): each tier adds +1 HP to every destructible block.</summary>
+    [JsonPropertyName("tier")]           public int    Tier           { get; set; }
 }
 
 public sealed class DungeonCatalog

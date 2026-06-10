@@ -36,7 +36,8 @@ public sealed class Block
     public int Col { get; set; }
     public int Row { get; set; }
     public int Hp { get; set; }
-    public int MaxHp { get; init; }
+    // MaxHp is mutable: rift ascension tiers harden every destructible block.
+    public int MaxHp { get; set; }
     public string TypeId { get; init; } = "";
     public string Sprite { get; init; } = "";
     public bool NeedToKill { get; init; }

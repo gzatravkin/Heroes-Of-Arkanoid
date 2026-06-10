@@ -12,10 +12,13 @@ public sealed class DungeonRun
     [JsonPropertyName("floorIndex")]     public int          FloorIndex     { get; set; } = 0;
     [JsonPropertyName("relics")]         public List<string> Relics         { get; set; } = new();
     [JsonPropertyName("ballCores")]      public List<string> BallCores      { get; set; } = new();
+    [JsonPropertyName("paddleMods")]     public List<string> PaddleMods     { get; set; } = new();
     [JsonPropertyName("pendingChoices")] public List<string> PendingChoices { get; set; } = new();
     [JsonPropertyName("active")]         public bool         Active         { get; set; }
     [JsonPropertyName("cleared")]        public bool         Cleared        { get; set; }
     [JsonPropertyName("seed")]           public int          Seed           { get; set; }
+    /// <summary>Ascension tier this run was started at (0 = base difficulty).</summary>
+    [JsonPropertyName("tier")]           public int          Tier           { get; set; }
 
     /// <summary>The level id the player must beat next, or null when the run is not active.</summary>
     [JsonIgnore]

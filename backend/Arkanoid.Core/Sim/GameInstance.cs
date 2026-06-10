@@ -132,6 +132,21 @@ public sealed class GameInstance
     public void AddBallCore(string id) => BallCores.Add(id);
     /// <summary>Fusion (docs/04 §4.3): holding both cores of a pair unlocks a combined effect.</summary>
     public bool HasFusion(string a, string b) => BallCores.Contains(a) && BallCores.Contains(b);
+
+    /// <summary>Paddle mods — the fourth build axis (docs/04 §4.4).</summary>
+    public HashSet<string> PaddleMods { get; } = new();
+    internal double _cannonAccumulator;
+    public void AddPaddleMod(string id)
+    {
+        if (!PaddleMods.Add(id)) return;
+        _log.Log(TickCount, "paddlemod", "added", id);
+        switch (id)
+        {
+            case "mod_wide": Paddle.Width *= Config.PaddleModWideMult; break;
+            case "mod_grip": Paddle.DeflectAngleBonusDeg += Config.PaddleModGripBonusDeg; break;
+            // mod_cannons is purely tick-driven (see SpellSystem.UpdateKitSpells)
+        }
+    }
     public double ManaMaxValue { get; internal set; }
 
     public Dictionary<string, int> SpellLevels { get; } = new()

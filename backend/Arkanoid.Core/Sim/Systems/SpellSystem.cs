@@ -28,6 +28,7 @@ internal static partial class SpellSystem
     internal static void OnPaddleHit(GameInstance g, Entities.Ball b, double t)
     {
         g._log.Log(g.TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
+        g.RaiseEvent("deflect", b.Pos.X, b.Pos.Y); // audio cue (G1)
         if (System.Math.Abs(t) < g.Config.PerfectDeflectBand)
         {
             var bonus = g.Config.ManaPerfectDeflectBonus
