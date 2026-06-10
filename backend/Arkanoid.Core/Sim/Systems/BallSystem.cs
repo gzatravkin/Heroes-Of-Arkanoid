@@ -155,8 +155,18 @@ internal static class BallSystem
             }
 
             // Lava: a deadly block — touching it drains the ball (Hell hazard).
+            // Hellwalker relic: once per serve the lava rebounds the ball instead.
             if (blk.Lava)
             {
+                if (g.HasRelic("hellwalker") && !g._hellwalkerUsedThisServe)
+                {
+                    g._hellwalkerUsedThisServe = true;
+                    var away = (b.Pos - c);
+                    b.Vel = (away.Length > 0.0001 ? away.Normalized() : new Vec2(0, -1)) * g.Config.BallSpeed;
+                    g.RaiseEvent("hellwalk", c.X, c.Y);
+                    g._log.Log(g.TickCount, "relic", "hellwalker save", $"ball={b.Id}");
+                    return;
+                }
                 b.Alive = false;
                 g.RaiseEvent("lava", c.X, c.Y);
                 g._log.Log(g.TickCount, "lava", "ball drained", $"ball={b.Id}");
@@ -183,18 +193,39 @@ internal static class BallSystem
                 if (ghostBlock) continue;
             }
 
-            // reflect by dominant penetration axis
-            var dx = b.Pos.X - c.X;
-            var dy = b.Pos.Y - c.Y;
-            if (System.Math.Abs(dx) / (cell / 2) > System.Math.Abs(dy) / (cell / 2))
-                b.Vel = new Vec2(System.Math.Sign(dx) * System.Math.Abs(b.Vel.X), b.Vel.Y);
-            else
-                b.Vel = new Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
-
             bool ignited = b.IgniteHitsLeft > 0;
             bool decayed = b.DecayHitsLeft  > 0;
-            BlockDamage.DamageBlock(g, blk, Modifiers.BallDamage(g, blk, ignited),
-                                    igniteSource: ignited, decaySource: decayed);
+            var dmg = Modifiers.BallDamage(g, blk, ignited, b.Ghost);
+            // Echo core: the first block hit after each paddle deflect strikes harder.
+            if (b.EchoArmed) { dmg += g.Config.EchoBonus; b.EchoArmed = false; }
+            // Frost core: hitting an emitter/statue freezes its cadence.
+            if (g.BallCores.Contains("frost") && (blk.Emitter || blk.ShieldStatue))
+            {
+                var freeze = g.Config.FrostFreezeSeconds
+                    * (g.HasFusion("echo", "frost") ? g.Config.StasisFreezeMult : 1.0);
+                blk.EmitAccumulator = -freeze;
+                g.RaiseEvent("frost", c.X, c.Y);
+            }
+
+            // Ghost core: spend a phase charge to punch THROUGH the block (damage, no bounce).
+            var phased = b.PhasesLeft > 0 && !blk.Indestructible && !blk.Boss;
+            if (phased)
+            {
+                b.PhasesLeft--;
+                g._log.Log(g.TickCount, "ballcore", "phase-through", $"ball={b.Id} block={blk.Id}");
+            }
+            else
+            {
+                // reflect by dominant penetration axis
+                var dx = b.Pos.X - c.X;
+                var dy = b.Pos.Y - c.Y;
+                if (System.Math.Abs(dx) / (cell / 2) > System.Math.Abs(dy) / (cell / 2))
+                    b.Vel = new Vec2(System.Math.Sign(dx) * System.Math.Abs(b.Vel.X), b.Vel.Y);
+                else
+                    b.Vel = new Vec2(b.Vel.X, System.Math.Sign(dy) * System.Math.Abs(b.Vel.Y));
+            }
+
+            BlockDamage.DamageBlock(g, blk, dmg, igniteSource: ignited, decaySource: decayed);
             if (ignited) b.IgniteHitsLeft--;
             if (decayed) b.DecayHitsLeft--;
             break; // one block per tick keeps it deterministic

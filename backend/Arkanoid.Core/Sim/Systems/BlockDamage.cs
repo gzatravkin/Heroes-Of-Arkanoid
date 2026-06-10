@@ -49,6 +49,20 @@ internal static class BlockDamage
             // Lava spawner death: its crept lava retracts (the counterplay).
             if (blk.LavaSpawner)
                 LavaSystem.RetractLava(g, blk);
+            // G2 relic counters: Split Shot / Souljar pay out on kill cadence.
+            if (g.HasRelic("split_shot") && ++g._killsSinceSplit >= g.Config.SplitShotEvery)
+            {
+                g._killsSinceSplit = 0;
+                BonusSystem.SpawnExtraBall(g);
+                g.RaiseEvent("splitShot", c.X, c.Y);
+                g._log.Log(g.TickCount, "relic", "split shot", "");
+            }
+            if (g.HasRelic("souljar") && ++g._killsSinceSouljar >= g.Config.SouljarEvery)
+            {
+                g._killsSinceSouljar = 0;
+                g.Crystals++;
+                g._log.Log(g.TickCount, "relic", "souljar crystal", $"crystals={g.Crystals}");
+            }
             // Vase reward side: a levelled statue pays bonus mana on death.
             if (blk.IsStatue && blk.StatueLevel > 0)
                 g.ManaValue = System.Math.Min(g.ManaMaxValue,
@@ -64,6 +78,7 @@ internal static class BlockDamage
     internal static void Explode(GameInstance g, Block origin)
     {
         int radius = origin.ExplodeRadius > 0 ? origin.ExplodeRadius : 1;
+        if (g.HasRelic("sapper")) radius += g.Config.SapperRadiusBonus; // caverns-keyed relic
         var c = g.Level.Grid.CellCenter(origin.Col, origin.Row);
         g.RaiseEvent("explosion", c.X, c.Y);
         g._log.Log(g.TickCount, "bomb", "exploded", $"id={origin.Id} radius={radius}");

@@ -8,8 +8,16 @@ namespace Arkanoid.Core.Meta;
 public static class DungeonService
 {
     // The bonus pool: relic ids + ball-core ids available as floor-clear choices.
-    private static readonly string[] RelicPool    = { "glass_cannon", "flint_core", "pyroclasm", "mana_battery" };
-    private static readonly string[] BallCorePool = { "heavy", "split", "ember" };
+    // The G2 relic web (docs/09): standalone-good, build-enablers, tradeoffs, and
+    // biome-conditional picks — variance per the docs/04 §7 choice rules.
+    private static readonly string[] RelicPool    =
+    {
+        "glass_cannon", "flint_core", "pyroclasm", "mana_battery",
+        "conductor", "overcharge", "split_shot", "souljar", "lodestone",
+        "ember_heart", "second_wind", "midas", "lead_paddle",
+        "sapper", "hellwalker", "ghost_lens", "pillar_doctrine",
+    };
+    private static readonly string[] BallCorePool = { "heavy", "split", "ember", "ghost", "echo", "frost" };
 
     /// <summary>
     /// Creates a new active run from the given dungeon definition.

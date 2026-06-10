@@ -13,12 +13,18 @@ internal static class Modifiers
     // -----------------------------------------------------------------------
 
     /// <summary>Total damage dealt by a ball hit (base + ignite bonus + relics + ball-core + items).</summary>
-    internal static int BallDamage(GameInstance g, Block target, bool ignited)
+    internal static int BallDamage(GameInstance g, Block target, bool ignited, bool ghost = false)
     {
         var igniteBonus   = ignited ? 1 : 0;
         var relicBonus    = (g.HasRelic("glass_cannon") ? g.Config.GlassCannonDamageBonus : 0)
                           + (g.HasRelic("flint_core") && target.MaxHp >= g.Config.FlintToughThreshold
-                              ? g.Config.FlintBonus : 0);
+                              ? g.Config.FlintBonus : 0)
+                          // Ghost Lens (village-keyed): a phased ball cuts deeper.
+                          + (ghost && g.HasRelic("ghost_lens") ? g.Config.GhostLensBonus : 0)
+                          // Pillar Doctrine (heaven-keyed): statues and columns crumble faster.
+                          + (g.HasRelic("pillar_doctrine")
+                              && (target.IsStatue || target.TypeId.StartsWith("heaven_column"))
+                              ? g.Config.PillarDoctrineBonus : 0);
         var ballCoreBonus = g.BallCores.Contains("heavy") ? g.Config.HeavyBallDamageBonus : 0;
         // item: ball_damage adds a flat per-hit bonus; crit_tough adds only vs tough blocks
         var itemBonus     = g.ItemBallDamageBonus
@@ -37,6 +43,8 @@ internal static class Modifiers
         mult *= (g.Character == "engineer" ? g.Config.EngineerRegenMult : 1.0);
         // item: mana_regen is an additive bonus to the multiplier (e.g. +0.20 per tier)
         mult *= (1.0 + g.ItemManaRegenMultBonus);
+        // Lead Paddle tradeoff: the wide paddle is paid for in regen.
+        if (g.HasRelic("lead_paddle")) mult *= g.Config.LeadPaddleRegenMult;
         return mult;
     }
 
@@ -51,13 +59,15 @@ internal static class Modifiers
     // Fire spread
     // -----------------------------------------------------------------------
 
-    /// <summary>Whether ignited kills should spread fire to neighbours (fire_mage OR pyroclasm).</summary>
+    /// <summary>Whether ignited kills should spread fire to neighbours (fire_mage, pyroclasm, or the Molten fusion).</summary>
     internal static bool ShouldSpreadFire(GameInstance g)
-        => g.Character == "fire_mage" || g.HasRelic("pyroclasm");
+        => g.Character == "fire_mage" || g.HasRelic("pyroclasm") || g.HasFusion("heavy", "ember");
 
     /// <summary>Chip damage dealt to each neighbour during fire spread.</summary>
     internal static int SpreadChip(GameInstance g)
-        => g.HasRelic("pyroclasm") ? g.Config.PyroclasmChip : 1;
+        => (g.HasRelic("pyroclasm") ? g.Config.PyroclasmChip : 1)
+           // Molten fusion (heavy+ember): the wrecking ball's fire bites deeper.
+           + (g.HasFusion("heavy", "ember") ? g.Config.MoltenChipBonus : 0);
 
     /// <summary>Whether fire spread also hits diagonal neighbours (pyroclasm only).</summary>
     internal static bool SpreadIncludesDiagonals(GameInstance g)
@@ -71,7 +81,8 @@ internal static class Modifiers
     internal static int IgniteHits(GameInstance g)
     {
         var lvl = g.SpellLevels.TryGetValue("ignite", out var l) ? l : 1;
-        return g.Config.IgniteHits + (lvl - 1) * g.Config.IgniteHitsPerLevel;
+        return g.Config.IgniteHits + (lvl - 1) * g.Config.IgniteHitsPerLevel
+            + (g.HasRelic("ember_heart") ? g.Config.EmberHeartBonusHits : 0);
     }
 
     /// <summary>Damage dealt by a fireball projectile.</summary>

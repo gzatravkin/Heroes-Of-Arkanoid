@@ -30,9 +30,13 @@ internal static partial class SpellSystem
         g._log.Log(g.TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
         if (System.Math.Abs(t) < g.Config.PerfectDeflectBand)
         {
-            g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + g.Config.ManaPerfectDeflectBonus);
-            g._log.Log(g.TickCount, "mana", "perfect deflect bonus", $"mana={g.ManaValue:F0}");
+            var bonus = g.Config.ManaPerfectDeflectBonus
+                + (g.HasRelic("overcharge") ? g.Config.OverchargeMana : 0);
+            g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + bonus);
+            g._log.Log(g.TickCount, "mana", "perfect deflect bonus", $"mana={g.ManaValue:F0} bonus={bonus:F0}");
         }
+        // Echo core: arm the bonus-damage strike for the next block hit.
+        if (g.BallCores.Contains("echo")) b.EchoArmed = true;
         ApplyIgniteOnDeflect(g, b);
         ApplyDecayOnDeflect(g, b);
     }

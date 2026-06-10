@@ -115,8 +115,9 @@ internal static partial class SpellSystem
         var cPos = g.Level.Grid.CellCenter(current.Col, current.Row);
         g.RaiseEvent("lightning", cPos.X, cPos.Y);
 
-        // Jump to nearby blocks up to ChainJumps times
-        for (int jump = 0; jump < g.Config.LightningChainJumps; jump++)
+        // Jump to nearby blocks up to ChainJumps times (+1 with the Conductor relic)
+        var chainJumps = g.Config.LightningChainJumps + (g.HasRelic("conductor") ? 1 : 0);
+        for (int jump = 0; jump < chainJumps; jump++)
         {
             var candidates = alive
                 .Where(b => !b.Dead && !hit.Contains(b.Id))

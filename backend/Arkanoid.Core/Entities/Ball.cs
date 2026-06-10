@@ -18,4 +18,10 @@ public sealed class Ball
 
     // --- Bat carry (Witchland): a bat carrier hazard drags the ball toward the drain. ---
     public int GrabberId = 0;   // the carrier hazard's Id (0 = free)
+
+    // --- G2 ball cores ---
+    /// <summary>Ghost core: remaining free phase-through hits this serve.</summary>
+    public int PhasesLeft = 0;
+    /// <summary>Echo core: armed after a paddle deflect — next block hit deals bonus damage.</summary>
+    public bool EchoArmed = false;
 }

@@ -224,6 +224,14 @@ internal static class CombatSystem
 
     internal static void DamagePlayer(GameInstance g, int dmg)
     {
+        // Second Wind relic: the first HP loss each level is negated.
+        if (g.HasRelic("second_wind") && !g._secondWindUsed)
+        {
+            g._secondWindUsed = true;
+            g.RaiseEvent("secondWind", g.Paddle.Center.X, g.Paddle.Center.Y);
+            g._log.Log(g.TickCount, "relic", "second wind — HP loss negated", "");
+            return;
+        }
         g.Lives -= dmg;
         g.RaiseEvent("playerHit", g.Paddle.Center.X, g.Paddle.Center.Y);
         g._log.Log(g.TickCount, "hp", "player hit", $"lives={g.Lives}");

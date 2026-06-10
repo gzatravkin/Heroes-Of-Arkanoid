@@ -218,6 +218,43 @@ public sealed class SimConfig
     public int    SeraphAddHp          { get; init; } = 3;
     /// <summary>Seconds before a Seraph boss-vase self-shatters and levels his adds (destroy it to defuse).</summary>
     public double SeraphVaseFuse       { get; init; } = 8.0;
+
+    // --- G2 relic web (docs/09 G2; docs/04 §4.2 designs) ---
+    /// <summary>Overcharge: EXTRA mana on a perfect-center deflect (stacks on ManaPerfectDeflectBonus).</summary>
+    public double OverchargeMana       { get; init; } = 8;
+    /// <summary>Split Shot: every Nth destroyed block splits off an extra ball.</summary>
+    public int    SplitShotEvery       { get; init; } = 6;
+    /// <summary>Souljar: every Nth destroyed block pays one crystal.</summary>
+    public int    SouljarEvery         { get; init; } = 5;
+    /// <summary>Lodestone: horizontal homing speed of falling bonuses toward the paddle (units/sec).</summary>
+    public double LodestoneHoming      { get; init; } = 60;
+    /// <summary>Ember Heart: extra ignite hits.</summary>
+    public int    EmberHeartBonusHits  { get; init; } = 2;
+    /// <summary>Midas: extra crystals per caught bonus.</summary>
+    public int    MidasCrystals        { get; init; } = 2;
+    /// <summary>Lead Paddle tradeoff: width multiplier / mana-regen multiplier.</summary>
+    public double LeadPaddleWidthMult  { get; init; } = 1.25;
+    public double LeadPaddleRegenMult  { get; init; } = 0.75;
+    /// <summary>Sapper: extra bomb explosion radius (cells).</summary>
+    public int    SapperRadiusBonus    { get; init; } = 1;
+    /// <summary>Ghost Lens: bonus damage while the ball is ghost-phased.</summary>
+    public int    GhostLensBonus       { get; init; } = 1;
+    /// <summary>Pillar Doctrine: bonus ball damage vs statues and columns.</summary>
+    public int    PillarDoctrineBonus  { get; init; } = 1;
+
+    // --- G2 ball cores + fusions (docs/04 §4.3) ---
+    /// <summary>Ghost core: free phase-through hits per serve (pass through a block, damaging it).</summary>
+    public int    GhostCoreCharges     { get; init; } = 1;
+    /// <summary>Phantom fusion (ghost+split): phase-through charges per serve.</summary>
+    public int    PhantomPhaseCharges  { get; init; } = 2;
+    /// <summary>Echo core: bonus damage on the first block hit after each paddle deflect.</summary>
+    public int    EchoBonus            { get; init; } = 1;
+    /// <summary>Frost core: seconds an emitter/statue cadence is frozen when the ball hits it.</summary>
+    public double FrostFreezeSeconds   { get; init; } = 2.0;
+    /// <summary>Stasis fusion (echo+frost): freeze duration multiplier.</summary>
+    public double StasisFreezeMult     { get; init; } = 2.0;
+    /// <summary>Molten fusion (heavy+ember): extra fire-spread chip damage.</summary>
+    public int    MoltenChipBonus      { get; init; } = 1;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>

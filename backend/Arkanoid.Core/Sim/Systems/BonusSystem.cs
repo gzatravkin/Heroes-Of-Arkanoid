@@ -64,6 +64,14 @@ internal static class BonusSystem
         {
             if (!bonus.Alive) continue;
 
+            // Lodestone relic: pickups drift horizontally toward the paddle.
+            if (g.HasRelic("lodestone"))
+            {
+                var dx = g.Paddle.Center.X - bonus.Pos.X;
+                var step = System.Math.Clamp(dx, -g.Config.LodestoneHoming * dt, g.Config.LodestoneHoming * dt);
+                bonus.Pos = new Vec2(bonus.Pos.X + step, bonus.Pos.Y);
+            }
+
             bonus.Pos += bonus.Vel * dt;
 
             // Catch check: AABB of the bonus centre overlapping the paddle box.
@@ -72,6 +80,12 @@ internal static class BonusSystem
             {
                 bonus.Alive = false;
                 ApplyEffect(g, bonus);
+                // Midas relic: every catch also pays crystals.
+                if (g.HasRelic("midas"))
+                {
+                    g.Crystals += g.Config.MidasCrystals;
+                    g._log.Log(g.TickCount, "relic", "midas", $"crystals={g.Crystals}");
+                }
                 g.RaiseEvent("bonusCaught", bonus.Pos.X, bonus.Pos.Y);
                 g._log.Log(g.TickCount, "bonus", "caught", $"id={bonus.Id} type={bonus.Type}");
                 continue;
@@ -155,7 +169,7 @@ internal static class BonusSystem
     // Extra ball helper
     // -----------------------------------------------------------------------
 
-    private static void SpawnExtraBall(GameInstance g)
+    internal static void SpawnExtraBall(GameInstance g)
     {
         // Clone the first living ball with a slightly different angle.
         var src = g.Balls.FirstOrDefault(b => b.Alive);

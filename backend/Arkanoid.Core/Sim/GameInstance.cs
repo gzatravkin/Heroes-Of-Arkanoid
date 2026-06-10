@@ -130,6 +130,8 @@ public sealed class GameInstance
 
     public HashSet<string> BallCores { get; } = new();
     public void AddBallCore(string id) => BallCores.Add(id);
+    /// <summary>Fusion (docs/04 §4.3): holding both cores of a pair unlocks a combined effect.</summary>
+    public bool HasFusion(string a, string b) => BallCores.Contains(a) && BallCores.Contains(b);
     public double ManaMaxValue { get; internal set; }
 
     public Dictionary<string, int> SpellLevels { get; } = new()
@@ -219,6 +221,12 @@ public sealed class GameInstance
         _log.Log(0, "init", "instance created", $"level={level.Id} seed={seed} blocks={Blocks.Count} lives={Lives} balls={SpareBalls}");
     }
 
+    // --- G2 relic counters/flags (instance-scoped, reset with the level) ---
+    internal int  _killsSinceSplit;
+    internal int  _killsSinceSouljar;
+    internal bool _secondWindUsed;
+    internal bool _hellwalkerUsedThisServe;
+
     public void AddRelic(string id)
     {
         ActiveRelics.Add(id);
@@ -230,6 +238,9 @@ public sealed class GameInstance
                 break;
             case "mana_battery":
                 ManaMaxValue += Config.ManaBatteryBonus;
+                break;
+            case "lead_paddle":
+                Paddle.Width *= Config.LeadPaddleWidthMult;
                 break;
         }
     }
@@ -246,6 +257,7 @@ public sealed class GameInstance
         });
         _igniteArmed = false;   // discard any unused arm so it doesn't leak to the next life
         _decayArmed  = false;
+        _hellwalkerUsedThisServe = false; // the Hellwalker boon refreshes on every serve
         Phase = GamePhase.Serving;
     }
 
@@ -257,6 +269,14 @@ public sealed class GameInstance
         Balls[0].Vel = new Vec2(lean, -1).Normalized() * Config.BallSpeed;
         Phase = GamePhase.Playing;
         _log.Log(TickCount, "serve", "ball launched", $"lean={lean:F3} vx={Balls[0].Vel.X:F1} vy={Balls[0].Vel.Y:F1}");
+
+        // ghost ball-core: the served ball can punch through blocks (Phantom fusion: more charges)
+        if (BallCores.Contains("ghost"))
+        {
+            Balls[0].PhasesLeft = HasFusion("ghost", "split")
+                ? Config.PhantomPhaseCharges : Config.GhostCoreCharges;
+            _log.Log(TickCount, "ballcore", "ghost charges", $"phases={Balls[0].PhasesLeft}");
+        }
 
         // ember ball-core: permanently ignite every served ball
         if (BallCores.Contains("ember"))
@@ -305,8 +325,9 @@ public sealed class GameInstance
         if (_log.Verbose)
             _log.Log(TickCount, "tick", "", $"balls={Balls.Count(b=>b.Alive)} mana={ManaValue:F0} blocks={Blocks.Count(b=>!b.Dead)}");
         SpellSystem.RegenMana(this, dt);
-        foreach (var b in Balls)
-            BallSystem.UpdateBall(this, b, dt);
+        // Index loop: the Split Shot relic can append a ball mid-tick.
+        for (int i = 0; i < Balls.Count; i++)
+            BallSystem.UpdateBall(this, Balls[i], dt);
         SpellSystem.UpdateProjectiles(this, dt);
         SpellSystem.UpdateFireWalls(this, dt);
         SpellSystem.UpdateTurret(this, dt);
