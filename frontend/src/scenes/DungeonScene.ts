@@ -1,5 +1,5 @@
 import { metaApi } from "../net/metaApi";
-import { btnInterface } from "../ui/nineSlice";
+import { nineSlice } from "../ui/nineSlice";
 import type { DungeonRunState } from "../net/metaApi";
 import { css, buffName, buffIcon } from "./battle/overlays";
 
@@ -50,7 +50,7 @@ export function mountDungeon(host: HTMLElement) {
     const link = document.createElement("a");
     link.href = "/?scene=campaign";
     link.textContent = "← Back to Campaign";
-    link.className = "dngrun-link";
+    link.className = "ui-link";
     root.appendChild(link);
   }
 
@@ -64,7 +64,7 @@ export function mountDungeon(host: HTMLElement) {
     const link = document.createElement("a");
     link.href = "/?scene=campaign";
     link.textContent = "← Back to Campaign";
-    link.className = "dngrun-link";
+    link.className = "ui-link";
     root.appendChild(link);
   }
 
@@ -75,13 +75,13 @@ export function mountDungeon(host: HTMLElement) {
     const backBtn = document.createElement("a");
     backBtn.href = "/?scene=campaign";
     backBtn.textContent = "← Campaign";
-    backBtn.className = "dngrun-back";
+    backBtn.className = "ui-link";
     root.appendChild(backBtn);
 
     // Title
     const h1 = document.createElement("h1");
     h1.textContent = "Active Run";
-    h1.className = "dngrun-title";
+    h1.className = "ui-title";
     root.appendChild(h1);
 
     // Floor progress
@@ -151,90 +151,78 @@ function injectDungeonRunStyles() {
   style.id = id;
   style.textContent = `
     .dngrun-root {
+      position: relative;
       min-height: 100cqh;
-      background:
-        url('/ui/2DungeonBlur.jpg') no-repeat center top / cover,
-        rgba(5,3,12,0.92);
-      background-blend-mode: luminosity;
+      width: 100%;
+      color: var(--text);
+      font-family: var(--font-body);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: max(env(safe-area-inset-top,0px), 24px) 16px max(env(safe-area-inset-bottom,0px), 24px);
       box-sizing: border-box;
-      font-family: sans-serif;
-      color: #e8e8ff;
-    }
-    .dngrun-back {
-      align-self: flex-start;
-      color: #b8a070;
-      text-decoration: none;
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-    .dngrun-title {
-      margin: 0 0 16px 0;
-      font-size: 1.7rem;
-      letter-spacing: 0.06em;
-      color: #ddeeff;
-      text-shadow: 0 0 16px rgba(100,150,255,0.4), 0 2px 4px rgba(0,0,0,0.8);
+      padding: max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px)) 12px;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
     }
     .dngrun-progress {
       id: dungeon-floor-progress;
-      font-size: 1.1rem;
-      color: #88aaff;
+      font-size: 13px;
+      color: var(--text-dim);
       margin-bottom: 6px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
     }
     .dngrun-floor-name {
-      font-size: 1.25rem;
+      font-size: 15px;
       font-weight: 700;
-      color: #ddeeff;
-      margin-bottom: 20px;
+      color: var(--gold-bright);
+      margin-bottom: 16px;
       text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .dngrun-buffs {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 28px;
+      margin-bottom: 16px;
       min-height: 36px;
       max-width: 480px;
       justify-content: center;
     }
     .dngrun-buff-chip {
+      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "8px 10px")}
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
-      padding: 4px 10px;
-      background: rgba(20,15,40,0.85);
-      border: 1px solid rgba(100,80,180,0.45);
-      border-radius: 20px;
+      padding: 4px 8px;
       font-size: 12px;
-      color: #aabbff;
+      color: var(--text-dim);
+      transition: filter 0.15s;
+    }
+    .dngrun-buff-chip:hover {
+      filter: brightness(1.08);
     }
     .dngrun-enter-btn {
-      padding: 0 48px;
-      height: 56px;
-      min-width: 200px;
-      ${btnInterface()}
-      color: #f0e0b8;
-      border-radius: 4px;
+      min-height: 36px;
+      padding: 2px 14px;
+      ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
-      font-size: 17px;
-      font-family: sans-serif;
+      font-family: var(--font-body);
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      transition: filter 0.15s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.04em;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: filter 0.15s, transform 0.1s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      color: var(--gold-bright);
     }
-    .dngrun-enter-btn:hover  { filter: brightness(1.15); }
-    .dngrun-enter-btn:active { transform: scale(0.97); }
-    .dngrun-link {
-      margin-top: 16px;
-      color: #cc88ff;
-      text-decoration: none;
-      font-size: 1rem;
+    .dngrun-enter-btn:hover:not(:disabled)  { filter: brightness(1.18); }
+    .dngrun-enter-btn:active:not(:disabled) { transform: scale(0.96); }
+    .dngrun-enter-btn:disabled {
+      filter: saturate(0.25) brightness(0.6);
+      cursor: default;
     }
   `;
   document.head.appendChild(style);

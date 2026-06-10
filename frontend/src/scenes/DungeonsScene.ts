@@ -1,5 +1,5 @@
 import { metaApi } from "../net/metaApi";
-import { btnInterface } from "../ui/nineSlice";
+import { nineSlice } from "../ui/nineSlice";
 import type { DungeonDef } from "../net/metaApi";
 import { css } from "./battle/overlays";
 
@@ -29,7 +29,7 @@ export function mountDungeons(host: HTMLElement) {
   const backBtn = document.createElement("a");
   backBtn.href = "/";
   backBtn.textContent = "← Menu";
-  backBtn.className = "dng-back";
+  backBtn.className = "ui-link";
   root.appendChild(backBtn);
 
   // Flavor banner
@@ -40,7 +40,7 @@ export function mountDungeons(host: HTMLElement) {
 
   const h1 = document.createElement("h1");
   h1.textContent = "Dungeons";
-  h1.className = "dng-title";
+  h1.className = "ui-title";
   root.appendChild(h1);
 
   // Dungeon list
@@ -127,90 +127,72 @@ function injectDungeonStyles() {
   style.id = id;
   style.textContent = `
     .dng-root {
+      position: relative;
       min-height: 100cqh;
-      background:
-        url('/ui/2DungeonBlur.jpg') no-repeat center top / cover,
-        rgba(5,3,12,0.9);
-      background-blend-mode: luminosity;
+      width: 100%;
+      color: var(--text);
+      font-family: var(--font-body);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: max(env(safe-area-inset-top,0px), 24px) 16px max(env(safe-area-inset-bottom,0px), 24px);
       box-sizing: border-box;
-      font-family: sans-serif;
-      color: #e8e8ff;
-    }
-    .dng-back {
-      align-self: flex-start;
-      color: #b8a070;
-      text-decoration: none;
-      font-size: 13px;
-      margin-bottom: 20px;
-      padding: 4px 8px;
+      padding: max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px)) 12px;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
     }
     .dng-flavor {
-      background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
-                  rgba(20,8,35,0.9);
-      border: 1px solid rgba(180,80,200,0.4);
-      border-radius: 10px;
-      padding: 12px 24px;
-      margin-bottom: 24px;
+      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
+      padding: 12px 16px;
+      margin: 8px auto 16px;
       max-width: 520px;
       text-align: center;
-      color: #cc88ff;
-      font-size: 0.92rem;
-      letter-spacing: 0.04em;
+      color: var(--text);
+      font-size: 13px;
+      letter-spacing: 0.03em;
       line-height: 1.5;
-      box-shadow: 0 0 20px rgba(100,0,150,0.25);
+      transition: filter 0.15s;
     }
-    .dng-title {
-      margin: 0 0 24px 0;
-      font-size: 1.8rem;
-      letter-spacing: 0.07em;
-      color: #ddeeff;
-      text-shadow: 0 0 20px rgba(100,150,255,0.4), 0 2px 4px rgba(0,0,0,0.8);
+    .dng-flavor:hover {
+      filter: brightness(1.08);
     }
     .dng-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       width: 100%;
       max-width: 520px;
+      flex: 1;
     }
     .dng-card {
-      background: rgba(12,8,26,0.88);
-      border: 1px solid rgba(80,50,150,0.5);
-      border-radius: 10px;
-      padding: 16px 20px;
+      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      gap: 8px;
+      transition: filter 0.15s;
     }
     .dng-card:hover {
-      border-color: rgba(150,100,220,0.7);
-      box-shadow: 0 4px 20px rgba(80,0,120,0.35);
+      filter: brightness(1.08);
     }
     .dng-card-titlebar {
-      background: url('/ui/MissionName.png') no-repeat left center / auto 100%;
-      min-height: 36px;
       display: flex;
       align-items: center;
-      padding-left: 12px;
+      padding: 0;
     }
     .dng-card-name {
-      font-size: 1.15rem;
+      font-size: 13px;
       font-weight: 700;
-      color: #e8d0a0;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      color: var(--gold-bright);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .dng-card-meta {
       display: flex;
-      gap: 14px;
-      align-items: center;
-      font-size: 13px;
-      color: #8899cc;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+      font-size: 12px;
+      color: var(--text-dim);
     }
     .dng-reward-row {
       display: flex;
@@ -218,24 +200,26 @@ function injectDungeonStyles() {
       gap: 6px;
     }
     .dng-descend-btn {
-      align-self: flex-start;
-      padding: 0 28px;
-      height: 48px;
-      ${btnInterface()}
-      color: #f0e0b8;
-      border-radius: 4px;
+      min-height: 36px;
+      padding: 2px 14px;
+      ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
-      font-size: 15px;
-      font-family: sans-serif;
+      font-family: var(--font-body);
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.05em;
-      transition: filter 0.15s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.04em;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: filter 0.15s, transform 0.1s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      color: var(--gold-bright);
     }
-    .dng-descend-btn:hover  { filter: brightness(1.15); }
-    .dng-descend-btn:active { transform: scale(0.97); }
-    .dng-descend-btn:disabled { filter: grayscale(1) opacity(0.5); cursor: default; }
+    .dng-descend-btn:hover:not(:disabled)  { filter: brightness(1.18); }
+    .dng-descend-btn:active:not(:disabled) { transform: scale(0.96); }
+    .dng-descend-btn:disabled {
+      filter: saturate(0.25) brightness(0.6);
+      cursor: default;
+    }
   `;
   document.head.appendChild(style);
 }
