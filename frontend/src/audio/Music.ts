@@ -121,8 +121,15 @@ const STEP_S = 0.8; // pattern grid
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+// DISABLED 2026-06-10 (user feedback): the synthesized ambience — especially the
+// Hell beat-frequency sawtooth drone — reads as grating noise, not music. Keep
+// the module so the call sites stay wired, but make it a no-op until the layer
+// is redesigned with real composition (docs/13-ui-ux-audit.md, Audio section).
+const MUSIC_DISABLED = true;
+
 /** Idempotently switch the ambience to the given biome (call per snapshot). */
 export function setMusicBiome(biome: string): void {
+  if (MUSIC_DISABLED) return;
   if (!biome || biome === _biome) return;
   const c = ctx();
   if (!c || !_master) return;
