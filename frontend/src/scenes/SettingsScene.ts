@@ -66,6 +66,17 @@ export function mountSettings(host: HTMLElement) {
     control: audioToggle,
   }));
 
+  // ── Music toggle (per-biome ambient music — off by default) ──────────────────
+  const musicOn = localStorage.getItem("arkanoid_music") === "1";
+  const musicToggle = buildToggle("set-toggle-music", musicOn, (val) => {
+    localStorage.setItem("arkanoid_music", val ? "1" : "0");
+  });
+  panel.appendChild(buildRow({
+    label: "Music",
+    description: "Per-biome ambient music (experimental)",
+    control: musicToggle,
+  }));
+
   // ── FX Intensity ─────────────────────────────────────────────────────────────
   const fxEnabled = localStorage.getItem("arkanoid_fx") !== "0";
   const fxToggle = buildToggle("set-toggle-fx", fxEnabled, (val) => {
