@@ -8,7 +8,7 @@ export const RIFT_STYLES = `
       left: 50%;
       top: 64px;
       transform: translate(-50%, -160%);
-      width: min(360px, 92vw);
+      width: min(360px, 92cqw);
       z-index: 200;
       display: flex;
       align-items: center;
@@ -64,7 +64,7 @@ export const RIFT_STYLES = `
 
 export const CAMPAIGN_STYLES = `
     .camp-root {
-      min-height: 100vh;
+      min-height: 100cqh;
       background:
         radial-gradient(ellipse at 50% 0%, rgba(60,40,10,0.4) 0%, transparent 60%),
         linear-gradient(180deg, #12080a 0%, #070510 50%, #040308 100%);
@@ -222,7 +222,8 @@ export const CAMPAIGN_STYLES = `
     .camp-node-img {
       width: 64px;
       height: 64px;
-      image-rendering: pixelated;
+      /* Painted art downscaled from 140px — smooth filtering, NOT pixelated
+         (pixelated shredded the orb/lock art; docs/13 campaign audit). */
       filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
     }
     .camp-node-completed .camp-node-img {
@@ -231,23 +232,42 @@ export const CAMPAIGN_STYLES = `
 
     .camp-node-label-wrap {
       ${missionName()}
-      padding: 2px 8px;
-      min-width: 70px;
+      padding: 3px 10px;
+      width: max-content;
+      max-width: 132px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+    .camp-node-kicker {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #b9a06a;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      white-space: nowrap;
+      line-height: 1.1;
     }
     .camp-node-label {
-      font-size: 10px;
-      color: #e8d8a0;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-      line-height: 1.3;
+      font-size: 11px;
+      font-weight: 700;
+      color: #f5e6bf;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.95);
+      line-height: 1.2;
+      white-space: nowrap;
     }
 
     /* ── Upgrade panel — fixed bottom sheet, always in viewport ── */
     .camp-upgrade-panel {
       display: none;
+      /* Bottom sheet pinned to the letterbox frame, not the window edge. */
       position: fixed;
-      left: 0;
-      right: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100cqw;
       bottom: 0;
       z-index: 100;
       background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
@@ -255,7 +275,7 @@ export const CAMPAIGN_STYLES = `
       border-top: 2px solid rgba(180,140,60,0.5);
       border-radius: 12px 12px 0 0;
       padding: 20px 20px 32px 20px;
-      max-height: 60vh;
+      max-height: 60cqh;
       overflow-y: auto;
     }
     .camp-spell-row {

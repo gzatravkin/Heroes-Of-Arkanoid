@@ -19,7 +19,7 @@ export function createDungeonFlow() {
         if (data.isLastFloor) {
           unlockAchievement("clear_dungeon").catch(() => {});
           const el = buildDungeonClearOverlay(data, () => { navigateTo("/?scene=campaign"); });
-          document.body.appendChild(el);
+          (document.getElementById("app") ?? document.body).appendChild(el); // inside the letterbox frame
         } else {
           const el = buildPickOverlay(
             data.run?.pendingChoices ?? [],
@@ -34,7 +34,7 @@ export function createDungeonFlow() {
             // Owned relics + cores power the synergy hints (docs/04 §7).
             [...(data.run?.relics ?? []), ...(data.run?.ballCores ?? [])],
           );
-          document.body.appendChild(el);
+          (document.getElementById("app") ?? document.body).appendChild(el); // inside the letterbox frame
         }
       } catch (e) {
         console.error("dungeon floor-cleared failed", e);
@@ -51,7 +51,7 @@ export function createDungeonFlow() {
         console.error("dungeon fail failed", e);
       }
       const el = buildDungeonFailOverlay(() => { navigateTo("/?scene=campaign"); });
-      document.body.appendChild(el);
+      (document.getElementById("app") ?? document.body).appendChild(el); // inside the letterbox frame
       return true;
     }
 

@@ -11,6 +11,9 @@ import { mountAchievements } from "./scenes/AchievementsScene";
 import { mountSettings } from "./scenes/SettingsScene";
 import { mountSkills } from "./scenes/SkillsScene";
 import { fadeInOnLoad } from "./ui/transition";
+import { injectTheme } from "./ui/theme";
+
+injectTheme(); // design tokens + shared component classes for every scene
 
 const host = document.getElementById("app")!;
 const q = new URLSearchParams(location.search);
@@ -23,7 +26,7 @@ const from = q.get("from") ?? "";
 // Load the sprite atlas before mounting any scene.
 // Shows a minimal loading indicator while fetching.
 const loading = document.createElement("div");
-loading.style.cssText = "color:#ccc;font-family:sans-serif;text-align:center;padding-top:40vh;font-size:1.2rem";
+loading.style.cssText = "color:var(--text-dim,#c9b182);font-family:var(--font-body,sans-serif);text-align:center;padding-top:40cqh;font-size:1.2rem";
 loading.textContent = "Loading assets…";
 host.appendChild(loading);
 

@@ -13,11 +13,13 @@ const FALLBACK_LEVEL = "hell-1";
 interface DockEntry { id: string; label: string; scene: string; icon: string; }
 
 const DOCK: DockEntry[] = [
-  { id: "btn-characters",   label: "Heroes",   scene: "characters",   icon: "/ui/InterfaceProfilButtonENG.png" },
+  // Icons must be ICONS — the old Heroes entry was "Profil" word-art (read as
+  // "...") and Settings was an empty button pill (read as a dash). docs/13 §S2.
+  { id: "btn-characters",   label: "Heroes",   scene: "characters",   icon: "/ui/FireHeroIco.png" },
   { id: "btn-inventory",    label: "Items",    scene: "inventory",    icon: "/ui/InventoryButton.png" },
   { id: "btn-skills",       label: "Skills",   scene: "skills",       icon: "/ui/InterfaceSkillsButton.png" },
   { id: "btn-achievements", label: "Awards",   scene: "achievements", icon: "/achievements/achievementLvl2Eng.png" },
-  { id: "btn-settings",     label: "Settings", scene: "settings",     icon: "/ui/InterfaceNewButton2.png" },
+  { id: "btn-settings",     label: "Settings", scene: "settings",     icon: "/ui/SettingsGear.svg" },
 ];
 
 /** Furthest *playable* node = the deepest node still unlocked (the campaign frontier). */
@@ -42,9 +44,9 @@ export function mountMenu(host: HTMLElement) {
   bg.className = "menu-bg";
   el.appendChild(bg);
 
-  const charArt = document.createElement("div");
-  charArt.className = "menu-char-art";
-  el.appendChild(charArt);
+  // (The old .menu-char-art div rendered MainCharacter.png here — which turned
+  // out to be a legacy "F33 Волшебная Бита" logo badge, clipped behind the dock.
+  // Removed per docs/13 §S2; a real composition pass is planned in P3.)
 
   const col = document.createElement("div");
   col.className = "menu-col";
@@ -128,7 +130,7 @@ function injectMenuStyles() {
   style.textContent = `
     .menu-root {
       position: relative;
-      min-height: 100vh;
+      min-height: 100cqh;
       width: 100%;
       overflow: hidden;
       display: flex;
@@ -145,18 +147,6 @@ function injectMenuStyles() {
       z-index: 0;
     }
 
-    .menu-char-art {
-      position: absolute;
-      right: -20px;
-      bottom: 0;
-      width: min(260px, 60vw);
-      height: 70vh;
-      background: url('/ui/MainCharacter.png') no-repeat bottom right / contain;
-      opacity: 0.16;
-      z-index: 1;
-      pointer-events: none;
-    }
-
     .menu-col {
       position: relative;
       z-index: 2;
@@ -169,7 +159,7 @@ function injectMenuStyles() {
     }
 
     .menu-logo {
-      width: min(340px, 88vw);
+      width: min(340px, 88cqw);
       height: 80px;
       background: url('/ui/LogoArkanoid.png') no-repeat center / contain;
       margin-bottom: 36px;
@@ -177,7 +167,7 @@ function injectMenuStyles() {
 
     .menu-art-btn {
       position: relative;
-      width: min(320px, 88vw);
+      width: min(320px, 88cqw);
       background: none;
       /* 9-slice the InterfaceButton pill (626x162): fixed rounded end-caps + stretched
          middle, so the button doesn't get its ends squished at different widths. */
@@ -236,7 +226,7 @@ function injectMenuStyles() {
       display: flex;
       justify-content: center;
       gap: 10px;
-      width: min(360px, 94vw);
+      width: min(360px, 94cqw);
       margin-top: auto;
       padding: 18px 8px calc(env(safe-area-inset-bottom, 0px) + 10px) 8px;
     }
@@ -264,7 +254,8 @@ function injectMenuStyles() {
       background-repeat: no-repeat;
       background-position: center;
       background-size: contain;
-      image-rendering: pixelated;
+      /* painted art — smooth downscale, never pixelated (docs/13) */
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
     }
     .menu-dock-label {
       color: #d8c598;

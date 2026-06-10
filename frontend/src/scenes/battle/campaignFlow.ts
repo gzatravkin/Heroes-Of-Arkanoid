@@ -57,7 +57,7 @@ export function createCampaignFlow(level: string) {
         console.error("Failed to complete level", e);
       }
       const el = buildRewardOverlay(reward, () => { navigateTo(campaignReturnUrl(rift)); });
-      document.body.appendChild(el);
+      (document.getElementById("app") ?? document.body).appendChild(el); // inside the letterbox frame
       return true;
     }
 
@@ -67,7 +67,7 @@ export function createCampaignFlow(level: string) {
         () => { navigateTo(`/?scene=battle&level=${encodeURIComponent(level)}&from=campaign`); },
         () => { navigateTo("/?scene=campaign"); },
       );
-      document.body.appendChild(el);
+      (document.getElementById("app") ?? document.body).appendChild(el); // inside the letterbox frame
       return true;
     }
 

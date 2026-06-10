@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Gold gear matching the UI palette (no gear existed in the art set; the old
+       "Settings" dock icon was an empty button pill — docs/13 §S2). -->
+  <defs>
+    <radialGradient id="g" cx="38%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#ffe9b0"/>
+      <stop offset="55%" stop-color="#d8a84e"/>
+      <stop offset="100%" stop-color="#8a6a35"/>
+    </radialGradient>
+  </defs>
+  <g fill="url(#g)" stroke="#3a2c12" stroke-width="2" stroke-linejoin="round">
+    <path d="M32 6l4 8 9-2 1 9 9 1-2 9 8 4-5 8 5 8-8 4 2 9-9 1-1 9-9-2-4 8-4-8-9 2-1-9-9-1 2-9-8-4 5-8-5-8 8-4-2-9 9-1 1-9 9 2z"/>
+    <circle cx="32" cy="32" r="11" fill="#1c1407"/>
+    <circle cx="32" cy="32" r="6" fill="url(#g)"/>
+  </g>
+</svg>

@@ -210,11 +210,18 @@ export function mountCampaign(host: HTMLElement) {
     }
 
     // Node size + spacing (px)
-    const NODE_W = 80;     // button width
-    const NODE_H = 108;    // button height (img 64 + label ~36 + gap)
-    const H_GAP  = 20;     // horizontal gap between nodes
+    const NODE_W = 104;    // button width — wide enough that labels never wrap mid-phrase
+    const NODE_H = 116;    // button height (img 64 + two-line label + gap)
+    const H_GAP  = 16;     // horizontal gap between nodes
     const V_GAP  = 36;     // vertical gap between rows
     const CONNECTOR_THICKNESS = 6;
+    // Connectors route through the ORB centres, not the button centres — the
+    // button includes the label plaque, and centre-of-button lines used to cut
+    // straight through the text (docs/13 campaign audit).
+    const ORB_TOP_PAD = 6;   // .camp-node padding-top
+    const ORB_SIZE    = 64;  // .camp-node-img height
+    const ORB_CY      = ORB_TOP_PAD + ORB_SIZE / 2;
+    const ORB_BOTTOM  = ORB_TOP_PAD + ORB_SIZE;
 
     const totalCols = NODES_PER_ROW;
     const totalRows = Math.ceil(ns.length / NODES_PER_ROW);
@@ -230,9 +237,9 @@ export function mountCampaign(host: HTMLElement) {
 
     function nodeLeft(col: number) { return col * (NODE_W + H_GAP); }
     function nodeTop(row: number)  { return row * (NODE_H + V_GAP); }
-    // Centre of node button
+    // Centre of the node ORB (the label hangs below it)
     function nodeCX(col: number)   { return nodeLeft(col) + NODE_W / 2; }
-    function nodeCY(row: number)   { return nodeTop(row)  + NODE_H / 2; }
+    function nodeCY(row: number)   { return nodeTop(row)  + ORB_CY; }
 
     // ── Connectors first (behind nodes) ──────────────────────────────────────
     for (let i = 1; i < ns.length; i++) {
@@ -247,9 +254,9 @@ export function mountCampaign(host: HTMLElement) {
       const x2 = nodeCX(curr.col);
 
       if (prev.row === curr.row) {
-        // Same row → horizontal connector between the two node centres
-        const hLeft  = Math.min(x1, x2) + NODE_W / 2;
-        const hWidth = Math.abs(x2 - x1) - NODE_W;
+        // Same row → horizontal connector spanning the gap between the orbs
+        const hLeft  = Math.min(x1, x2) + ORB_SIZE / 2;
+        const hWidth = Math.abs(x2 - x1) - ORB_SIZE;
         if (hWidth > 0) {
           const conn = document.createElement("div");
           conn.className = `camp-connector ${activeClass}`;
@@ -260,8 +267,8 @@ export function mountCampaign(host: HTMLElement) {
           inner.appendChild(conn);
         }
       } else {
-        // Row transition — L-path: vertical down from prev, then horizontal to curr column
-        const vTop    = nodeTop(prev.row) + NODE_H;
+        // Row transition — L-path: vertical down from prev orb, then horizontal to curr column
+        const vTop    = nodeTop(prev.row) + ORB_BOTTOM;
         const vBottom = nodeCY(curr.row);
         const vH = vBottom - vTop;
         if (vH > 0) {
@@ -312,10 +319,23 @@ export function mountCampaign(host: HTMLElement) {
       btn.appendChild(nodeImg);
 
       // Label on MissionName banner below
+      // Labels are "Biome — Subtitle" (e.g. "Hell — The Circuit"). Render as a
+      // tiny biome kicker over a single non-wrapping title line; the plaque
+      // sizes to the text. Mid-phrase wrapping over 3–4 lines was the worst
+      // offender in the docs/13 audit.
       const labelWrap = document.createElement("div");
       labelWrap.className = "camp-node-label-wrap";
+      const dashIdx = node.label.indexOf("—");
+      const kickerText = dashIdx >= 0 ? node.label.slice(0, dashIdx).trim() : "";
+      const titleText  = dashIdx >= 0 ? node.label.slice(dashIdx + 1).trim() : node.label;
+      if (kickerText) {
+        const kickerEl = document.createElement("span");
+        kickerEl.textContent = kickerText;
+        kickerEl.className = "camp-node-kicker";
+        labelWrap.appendChild(kickerEl);
+      }
       const labelEl = document.createElement("span");
-      labelEl.textContent = node.label;
+      labelEl.textContent = titleText;
       labelEl.className = "camp-node-label";
       labelWrap.appendChild(labelEl);
       btn.appendChild(labelWrap);

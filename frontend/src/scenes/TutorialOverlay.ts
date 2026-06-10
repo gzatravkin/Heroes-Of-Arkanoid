@@ -208,7 +208,7 @@ function injectTutorialStyles() {
   style.id = id;
   style.textContent = `
     .tut-overlay {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
       background: rgba(0,0,0,0.88);
       display: flex;
       flex-direction: column;
@@ -241,7 +241,7 @@ function injectTutorialStyles() {
       border: 2px solid rgba(180,140,60,0.7);
       border-radius: 16px;
       padding: 28px 24px 20px;
-      width: min(340px, 92vw);
+      width: min(340px, 92cqw);
       display: flex;
       flex-direction: column;
       align-items: center;

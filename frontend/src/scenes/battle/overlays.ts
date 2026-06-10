@@ -116,7 +116,7 @@ function injectOverlayStyles() {
   style.id = id;
   style.textContent = `
     .ov-backdrop {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
       background: rgba(0,0,0,0.82);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
@@ -136,8 +136,8 @@ function injectOverlayStyles() {
       border: 2px solid rgba(180,140,60,0.7);
       border-radius: 12px;
       padding: 24px 32px;
-      min-width: min(280px, 88vw);
-      max-width: min(400px, 92vw);
+      min-width: min(280px, 88cqw);
+      max-width: min(400px, 92cqw);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -180,7 +180,7 @@ function injectOverlayStyles() {
       margin-top: 12px;
       padding: 0 16px;
       height: 52px;
-      min-width: min(200px, 70vw);
+      min-width: min(200px, 70cqw);
       background: none;
       border-style: solid;
       border-width: 8px 30px;
@@ -211,7 +211,7 @@ function injectOverlayStyles() {
     /* Bonus card */
     .ov-bonus-card {
       position: relative;
-      width: min(110px, 28vw);
+      width: min(110px, 28cqw);
       min-height: 140px;
       background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
                   rgba(10,8,26,0.95);
@@ -266,7 +266,7 @@ function injectOverlayStyles() {
       gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
-      max-width: min(400px, 96vw);
+      max-width: min(400px, 96cqw);
     }
 
     .ov-pick-title {

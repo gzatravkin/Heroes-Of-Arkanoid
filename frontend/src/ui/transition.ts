@@ -52,11 +52,17 @@ export function fadeInOnLoad(): void {
   const overlay = getOverlay();
   overlay.style.opacity = "1";
   overlay.style.pointerEvents = "none";
-  // Start at black, fade to transparent.
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      overlay.style.transition = `opacity ${FADE_IN_MS}ms ease-in-out`;
-      overlay.style.opacity = "0";
-    });
-  });
+  // Start at black, fade to transparent. Double-RAF commits the opaque state
+  // before the transition starts; the setTimeout fallback guarantees the fade
+  // still runs when RAF is throttled (hidden/background/headless tabs) — the
+  // scene otherwise stayed black behind the overlay indefinitely.
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    overlay.style.transition = `opacity ${FADE_IN_MS}ms ease-in-out`;
+    overlay.style.opacity = "0";
+  };
+  requestAnimationFrame(() => requestAnimationFrame(start));
+  setTimeout(start, 150);
 }

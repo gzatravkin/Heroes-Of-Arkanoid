@@ -24,31 +24,17 @@ function lvlSkillSrc(level: number): string {
   return `/levelskill/Lvl${clamped}Skill.png`;
 }
 
-// Shkatulka frames for decorative animation (copied to public/shkatulka/)
-const SHKATULKA_SRCS: string[] = [
-  "/shkatulka/Shkatulka.png",
-  "/shkatulka/Shkatulka2.png",
-  "/shkatulka/Shkatulka3.png",
-  "/shkatulka/shkatulka4.png",
-  "/shkatulka/shkatulka5.png",
-  "/shkatulka/shkatulka6.png",
-  "/shkatulka/shkatulka7.png",
-  "/shkatulka/shkatulka8.png",
-  "/shkatulka/Shkatulka9.png",
-  "/shkatulka/Shkatulka10.png",
-  "/shkatulka/Shkatulka11.png",
-  "/shkatulka/Shkatulka12.png",
-  "/shkatulka/ShkatulkaGlow.png",
-];
-
 // Per-spell icon paths (matching characters.json icon fields)
 // LargeIco variants copied to public/spellicons/<class>/
 const SPELL_ICON_MAP: Record<string, string> = {
-  // Fire Mage
-  ignite:   "/art/FireBallIco.png",
-  fireball: "/art/FireBallIco.png",
-  firewall: "/art/FireWallIco.png",
-  turret:   "/art/FireTurretIco.png",
+  // Fire Mage — square Chose*Ico art; ignite and fireball used to share the
+  // same letterboxed crop and phoenix had no entry at all → broken image
+  // (docs/13 skills audit).
+  ignite:   "/art/SpellIgnite.png",
+  fireball: "/art/SpellFireball.png",
+  firewall: "/art/SpellFirewall.png",
+  turret:   "/art/SpellTurret.png",
+  phoenix:  "/art/SpellPhoenix.png",
   // Paladin (public/spellicons/paladin/)
   shield:    "/spellicons/paladin/SpellShieldLargeIco.png",
   spear:     "/spellicons/paladin/SpearLargeLargeIco.png",
@@ -92,15 +78,12 @@ export function mountSkills(host: HTMLElement) {
   back.textContent = "← Campaign";
   inner.appendChild(back);
 
-  // Header with Shkatulka animation
+  // Header. (The decorative Shkatulka chest animation was removed: every frame
+  // in /shkatulka/ is a degenerate 1–13px-wide strip — corrupted exports that
+  // rendered as grey garbage over the title. docs/13 §S2. Re-add only with
+  // verified art.)
   const header = document.createElement("div");
   header.className = "sk-header";
-
-  const shkatulka = document.createElement("img");
-  shkatulka.src = SHKATULKA_SRCS[0];
-  shkatulka.className = "sk-shkatulka";
-  shkatulka.alt = "Skill chest";
-  header.appendChild(shkatulka);
 
   const titleWrap = document.createElement("div");
   const title = document.createElement("h1");
@@ -134,22 +117,6 @@ export function mountSkills(host: HTMLElement) {
 
   root.appendChild(inner);
   host.appendChild(root);
-
-  // Animate the shkatulka chest (slow idle loop 3 fps)
-  let shkFrame = 0;
-  const shkInterval = setInterval(() => {
-    shkFrame = (shkFrame + 1) % SHKATULKA_SRCS.length;
-    shkatulka.src = SHKATULKA_SRCS[shkFrame];
-  }, 333);
-
-  // Cleanup on navigation
-  const observer = new MutationObserver(() => {
-    if (!document.body.contains(root)) {
-      clearInterval(shkInterval);
-      observer.disconnect();
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
 
   let currentClassId = "";
   let allData: CharactersResponse | null = null;
@@ -285,11 +252,11 @@ function injectSkillsStyles() {
   style.id = sid;
   style.textContent = `
     .sk-root {
-      position: relative; min-height: 100vh;
+      position: relative; min-height: 100cqh;
       overflow-x: hidden; font-family: sans-serif;
     }
     .sk-bg {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
       background:
         radial-gradient(ellipse at 50% 0%, rgba(30,20,60,0.6) 0%, transparent 60%),
         linear-gradient(180deg, #0d0818 0%, #070510 50%, #040308 100%);
@@ -310,7 +277,7 @@ function injectSkillsStyles() {
     .sk-header {
       display: flex; align-items: center;
       gap: 16px; margin-bottom: 16px;
-      width: min(360px, 96vw);
+      width: min(360px, 96cqw);
     }
     .sk-shkatulka {
       width: 72px; height: 72px;
@@ -336,7 +303,7 @@ function injectSkillsStyles() {
       flex-wrap: wrap;
       justify-content: center;
       margin-bottom: 16px;
-      width: min(360px, 96vw);
+      width: min(360px, 96cqw);
     }
     .sk-tab {
       height: 36px; padding: 0 14px;
@@ -359,7 +326,7 @@ function injectSkillsStyles() {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      width: min(360px, 96vw);
+      width: min(360px, 96cqw);
       margin-bottom: 12px;
     }
     .sk-spell-card {
@@ -414,7 +381,7 @@ function injectSkillsStyles() {
     }
 
     .sk-panel {
-      width: min(360px, 96vw);
+      width: min(360px, 96cqw);
     }
   `;
   document.head.appendChild(style);

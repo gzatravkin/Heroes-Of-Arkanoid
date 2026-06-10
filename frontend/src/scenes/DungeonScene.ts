@@ -151,7 +151,7 @@ function injectDungeonRunStyles() {
   style.id = id;
   style.textContent = `
     .dngrun-root {
-      min-height: 100vh;
+      min-height: 100cqh;
       background:
         url('/ui/2DungeonBlur.jpg') no-repeat center top / cover,
         rgba(5,3,12,0.92);

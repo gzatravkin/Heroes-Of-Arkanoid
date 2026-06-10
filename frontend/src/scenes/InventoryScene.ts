@@ -24,8 +24,8 @@ export async function mountInventory(host: HTMLElement) {
 
   const backBtn = document.createElement("button");
   backBtn.id = "btn-inv-back";
-  backBtn.className = "inv-back-btn";
-  backBtn.textContent = "← Back";
+  backBtn.className = "ui-back";
+  backBtn.setAttribute("aria-label", "Back to menu");
   backBtn.addEventListener("click", () => { location.href = "/?scene=menu"; });
   header.appendChild(backBtn);
 

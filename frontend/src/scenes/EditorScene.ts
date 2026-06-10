@@ -25,7 +25,7 @@ export function mountEditor(host: HTMLElement) {
     "font-family:sans-serif",
     // The editor is taller than a phone screen — it must own its scrolling,
     // because the scene host clips overflow (the original mobile Save bug).
-    "height:100vh",
+    "height:100cqh",
     "overflow-y:auto",
     "background:#0d0d1a",
     "box-sizing:border-box",
