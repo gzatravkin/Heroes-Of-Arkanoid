@@ -1,6 +1,6 @@
 {
-  "name": "Arkanoid RPG",
-  "short_name": "Arkanoid",
+  "name": "Heroes of Arkanoid II",
+  "short_name": "Arkanoid II",
   "description": "Arkanoid RPG — spells, roguelite progression, fire-themed bricks",
   "start_url": "/",
   "display": "standalone",

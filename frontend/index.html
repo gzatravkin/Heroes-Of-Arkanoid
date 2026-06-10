@@ -7,16 +7,16 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Arkanoid RPG" />
+    <meta name="apple-mobile-web-app-title" content="Heroes of Arkanoid II" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <title>Arkanoid RPG</title>
+    <title>Heroes of Arkanoid II</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; }
       html, body {
         margin: 0;
         padding: 0;
-        background: #0b0b12;
         overflow: hidden;
         /* Fill the full viewport including notch area */
         width: 100%;
@@ -25,18 +25,45 @@
         overscroll-behavior: none;
         touch-action: none;
       }
+      /* Gutter backdrop — visible only when the viewport is wider than the
+         portrait design space (desktop). Warm ember glow over near-black. */
+      body {
+        display: flex;
+        justify-content: center;
+        background:
+          radial-gradient(ellipse 70% 45% at 50% 12%, rgba(120, 64, 22, 0.30) 0%, transparent 65%),
+          linear-gradient(180deg, #15100b 0%, #0a0709 55%, #040306 100%);
+      }
+      /* The game lives in a fixed portrait design space. On portrait phones
+         (aspect ≲ 0.56) it fills the whole viewport; on anything wider it is
+         letterboxed: full height, width clamped, centered, framed. */
       #app {
-        position: fixed;
-        inset: 0;
-        /* Respect safe-area insets (notched phones) */
-        top: env(safe-area-inset-top, 0px);
-        bottom: env(safe-area-inset-bottom, 0px);
-        left: env(safe-area-inset-left, 0px);
-        right: env(safe-area-inset-right, 0px);
+        position: relative;
         width: 100%;
-        height: 100%;
-        /* Recalc height after insets */
         height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        margin-top: env(safe-area-inset-top, 0px);
+        max-width: calc((100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.56);
+        /* The frame is the one scroll container for tall scenes. */
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: none;
+        background: #0b0b12;
+        /* Scenes size themselves with cqw/cqh against this container, never
+           the viewport, so the letterbox cannot be escaped. */
+        container-type: size;
+      }
+      /* Ornamental frame around the game column once gutters appear. */
+      @media (min-aspect-ratio: 4/7) {
+        #app {
+          border-left: 2px solid #7a5c28;
+          border-right: 2px solid #7a5c28;
+          box-shadow:
+            0 0 0 1px #241a0d,
+            -1px 0 0 1px rgba(255, 214, 130, 0.18),
+            1px 0 0 1px rgba(255, 214, 130, 0.18),
+            0 0 60px rgba(0, 0, 0, 0.9),
+            0 0 140px rgba(255, 140, 40, 0.06);
+        }
       }
       /* Pixi canvas fills the #app container */
       #app canvas {
