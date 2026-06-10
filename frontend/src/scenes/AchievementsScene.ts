@@ -1,17 +1,25 @@
 /**
  * AchievementsScene.ts — Achievements screen (?scene=achievements).
  *
- * Uses Interface/Achivements art:
- *   AchievmentPanel (background panel)
- *   achievementLvl1–3, achievementLl4–5 (locked badge frames)
- *   achievementLvl1Eng–Lvl3Eng, Ll4Eng, Ll5Eng (unlocked badge frames)
+ * Badge art in public/achievements/:
+ *   achievementLvl1Eng–Lvl3Eng, Ll4Eng, Ll5Eng (badge frames, English)
  *   achievementLvl3Oro (gold variant for top tier)
+ *
+ * NOTE: /achievements/AchievmentPanel.png is a flat navy rounded rectangle
+ * (placeholder export — no painted detail). It is NOT rendered here per
+ * Rulebook §4 (docs/plans/2026-06-10-ui-overhaul-execution.md).
+ * The NameBlock plaque (BarGoods 9-slice) is used for the title area instead.
  *
  * Achievement definitions are client-side; server persists the unlocked set.
  * Unlocks are triggered from battle/campaign events and POSTed to /achievement/unlock.
+ *
+ * Styled to match the design system: warm bg gradient, BarGoods card panels,
+ * locked/unlocked visual rhythm (unlocked: full-color + gold name;
+ * locked: saturate(.45) brightness(.8), text-dim name, ??? desc).
  */
 
 import { metaApi } from "../net/metaApi";
+import { nineSlice } from "../ui/nineSlice";
 
 // ── Achievement definitions ───────────────────────────────────────────────────
 
@@ -38,12 +46,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "campaign_complete",   name: "World Saved",          description: "Complete all campaign levels.", tier: 5 },
 ];
 
-// ── Badge art mapping: tier → locked/unlocked image ──────────────────────────
-// Files copied to public/achievements/ (committed, no /Sprites/ symlink dependency).
+// ── Badge art mapping: tier → unlocked image ─────────────────────────────────
+// Always the English badge art (non-Eng variants have Russian text baked in).
+// Locked/unlocked visual state is conveyed via CSS filter, not a different sprite.
 
 function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, _unlocked: boolean): string {
-  // Always use the English badge art (the non-Eng variants have Russian text baked in).
-  // Locked badges are conveyed by dimming the card, not by a different (Russian) sprite.
   if (tier === 1) return "/achievements/achievementLvl1Eng.png";
   if (tier === 2) return "/achievements/achievementLvl2Eng.png";
   if (tier === 3) return "/achievements/achievementLvl3Oro.png";
@@ -60,6 +67,7 @@ export function mountAchievements(host: HTMLElement) {
   root.id = "achievements-scene";
   root.className = "ach-root";
 
+  // Warm background layer
   const bg = document.createElement("div");
   bg.className = "ach-bg";
   root.appendChild(bg);
@@ -67,26 +75,29 @@ export function mountAchievements(host: HTMLElement) {
   const inner = document.createElement("div");
   inner.className = "ach-inner";
 
-  // Back button
+  // ── Top bar: back chip · centered title · symmetry spacer ──
+  const topbar = document.createElement("div");
+  topbar.className = "ach-topbar";
+
   const backBtn = document.createElement("a");
   backBtn.href = "/?scene=menu";
   backBtn.className = "ach-back";
-  backBtn.textContent = "← Menu";
-  inner.appendChild(backBtn);
+  backBtn.setAttribute("aria-label", "Back to menu");
+  // Arrow rendered by ::before pseudo-element
+  topbar.appendChild(backBtn);
 
-  // Title using AchievmentPanel as header decoration
-  const header = document.createElement("div");
-  header.className = "ach-header";
-  const panelDeco = document.createElement("div");
-  panelDeco.className = "ach-panel-deco";
-  header.appendChild(panelDeco);
   const title = document.createElement("h1");
   title.textContent = "Achievements";
   title.className = "ach-title";
-  header.appendChild(title);
-  inner.appendChild(header);
+  topbar.appendChild(title);
 
-  // Progress summary
+  const spacer = document.createElement("div");
+  spacer.className = "ach-topbar-spacer";
+  topbar.appendChild(spacer);
+
+  inner.appendChild(topbar);
+
+  // Progress counter
   const summary = document.createElement("div");
   summary.id = "ach-summary";
   summary.className = "ach-summary";
@@ -120,6 +131,9 @@ export function mountAchievements(host: HTMLElement) {
       badge.alt = ach.name;
       badge.className = "ach-badge";
       card.appendChild(badge);
+
+      // Tier data model has only numeric tier (1–5), no tier-name string.
+      // Tier chip is intentionally omitted — do NOT parse from filenames (§A3).
 
       const nameEl = document.createElement("div");
       nameEl.textContent = ach.name;
@@ -185,99 +199,181 @@ function injectAchievementStyles() {
   const style = document.createElement("style");
   style.id = id;
   style.textContent = `
+    /* ── Screen scaffold ── */
     .ach-root {
       position: relative;
-      min-height: 100vh;
+      min-height: 100cqh;
+      width: 100%;
+      color: var(--text);
+      font-family: var(--font-body);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
       overflow-x: hidden;
-      font-family: sans-serif;
     }
     .ach-bg {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
+      min-height: 100cqh;
       background:
-        radial-gradient(ellipse at 50% 0%, rgba(60,40,15,0.55) 0%, transparent 60%),
-        linear-gradient(180deg, #120d04 0%, #090607 50%, #040308 100%);
+        radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
+      pointer-events: none;
       z-index: 0;
     }
     .ach-inner {
       position: relative; z-index: 1;
       display: flex; flex-direction: column;
+      align-items: stretch;
+      padding: 0 0 max(env(safe-area-inset-bottom,0px),24px);
+    }
+
+    /* ── Top bar: back chip · centered title · symmetry spacer ── */
+    .ach-topbar {
+      display: flex;
       align-items: center;
-      padding: max(env(safe-area-inset-top,0px),16px) 16px max(env(safe-area-inset-bottom,0px),24px);
-      gap: 0;
+      gap: 8px;
+      padding: max(12px, env(safe-area-inset-top, 0px)) 12px 8px 12px;
+      width: 100%;
+      box-sizing: border-box;
     }
+
+    /* Back chip — Button1 9-slice frame with BackArrow via ::before */
     .ach-back {
-      align-self: flex-start;
-      color: #b8a070; font-size: 13px;
-      text-decoration: none; padding: 8px 4px;
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: filter 0.15s, transform 0.1s;
+      ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
     }
-    .ach-header {
-      position: relative;
-      width: min(360px, 96vw);
-      display: flex; flex-direction: column;
-      align-items: center; margin-bottom: 8px;
+    .ach-back::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      background: url('/ui/BackArrow.png') no-repeat center / contain;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
     }
-    .ach-panel-deco {
-      position: absolute; inset: 0;
-      background: url('/achievements/AchievmentPanel.png') no-repeat center / contain;
-      opacity: 0.3; pointer-events: none;
-    }
+    .ach-back:hover  { filter: brightness(1.18); }
+    .ach-back:active { transform: scale(0.94); }
+
+    /* Centered display title */
     .ach-title {
-      position: relative; z-index: 1;
-      margin: 12px 0 16px 0;
-      font-size: 1.9rem;
-      font-weight: 800;
-      color: #ffd700;
-      letter-spacing: 0.08em;
-      text-shadow: 0 0 20px rgba(255,200,0,0.4), 0 2px 5px rgba(0,0,0,0.9);
+      flex: 1;
+      text-align: center;
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: var(--fs-title);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--gold-bright);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 18px rgba(255,180,60,0.25);
     }
+
+    /* Symmetry spacer keeps title visually centered */
+    .ach-topbar-spacer {
+      width: 44px;
+      flex: none;
+    }
+
+    /* Progress counter */
     .ach-summary {
-      margin-bottom: 16px;
-      color: #aabbcc;
+      text-align: center;
+      color: var(--text-dim);
       font-size: 13px;
       letter-spacing: 0.04em;
+      margin-bottom: 14px;
+      padding: 0 16px;
     }
+
+    /* ── Achievement grid (2-col) ── */
     .ach-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      width: min(360px, 96vw);
+      width: min(360px, 96cqw);
       padding-bottom: 24px;
+      align-self: center;
     }
+
+    /* ── Achievement card: BarGoods gold-rimmed navy panel ── */
     .ach-card {
-      background: rgba(10,8,20,0.85);
-      border: 1px solid rgba(100,80,160,0.3);
-      border-radius: 10px;
-      padding: 12px 10px;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 6px;
-      transition: transform 0.12s, border-color 0.15s;
+      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 15px")}
+      padding: 10px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      transition: filter 0.15s, transform 0.12s;
     }
+
+    /* Unlocked: full color + gold glow */
     .ach-card.unlocked {
-      border-color: rgba(200,160,50,0.65);
-      background: rgba(20,15,5,0.9);
-      box-shadow: 0 0 12px rgba(200,160,50,0.15);
+      filter: drop-shadow(0 0 7px rgba(255,190,80,0.35));
     }
+    .ach-card.unlocked:hover {
+      filter: drop-shadow(0 0 10px rgba(255,190,80,0.55)) brightness(1.08);
+    }
+    .ach-card.unlocked:active {
+      transform: scale(0.96);
+    }
+
+    /* Locked: readable but clearly unowned — NOT blacked out (docs/13, Rulebook §5) */
     .ach-card.locked {
-      opacity: 0.5;
+      filter: none;
     }
+    .ach-card.locked:hover {
+      filter: brightness(1.06);
+    }
+
+    /* ── Badge art (medal) ── */
     .ach-badge {
-      width: 64px; height: 64px;
-      image-rendering: pixelated;
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      /* painted art — NEVER image-rendering: pixelated (Rulebook §4) */
       filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
     }
+    /* Locked badge: desaturated ~50%, never blacked out */
     .ach-card.locked .ach-badge {
-      filter: grayscale(0.8) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+      filter: saturate(0.45) brightness(0.8) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
+
+    /* ── Text ── */
     .ach-name {
-      font-size: 12px; font-weight: 700;
-      color: #e0d0a0;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       text-align: center;
       line-height: 1.3;
     }
-    .ach-card.locked .ach-name { color: #7788aa; }
+    .ach-card.locked .ach-name {
+      color: var(--text-dim);
+      text-shadow: none;
+    }
     .ach-desc {
-      font-size: 10px; color: #8899bb;
-      text-align: center; line-height: 1.4;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .ach-card.locked .ach-desc {
+      color: var(--text-faint);
+    }
+
+    /* ── Wider layout on larger containers ── */
+    @container (min-width: 480px) {
+      .ach-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
   `;
   document.head.appendChild(style);
@@ -289,23 +385,24 @@ function injectToastStyles() {
   const style = document.createElement("style");
   style.id = id;
   style.textContent = `
+    /* Toast: BarGoods panel, position: fixed intentional (body-appended overlay) */
     .ach-toast {
       position: fixed;
       top: max(env(safe-area-inset-top,0px), 20px);
       left: 50%;
       transform: translateX(-50%) translateY(-80px);
-      background: rgba(15,10,30,0.97);
-      border: 1px solid rgba(220,180,60,0.7);
-      border-radius: 12px;
-      padding: 12px 20px;
-      display: flex; align-items: center; gap: 12px;
-      min-width: min(280px, 85vw);
-      max-width: min(340px, 90vw);
+      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 20px")}
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: min(280px, 85cqw);
+      max-width: min(340px, 90cqw);
       z-index: 9999;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 12px rgba(220,180,60,0.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 12px rgba(220,180,60,0.25);
       transition: transform 0.35s cubic-bezier(0.2,1,0.4,1), opacity 0.35s;
       opacity: 0;
-      font-family: sans-serif;
+      font-family: var(--font-body);
     }
     .ach-toast-in {
       transform: translateX(-50%) translateY(0);
@@ -316,18 +413,25 @@ function injectToastStyles() {
       opacity: 0;
     }
     .ach-toast-badge {
-      width: 44px; height: 44px;
-      image-rendering: pixelated;
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
       flex-shrink: 0;
     }
     .ach-toast-label {
-      font-size: 10px; color: #ffd700;
-      letter-spacing: 0.06em; font-weight: 700;
+      font-size: 10px;
+      color: var(--gold-bright);
+      letter-spacing: 0.06em;
+      font-weight: 700;
       text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .ach-toast-name {
-      font-size: 14px; color: #f0e0b8;
-      font-weight: 700; margin-top: 2px;
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 700;
+      margin-top: 2px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
   `;
   document.head.appendChild(style);
