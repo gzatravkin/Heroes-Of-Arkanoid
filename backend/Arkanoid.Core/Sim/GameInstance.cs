@@ -65,6 +65,11 @@ public sealed class GameInstance
     internal bool   _slowBallActive   = false;
     internal double _slowBallTimer    = 0;
 
+    // --- Power-up state (task 1.2): fireshot + shield ---
+    internal bool   _fireshotActive = false;
+    internal double _fireshotTimer  = 0;
+    internal bool   _shieldActive   = false;
+
     // --- Coin/crystal counter (coins bonus) ---
     public int Crystals { get; internal set; } = 0;
 

@@ -7,13 +7,15 @@ const BONUS_SPIN_SPEED    = 0.04; // radians per tick
 const BONUS_BOB_AMPLITUDE = 2.5;  // px vertical bob
 const BONUS_BOB_SPEED     = 0.07; // radians per tick for the bob sinusoid
 
-interface BonusDto { id: number; x: number; y: number; icon: string }
+interface BonusDto { id: number; x: number; y: number; type: string; icon: string }
 
 export class BonusLayer {
   readonly container = new Container();
   private pool = new Map<number, Sprite>();
 
   update(bonuses: BonusDto[], tick: number): void {
+    // Power-up types (powerup_*) are rendered by PowerUpLayer — skip them here.
+    bonuses = bonuses.filter(b => !b.type?.startsWith("powerup_"));
     const live = new Set(bonuses.map(b => b.id));
     for (const [id, sp] of this.pool) {
       if (!live.has(id)) { this.container.removeChild(sp); this.pool.delete(id); }

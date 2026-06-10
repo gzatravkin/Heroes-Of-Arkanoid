@@ -354,6 +354,14 @@ public sealed class SimConfig
     /// <summary>Crystal count awarded by the coins bonus pickup.</summary>
     public int    CoinsBonus          { get; init; } = 10;
 
+    // --- Power-up system (task 1.2) ---
+    /// <summary>Drop probability (0–1) for power-ups that drop from qualifying brick types.</summary>
+    public double PowerUpDropChance       { get; init; } = 0.25;
+    /// <summary>Duration in seconds for the Wide Paddle power-up (15 s, longer than the generic bonus).</summary>
+    public double PowerUpWideDuration     { get; init; } = 15.0;
+    /// <summary>Duration in seconds for the Fire Shot power-up.</summary>
+    public double PowerUpFireshotDuration { get; init; } = 10.0;
+
     // --- Persistent item equip effect magnitudes (per tier) ---
     /// <summary>Ball damage bonus added per tier of a ball_damage item.</summary>
     public int    ItemBallDamageBonusPerTier  { get; init; } = 1;

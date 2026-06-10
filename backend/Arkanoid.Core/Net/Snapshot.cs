@@ -144,6 +144,14 @@ public sealed class Snapshot
     /// <summary>Total destructible blocks destroyed this level — drives the speed-escalation HUD (docs plan 2026-06-10).</summary>
     [JsonPropertyName("bricksDestroyedThisLevel")] public int BricksDestroyedThisLevel { get; set; }
 
+    // --- Power-up active states (task 1.2) ---
+    /// <summary>True while the Fire Shot power-up is active (ball destroys indestructible bricks).</summary>
+    [JsonPropertyName("fireshotActive")] public bool   FireshotActive { get; set; }
+    /// <summary>Seconds remaining on the Fire Shot power-up.</summary>
+    [JsonPropertyName("fireshotTimer")]  public double FireshotTimer  { get; set; }
+    /// <summary>True while the Shield power-up is armed (one-touch ball save).</summary>
+    [JsonPropertyName("shieldActive")]   public bool   ShieldActive   { get; set; }
+
     public static Snapshot From(GameInstance g, long tick)
     {
         var s = new Snapshot {
@@ -212,6 +220,9 @@ public sealed class Snapshot
         s.Floor      = g.FloorIndex + 1;
         s.FloorCount = g.Level.ExtraFloors.Count + 1;
         s.BricksDestroyedThisLevel = g._bricksDestroyedThisLevel;
+        s.FireshotActive = g._fireshotActive;
+        s.FireshotTimer  = g._fireshotTimer;
+        s.ShieldActive   = g._shieldActive;
         s.Events.AddRange(g.DrainEvents());
         return s;
     }

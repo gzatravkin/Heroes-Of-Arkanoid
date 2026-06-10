@@ -28,6 +28,35 @@ internal static class BonusSystem
     }
 
     /// <summary>
+    /// Power-up targeted drop: 25% chance, spawns a specific power-up type.
+    /// Called by BlockDamage for qualifying brick TypeIds.
+    /// </summary>
+    internal static void TrySpawnTypedBonus(GameInstance g, double x, double y, string effectType)
+    {
+        if (g.Rng.NextDouble() >= g.Config.PowerUpDropChance) return;
+        SpawnWithType(g, x, y, effectType);
+    }
+
+    /// <summary>
+    /// Spawn a power-up of a specific effect type regardless of the global catalog roll.
+    /// Looks up the catalog for the icon; falls back to empty string if the entry is missing.
+    /// </summary>
+    private static void SpawnWithType(GameInstance g, double x, double y, string effectType)
+    {
+        var icon = g.BonusCatalog?.Defs.FirstOrDefault(d => d.Effect == effectType)?.Icon ?? "";
+        g.Bonuses.Add(new Bonus
+        {
+            Id    = g._nextBonusId++,
+            Pos   = new Vec2(x, y),
+            Vel   = new Vec2(0, g.Config.BonusFallSpeed),
+            Type  = effectType,
+            Icon  = icon,
+            Alive = true,
+        });
+        g._log.Log(g.TickCount, "bonus", "spawned-typed", $"id={g._nextBonusId-1} type={effectType} x={x:F0} y={y:F0}");
+    }
+
+    /// <summary>
     /// Danger pays (docs/11 R4): enemy-behaviour blocks always drop a bonus, so
     /// threats are opportunities, not just friction. Also the no-roll spawn path.
     /// </summary>
@@ -162,6 +191,46 @@ internal static class BonusSystem
                 g.Crystals += g.Config.CoinsBonus;
                 g._log.Log(g.TickCount, "bonus", "coins", $"crystals={g.Crystals}");
                 break;
+
+            // ---- Power-up types (task 1.2) ----
+
+            case "powerup_wide":
+                if (!g._widePaddleActive)
+                {
+                    g._widePaddleActive = true;
+                    g._widePaddleTimer  = g.Config.PowerUpWideDuration;
+                    g.Paddle.Width     += g.Config.WidePaddleBonus;
+                    g._log.Log(g.TickCount, "bonus", "powerup_wide start", $"w={g.Paddle.Width:F0} dur={g.Config.PowerUpWideDuration}");
+                }
+                else
+                {
+                    // Refresh with the longer power-up duration.
+                    g._widePaddleTimer = g.Config.PowerUpWideDuration;
+                }
+                break;
+
+            case "powerup_multiball":
+                // Spawn 2 extra balls (original + 2 = 3 total).
+                SpawnExtraBall(g);
+                SpawnExtraBall(g);
+                g._log.Log(g.TickCount, "bonus", "powerup_multiball", $"balls={g.Balls.Count(b=>b.Alive)}");
+                break;
+
+            case "powerup_fireshot":
+                g._fireshotActive = true;
+                g._fireshotTimer  = g.Config.PowerUpFireshotDuration;
+                g._log.Log(g.TickCount, "bonus", "powerup_fireshot start", $"dur={g.Config.PowerUpFireshotDuration}");
+                break;
+
+            case "powerup_manasurge":
+                g.ManaValue = g.ManaMaxValue;
+                g._log.Log(g.TickCount, "bonus", "powerup_manasurge", $"mana={g.ManaValue:F0}");
+                break;
+
+            case "powerup_shield":
+                g._shieldActive = true;
+                g._log.Log(g.TickCount, "bonus", "powerup_shield", "active");
+                break;
         }
     }
 
@@ -218,6 +287,16 @@ internal static class BonusSystem
                         b.Vel = b.Vel.Normalized() * g.Config.BallSpeed;
                 g._slowBallActive = false;
                 g._log.Log(g.TickCount, "bonus", "slow_ball expired", "");
+            }
+        }
+
+        if (g._fireshotActive)
+        {
+            g._fireshotTimer -= dt;
+            if (g._fireshotTimer <= 0)
+            {
+                g._fireshotActive = false;
+                g._log.Log(g.TickCount, "bonus", "powerup_fireshot expired", "");
             }
         }
     }

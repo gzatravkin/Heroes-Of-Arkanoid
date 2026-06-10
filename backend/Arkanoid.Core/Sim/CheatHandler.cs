@@ -9,6 +9,24 @@ internal static class CheatHandler
     {
         g._log.Log(g.TickCount, "cheat", op, $"value={value}");
         if (op.StartsWith("addRelic:")) { g.AddRelic(op.Substring("addRelic:".Length)); return; }
+        // spawnPowerUp:<typeName> — e.g. "spawnPowerUp:wide" spawns a powerup_wide above the paddle.
+        if (op.StartsWith("spawnPowerUp:"))
+        {
+            var suffix = op.Substring("spawnPowerUp:".Length);
+            var effectType = "powerup_" + suffix;
+            var icon = g.BonusCatalog?.Defs.FirstOrDefault(d => d.Effect == effectType)?.Icon ?? "";
+            g.Bonuses.Add(new Bonus
+            {
+                Id    = g._nextBonusId++,
+                Pos   = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height * 3),
+                Vel   = new Vec2(0, g.Config.BonusFallSpeed),
+                Type  = effectType,
+                Icon  = icon,
+                Alive = true,
+            });
+            g._log.Log(g.TickCount, "cheat", "spawnPowerUp", $"type={effectType}");
+            return;
+        }
         switch (op)
         {
             case "clearAllButN":

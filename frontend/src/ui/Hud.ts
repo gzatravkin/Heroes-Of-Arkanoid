@@ -82,6 +82,8 @@ export class Hud {
   private _spells: SpellDef[] = [];
   private _conn: Connection | null = null;
   private _itemsRowEl: HTMLElement | null = null;
+  // Active power-up panel (top-right; task 1.2).
+  private _powerupPanelEl: HTMLElement;
 
   // Latest snapshot mana, for affordability check on tap.
   private _mana = 0;
@@ -189,6 +191,16 @@ export class Hud {
       "align-items:center", "pointer-events:none",
     ].join(";");
     this.root.appendChild(this.effectsEl);
+
+    // ---- active power-up panel (top-right, below relics/items; task 1.2) ----
+    this._powerupPanelEl = this.createElement("div", "hud-powerups");
+    this._powerupPanelEl.id = "hud-powerups";
+    this._powerupPanelEl.style.cssText = [
+      "position:absolute", "top:90px", "right:8px",
+      "display:none", "flex-direction:column", "gap:3px",
+      "align-items:flex-end", "pointer-events:none",
+    ].join(";");
+    this.root.appendChild(this._powerupPanelEl);
 
     // ---- banner (center) ----
     this.banner = this.createElement("div", "hud-banner");
@@ -355,6 +367,8 @@ export class Hud {
 
     // -- active bonus effects --
     this.updateEffects(s);
+    // -- active power-up indicators (top-right panel, task 1.2) --
+    this.updatePowerups(s);
 
     // -- banner --
     if (s.phase === "Won") {
@@ -451,12 +465,31 @@ export class Hud {
   // -----------------------------------------------------------------------
   private updateEffects(s: Snapshot) {
     const chips: string[] = [];
-    if (s.widePaddleActive) chips.push(`↔️ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
-    if (s.slowBallActive)   chips.push(`🐢 ${Math.ceil(s.slowBallTimer ?? 0)}s`);
+    if (s.widePaddleActive) chips.push(`↔ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
+    if (s.slowBallActive)   chips.push(`slow ${Math.ceil(s.slowBallTimer ?? 0)}s`);
     const html = chips.map(c =>
       `<span style="background:rgba(0,0,0,0.65);border:1px solid #66aaff;border-radius:4px;padding:1px 5px;font-size:10px;color:#aaddff;">${c}</span>`
     ).join("");
     this.effectsEl.innerHTML = html;
+  }
+
+  // -----------------------------------------------------------------------
+  /** Active power-up indicators — top-right panel showing collected effects (task 1.2). */
+  private updatePowerups(s: Snapshot) {
+    const active: { label: string; color: string; timer?: number }[] = [];
+    if (s.widePaddleActive)      active.push({ label: "W", color: "#d4aa00", timer: s.widePaddleTimer });
+    if ((s as any).fireshotActive) active.push({ label: "F", color: "#ff6600", timer: (s as any).fireshotTimer });
+    if ((s as any).shieldActive)   active.push({ label: "◆", color: "#00ddee" });
+
+    if (active.length === 0) {
+      this._powerupPanelEl.style.display = "none";
+      return;
+    }
+    this._powerupPanelEl.style.display = "flex";
+    this._powerupPanelEl.innerHTML = active.map(({ label, color, timer }) => {
+      const t = timer !== undefined ? ` ${Math.ceil(timer)}s` : "";
+      return `<div class="hud-powerup-active" style="background:rgba(0,0,0,0.70);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
+    }).join("");
   }
 
   private updateRelics(relics: { id: string; name: string; icon: string }[]) {

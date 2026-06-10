@@ -54,6 +54,17 @@ internal static class WinLoseSystem
 
         if (g.Balls.All(b => !b.Alive))
         {
+            // Shield power-up (task 1.2): one-touch auto-save — catches the ball and re-serves
+            // without consuming a spare ball.  Cleared after use.
+            if (g._shieldActive)
+            {
+                g._shieldActive = false;
+                g._log.Log(g.TickCount, "powerup", "shield save", "ball caught");
+                g.RaiseEvent("shieldSave", g.Paddle.Center.X, g.Paddle.Center.Y);
+                g.SpawnBallOnPaddle();
+                return;
+            }
+
             // Paladin passive: once per level, a lost ball is saved for free.
             if (g.Character == "paladin" && g._wallSaveAvailable)
             {

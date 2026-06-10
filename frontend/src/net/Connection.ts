@@ -40,6 +40,10 @@ export interface Snapshot {
   rows?: number;
   /** Blocks destroyed this level — the backend uses this to drive +5%/20-brick speed escalation. */
   bricksDestroyedThisLevel?: number;
+  // --- Power-up active states (task 1.2) ---
+  fireshotActive?: boolean;
+  fireshotTimer?: number;
+  shieldActive?: boolean;
 }
 
 export class Connection {

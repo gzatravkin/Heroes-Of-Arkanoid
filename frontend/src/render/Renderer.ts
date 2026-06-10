@@ -3,6 +3,7 @@ import { GlowFilter } from "@pixi/filter-glow";
 import type { Snapshot } from "../net/Connection";
 import { HazardLayer } from "./HazardLayer";
 import { BonusLayer } from "./BonusLayer";
+import { PowerUpLayer } from "./PowerUpLayer";
 import { BlockLayer } from "./BlockLayer";
 import { SpellFxLayer } from "./SpellFxLayer";
 import { BallLayer } from "./BallLayer";
@@ -109,8 +110,10 @@ export class Renderer {
   private _lastLives = -1; // track lives decreases for damage flash
 
 
-  // Bonus pickups layer.
+  // Bonus pickups layer (generic atlas-icon pickups).
   private bonusLayer = new BonusLayer();
+  // Power-up falling pickups (coloured circles: wide/multiball/fireshot/manasurge/shield).
+  private powerUpLayer = new PowerUpLayer();
 
   // ── P6 per-class spell effects (Paladin barriers, Engineer zones, Necro skeleton) ──
   private spellFx = new SpellFxLayer();
@@ -197,7 +200,7 @@ export class Renderer {
     // Add telegraph warning container to boss layer.
     this._bossLayer.addChild(this._telegraphWarning.container);
 
-    // Layer order: ambient → ballTrail → zones → blocks → dangerOverlay → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses
+    // Layer order: ambient → ballTrail → zones → blocks → dangerOverlay → fireWalls → barriers → bossLayer → effects → paddle/turret → ballAuras → balls → skeleton → hazards → bonuses → powerUps
     this.world.addChild(
       this.background.ambientContainer,
       this.ballTrail.container,
@@ -216,6 +219,7 @@ export class Renderer {
       this.spellFx.skeletonAnim.container,
       this.hazardLayer.container,
       this.bonusLayer.container,
+      this.powerUpLayer.container,
     );
     // Damage flash sits on stage (not world) so it covers the full screen regardless of world scale.
     this.damageFlash.alpha = 0;
@@ -450,6 +454,8 @@ export class Renderer {
 
     // --- bonus pickups (falling icons from Bonus/ art) ---
     this.bonusLayer.update(s.bonuses ?? [], this._tick);
+    // --- power-up pickups (coloured circles: wide/multiball/fireshot/manasurge/shield) ---
+    this.powerUpLayer.update(s.bonuses ?? [], this._tick);
 
     // Catch sparkle: fire on bonusCaught events.
     for (const ev of s.events) {

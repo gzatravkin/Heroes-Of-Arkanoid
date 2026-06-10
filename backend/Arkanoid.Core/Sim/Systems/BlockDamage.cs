@@ -14,7 +14,11 @@ internal static class BlockDamage
     /// </summary>
     internal static void DamageBlock(GameInstance g, Block blk, int dmg, bool igniteSource, bool decaySource = false)
     {
-        if (blk.Indestructible) return;
+        // Fireshot power-up: plain-wall indestructible blocks (Behavior == None, not Boss)
+        // become destructible while the effect is active.
+        bool fireshotBreakable = g._fireshotActive && blk.Indestructible
+            && blk.Behavior == BlockBehavior.None && !blk.Boss;
+        if (blk.Indestructible && !fireshotBreakable) return;
         if (blk.ShieldTimer > 0) { g.RaiseEvent("shieldBlock", 0, 0); return; } // shielded: immune
         blk.Hp -= dmg;
         g._log.Log(g.TickCount, "block", blk.Hp <= 0 ? "destroyed" : "hit",
@@ -35,9 +39,21 @@ internal static class BlockDamage
                 if (System.Math.Abs(ball.Vel.Length - targetSpeed) > 0.001)
                     ball.Vel = ball.Vel.Normalized() * targetSpeed;
             }
-            // Danger pays (docs/11 R4): killing an enemy-behaviour block always drops
-            // a bonus; plain bricks keep the random roll. Bosses pay via level rewards.
-            if (blk.Behavior != BlockBehavior.None && !blk.Boss)
+            // Power-up targeted drops (task 1.2): specific brick TypeIds drop specific
+            // power-ups at 25% chance.  All other blocks follow the original rule:
+            // enemy-behaviour blocks guarantee a random drop; plain bricks roll 12%.
+            var powerUpEffect = blk.TypeId switch
+            {
+                "hell_tough"   or "cavern_tough" => "powerup_wide",
+                "cavern_bomb"                    => "powerup_multiball",
+                "village_cauldron"               => "powerup_fireshot",
+                "heaven_vase"                    => "powerup_manasurge",
+                "heaven_tough"                   => "powerup_shield",
+                _                                => null,
+            };
+            if (powerUpEffect != null)
+                BonusSystem.TrySpawnTypedBonus(g, c.X, c.Y, powerUpEffect);
+            else if (blk.Behavior != BlockBehavior.None && !blk.Boss)
                 BonusSystem.SpawnGuaranteed(g, c.X, c.Y);
             else
                 BonusSystem.TrySpawnBonus(g, c.X, c.Y);
