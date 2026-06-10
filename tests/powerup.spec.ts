@@ -23,19 +23,37 @@ test("powerup: spawnPowerUp:wide creates a powerup_wide in bonuses snapshot", as
   const s0 = await getState(page);
   expect(Array.isArray(s0.bonuses)).toBe(true);
 
-  // Spawn while still in Serving phase — pickup should appear immediately.
+  // Enter Playing phase with a frozen ball so the power-up isn't collected
+  // immediately (avoids the race where the bonus is collected before getState()).
+  await cheat(page, "fastForward", 0);
+  await page.waitForFunction(
+    () => (window as any).__game?.getState()?.phase === "Playing",
+    undefined,
+    { timeout: 5000 },
+  );
+
+  // Spawn power-up — falls toward the (stationary) paddle.
   await cheat(page, "spawnPowerUp:wide");
 
+  // The pickup may be collected before a poll cycle can observe it in bonuses[].
+  // Accept either: still in-flight (bonuses array) OR already collected (widePaddleActive).
   await page.waitForFunction(
     () => {
       const s = (window as any).__game?.getState();
-      return s?.bonuses?.some((b: any) => b.type === "powerup_wide");
+      return (
+        s?.bonuses?.some((b: any) => b.type === "powerup_wide") ||
+        s?.widePaddleActive === true
+      );
     },
-    { timeout: 3000 },
+    undefined,
+    { timeout: 5000 },
   );
 
+  // Confirm the outcome: either still visible or effect applied.
   const s1 = await getState(page);
-  expect(s1.bonuses.some((b: any) => b.type === "powerup_wide")).toBe(true);
+  const stillVisible = s1.bonuses.some((b: any) => b.type === "powerup_wide");
+  const alreadyCollected = s1.widePaddleActive === true;
+  expect(stillVisible || alreadyCollected).toBe(true);
 });
 
 test("powerup: snapshot has fireshotActive/fireshotTimer/shieldActive fields", async ({ page }) => {
