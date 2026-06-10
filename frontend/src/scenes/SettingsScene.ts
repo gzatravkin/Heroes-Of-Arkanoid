@@ -197,12 +197,15 @@ function injectSettingsStyles() {
     }
     .set-back {
       align-self: flex-start;
-      width: 44px;
+      min-width: 44px;
       height: 44px;
-      padding: 0;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 700;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
       cursor: pointer;
       color: var(--gold-bright);
@@ -267,7 +270,7 @@ function injectSettingsStyles() {
       touch-action: manipulation;
       transition: filter 0.15s, transform 0.1s;
       flex-shrink: 0;
-      border: none;
+      /* NOTE: no \`border: none\` here — it would kill the 9-slice border-image. */
     }
     .set-action-btn:hover  { filter: brightness(1.18); }
     .set-action-btn:active { transform: scale(0.96); }
