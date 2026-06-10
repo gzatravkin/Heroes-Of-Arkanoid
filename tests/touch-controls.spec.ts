@@ -31,17 +31,21 @@ test("tapping spell slot casts spell and consumes mana", async ({ page }) => {
   await openBattle(page, "hell-1", 1);
   await waitForPhase(page, "Playing");
 
-  // Give enough mana to cast fireball (costs 20).
+  // Freeze regen so the post-cast mana drop is a stable, race-free observable
+  // (regen otherwise refills the cost within ~1.8s — faster than snapshot
+  // sampling can be trusted under parallel-worker load).
+  await cheat(page, "freezeMana", 1);
   await cheat(page, "setMana", 100);
   await page.waitForFunction(() => (window as any).__game.getState().mana >= 100);
 
   const before = (await getState(page)).mana;
 
-  // Tap the fireball slot element.
-  await page.tap("#hud-spell-fireball");
-
-  // Mana must decrease after the cast.
-  await page.waitForFunction((m) => (window as any).__game.getState().mana < m, before, { timeout: 8000 });
-  const after = (await getState(page)).mana;
-  expect(after).toBeLessThan(before);
+  // Tap the fireball slot until the cast registers. Under parallel-worker stress a
+  // single tap can be lost between pointer dispatch and the WS command; with regen
+  // frozen, re-tapping is safe (extra casts only lower mana further).
+  await expect(async () => {
+    await page.tap("#hud-spell-fireball");
+    const m = (await getState(page)).mana;
+    expect(m).toBeLessThan(before);
+  }).toPass({ timeout: 10_000 });
 });

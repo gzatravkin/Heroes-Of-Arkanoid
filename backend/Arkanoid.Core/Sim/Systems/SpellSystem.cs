@@ -17,6 +17,7 @@ internal static partial class SpellSystem
 
     internal static void RegenMana(GameInstance g, double dt)
     {
+        if (g._manaRegenFrozen) return; // freezeMana cheat (deterministic HUD tests)
         g.ManaValue = System.Math.Min(g.ManaMaxValue,
             g.ManaValue + g.Config.ManaRegenPerSec * Modifiers.ManaRegenMult(g) * dt);
     }

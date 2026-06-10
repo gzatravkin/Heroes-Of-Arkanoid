@@ -31,6 +31,10 @@ internal static class CheatHandler
             case "setMana":
                 g.ManaValue = System.Math.Clamp(value, 0, g.ManaMaxValue);
                 break;
+            case "freezeMana":
+                // value != 0 freezes regen (deterministic HUD tests); 0 unfreezes.
+                g._manaRegenFrozen = value != 0;
+                break;
             case "setLives":
                 g.Lives = System.Math.Max(0, (int)value);
                 break;

@@ -251,6 +251,8 @@ public sealed class GameInstance
     internal bool _hellwalkerUsedThisServe;
 
     // --- G2c kit-completion spell state ---
+    /// <summary>freezeMana cheat: suspends regen so HUD tests can assert stable values.</summary>
+    internal bool _manaRegenFrozen;
     internal double _phoenixRemaining;
     internal double _phoenixAccum;
     internal bool   _penetrationArmed;
