@@ -16,62 +16,98 @@ export const HUD_STYLES = `
         min-height: 26px;
       }
 
+      /* ---- HOTBAR SLOT: outer wrapper owns castable-state filter + name below ---- */
       .hud-spell-slot {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
-        /* Use SpellBar art as the slot frame background */
-        background: url('/ui/BattleSpellBar.png') no-repeat center/100% 100%;
-        border: none;
-        border-radius: 6px;
-        padding: 4px 6px 6px 6px;
+        gap: 3px;
         /* ≥44px touch target (WCAG 2.5.5) */
         min-width: 52px;
-        min-height: 72px;
         touch-action: manipulation;
         cursor: pointer;
         pointer-events: auto;
-        transition: opacity 0.15s, filter 0.15s;
+        transition: filter 0.15s, transform 0.15s;
         -webkit-tap-highlight-color: transparent;
       }
+
+      /* Framed inner box: Kvadrat 9-slice — keys + icon live inside this */
+      .hud-spell-frame {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Kvadrat 9-slice (14px insets, 7px border-width) */
+        background: none;
+        border-style: solid;
+        border-width: 7px;
+        border-image: url('/ui/Kvadrat.png') 14 14 14 14 fill stretch;
+      }
+
+      /* Castable (enough mana): full brightness + subtle gold glow */
       .hud-spell-slot.affordable {
-        opacity: 1;
-        filter: none;
+        filter: drop-shadow(0 0 6px rgba(255,190,80,.45));
       }
       .hud-spell-slot.affordable:hover {
-        filter: brightness(1.2);
+        filter: drop-shadow(0 0 8px rgba(255,190,80,.6)) brightness(1.15);
       }
+
+      /* Not castable: desaturated + dimmed */
       .hud-spell-slot.unaffordable {
-        opacity: 0.4;
-        filter: grayscale(0.6);
+        filter: saturate(.3) brightness(.6);
         cursor: default;
       }
+
+      /* Active press: stronger glow + 1.06 scale (150ms) */
       .hud-spell-slot:active {
-        transform: scale(0.93);
+        transform: scale(1.06);
       }
+      .hud-spell-slot.affordable:active {
+        filter: drop-shadow(0 0 12px rgba(255,190,80,.7));
+        transform: scale(1.06);
+      }
+
+      /* Keybind letter chip: absolute top-left in gold */
       .hud-spell-key {
+        position: absolute;
+        top: 2px;
+        left: 3px;
         font-size: 10px;
         font-weight: 700;
-        color: #ffcc66;
+        color: var(--gold, #d8a84e);
         line-height: 1;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        pointer-events: none;
+        z-index: 1;
       }
+
+      /* Icon area: fills the inner tile of the Kvadrat frame */
       .hud-spell-icon {
         font-size: 20px;
         line-height: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
       }
+
+      /* Spell name label: BELOW the frame, ≥10px, text-dim */
       .hud-spell-name {
-        font-size: 8px;
-        color: #e0c880;
+        font-size: 10px;
+        color: var(--text-dim, #c9b182);
         text-align: center;
         line-height: 1;
         text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        white-space: nowrap;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
+
       .hud-banner.win {
         background: rgba(10,40,10,0.85);
         border: 2px solid #44ff88;
@@ -87,12 +123,12 @@ export const HUD_STYLES = `
       }
       /* Landscape orientation: reduce bottom zone height */
       @media (orientation: landscape) and (max-height: 500px) {
-        .hud-spell-slot {
-          min-width: 44px;
-          min-height: 56px;
-          padding: 3px 5px 4px 5px;
+        .hud-spell-frame {
+          width: 44px;
+          height: 44px;
+          border-width: 6px;
         }
-        .hud-spell-icon { width: 22px; height: 22px; }
-        .hud-spell-icon img { width: 22px !important; height: 22px !important; }
+        .hud-spell-icon { width: 26px; height: 26px; }
+        .hud-spell-icon img { width: 26px !important; height: 26px !important; }
       }
     `;

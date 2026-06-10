@@ -23,18 +23,18 @@ export function buildSpellIcon(wrap: HTMLElement, spell: SpellDef): void {
   if (atlasFrame && atlasFrame !== Texture.WHITE && atlasFrame.width > 1) {
     // Build an img from the atlas texture using its source image + UV, via a canvas.
     const canvas = document.createElement("canvas");
-    canvas.width  = 28;
-    canvas.height = 28;
+    canvas.width  = 32;
+    canvas.height = 32;
     const ctx = canvas.getContext("2d");
     if (ctx && (atlasFrame as any).baseTexture?.resource?.source) {
       const src = (atlasFrame as any).baseTexture.resource.source as HTMLImageElement | HTMLCanvasElement;
       const fr = (atlasFrame as any).frame;
       if (fr) {
-        ctx.drawImage(src, fr.x, fr.y, fr.width, fr.height, 0, 0, 28, 28);
+        ctx.drawImage(src, fr.x, fr.y, fr.width, fr.height, 0, 0, 32, 32);
         const img = document.createElement("img");
         img.src = canvas.toDataURL();
         img.alt = spell.name;
-        img.style.cssText = "width:28px;height:28px;object-fit:contain;";
+        img.style.cssText = "width:32px;height:32px;object-fit:contain;";
         wrap.appendChild(img);
         return;
       }
@@ -55,7 +55,7 @@ export function buildSpellIcon(wrap: HTMLElement, spell: SpellDef): void {
     const img = document.createElement("img");
     img.src = legacySrc;
     img.alt = spell.name;
-    img.style.cssText = "width:28px;height:28px;object-fit:contain;";
+    img.style.cssText = "width:32px;height:32px;object-fit:contain;";
     const emoji = getSpellFallback(spell.id);
     img.onerror = () => { img.style.display = "none"; wrap.textContent = emoji; };
     wrap.appendChild(img);

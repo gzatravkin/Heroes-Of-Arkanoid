@@ -100,7 +100,12 @@ export class Hud {
 
     // ---- top-left panel: lives + balls ----
     const topLeft = this.createElement("div", "hud-top-left");
-    topLeft.style.cssText = "position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:5px;";
+    // Translucent backing strip so bars read over bright biomes (Rulebook §8).
+    topLeft.style.cssText = [
+      "position:absolute", "top:8px", "left:8px",
+      "display:flex", "flex-direction:column", "gap:5px",
+      "background:rgba(10,7,5,.55)", "border-radius:8px", "padding:6px 8px",
+    ].join(";");
 
     const livesBar = buildLabelledBar({
       id: "hud-lives", fillId: "hud-lives-fill", labelId: "hud-lives-label",
@@ -392,20 +397,25 @@ export class Hud {
       slot.id = FIRE_MAGE_SLOT_IDS[spell.id] ?? `hud-spell-${spell.id}`;
       slot.className = "hud-spell-slot affordable";
 
-      // key badge
+      // Kvadrat-framed inner box: key badge (absolute top-left) + icon
+      const frame = this.createElement("div", "hud-spell-frame");
+
+      // Keybind letter chip — absolute top-left inside the Kvadrat frame
       const keyBadge = this.createElement("div", "hud-spell-key");
       keyBadge.textContent = key;
 
-      // icon area
+      // icon area (fills the inner tile of the frame)
       const iconWrap = this.createElement("div", "hud-spell-icon");
       buildSpellIcon(iconWrap, spell);
 
-      // name
+      frame.appendChild(keyBadge);
+      frame.appendChild(iconWrap);
+
+      // Spell name label — BELOW the frame, no overlap with icon
       const name = this.createElement("div", "hud-spell-name");
       name.textContent = spell.name;
 
-      slot.appendChild(keyBadge);
-      slot.appendChild(iconWrap);
+      slot.appendChild(frame);
       slot.appendChild(name);
 
       this.spellSlots.set(spell.id, slot);

@@ -9,7 +9,7 @@
 const BAR_SPRITE_H = 41;   // native sprite height (px)
 const BAR_CAP_X    = 16;   // native left/right cap thickness (px)
 const BAR_CAP_Y    = 7;    // native top/bottom cap thickness (px)
-export const BAR_H      = 20;  // rendered height of value bars (mana/HP/balls)
+export const BAR_H      = 22;  // rendered height of value bars (mana/HP/balls) — raised to 22 so caps don't look crushed
 export const BOSS_BAR_H = 18;  // rendered height of the boss bar
 
 function el(tag: string, className?: string): HTMLElement {
@@ -141,8 +141,8 @@ export function buildManaBar(): HTMLElement {
   label.style.cssText = [
     "position:absolute", "top:50%", "left:50%",
     "transform:translate(-50%,-50%)",
-    "font-size:9px", "color:#fff", "font-weight:600",
-    "text-shadow:0 0 4px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
+    "font-size:10px", "color:#fff", "font-weight:600",
+    "text-shadow:0 1px 2px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
   ].join(";");
   outer.appendChild(label);
 
