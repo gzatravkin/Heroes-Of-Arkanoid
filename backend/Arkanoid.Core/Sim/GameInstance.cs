@@ -75,6 +75,12 @@ public sealed class GameInstance
     internal double _bossTelegraphTimer;
     /// <summary>Encoded pattern index queued to fire when the telegraph expires.</summary>
     internal int    _bossPendingPattern;
+    /// <summary>Hell Demon fist: column locked at telegraph time (so the slam is dodgeable).</summary>
+    internal int    _bossFistCol = -1;
+    /// <summary>Caverns Goblin hop: current anchor index in the 3-anchor cycle.</summary>
+    internal int    _goblinAnchorIdx;
+    /// <summary>Heaven Seraph: alternates summoning a statue add vs a fused boss vase.</summary>
+    internal bool   _seraphSummonVase;
 
     internal double _turretRemaining;
     internal double _turretAccumulator;
@@ -300,6 +306,7 @@ public sealed class GameInstance
         SpellSystem.UpdateSkeleton(this, dt);
         SpellSystem.UpdateDrain(this, dt);
         BossSystem.Update(this, dt);
+        BossSystem.UpdateVaseFuses(this, dt);
         EmitterSystem.Update(this, dt);
         StalactiteSystem.Update(this, dt);
         NecromantSystem.Update(this, dt);

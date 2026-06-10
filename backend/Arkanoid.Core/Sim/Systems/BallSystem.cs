@@ -20,7 +20,8 @@ internal static class BallSystem
         // the carrier hazard; CombatSystem owns the rescue/escape outcomes.
         if (b.GrabberId > 0)
         {
-            var carrier = g.Hazards.FirstOrDefault(h => h.Alive && h.Id == b.GrabberId && h.Kind == "bat");
+            var carrier = g.Hazards.FirstOrDefault(h => h.Alive && h.Id == b.GrabberId
+                && (h.Kind == "bat" || h.Kind == "witchgrab"));
             if (carrier != null)
             {
                 b.Pos = carrier.Pos;

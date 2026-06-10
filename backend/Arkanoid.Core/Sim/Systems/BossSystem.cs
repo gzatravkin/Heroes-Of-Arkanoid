@@ -102,10 +102,48 @@ internal static class BossSystem
         g.RaiseEvent("bossTelegraph", origin.X, origin.Y);
         g._log.Log(g.TickCount, "boss", "telegraph", $"pattern={pattern} phase={phase}");
 
+        // Demon fist (hell): lock the strike column NOW so the slam is dodgeable, and
+        // telegraph it visually at the column's x (docs/11 boss verbs).
+        if (g.Level.Biome == "hell" && pattern == BossPattern.AimedShot)
+        {
+            g._bossFistCol = (int)System.Math.Clamp(
+                (g.Paddle.Center.X - g.Config.BoardOriginX) / g.Config.CellSize,
+                0, g.Level.Grid.Cols - 1);
+            var colX = g.Level.Grid.CellCenter(g._bossFistCol, 0).X;
+            g.RaiseEvent("fistTelegraph", colX, origin.Y);
+        }
+
+        // Goblin (caverns): hop to the next anchor as the attack winds up — repositioning
+        // resets the player's aim solution (the original's 3-position hop).
+        if (g.Level.Biome == "caverns")
+            GoblinHop(g, bossBlocks);
+
         // --- Arm delayed attack ---
         g._bossTelegraphPending = true;
         g._bossTelegraphTimer   = g.Config.BossTelegraphDuration;
         g._bossPendingPattern   = (int)pattern;
+    }
+
+    /// <summary>Move the Goblin's boss blocks to the next of 3 anchors (−N, 0, +N columns).</summary>
+    private static void GoblinHop(GameInstance g, List<Entities.Block> bossBlocks)
+    {
+        int[] anchors = { -g.Config.GoblinHopOffset, 0, g.Config.GoblinHopOffset };
+        var curr = anchors[g._goblinAnchorIdx % anchors.Length];
+        g._goblinAnchorIdx = (g._goblinAnchorIdx + 1) % anchors.Length;
+        var next  = anchors[g._goblinAnchorIdx];
+        var delta = next - curr;
+        if (delta == 0) return;
+
+        // Bounds check against the whole rig before moving.
+        foreach (var b in bossBlocks)
+        {
+            var c = b.Col + delta;
+            if (c < 0 || c >= g.Level.Grid.Cols) return; // would clip the wall — skip this hop
+        }
+        foreach (var b in bossBlocks) b.Col += delta;
+        var origin = g.Level.Grid.CellCenter(bossBlocks[0].Col, bossBlocks[0].Row);
+        g.RaiseEvent("bossHop", origin.X, origin.Y);
+        g._log.Log(g.TickCount, "boss", "hopped", $"delta={delta}");
     }
 
     // -----------------------------------------------------------------------
@@ -161,7 +199,10 @@ internal static class BossSystem
             switch (pattern)
             {
                 case BossPattern.AimedShot:
-                    SpawnAimedShot(g, origin, kind);
+                    // Signature overrides: Demon slams a fist column; the Witch grabs the ball.
+                    if (g.Level.Biome == "hell")         FistSlam(g);
+                    else if (g.Level.Biome == "village") SpawnWitchGrab(g, origin);
+                    else                                  SpawnAimedShot(g, origin, kind);
                     break;
 
                 case BossPattern.Rain:
@@ -173,13 +214,129 @@ internal static class BossSystem
                     break;
 
                 case BossPattern.Summon:
-                    SpawnSummon(g, origin, kind);
+                    // Signature override: the Seraph summons statue adds / a fused vase.
+                    if (g.Level.Biome == "heaven") SeraphSummon(g, boss);
+                    else                            SpawnSummon(g, origin, kind);
                     break;
             }
 
             g.RaiseEvent("bossAttack", origin.X, origin.Y);
             g._log.Log(g.TickCount, "boss", "attack fired",
                 $"pattern={pattern} bossId={boss.Id} paddleX={g.Paddle.Center.X:F1}");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Signature mechanics (docs/11 §4 — one verb per boss)
+    // -----------------------------------------------------------------------
+
+    /// <summary>Demon: slam the column locked at telegraph time — HP hit if the paddle
+    /// stayed there, and every block in the column is crushed for FistBlockDamage
+    /// (slams open lanes the player can exploit).</summary>
+    private static void FistSlam(GameInstance g)
+    {
+        if (g._bossFistCol < 0) return;
+        int col  = g._bossFistCol;
+        g._bossFistCol = -1;
+        var colX = g.Level.Grid.CellCenter(col, 0).X;
+
+        foreach (var blk in g.Blocks.Where(b => !b.Dead && !b.Boss && b.Col == col).ToList())
+            BlockDamage.DamageBlock(g, blk, g.Config.FistBlockDamage, igniteSource: false);
+
+        var half = g.Config.CellSize / 2;
+        if (System.Math.Abs(g.Paddle.Center.X - colX) <= half + g.Paddle.Width / 2)
+            CombatSystem.DamagePlayer(g, g.Config.BossFistDamage);
+
+        g.RaiseEvent("fistSlam", colX, g.Level.Grid.Height);
+        g._log.Log(g.TickCount, "boss", "fist slam", $"col={col}");
+    }
+
+    /// <summary>Witch: send the grab-hand homing after a ball (one in flight at a time).
+    /// CombatSystem owns the grab/carry/throw lifecycle.</summary>
+    private static void SpawnWitchGrab(GameInstance g, Vec2 origin)
+    {
+        if (g.Hazards.Any(h => h.Alive && h.Kind == "witchgrab")) return;
+        var ball = g.Balls.FirstOrDefault(b => b.Alive && b.GrabberId == 0);
+        if (ball == null) return;
+        var dir = (ball.Pos - origin).Normalized();
+        g.Hazards.Add(new Projectile
+        {
+            Id     = g._nextHazardId++,
+            Pos    = origin,
+            Vel    = dir * g.Config.WitchGrabSpeed,
+            Damage = 0, // the grab itself never chips HP — the stolen ball is the threat
+            Radius = g.Config.EnemyHazardRadius * 1.4,
+            Alive  = true,
+            Kind   = "witchgrab",
+        });
+        g.RaiseEvent("witchGrabCast", origin.X, origin.Y);
+        g._log.Log(g.TickCount, "boss", "witch grab cast", "");
+    }
+
+    /// <summary>Seraph: alternate between summoning a melee-statue add (capped) and a
+    /// fused boss-vase that levels his adds unless the player destroys it first.</summary>
+    private static void SeraphSummon(GameInstance g, Entities.Block boss)
+    {
+        var adds = g.Blocks.Count(b => !b.Dead && b.Emitter && !b.NeedToKill);
+        var wantVase = g._seraphSummonVase && adds > 0;
+        g._seraphSummonVase = !g._seraphSummonVase;
+
+        // Find a free cell two rows below the boss, scanning outward from its column.
+        int row = System.Math.Min(boss.Row + 2, g.Level.Grid.Rows - 1);
+        int col = -1;
+        for (int offset = 0; offset < g.Level.Grid.Cols; offset++)
+        {
+            foreach (var c in new[] { boss.Col + offset, boss.Col - offset })
+            {
+                if (c < 0 || c >= g.Level.Grid.Cols) continue;
+                if (!g.Blocks.Any(b => !b.Dead && b.Col == c && b.Row == row)) { col = c; break; }
+            }
+            if (col >= 0) break;
+        }
+        if (col < 0) return;
+
+        if (wantVase)
+        {
+            var vase = new Entities.Block
+            {
+                Id = g.NextBlockId(), Col = col, Row = row,
+                Hp = 2, MaxHp = 2, TypeId = "boss_vase",
+                Sprite = "HeavenVaza", NeedToKill = false,
+                Behavior = BlockBehavior.BossVase,
+            };
+            vase.FuseTimer = g.Config.SeraphVaseFuse;
+            g.Blocks.Add(vase);
+            g.RaiseEvent("seraphVase", g.Level.Grid.CellCenter(col, row).X, g.Level.Grid.CellCenter(col, row).Y);
+            g._log.Log(g.TickCount, "boss", "seraph vase summoned", $"cell=({col},{row}) fuse={vase.FuseTimer}");
+        }
+        else if (adds < g.Config.SeraphMaxAdds)
+        {
+            g.Blocks.Add(new Entities.Block
+            {
+                Id = g.NextBlockId(), Col = col, Row = row,
+                Hp = g.Config.SeraphAddHp, MaxHp = g.Config.SeraphAddHp, TypeId = "seraph_add",
+                Sprite = "HeavenMeleeStatue", NeedToKill = false,
+                Behavior = BlockBehavior.Emitter, EmitInterval = g.Config.DefaultEmitInterval,
+                EmitAim = "paddle", MissileKind = "heavenmissile",
+            });
+            g.RaiseEvent("seraphAdd", g.Level.Grid.CellCenter(col, row).X, g.Level.Grid.CellCenter(col, row).Y);
+            g._log.Log(g.TickCount, "boss", "seraph add summoned", $"cell=({col},{row})");
+        }
+    }
+
+    /// <summary>Tick the fuses on Seraph boss-vases: expiry shatters them and levels his adds.</summary>
+    internal static void UpdateVaseFuses(GameInstance g, double dt)
+    {
+        foreach (var blk in g.Blocks)
+        {
+            if (blk.Dead || !blk.BossVase) continue;
+            blk.FuseTimer -= dt;
+            if (blk.FuseTimer > 0) continue;
+            blk.Dead = true;
+            BallSystem.LevelUpStatues(g);
+            var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+            g.RaiseEvent("vaseShatter", c.X, c.Y);
+            g._log.Log(g.TickCount, "boss", "vase shattered — adds levelled", "");
         }
     }
 

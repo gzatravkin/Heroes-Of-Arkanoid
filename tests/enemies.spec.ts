@@ -71,14 +71,13 @@ test("Witch boss casts magic bolts (witchmagic hazards)", async ({ page }) => {
   // drains the paddle — otherwise the game ends before we can observe the volley.
   await cheat(page, "setLives", 99);
   // Advance sim-time deterministically so the boss telegraphs + fires magic volleys.
-  await cheat(page, "fastForward", 130);
-  // Wait until a magic bolt is in the open mid-field (below the top block rows, above
-  // the paddle) so the proof screenshot shows it clearly rather than under the boss.
+  // (Her AimedShot is now the grab-hand, so magic bolts only come from Rain/Spread —
+  // give the roll a few extra cycles and accept a bolt anywhere below the boss row.)
+  await cheat(page, "fastForward", 400);
   await page.waitForFunction(() => {
     const s = (window as any).__game.getState();
     if (!s) return false;
-    const lo = s.boardH * 0.3, hi = s.boardH * 0.6;
-    return s.hazards.some((h: any) => h.kind === "witchmagic" && h.y > lo && h.y < hi);
+    return s.hazards.some((h: any) => h.kind === "witchmagic" && h.y > s.boardH * 0.12);
   }, null, { timeout: 8000 });
   await page.screenshot({ path: path.join(SHOTS, "enemy-witch-magic.png") });
 });

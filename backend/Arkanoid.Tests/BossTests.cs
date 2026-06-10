@@ -57,16 +57,21 @@ public class BossTests
         };
         var g = MakeBossGame(cfg);
         g.Serve();
+        g.ApplyCheat("setLives", 9999); // survive the rapid-fire test cadence
 
         Assert.Empty(g.Hazards); // no hazards before any ticks
 
-        // Two ticks: first tick advances accumulator → telegraphs; second tick fires the attack.
-        var dt = cfg.BossAttackInterval + 0.01; // first tick triggers accumulator → telegraph
-        g.Tick(dt);
-        g.Tick(cfg.BossTelegraphDuration + 0.01); // second tick expires telegraph → attack fires
+        // Loop attack cycles: in hell the AimedShot pattern is a fist slam (no hazard),
+        // so we wait for a hazard-spawning pattern (Rain/Spread) to roll.
+        var dt = cfg.BossAttackInterval + 0.01;
+        for (int i = 0; i < 50 && g.Hazards.Count == 0; i++)
+        {
+            g.Tick(dt);                               // accumulate → telegraph
+            g.Tick(cfg.BossTelegraphDuration + 0.01); // telegraph expires → attack fires
+        }
 
         Assert.True(g.Hazards.Count > 0,
-            $"Expected at least one hazard after attack+telegraph window; count={g.Hazards.Count}");
+            $"Expected at least one hazard after several attack cycles; count={g.Hazards.Count}");
     }
 
     // -----------------------------------------------------------------------
@@ -95,12 +100,19 @@ public class BossTests
             """,
             cfg);
         g.Serve();
+        g.ApplyCheat("setLives", 9999); // survive the rapid-fire test cadence
 
-        g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
-        g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+        // The Witch's AimedShot is now her grab-hand ("witchgrab") — loop until a
+        // magic-bolt pattern (Rain/Spread) rolls, then check the bolt tagging.
+        for (int i = 0; i < 50 && !g.Hazards.Any(h => h.Kind == "witchmagic"); i++)
+        {
+            g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
+            g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+        }
 
-        Assert.NotEmpty(g.Hazards);
-        Assert.All(g.Hazards, h => Assert.Equal("witchmagic", h.Kind));
+        Assert.Contains(g.Hazards, h => h.Kind == "witchmagic");
+        Assert.All(g.Hazards, h => Assert.True(h.Kind is "witchmagic" or "witchgrab",
+            $"unexpected village boss hazard kind '{h.Kind}'"));
     }
 
     // -----------------------------------------------------------------------
@@ -128,12 +140,165 @@ public class BossTests
             """,
             cfg);
         g.Serve();
+        g.ApplyCheat("setLives", 9999); // survive the rapid-fire test cadence
 
-        g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
-        g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+        // The Demon's AimedShot is now the fist slam (no hazard) — loop until a
+        // hazard pattern (Rain/Spread) rolls, then check the bolt tagging.
+        for (int i = 0; i < 50 && g.Hazards.Count == 0; i++)
+        {
+            g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
+            g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+        }
 
         Assert.NotEmpty(g.Hazards);
         Assert.All(g.Hazards, h => Assert.Equal("hellball", h.Kind));
+    }
+
+    // -----------------------------------------------------------------------
+    // 1d. Boss signature mechanics (docs/11 §4 — one verb per boss)
+    // -----------------------------------------------------------------------
+
+    private static readonly SimConfig FastBossCfg = new()
+    {
+        BossAttackInterval    = 0.05,
+        BossTelegraphDuration = 0.02,
+    };
+
+    /// <summary>Tick until predicate or budget exhausted; returns success.</summary>
+    private static bool TickUntil(GameInstance g, System.Func<bool> done, int maxTicks = 2000)
+    {
+        for (int i = 0; i < maxTicks && !done(); i++) g.Tick(SimConfig.Default.FixedDt);
+        return done();
+    }
+
+    [Fact]
+    public void Demon_FistSlam_CrushesColumnBlocks_AndTelegraphsTheColumn()
+    {
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"behavior":"boss"},
+            {"id":"fill","biome":"hell","hp":6, "sprite":"s",         "needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"hell","cols":12,"rows":8,
+             "rows_data":["BBBBBBBBBBBB","............","ffffffffffff","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss","f":"fill"}}
+            """,
+            FastBossCfg);
+        g.Serve();
+        g.ApplyCheat("setLives", 9999); // survive the rapid-fire cadence while parked
+        g.Balls[0].Vel = new Vec2(0, 0); // park
+
+        // The paddle column's fill block takes fist damage once an AimedShot rolls.
+        var paddleCol = (int)((g.Paddle.Center.X - g.Config.BoardOriginX) / g.Config.CellSize);
+        var colBlock  = g.Blocks.First(b => !b.Boss && b.Col == paddleCol);
+        var sawSlam = TickUntil(g, () => colBlock.Hp < colBlock.MaxHp);
+        Assert.True(sawSlam, "fist slam should crush blocks in the locked column");
+
+        // The fist telegraph + slam events were emitted for the renderer.
+        var events = Snapshot.From(g, 0).Events;
+        Assert.Contains(events, e => e.Type == "fistTelegraph");
+        Assert.Contains(events, e => e.Type == "fistSlam");
+    }
+
+    [Fact]
+    public void Goblin_HopsBetweenAnchors_StayingInBounds()
+    {
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"caverns","hp":24,"sprite":"GoblinBody","needToKill":true,"behavior":"boss"},
+            {"id":"fill","biome":"caverns","hp":9, "sprite":"s",          "needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"caverns","cols":12,"rows":8,
+             "rows_data":["...BBBB.....","............","f...........","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss","f":"fill"}}
+            """,
+            FastBossCfg);
+        g.Serve();
+        g.ApplyCheat("setLives", 9999);
+        g.Balls[0].Vel = new Vec2(0, 0);
+
+        var bossBlocks = g.Blocks.Where(b => b.Boss).ToList();
+        var startCols  = bossBlocks.Select(b => b.Col).ToList();
+
+        var hopped = TickUntil(g, () => bossBlocks[0].Col != startCols[0]);
+        Assert.True(hopped, "goblin should hop to a different anchor");
+        // Rig stays in bounds and shape-preserved after many cycles.
+        TickUntil(g, () => false, 600);
+        for (int i = 0; i < bossBlocks.Count; i++)
+        {
+            Assert.InRange(bossBlocks[i].Col, 0, g.Level.Grid.Cols - 1);
+            Assert.Equal(startCols[i] - startCols[0], bossBlocks[i].Col - bossBlocks[0].Col);
+        }
+    }
+
+    [Fact]
+    public void Witch_GrabsBall_CarriesItToHer_ThenThrowsItFast()
+    {
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"village","hp":24,"sprite":"WitchChest","needToKill":true,"behavior":"boss"},
+            {"id":"fill","biome":"village","hp":9, "sprite":"s",          "needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"village","cols":12,"rows":8,
+             "rows_data":["....BBBB....","............","f...........","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss","f":"fill"}}
+            """,
+            FastBossCfg);
+        g.Serve();
+        g.ApplyCheat("setLives", 9999);
+        g.Balls[0].Vel = new Vec2(0, 0);
+        var ball = g.Balls[0];
+
+        var grabbed = TickUntil(g, () => ball.GrabberId != 0);
+        Assert.True(grabbed, "the witch's hand should grab the parked ball");
+
+        var thrown = TickUntil(g, () => ball.GrabberId == 0 && ball.Vel.Length > 0);
+        Assert.True(thrown, "the witch should throw the ball after the hold");
+        Assert.True(ball.Vel.Length > g.Config.BallSpeed * 1.05,
+            $"thrown ball must be faster than normal (got {ball.Vel.Length:F0} vs {g.Config.BallSpeed:F0})");
+    }
+
+    [Fact]
+    public void Seraph_SummonsAdds_AndVaseFuseLevelsThem_UnlessDefused()
+    {
+        var g = MakeGame(
+            """
+            {"id":"boss","biome":"heaven","hp":24,"sprite":"HeavenBoss","needToKill":true,"behavior":"boss"},
+            {"id":"fill","biome":"heaven","hp":9, "sprite":"s",          "needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"heaven","cols":12,"rows":8,
+             "rows_data":["....BBBB....","............","f...........","............",
+                          "............","............","............","............"],
+             "legend":{"B":"boss","f":"fill"}}
+            """,
+            FastBossCfg);
+        g.Serve();
+        g.ApplyCheat("setLives", 9999);
+        g.Balls[0].Vel = new Vec2(0, 0);
+
+        // Force phase 3 (Summon only rolls there) by dropping boss HP under the threshold.
+        foreach (var b in g.Blocks.Where(b => b.Boss)) b.Hp = (int)(b.MaxHp * 0.2);
+
+        var addAppeared = TickUntil(g, () =>
+            g.Blocks.Any(b => !b.Dead && b.Emitter && !b.NeedToKill), 4000);
+        Assert.True(addAppeared, "the Seraph should summon a statue add");
+
+        var vaseAppeared = TickUntil(g, () =>
+            g.Blocks.Any(b => !b.Dead && b.BossVase), 4000);
+        Assert.True(vaseAppeared, "the Seraph should summon a fused boss-vase");
+
+        // Let the fuse expire → his adds level up.
+        var add = g.Blocks.First(b => !b.Dead && b.Emitter && !b.NeedToKill);
+        var levelled = TickUntil(g, () => add.StatueLevel > 0,
+            (int)(SimConfig.Default.SeraphVaseFuse / SimConfig.Default.FixedDt) + 200);
+        Assert.True(levelled, "fuse expiry must level the Seraph's adds");
     }
 
     // -----------------------------------------------------------------------
@@ -295,6 +460,7 @@ public class BossTests
             """,
             cfg);
         g.Serve();
+        g.ApplyCheat("setLives", 9999); // survive 20s of rapid-fire attacks
 
         // Use small ticks so telegraph and attack fall in separate ticks (proves ordering too).
         double smallDt = 0.005;
@@ -314,10 +480,12 @@ public class BossTests
             // Each "bossAttack" event corresponds to one boss block's spawns in that pattern.
             // Count hazards added since last tick (they move slowly, accumulate).
             int spawned = g.Hazards.Count - prevHazardCount;
-            if (spawned > 0 && evts.Any(e => e.Type == "bossAttack"))
+            // Count every attack event (the hell fist slam spawns no hazards);
+            // batch sizes only from hazard-spawning patterns.
+            if (evts.Any(e => e.Type == "bossAttack"))
             {
-                distinctBatchSizes.Add(spawned);
                 totalAttackEvents++;
+                if (spawned > 0) distinctBatchSizes.Add(spawned);
             }
             prevHazardCount = g.Hazards.Count;
         }

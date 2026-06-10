@@ -21,4 +21,6 @@ public sealed class Projectile
     public int CarriedBallId = 0;
     /// <summary>Stalactite hazard: block ids already damaged while falling through (one hit each).</summary>
     public HashSet<int>? HitBlockIds;
+    /// <summary>Witch grab-hand: seconds left holding the ball before the throw.</summary>
+    public double StateTimer = 0;
 }

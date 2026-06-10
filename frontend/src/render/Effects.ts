@@ -7,7 +7,7 @@
  * key that isn't found in the atlas.
  */
 
-import { Container, Sprite, BLEND_MODES } from "pixi.js";
+import { Container, Graphics, Sprite, BLEND_MODES } from "pixi.js";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
 import { animStrip, anim as animFrames } from "./assets";
@@ -67,6 +67,15 @@ const DEATH_SPHERE_ALPHA_BASE = 0.65;
 const DEATH_SPHERE_ALPHA_AMP  = 0.25;
 const DEATH_SPHERE_PULSE_HZ   = 2.5;
 
+// Demon fist column flashes (docs/11 boss verbs): warning amber, slam red.
+const FIST_TELEGRAPH_COLOR = 0xffaa33;
+const FIST_TELEGRAPH_MS    = 700;
+const FIST_SLAM_COLOR      = 0xff3311;
+const FIST_SLAM_MS         = 350;
+const FIST_COLUMN_ALPHA    = 0.32;
+
+interface ColumnFlash { gfx: Graphics; life: number; elapsed: number }
+
 export class Effects {
   readonly container: Container;
   private animSys: AnimSystem;
@@ -74,6 +83,9 @@ export class Effects {
   // Death-mark spheres keyed by rounded cell position.
   private deathMarks = new Map<string, Sprite>();
   private _markClock = 0;
+  private columnFlashes: ColumnFlash[] = [];
+  /** Board height in world units — set by the renderer each snapshot for column flashes. */
+  boardH = 0;
 
   // Cached sliced frames (built lazily so atlas is fully loaded when first event fires)
   private _explosionFrames = () => animStrip(EXPLOSION_KEY, EXPLOSION_FPS);
@@ -119,8 +131,26 @@ export class Effects {
         case "reviveCancelled":
           this.removeDeathMark(ev.x, ev.y);
           break;
+        case "fistTelegraph":
+          this.spawnColumnFlash(ev.x, cellSize, FIST_TELEGRAPH_COLOR, FIST_TELEGRAPH_MS);
+          break;
+        case "fistSlam":
+          this.spawnColumnFlash(ev.x, cellSize, FIST_SLAM_COLOR, FIST_SLAM_MS);
+          this.spawnBlockDestroy(ev.x, this.boardH * 0.5, cellSize, biome ?? "hell");
+          break;
       }
     }
+  }
+
+  /** Full-height column flash at world x — the Demon fist's warning and impact. */
+  private spawnColumnFlash(x: number, cellSize: number, color: number, lifeMs: number) {
+    const gfx = new Graphics();
+    gfx.blendMode = BLEND_MODES.ADD;
+    gfx.beginFill(color, FIST_COLUMN_ALPHA)
+      .drawRect(x - cellSize / 2, 0, cellSize, Math.max(this.boardH, cellSize))
+      .endFill();
+    this.container.addChild(gfx);
+    this.columnFlashes.push({ gfx, life: lifeMs, elapsed: 0 });
   }
 
   // ── Necromant death-mark spheres ──────────────────────────────────────────
@@ -280,6 +310,19 @@ export class Effects {
   update(dtMs: number) {
     this.animSys.update(dtMs);
 
+    // Fade out the fist column flashes.
+    for (let i = this.columnFlashes.length - 1; i >= 0; i--) {
+      const cf = this.columnFlashes[i];
+      cf.elapsed += dtMs;
+      const t = cf.elapsed / cf.life;
+      if (t >= 1) {
+        this.container.removeChild(cf.gfx);
+        this.columnFlashes.splice(i, 1);
+      } else {
+        cf.gfx.alpha = 1 - t;
+      }
+    }
+
     // Pulse the death-mark spheres so they read as "pending", not debris.
     this._markClock += dtMs / 1000;
     const markAlpha = DEATH_SPHERE_ALPHA_BASE
@@ -308,6 +351,8 @@ export class Effects {
     this.particles = [];
     for (const sp of this.deathMarks.values()) this.container.removeChild(sp);
     this.deathMarks.clear();
+    for (const cf of this.columnFlashes) this.container.removeChild(cf.gfx);
+    this.columnFlashes = [];
   }
 }
 

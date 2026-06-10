@@ -33,6 +33,7 @@ const MISSILE_FRAMES: Record<string, string> = {
   hellball:        "hell/HellBallMissile",
   beholdermissile: "village/enemies/BeholderMissile",
   heavenmissile:   "heaven/Missile",
+  witchgrab:       "village/enemies/WitchHand2", // the Witch's grab-hand chasing the ball
 };
 const MISSILE_SIZE_MULT = 3;     // ×HAZARD_RADIUS
 const BAT_FLUTTER_SPEED = 0.25;  // wing-flap wobble (scale.y oscillation)

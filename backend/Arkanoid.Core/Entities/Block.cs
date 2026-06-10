@@ -25,12 +25,14 @@ public enum BlockBehavior
     Cart,          // periodically rolls a cart hazard across the board (Caverns)
     Cauldron,      // siphons the player's mana while alive; refunds it on death (Witchland)
     LavaSpawner,   // creeps lava into adjacent empty cells; killing it retracts its lava (Hell)
+    BossVase,      // Seraph-summoned: self-shatters after a fuse and levels his adds; player kill defuses it
 }
 
 public sealed class Block
 {
     public int Id { get; init; }          // stable runtime id for snapshots
-    public int Col { get; init; }
+    // Col is mutable: the Goblin boss hops between anchors (docs/11 boss verbs).
+    public int Col { get; set; }
     public int Row { get; init; }
     public int Hp { get; set; }
     public int MaxHp { get; init; }
@@ -64,6 +66,7 @@ public sealed class Block
     public bool Cart         => Behavior == BlockBehavior.Cart;
     public bool Cauldron     => Behavior == BlockBehavior.Cauldron;
     public bool LavaSpawner  => Behavior == BlockBehavior.LavaSpawner;
+    public bool BossVase     => Behavior == BlockBehavior.BossVase;
     /// <summary>True for Heaven statues that the Altar/Vase can pacify.</summary>
     public bool IsStatue     => Emitter && EmitAim == "paddle" || ShieldStatue;
 
@@ -92,6 +95,8 @@ public sealed class Block
     public int    OwnerId         { get; set; }
     /// <summary>LavaSpawner: how many lava cells it has crept so far (mutable).</summary>
     public int    SpawnedCount    { get; set; }
+    /// <summary>BossVase: seconds until it self-shatters and levels the Seraph's adds (mutable).</summary>
+    public double FuseTimer       { get; set; }
 
     // --- Orientation: mirror asymmetric/corner art so it can sit at any corner/side. ---
     public bool FlipX { get; init; }

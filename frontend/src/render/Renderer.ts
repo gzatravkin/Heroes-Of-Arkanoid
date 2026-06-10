@@ -439,6 +439,7 @@ export class Renderer {
     }
 
     // --- effects: consume snapshot events ---
+    this.effectsLayer.boardH = s.boardH;
     this.effectsLayer.consume(s.events, s.cellSize, s.biome);
   }
 }

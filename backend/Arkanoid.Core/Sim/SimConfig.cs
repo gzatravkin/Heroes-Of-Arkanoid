@@ -198,6 +198,26 @@ public sealed class SimConfig
     public double LavaCreepInterval     { get; init; } = 6.0;
     /// <summary>Maximum lava cells a single spawner can creep (cap keeps levels winnable).</summary>
     public int    LavaCreepMax          { get; init; } = 6;
+
+    // --- Boss signature mechanics (docs/11 §4 bosses) ---
+    /// <summary>HP damage the Demon's fist slam deals if the paddle is in the struck column.</summary>
+    public int    BossFistDamage        { get; init; } = 1;
+    /// <summary>Damage the fist slam deals to every block in the struck column (openings you exploit).</summary>
+    public int    FistBlockDamage      { get; init; } = 1;
+    /// <summary>Columns the Goblin hops left/right of its home position (3 anchors: -N, 0, +N).</summary>
+    public int    GoblinHopOffset      { get; init; } = 2;
+    /// <summary>Speed of the Witch's grab-hand while homing on a ball (units/sec).</summary>
+    public double WitchGrabSpeed       { get; init; } = 160;
+    /// <summary>Seconds the Witch holds a grabbed ball before hurling it at the paddle.</summary>
+    public double WitchThrowDelay      { get; init; } = 1.2;
+    /// <summary>Speed multiplier on the hurled ball (the dodge/catch moment).</summary>
+    public double WitchThrowSpeedMult  { get; init; } = 1.4;
+    /// <summary>Maximum living melee-statue adds the Seraph keeps summoned.</summary>
+    public int    SeraphMaxAdds        { get; init; } = 2;
+    /// <summary>HP of a Seraph-summoned statue add.</summary>
+    public int    SeraphAddHp          { get; init; } = 3;
+    /// <summary>Seconds before a Seraph boss-vase self-shatters and levels his adds (destroy it to defuse).</summary>
+    public double SeraphVaseFuse       { get; init; } = 8.0;
     /// <summary>Seconds the Heaven statues stay pacified after an Altar hit / Vase break.</summary>
     public double AltarAllyDuration    { get; init; } = 8.0;
     /// <summary>Horizontal speed of a rolling cart hazard (units/sec).</summary>
