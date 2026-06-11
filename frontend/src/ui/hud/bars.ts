@@ -81,8 +81,8 @@ export function buildLabelledBar(opts: {
     "position:absolute", "top:50%", "left:8px",
     "transform:translateY(-50%)",
     "display:flex", "align-items:center", "gap:4px",
-    "font-size:var(--fs-small)", "color:#fff", "font-weight:700",
-    "text-shadow:0 0 4px #000,0 1px 2px #000", "pointer-events:none", "white-space:nowrap",
+    "font-size:var(--fs-small)", "color:var(--text-oncolor)", "font-weight:700",
+    "text-shadow:0 0 4px var(--shadow-black),0 1px 2px var(--shadow-black)", "pointer-events:none", "white-space:nowrap",
   ].join(";");
   label.innerHTML =
     `<img src="${opts.icon}" alt="" style="width:13px;height:13px;object-fit:contain;image-rendering:pixelated;">` +
@@ -141,8 +141,8 @@ export function buildManaBar(): HTMLElement {
   label.style.cssText = [
     "position:absolute", "top:50%", "left:50%",
     "transform:translate(-50%,-50%)",
-    "font-size:var(--fs-tiny)", "color:#fff", "font-weight:600",
-    "text-shadow:0 1px 2px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
+    "font-size:var(--fs-tiny)", "color:var(--text-oncolor)", "font-weight:600",
+    "text-shadow:0 1px 2px var(--shadow-black)", "pointer-events:none", "white-space:nowrap", "z-index:1",
   ].join(";");
   outer.appendChild(label);
 

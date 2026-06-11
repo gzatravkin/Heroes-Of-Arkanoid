@@ -77,6 +77,22 @@ const THEME_CSS = `
     --color-dungeon-label: #8899cc;  /* dungeon run status / buff labels */
     --color-empty:         #555577;  /* empty-state placeholder text */
 
+    /* ── HUD overlays, shadows, glow ───────────────────────────────── */
+    --overlay-light:  rgba(0,0,0,0.45);
+    --overlay-mid:    rgba(0,0,0,0.65);
+    --shadow-hard:    rgba(0,0,0,0.90);
+    --hud-top-bg:     rgba(10,7,5,0.55);
+    --hud-btm-bg:     rgba(4,4,12,0.80);
+    --hud-slot-bg:    rgba(20,14,6,0.75);
+    --hud-slot-bdr:   rgba(200,150,30,0.5);
+    --hud-win-bg:     rgba(10,40,10,0.85);
+    --hud-lose-bg:    rgba(40,5,5,0.85);
+    --gold-glow-lo:   rgba(255,190,80,0.45);
+    --gold-glow-mid:  rgba(255,190,80,0.60);
+    --gold-glow-hi:   rgba(255,190,80,0.70);
+    --shadow-black:   #000;          /* opaque shadow for text on colored bg */
+    --text-oncolor:   #ffffff;       /* pure white text on colored bar fills */
+
     /* ── Interaction state filters ──────────────────────────────────── */
     --filter-locked:   saturate(0.45) brightness(0.8);
     --filter-dim:      saturate(0.25) brightness(0.65);

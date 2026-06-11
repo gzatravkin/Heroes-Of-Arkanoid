@@ -4,7 +4,7 @@ export const HUD_STYLES = `
       /* Lives/balls stat row — framed with HeroBar-style pill */
       .hud-stat-row {
         background: url('/ui/BattleHeroBar.png') no-repeat center/contain,
-                    rgba(0,0,0,0.45);
+                    var(--overlay-light);
         border-radius: 20px;
         padding: 3px 10px 3px 8px;
         color: var(--text);
@@ -49,10 +49,10 @@ export const HUD_STYLES = `
 
       /* Castable (enough mana): full brightness + subtle gold glow */
       .hud-spell-slot.affordable {
-        filter: drop-shadow(0 0 6px rgba(255,190,80,.45));
+        filter: drop-shadow(0 0 6px var(--gold-glow-lo));
       }
       .hud-spell-slot.affordable:hover {
-        filter: drop-shadow(0 0 8px rgba(255,190,80,.6)) brightness(1.15);
+        filter: drop-shadow(0 0 8px var(--gold-glow-mid)) brightness(1.15);
       }
 
       /* Not castable: desaturated + dimmed */
@@ -66,7 +66,7 @@ export const HUD_STYLES = `
         transform: scale(1.06);
       }
       .hud-spell-slot.affordable:active {
-        filter: drop-shadow(0 0 12px rgba(255,190,80,.7));
+        filter: drop-shadow(0 0 12px var(--gold-glow-hi));
         transform: scale(1.06);
       }
 
@@ -86,7 +86,7 @@ export const HUD_STYLES = `
         font-weight: 700;
         color: var(--gold);
         line-height: 1;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        text-shadow: 0 1px 2px var(--shadow-hard);
         pointer-events: none;
         z-index: 1;
       }
@@ -108,7 +108,7 @@ export const HUD_STYLES = `
         color: var(--text-dim);
         text-align: center;
         line-height: 1;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        text-shadow: 0 1px 2px var(--shadow-hard);
         white-space: nowrap;
         max-width: 60px;
         overflow: hidden;
@@ -116,12 +116,12 @@ export const HUD_STYLES = `
       }
 
       .hud-banner.win {
-        background: rgba(10,40,10,0.85);
+        background: var(--hud-win-bg);
         border: 2px solid var(--ok-bright);
         color: var(--ok-bright);
       }
       .hud-banner.lose {
-        background: rgba(40,5,5,0.85);
+        background: var(--hud-lose-bg);
         border: 2px solid var(--danger-bright);
         color: var(--danger-bright);
       }

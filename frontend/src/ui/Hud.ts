@@ -109,7 +109,7 @@ export class Hud {
     topLeft.style.cssText = [
       "position:absolute", "top:8px", "left:8px",
       "display:flex", "flex-direction:column", "gap:5px",
-      "background:rgba(10,7,5,.55)", "border-radius:8px", "padding:6px 8px",
+      "background:var(--hud-top-bg)", "border-radius:8px", "padding:6px 8px",
     ].join(";");
 
     const livesBar = buildLabelledBar({
@@ -153,7 +153,7 @@ export class Hud {
       "display:flex", "flex-direction:column", "align-items:center", "gap:4px",
       "padding-bottom:max(12px,env(safe-area-inset-bottom,12px))",
       "padding-top:6px",
-      "background:linear-gradient(to top,rgba(4,4,12,0.80) 0%,transparent 100%)",
+      "background:linear-gradient(to top,var(--hud-btm-bg) 0%,transparent 100%)",
       "pointer-events:none",
     ].join(";");
 
@@ -181,7 +181,7 @@ export class Hud {
       "position:absolute", "top:44px", "left:50%", "transform:translateX(-50%)",
       "display:none", "padding:2px 14px", "border-radius:10px",
       "font-size:var(--fs-xl)", "font-weight:800", "letter-spacing:1px",
-      "background:rgba(0,0,0,0.45)", "pointer-events:none",
+      "background:var(--overlay-light)", "pointer-events:none",
     ].join(";");
     this.root.appendChild(this.timerEl);
 
@@ -212,11 +212,11 @@ export class Hud {
       "position:absolute", "top:155px", "right:8px",
       "display:none",
       "color:var(--gold-bright)",
-      "text-shadow:0 0 8px rgba(255,190,80,0.6)",
+      "text-shadow:0 0 8px var(--gold-glow-mid)",
       "font-family:var(--font-display)",
       "font-size:var(--fs-xl)", "font-weight:bold",
-      "background:rgba(0,0,0,0.65)",
-      "border:1px solid rgba(255,190,80,0.4)",
+      "background:var(--overlay-mid)",
+      "border:1px solid var(--gold-glow-lo)",
       "border-radius:6px", "padding:3px 10px",
       "pointer-events:none",
     ].join(";");
@@ -289,8 +289,8 @@ export class Hud {
       tile.title = item.name;
       tile.style.cssText = [
         "width:28px", "height:28px",
-        "background:rgba(20,14,6,0.75)",
-        "border:1px solid rgba(200,150,30,0.5)",
+        "background:var(--hud-slot-bg)",
+        "border:1px solid var(--hud-slot-bdr)",
         "border-radius:4px",
         "display:flex", "align-items:center", "justify-content:center",
       ].join(";");
@@ -502,7 +502,7 @@ export class Hud {
     if (s.widePaddleActive) chips.push(`↔ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
     if (s.slowBallActive)   chips.push(`slow ${Math.ceil(s.slowBallTimer ?? 0)}s`);
     const html = chips.map(c =>
-      `<span style="background:rgba(0,0,0,0.65);border:1px solid var(--color-effect);border-radius:4px;padding:1px 5px;font-size:var(--fs-tiny);color:var(--color-shield);">${c}</span>`
+      `<span style="background:var(--overlay-mid);border:1px solid var(--color-effect);border-radius:4px;padding:1px 5px;font-size:var(--fs-tiny);color:var(--color-shield);">${c}</span>`
     ).join("");
     this.effectsEl.innerHTML = html;
   }
@@ -522,7 +522,7 @@ export class Hud {
     this._powerupPanelEl.style.display = "flex";
     this._powerupPanelEl.innerHTML = active.map(({ label, color, timer }) => {
       const t = timer !== undefined ? ` ${Math.ceil(timer)}s` : "";
-      return `<div class="hud-powerup-active" style="background:rgba(0,0,0,0.70);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:var(--fs-small);font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
+      return `<div class="hud-powerup-active" style="background:var(--overlay-mid);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:var(--fs-small);font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
     }).join("");
   }
 
