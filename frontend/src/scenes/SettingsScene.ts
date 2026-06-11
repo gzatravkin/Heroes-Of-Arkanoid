@@ -300,7 +300,7 @@ function injectSettingsStyles() {
       cursor: default;
     }
     .set-action-danger {
-      color: #f3b8a8;
+      color: var(--color-unequip);
     }
     .set-action-danger:hover:not(:disabled) {
       filter: brightness(1.18);

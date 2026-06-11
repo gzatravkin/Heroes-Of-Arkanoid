@@ -146,7 +146,7 @@ export const CAMPAIGN_STYLES = `
       gap: 5px;
       padding: 4px 12px;
       ${btn1()}
-      color: #f0e0b8;
+      color: var(--text);
       border-radius: 4px;
       cursor: pointer;
       font-size: var(--fs-body);
