@@ -183,7 +183,7 @@ function injectMenuStyles() {
       overflow: hidden;
       display: flex;
       align-items: stretch;
-      font-family: sans-serif;
+      font-family: var(--font-body);
     }
 
     /* ── Background ── */
@@ -192,7 +192,7 @@ function injectMenuStyles() {
       inset: 0;
       background:
         radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
-        linear-gradient(180deg, #1a0e06 0%, #0d0808 40%, #050308 100%);
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
       z-index: 0;
     }
 
@@ -307,12 +307,17 @@ function injectMenuStyles() {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    .menu-art-btn:hover  { filter: brightness(1.15); }
+    .menu-art-btn:hover  { filter: var(--filter-hover); }
     .menu-art-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+    .menu-art-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 
     /* Primary Continue button — largest, two-line (kicker + node name) */
     .menu-btn-continue {
@@ -320,7 +325,7 @@ function injectMenuStyles() {
       gap: 2px;
     }
     .menu-btn-kicker {
-      color: #ffe9b0;
+      color: var(--gold-bright);
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.18em;
@@ -328,7 +333,7 @@ function injectMenuStyles() {
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     }
     .menu-btn-node {
-      color: #fff6e0;
+      color: var(--text);
       font-size: 21px;
       font-weight: 800;
       letter-spacing: 0.04em;
@@ -340,7 +345,7 @@ function injectMenuStyles() {
       height: 54px;
     }
     .menu-btn-label {
-      color: #f0e0b8;
+      color: var(--text);
       font-size: 17px;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -373,10 +378,15 @@ function injectMenuStyles() {
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .menu-dock-btn:hover  { filter: brightness(1.18); }
     .menu-dock-btn:active { transform: scale(0.94); }
+    .menu-dock-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
     .menu-dock-ico {
       width: 32px;
       height: 32px;
@@ -387,7 +397,7 @@ function injectMenuStyles() {
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
     }
     .menu-dock-label {
-      color: #d8c598;
+      color: var(--text-dim);
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.03em;
