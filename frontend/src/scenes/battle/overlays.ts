@@ -186,7 +186,7 @@ function injectOverlayStyles() {
       border-width: 8px 30px;
       border-image: url('/ui/InterfaceButton.png') 26 92 26 92 fill stretch;
       cursor: pointer;
-      font-size: 16px;
+      font-size: var(--fs-large);
       font-family: var(--font-body);
       font-weight: 700;
       color: var(--text);
@@ -250,7 +250,7 @@ function injectOverlayStyles() {
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
     }
     .ov-bonus-name {
-      font-size: 11px;
+      font-size: var(--fs-small);
       font-weight: 700;
       text-align: center;
       color: #e8d8b0;
@@ -263,7 +263,7 @@ function injectOverlayStyles() {
       box-shadow: 0 0 14px rgba(120, 220, 140, 0.35);
     }
     .ov-bonus-hint {
-      font-size: 9px;
+      font-size: var(--fs-micro);
       font-weight: 700;
       text-align: center;
       color: #8fe3a0;

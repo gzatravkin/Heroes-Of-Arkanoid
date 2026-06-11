@@ -179,13 +179,13 @@ function injectDungeonRunStyles() {
     .dngrun-topbar .ui-title { flex: 1; text-align: center; }
     .dngrun-progress {
       id: dungeon-floor-progress;
-      font-size: 13px;
+      font-size: var(--fs-body);
       color: var(--text-dim);
       margin-bottom: 6px;
       letter-spacing: 0.03em;
     }
     .dngrun-floor-name {
-      font-size: 15px;
+      font-size: var(--fs-section);
       font-weight: 700;
       color: var(--gold-bright);
       margin-bottom: 16px;
@@ -208,7 +208,7 @@ function injectDungeonRunStyles() {
       justify-content: center;
       gap: 5px;
       padding: 4px 8px;
-      font-size: 12px;
+      font-size: var(--fs-caption);
       color: var(--text-dim);
       transition: filter var(--dur-normal);
     }
@@ -221,7 +221,7 @@ function injectDungeonRunStyles() {
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
       font-family: var(--font-body);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       letter-spacing: 0.04em;
       touch-action: manipulation;

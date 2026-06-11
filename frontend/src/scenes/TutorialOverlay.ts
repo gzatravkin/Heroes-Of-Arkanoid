@@ -307,7 +307,7 @@ function injectTutorialStyles() {
     }
 
     .tut-icon-label {
-      font-size: 11px;
+      font-size: var(--fs-small);
       color: var(--text-dim);
       text-align: center;
     }
@@ -381,7 +381,7 @@ function injectTutorialStyles() {
       background: none;
       border: none;
       color: rgba(200,180,140,0.55);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       cursor: pointer;
       min-height: 44px;
       padding: 0 8px;

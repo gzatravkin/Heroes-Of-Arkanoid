@@ -166,7 +166,7 @@ function injectDungeonStyles() {
       max-width: 520px;
       text-align: center;
       color: var(--text);
-      font-size: 13px;
+      font-size: var(--fs-body);
       letter-spacing: 0.03em;
       line-height: 1.5;
       transition: filter var(--dur-normal);
@@ -199,7 +199,7 @@ function injectDungeonStyles() {
       padding: 0;
     }
     .dng-card-name {
-      font-size: 13px;
+      font-size: var(--fs-body);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -209,7 +209,7 @@ function injectDungeonStyles() {
       flex-direction: column;
       gap: 6px;
       align-items: flex-start;
-      font-size: 12px;
+      font-size: var(--fs-caption);
       color: var(--text-dim);
     }
     .dng-reward-row {
@@ -223,7 +223,7 @@ function injectDungeonStyles() {
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
       font-family: var(--font-body);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       letter-spacing: 0.04em;
       touch-action: manipulation;

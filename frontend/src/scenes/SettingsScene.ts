@@ -215,12 +215,12 @@ function injectSettingsStyles() {
       align-items: center;
       justify-content: center;
       white-space: nowrap;
-      font-size: 14px;
+      font-size: var(--fs-subhead);
       font-weight: 700;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
       cursor: pointer;
       color: var(--gold-bright);
-      font-size: 20px;
+      font-size: var(--fs-xl);
       text-decoration: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
@@ -236,7 +236,7 @@ function injectSettingsStyles() {
     .set-title {
       margin: 0;
       font-family: var(--font-display);
-      font-size: 26px;
+      font-size: var(--fs-title);
       font-weight: 700;
       letter-spacing: 0.05em;
       color: var(--gold-bright);
@@ -261,11 +261,11 @@ function injectSettingsStyles() {
     }
     .set-row-text { flex: 1; }
     .set-row-label {
-      font-size: 13px; font-weight: 700;
+      font-size: var(--fs-body); font-weight: 700;
       color: var(--gold-bright);
     }
     .set-row-desc {
-      font-size: 12px; color: var(--text-dim);
+      font-size: var(--fs-caption); color: var(--text-dim);
       margin-top: 3px; line-height: 1.3;
     }
     .set-divider {
@@ -277,7 +277,7 @@ function injectSettingsStyles() {
       height: 40px; min-width: 100px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
-      font-family: var(--font-body); font-size: 13px;
+      font-family: var(--font-body); font-size: var(--fs-body);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -348,7 +348,7 @@ function injectSettingsStyles() {
     .set-version {
       margin-top: 20px;
       text-align: center;
-      font-size: 12px;
+      font-size: var(--fs-caption);
       color: var(--text-faint);
       font-family: var(--font-display);
       letter-spacing: 0.05em;

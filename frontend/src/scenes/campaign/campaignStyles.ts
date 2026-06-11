@@ -36,15 +36,15 @@ export const RIFT_STYLES = `
     @keyframes rift-pulse { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }
     .rift-banner-text { flex: 1; min-width: 0; }
     .rift-banner-title {
-      font-size: 15px; font-weight: 800; letter-spacing: 0.04em;
+      font-size: var(--fs-section); font-weight: 800; letter-spacing: 0.04em;
       color: #e9b8ff; text-shadow: 0 0 10px rgba(190,90,240,0.7);
     }
-    .rift-banner-sub { font-size: 10px; color: #c9a8e0; margin-top: 2px; line-height: 1.3; }
+    .rift-banner-sub { font-size: var(--fs-tiny); color: #c9a8e0; margin-top: 2px; line-height: 1.3; }
     .rift-banner-actions { display: flex; flex-direction: column; gap: 6px; }
     .rift-btn {
       min-width: 78px; min-height: 44px;
       border: none; border-radius: 8px; cursor: pointer;
-      font-size: 13px; font-weight: 700; font-family: var(--font-body);
+      font-size: var(--fs-body); font-weight: 700; font-family: var(--font-body);
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       transition: filter var(--dur-normal), transform var(--dur-fast);
     }
@@ -94,7 +94,7 @@ export const CAMPAIGN_STYLES = `
     }
     .camp-profile-level {
       font-weight: 700;
-      font-size: 15px;
+      font-size: var(--fs-section);
       color: var(--gold);
       text-shadow: 0 0 8px rgba(255,200,0,0.6);
       white-space: nowrap;
@@ -106,7 +106,7 @@ export const CAMPAIGN_STYLES = `
     }
     .camp-exp-label {
       color: var(--text-dim);
-      font-size: 11px;
+      font-size: var(--fs-small);
       white-space: nowrap;
     }
     .camp-exp-outer {
@@ -128,14 +128,14 @@ export const CAMPAIGN_STYLES = `
     }
     .camp-profile-points {
       color: var(--text-dim);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       white-space: nowrap;
     }
     .camp-profile-crystals {
       display: flex;
       align-items: center;
       gap: 3px;
-      font-size: 13px;
+      font-size: var(--fs-body);
       color: var(--gold-bright);
     }
     .camp-upgrade-btn {
@@ -147,7 +147,7 @@ export const CAMPAIGN_STYLES = `
       color: #f0e0b8;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: var(--fs-body);
       font-family: var(--font-body);
       font-weight: 600;
       min-height: 44px;
@@ -264,7 +264,7 @@ export const CAMPAIGN_STYLES = `
       gap: 1px;
     }
     .camp-node-kicker {
-      font-size: 8px;
+      font-size: var(--fs-micro);
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -274,7 +274,7 @@ export const CAMPAIGN_STYLES = `
       line-height: 1.1;
     }
     .camp-node-label {
-      font-size: 11px;
+      font-size: var(--fs-small);
       font-weight: 700;
       color: #f5e6bf;
       text-shadow: 0 1px 2px rgba(0,0,0,0.95);

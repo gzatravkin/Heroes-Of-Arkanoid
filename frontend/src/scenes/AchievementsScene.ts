@@ -291,7 +291,7 @@ function injectAchievementStyles() {
     .ach-summary {
       text-align: center;
       color: var(--text-dim);
-      font-size: 13px;
+      font-size: var(--fs-body);
       letter-spacing: 0.04em;
       margin-bottom: 14px;
       padding: 0 16px;
@@ -353,7 +353,7 @@ function injectAchievementStyles() {
 
     /* ── Text ── */
     .ach-name {
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -365,7 +365,7 @@ function injectAchievementStyles() {
       text-shadow: none;
     }
     .ach-desc {
-      font-size: 10px;
+      font-size: var(--fs-tiny);
       color: var(--text-dim);
       text-align: center;
       line-height: 1.4;
@@ -424,7 +424,7 @@ function injectToastStyles() {
       flex-shrink: 0;
     }
     .ach-toast-label {
-      font-size: 10px;
+      font-size: var(--fs-tiny);
       color: var(--gold-bright);
       letter-spacing: 0.06em;
       font-weight: 700;
@@ -432,7 +432,7 @@ function injectToastStyles() {
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .ach-toast-name {
-      font-size: 14px;
+      font-size: var(--fs-subhead);
       color: var(--text);
       font-weight: 700;
       margin-top: 2px;

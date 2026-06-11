@@ -308,7 +308,7 @@ function injectSkillsStyles() {
       border: 1px solid var(--gold-dim);
       border-radius: 999px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--fs-body);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -328,7 +328,7 @@ function injectSkillsStyles() {
       height: 38px; padding: 0 14px;
       ${btnInterface()}
       cursor: pointer;
-      font-family: var(--font-body); font-size: 12px;
+      font-family: var(--font-body); font-size: var(--fs-caption);
       font-weight: 700; color: var(--text-dim);
       filter: saturate(0.4) brightness(0.75);
       -webkit-tap-highlight-color: transparent;
@@ -382,7 +382,7 @@ function injectSkillsStyles() {
     }
 
     .sk-spell-name {
-      font-size: 12px; font-weight: 700;
+      font-size: var(--fs-caption); font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       text-align: center; line-height: 1.2;
@@ -404,7 +404,7 @@ function injectSkillsStyles() {
       flex-shrink: 0;
     }
     .sk-lvl-text {
-      font-size: 13px; font-weight: 700;
+      font-size: var(--fs-body); font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       position: relative; z-index: 1;
@@ -416,7 +416,7 @@ function injectSkillsStyles() {
       width: 100%; min-height: 36px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
-      font-family: var(--font-body); font-size: 12px;
+      font-family: var(--font-body); font-size: var(--fs-caption);
       font-weight: 700; color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       letter-spacing: 0.04em;

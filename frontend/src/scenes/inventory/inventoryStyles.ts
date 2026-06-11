@@ -45,7 +45,7 @@ export const INVENTORY_STYLES = `
       text-align: center;
     }
     .inv-crystals {
-      font-size: 15px;
+      font-size: var(--fs-section);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -74,7 +74,7 @@ export const INVENTORY_STYLES = `
       margin-bottom: 10px;
       ${nineSlice("/ui/NameBlock.png", "40 120 40 120", "9px 28px")}
       font-family: var(--font-display);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -102,7 +102,7 @@ export const INVENTORY_STYLES = `
       align-items: center;
       justify-content: center;
       font-family: var(--font-display);
-      font-size: 20px;
+      font-size: var(--fs-xl);
       color: rgba(216, 168, 78, 0.35);
       flex-shrink: 0;
       gap: 2px;
@@ -117,7 +117,7 @@ export const INVENTORY_STYLES = `
     }
     .inv-slot-label {
       font-family: var(--font-body);
-      font-size: 8px;
+      font-size: var(--fs-micro);
       color: var(--text-dim);
       text-align: center;
       line-height: 1.1;
@@ -176,7 +176,7 @@ export const INVENTORY_STYLES = `
       justify-content: center;
     }
     .inv-card-name {
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -184,7 +184,7 @@ export const INVENTORY_STYLES = `
       line-height: 1.2;
     }
     .inv-tier-badge {
-      font-size: 9px;
+      font-size: var(--fs-micro);
       font-weight: 900;
       padding: 1px 5px;
       border-radius: 3px;
@@ -194,7 +194,7 @@ export const INVENTORY_STYLES = `
       text-shadow: 0 1px 1px rgba(0,0,0,0.8);
     }
     .inv-card-desc {
-      font-size: 10px;
+      font-size: var(--fs-tiny);
       color: var(--text-dim);
       text-align: center;
       line-height: 1.35;
@@ -217,7 +217,7 @@ export const INVENTORY_STYLES = `
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 16px")}
       cursor: pointer;
       font-family: var(--font-body);
-      font-size: 12px;
+      font-size: var(--fs-caption);
       font-weight: 700;
       letter-spacing: 0.04em;
       touch-action: manipulation;
@@ -244,7 +244,7 @@ export const INVENTORY_STYLES = `
 
     .inv-max-badge {
       font-family: var(--font-display);
-      font-size: 11px;
+      font-size: var(--fs-small);
       font-weight: 700;
       color: var(--gold-bright);
       text-align: center;

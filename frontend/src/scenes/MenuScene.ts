@@ -326,7 +326,7 @@ function injectMenuStyles() {
     }
     .menu-btn-kicker {
       color: var(--gold-bright);
-      font-size: 13px;
+      font-size: var(--fs-body);
       font-weight: 700;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -334,7 +334,7 @@ function injectMenuStyles() {
     }
     .menu-btn-node {
       color: var(--text);
-      font-size: 21px;
+      font-size: var(--fs-xl);
       font-weight: 800;
       letter-spacing: 0.04em;
       text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 10px rgba(255,180,60,0.4);
@@ -346,7 +346,7 @@ function injectMenuStyles() {
     }
     .menu-btn-label {
       color: var(--text);
-      font-size: 17px;
+      font-size: var(--fs-large);
       font-weight: 700;
       letter-spacing: 0.06em;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
@@ -398,7 +398,7 @@ function injectMenuStyles() {
     }
     .menu-dock-label {
       color: var(--text-dim);
-      font-size: 10px;
+      font-size: var(--fs-tiny);
       font-weight: 600;
       letter-spacing: 0.03em;
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);

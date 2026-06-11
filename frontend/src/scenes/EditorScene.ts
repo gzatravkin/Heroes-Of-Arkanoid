@@ -50,7 +50,7 @@ export function mountEditor(host: HTMLElement) {
   // Level id input
   const idLabel = document.createElement("label");
   idLabel.textContent = "Level ID: ";
-  idLabel.style.cssText = "font-size:13px;color:#aab";
+  idLabel.style.cssText = "font-size:var(--fs-body);color:#aab";
   const idInput = document.createElement("input");
   idInput.id = "editor-id";
   idInput.type = "text";
@@ -61,7 +61,7 @@ export function mountEditor(host: HTMLElement) {
     "border:1px solid #445",
     "border-radius:4px",
     "padding:4px 8px",
-    "font-size:13px",
+    "font-size:var(--fs-body)",
     "width:160px",
   ].join(";");
   idLabel.appendChild(idInput);
@@ -70,7 +70,7 @@ export function mountEditor(host: HTMLElement) {
   // Biome selector
   const biomeLabel = document.createElement("label");
   biomeLabel.textContent = "Biome: ";
-  biomeLabel.style.cssText = "font-size:13px;color:#aab";
+  biomeLabel.style.cssText = "font-size:var(--fs-body);color:#aab";
   const biomeSelect = document.createElement("select");
   biomeSelect.id = "editor-biome";
   biomeSelect.style.cssText = [
@@ -79,7 +79,7 @@ export function mountEditor(host: HTMLElement) {
     "border:1px solid #445",
     "border-radius:4px",
     "padding:4px 8px",
-    "font-size:13px",
+    "font-size:var(--fs-body)",
   ].join(";");
   ["hell", "cavern", "village", "heaven"].forEach(b => {
     const opt = document.createElement("option");
@@ -94,7 +94,7 @@ export function mountEditor(host: HTMLElement) {
   function makeNumInput(labelText: string, defaultVal: number, id: string): [HTMLLabelElement, HTMLInputElement] {
     const lbl = document.createElement("label");
     lbl.textContent = labelText + " ";
-    lbl.style.cssText = "font-size:13px;color:#aab";
+    lbl.style.cssText = "font-size:var(--fs-body);color:#aab";
     const inp = document.createElement("input");
     inp.id = id;
     inp.type = "number";
@@ -107,7 +107,7 @@ export function mountEditor(host: HTMLElement) {
       "border:1px solid #445",
       "border-radius:4px",
       "padding:4px 6px",
-      "font-size:13px",
+      "font-size:var(--fs-body)",
       "width:54px",
     ].join(";");
     lbl.appendChild(inp);
@@ -121,7 +121,7 @@ export function mountEditor(host: HTMLElement) {
 
   // Load existing level by id
   const loadBtn = btn("Load", "btn-editor-load", [
-    "font-size:13px",
+    "font-size:var(--fs-body)",
     "padding:5px 14px",
     "background:#1a2a1a",
     "color:#88ff88",
@@ -186,7 +186,7 @@ export function mountEditor(host: HTMLElement) {
 
   const paletteTitle = document.createElement("div");
   paletteTitle.textContent = "Palette";
-  paletteTitle.style.cssText = "font-size:12px;color:#889;margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase;width:100%";
+  paletteTitle.style.cssText = "font-size:var(--fs-caption);color:#889;margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase;width:100%";
   palette.appendChild(paletteTitle);
 
   layout.appendChild(palette);
@@ -207,7 +207,7 @@ export function mountEditor(host: HTMLElement) {
   actions.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;align-items:center;justify-content:center";
 
   const saveBtn = btn("Save Level", "btn-editor-save", [
-    "font-size:14px",
+    "font-size:var(--fs-subhead)",
     "padding:8px 22px",
     "background:#1a1a3a",
     "color:#88aaff",
@@ -240,7 +240,7 @@ export function mountEditor(host: HTMLElement) {
   actions.appendChild(saveBtn);
 
   const playBtn = btn("Test Play", "btn-editor-play", [
-    "font-size:14px",
+    "font-size:var(--fs-subhead)",
     "padding:8px 22px",
     "background:#1a3a1a",
     "color:#88ff88",
@@ -272,7 +272,7 @@ export function mountEditor(host: HTMLElement) {
   actions.appendChild(playBtn);
 
   const backBtn = btn("Back to Menu", "btn-editor-back", [
-    "font-size:14px",
+    "font-size:var(--fs-subhead)",
     "padding:8px 18px",
     "background:#1a1a1a",
     "color:#aaa",
@@ -284,7 +284,7 @@ export function mountEditor(host: HTMLElement) {
 
   const statusEl = document.createElement("span");
   statusEl.id = "editor-status";
-  statusEl.style.cssText = "font-size:13px;margin-left:8px;color:#88ff88";
+  statusEl.style.cssText = "font-size:var(--fs-body);margin-left:8px;color:#88ff88";
   actions.appendChild(statusEl);
 
   root.appendChild(actions);
@@ -405,7 +405,7 @@ export function mountEditor(host: HTMLElement) {
     biomes.forEach(biome => {
       const bLabel = document.createElement("div");
       bLabel.textContent = biome.toUpperCase();
-      bLabel.style.cssText = "font-size:10px;color:#667;margin-top:6px;margin-bottom:2px;letter-spacing:0.06em;width:100%";
+      bLabel.style.cssText = "font-size:var(--fs-tiny);color:#667;margin-top:6px;margin-bottom:2px;letter-spacing:0.06em;width:100%";
       palette.appendChild(bLabel);
 
       blockTypes.filter(b => b.biome === biome).forEach(bt => {
@@ -427,7 +427,7 @@ export function mountEditor(host: HTMLElement) {
       "border-radius:4px",
       "cursor:pointer",
       "border:1px solid transparent",
-      "font-size:11px",
+      "font-size:var(--fs-small)",
       "color:#ccc",
       "white-space:nowrap",
       "overflow:hidden",
@@ -444,7 +444,7 @@ export function mountEditor(host: HTMLElement) {
       // Eraser icon
       const ico = document.createElement("div");
       ico.textContent = "✕";
-      ico.style.cssText = "width:24px;height:16px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:#ff7777";
+      ico.style.cssText = "width:24px;height:16px;display:flex;align-items:center;justify-content:center;font-size:var(--fs-caption);flex-shrink:0;color:#ff7777";
       sw.appendChild(ico);
     }
 

@@ -318,7 +318,7 @@ const CHARACTER_CSS = `
     left: 76px;
     right: 28px;
     font-family: var(--font-display);
-    font-size: 16px;
+    font-size: var(--fs-large);
     font-weight: 700;
     color: var(--gold-bright);
     text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 10px rgba(200,140,30,0.35);
@@ -332,7 +332,7 @@ const CHARACTER_CSS = `
     position: static;
     display: block;
     margin: 6px 0 10px;
-    font-size: 17px;
+    font-size: var(--fs-large);
   }
 
   /* ── "SELECTED" gold chip ── */
@@ -342,7 +342,7 @@ const CHARACTER_CSS = `
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: 9px;
+    font-size: var(--fs-micro);
     font-weight: 900;
     letter-spacing: 0.16em;
     color: var(--gold-bright);
@@ -357,7 +357,7 @@ const CHARACTER_CSS = `
 
   /* ── Passive description / unlock hint ── */
   .char-passive {
-    font-size: 12px;
+    font-size: var(--fs-caption);
     color: var(--text-dim);
     line-height: 1.4;
     padding: 0 4px;
@@ -369,7 +369,7 @@ const CHARACTER_CSS = `
     position: absolute;
     bottom: 11px;
     right: 13px;
-    font-size: 15px;
+    font-size: var(--fs-section);
     opacity: 0.75;
     line-height: 1;
     pointer-events: none;

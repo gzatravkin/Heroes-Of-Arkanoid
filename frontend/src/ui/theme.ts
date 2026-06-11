@@ -65,10 +65,16 @@ const THEME_CSS = `
     /* ── Type ───────────────────────────────────────────────────────── */
     --font-display: "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --font-body: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
-    --fs-title: 26px;
-    --fs-section: 15px;
-    --fs-body: 13px;
-    --fs-small: 11px;
+    --fs-title:   26px;  /* screen headings */
+    --fs-xl:      20px;  /* item names, hero text */
+    --fs-large:   16px;  /* stat values, section heroes */
+    --fs-section: 15px;  /* panel headers, section labels */
+    --fs-subhead: 14px;  /* subheadings, compact entries */
+    --fs-body:    13px;  /* primary body copy */
+    --fs-caption: 12px;  /* compact labels, badges */
+    --fs-small:   11px;  /* secondary copy, hints */
+    --fs-tiny:    10px;  /* metadata, timestamps */
+    --fs-micro:    8px;  /* ultra-small kickers */
 
     /* ── Space ──────────────────────────────────────────────────────── */
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
