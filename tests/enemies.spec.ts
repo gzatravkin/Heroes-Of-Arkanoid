@@ -1,5 +1,5 @@
 import { test, expect } from "./helpers/fixtures";
-import { openBattle, cheat } from "./helpers/game";
+import { openBattle, cheat, waitForPhase } from "./helpers/game";
 import * as path from "path";
 
 const SHOTS = path.resolve(__dirname, "demo-screenshots");
@@ -132,7 +132,7 @@ test("emitter telegraphs before firing (charging flag + flash)", async ({ page }
   // the window comes around (single-sample timing is phase-dependent).
   await page.waitForFunction(() =>
     (window as any).__game.getState()?.blocks
-      .some((b: any) => b.sprite === "HellBallSpawner" && b.charging), null, { timeout: 8000 });
+      .some((b: any) => b.sprite === "HellBallSpawner" && b.charging), null, { timeout: 20_000 });
   await page.screenshot({ path: path.join(SHOTS, "enemy-telegraph-charging.png") });
 });
 
@@ -187,14 +187,21 @@ test("necromant marks and revives a killed block (end-to-end)", async ({ page })
 
 test("killing an enemy block always drops a bonus (danger pays)", async ({ page }) => {
   await openBattle(page, "hell-2");
-  const spawnerId = await page.evaluate(() =>
-    (window as any).__game.getState().blocks.find((b: any) => b.sprite === "HellBallSpawner")?.id);
-  expect(spawnerId).toBeTruthy();
-  // Spawner has 6 HP — drive six hits into it.
-  for (let i = 0; i < 6; i++) {
-    await cheat(page, "ballToBlock", spawnerId);
-    await cheat(page, "fastForward", 3);
-  }
+  await waitForPhase(page, "Playing");
+  // Locate spawner and kill it (6 HP) in one evaluate — single GPU stall instead of 13.
+  // parkBallAbovePaddle prevents Won navigation during the GPU stall.
+  const killed = await page.evaluate(() => {
+    const g = (window as any).__game;
+    g.cheat("parkBallAbovePaddle"); // keep phase=Playing during the stall
+    const block = g.getState().blocks.find((b: any) => b.sprite === "HellBallSpawner");
+    if (!block) return false;
+    for (let i = 0; i < 6; i++) {
+      g.cheat("ballToBlock", block.id);
+      g.cheat("fastForward", 3);
+    }
+    return true;
+  });
+  expect(killed, "hell-2 must contain a HellBallSpawner block").toBeTruthy();
   await page.waitForFunction(() =>
     (window as any).__game.getState().bonuses.length > 0, null, { timeout: 8000 });
   await page.screenshot({ path: path.join(SHOTS, "enemy-danger-pays.png") });

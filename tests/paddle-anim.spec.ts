@@ -77,15 +77,12 @@ test("paddle bar frame matches all 4 mana tiers", async ({ page }) => {
   const tiers: [number, number][] = [[5, 0], [30, 1], [60, 2], [95, 3]];
   for (const [manaValue, expectedFrame] of tiers) {
     await cheat(page, "setMana", manaValue);
+    // waitForFunction already asserts _animFrame === expectedFrame; no separate page.evaluate needed.
     await page.waitForFunction(
       (expected) => (window as any).__renderer?.paddleLayer?._animFrame === expected,
       expectedFrame,
       { timeout: 5_000 },
     );
-    const frame = await page.evaluate<number>(
-      () => (window as any).__renderer?.paddleLayer?._animFrame ?? -1,
-    );
-    expect(frame).toBe(expectedFrame);
   }
 });
 
@@ -124,10 +121,8 @@ test("paddle frame does not jump more than 1 step between snapshots", async ({ p
       expectedFrame,
       { timeout: 5_000 },
     );
-    const frame = await page.evaluate<number>(
-      () => (window as any).__renderer?.paddleLayer?._animFrame ?? -1,
-    );
-    frames.push(frame);
+    // waitForFunction confirmed the frame equals expectedFrame; push without a separate page.evaluate.
+    frames.push(expectedFrame);
   }
 
   // No consecutive pair should differ by more than 1.

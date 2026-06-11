@@ -14,7 +14,7 @@ test("run + floor clear + pick advances to floor 2 with a buff", async ({ page }
 
   // Floor progress shows floor 1 of 3.
   const progress = page.locator("#dungeon-floor-progress");
-  await expect(progress).toBeVisible({ timeout: 8000 });
+  await expect(progress).toBeVisible({ timeout: 15_000 });
   await expect(progress).toContainText("Floor 1 / 3");
 
   // Click Enter Floor → battle scene (from=dungeon).
@@ -31,7 +31,7 @@ test("run + floor clear + pick advances to floor 2 with a buff", async ({ page }
   await waitForPhase(page, "Won");
 
   // pick-overlay should appear with 3 choice cards.
-  await expect(page.locator("#pick-overlay")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#pick-overlay")).toBeVisible({ timeout: 15_000 });
   const choiceCards = page.locator("[data-choice]");
   expect(await choiceCards.count()).toBe(3);
 
@@ -45,7 +45,7 @@ test("run + floor clear + pick advances to floor 2 with a buff", async ({ page }
 
   // Floor 2 of 3.
   const progress2 = page.locator("#dungeon-floor-progress");
-  await expect(progress2).toBeVisible({ timeout: 8000 });
+  await expect(progress2).toBeVisible({ timeout: 15_000 });
   await expect(progress2).toContainText("Floor 2 / 3");
 
   // At least one buff chip in dungeon-buffs.
@@ -66,7 +66,7 @@ test("permadeath: lose a floor → fail overlay → state inactive", async ({ pa
   await page.request.post(`${API}/dungeon/start?id=ember-depths`);
 
   await page.goto("/?scene=dungeon");
-  await expect(page.locator("#dungeon-floor-progress")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#dungeon-floor-progress")).toBeVisible({ timeout: 15_000 });
 
   await page.locator("#btn-enter-floor").click();
 
@@ -80,7 +80,7 @@ test("permadeath: lose a floor → fail overlay → state inactive", async ({ pa
   await waitForPhase(page, "Lost");
 
   // Fail overlay must appear.
-  await expect(page.locator("#dungeon-fail-overlay")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#dungeon-fail-overlay")).toBeVisible({ timeout: 15_000 });
 
   // GET /dungeon/state should return active:false.
   const stateRes = await page.request.get(`${API}/dungeon/state`);
@@ -95,7 +95,7 @@ test("clear reward: win all 3 floors → clear overlay with reward info", async 
   // Helper: enter floor → win → pick (or clear on last)
   async function doFloor(expectPick: boolean) {
     await page.goto("/?scene=dungeon");
-    await expect(page.locator("#btn-enter-floor")).toBeVisible({ timeout: 8000 });
+    await expect(page.locator("#btn-enter-floor")).toBeVisible({ timeout: 15_000 });
     await page.locator("#btn-enter-floor").click();
 
     await page.waitForFunction(() => !!(window as any).__game?.getState(), null, { timeout: 15000 });
@@ -106,7 +106,7 @@ test("clear reward: win all 3 floors → clear overlay with reward info", async 
     await waitForPhase(page, "Won");
 
     if (expectPick) {
-      await expect(page.locator("#pick-overlay")).toBeVisible({ timeout: 8000 });
+      await expect(page.locator("#pick-overlay")).toBeVisible({ timeout: 15_000 });
       // Click first choice.
       await page.locator("[data-choice]").first().click();
       await page.waitForURL("**/?scene=dungeon*", { timeout: 10000 });
@@ -119,7 +119,7 @@ test("clear reward: win all 3 floors → clear overlay with reward info", async 
   await doFloor(true);
   // Floor 3 → clear overlay (no pick).
   await page.goto("/?scene=dungeon");
-  await expect(page.locator("#btn-enter-floor")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#btn-enter-floor")).toBeVisible({ timeout: 15_000 });
   await page.locator("#btn-enter-floor").click();
 
   await page.waitForFunction(() => !!(window as any).__game?.getState(), null, { timeout: 15000 });
@@ -130,7 +130,7 @@ test("clear reward: win all 3 floors → clear overlay with reward info", async 
   await waitForPhase(page, "Won");
 
   // Clear overlay should appear.
-  await expect(page.locator("#dungeon-clear-overlay")).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#dungeon-clear-overlay")).toBeVisible({ timeout: 15_000 });
   // Should contain crystals info.
   await expect(page.locator("#dungeon-clear-crystals")).toBeVisible({ timeout: 5000 });
   // btn-dungeon-done present.

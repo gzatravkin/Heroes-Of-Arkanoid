@@ -1,6 +1,14 @@
 import { test, expect } from "./helpers/fixtures";
 import { openBattle, cheat, waitForPhase } from "./helpers/game";
 
+const API = "http://localhost:5080";
+
+// Ensure fire_mage character is active before every test in this suite —
+// some gallery/class-kit tests select other characters and may leave dirty state.
+test.beforeEach(async ({ page }) => {
+  await page.request.post(`${API}/character/select?id=fire_mage`);
+});
+
 test("HUD lives, balls and mana bar are present after battle opens", async ({ page }) => {
   await openBattle(page, "hell-1", 1);
 
@@ -26,24 +34,25 @@ test("HUD lives, balls and mana bar are present after battle opens", async ({ pa
 
 test("HUD mana fill and fireball affordability track setMana cheat", async ({ page }) => {
   await openBattle(page, "hell-1", 1);
-
-  // Freeze regen first: with 14 mana/s refilling, the "drained" window is ~1.8s —
-  // shorter than the cheat→snapshot→HUD pipeline can take under parallel-worker
-  // load. Frozen mana makes the drained state stable and the assert deterministic.
-  await cheat(page, "freezeMana", 1);
-  await cheat(page, "setMana", 0);
+  await waitForPhase(page, "Playing");
+  // Freeze ball velocity + mana regen + drain to 0 in one evaluate — single GPU stall.
+  // fastForward:0 sets ball vel=(0,0) so it can't clear blocks during subsequent stalls.
+  await page.evaluate(() => {
+    const g = (window as any).__game;
+    g.cheat("fastForward", 0); // freeze ball
+    g.cheat("freezeMana", 1);
+    g.cheat("setMana", 0);
+  });
+  // waitForFunction has no GPU stall; confirms fill and affordability together.
   await page.waitForFunction(() => {
     const fill = document.querySelector("#hud-mana-fill") as HTMLElement | null;
     const fb   = document.querySelector("#hud-spell-fireball");
     if (!fill || !fb) return false;
     return parseFloat(fill.style.width ?? "100") < 25 && fb.classList.contains("unaffordable");
   }, null, { timeout: 10_000 });
-  const widthStr0 = await page.locator("#hud-mana-fill").evaluate((el: HTMLElement) => el.style.width);
-  expect(parseFloat(widthStr0)).toBeLessThan(25);
-  await expect(page.locator("#hud-spell-fireball")).toHaveClass(/unaffordable/);
 
-  // set mana to 100 → fill ~100%, fireball affordable (no regen race upward: 100 is max)
-  await cheat(page, "setMana", 100);
+  // Single evaluate — ball is frozen, so no block-clear risk during this GPU stall.
+  await page.evaluate(() => (window as any).__game.cheat("setMana", 100));
   await page.waitForFunction(() => {
     const fill = document.querySelector("#hud-mana-fill") as HTMLElement | null;
     const fb   = document.querySelector("#hud-spell-fireball");
@@ -51,10 +60,6 @@ test("HUD mana fill and fireball affordability track setMana cheat", async ({ pa
     const w = parseFloat(fill.style.width ?? "0");
     return w > 90 && fb.classList.contains("affordable");
   }, null, { timeout: 10_000 });
-
-  const widthStr100 = await page.locator("#hud-mana-fill").evaluate((el: HTMLElement) => el.style.width);
-  expect(parseFloat(widthStr100)).toBeGreaterThan(90);
-  await expect(page.locator("#hud-spell-fireball")).toHaveClass(/affordable/);
 });
 
 test("HUD banner shows VICTORY on winNow cheat", async ({ page }) => {

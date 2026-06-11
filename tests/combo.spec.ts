@@ -76,16 +76,18 @@ test("floating score text visible at ×2 combo", async ({ page }) => {
     null, { timeout: 10_000 },
   );
 
-  // Set combo to ×2 so the next brick destruction spawns a floater.
-  await cheat(page, "setCombo", 2);
-
-  // Grab the id of a live, destructible block from the current snapshot.
+  // Read a live block id first (page.evaluate causes one GPU stall — do it before setCombo
+  // so a paddle hit during the stall cannot reset the ×2 multiplier we are about to set).
   const firstBlockId = await page.evaluate<number | null>(() => {
     const blocks: any[] = (window as any).__game?.getState()?.blocks ?? [];
     const blk = blocks.find((b: any) => !b.indestructible && b.hp > 0);
     return blk?.id ?? null;
   });
   expect(firstBlockId).not.toBeNull();
+
+  // Set combo=2, then immediately drive the ball to the block (both via waitForFunction —
+  // no GPU stall between them, so the combo cannot be reset by a paddle hit in the gap).
+  await cheat(page, "setCombo", 2);
 
   // ballToBlock teleports the ball to overlap the target block and sets its
   // velocity toward it; the collision resolves on the next physics tick.

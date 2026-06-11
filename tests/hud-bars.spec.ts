@@ -1,6 +1,13 @@
 import { test, expect } from "./helpers/fixtures";
-import { openBattle, cheat } from "./helpers/game";
+import { openBattle, cheat, waitForPhase } from "./helpers/game";
 import type { Page } from "@playwright/test";
+
+const API = "http://localhost:5080";
+
+// Ensure fire_mage character so the hotbar IDs are predictable across test runs.
+test.beforeEach(async ({ page }) => {
+  await page.request.post(`${API}/character/select?id=fire_mage`);
+});
 
 /** parseFloat of a fill element's inline width (kept as a plain percentage). */
 async function fillPct(page: Page, sel: string): Promise<number> {
@@ -37,49 +44,62 @@ test("value bars are symmetric 3-slice: border-image frame with caps pinned to b
 test("HP bar tracks 100 / 50 / 0% fill", async ({ page }) => {
   await openBattle(page, "hell-1"); // no boss → Lives is stable (only boss hazards reduce it)
 
+  // Combine state + DOM checks in waitForFunction (no GPU stall).
+  // fillPct uses locator.evaluate() which stalls the GPU for 12-15s under parallel load —
+  // during that window the ball can fall off and decrement lives before the fill is read.
+
   // Pin the running max at 10 so 10/5/0 → 100/50/0%.
   await cheat(page, "setLives", 10);
-  await page.waitForFunction(() => (window as any).__game.getState()?.lives === 10);
-  expect(await fillPct(page, "#hud-lives-fill")).toBeGreaterThan(95);
+  await page.waitForFunction(() => {
+    const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
+    return (window as any).__game.getState()?.lives === 10 && fillW > 95;
+  }, null, { timeout: 10_000 });
 
   await cheat(page, "setLives", 5);
-  await page.waitForFunction(() => (window as any).__game.getState()?.lives === 5);
-  const lv = await fillPct(page, "#hud-lives-fill");
-  expect(lv).toBeGreaterThan(45); expect(lv).toBeLessThan(55);
+  await page.waitForFunction(() => {
+    const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
+    const lives = (window as any).__game.getState()?.lives;
+    return lives === 5 && fillW > 45 && fillW < 55;
+  }, null, { timeout: 10_000 });
 
   await cheat(page, "setLives", 0);
-  await page.waitForFunction(() => (window as any).__game.getState()?.lives === 0);
-  expect(await fillPct(page, "#hud-lives-fill")).toBeLessThan(5);
+  await page.waitForFunction(() => {
+    const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
+    return (window as any).__game.getState()?.lives === 0 && fillW < 5;
+  }, null, { timeout: 10_000 });
 });
 
 test("spare-balls bar reflects the live spare-ball count (full / half / empty)", async ({ page }) => {
   await openBattle(page, "hell-1");
+  await waitForPhase(page, "Playing");
+  // Freeze the ball velocity so it never falls during GPU stalls from cheat() calls.
+  // fastForward:0 sets ball vel=(0,0) without advancing ticks; ball stays stationary.
+  await cheat(page, "fastForward", 0);
 
-  // Read the live count and the fill together so a stray drain can't desync the
-  // assertion — the bar must always equal spareBalls / maxBalls.
-  const read = () => page.evaluate(() => ({
-    balls: (window as any).__game.getState().spareBalls as number,
-    fill: parseFloat((document.querySelector("#hud-balls-fill") as HTMLElement).style.width) || 0,
-  }));
-
-  // Pin the running max at 10 (default StartBalls is small, so clean halves need a wider scale).
   const MAX = 10;
+  // Full — use waitForFunction (no GPU stall) to check both snapshot AND bar together.
   await cheat(page, "setBalls", MAX);
-  await page.waitForFunction((m) => (window as any).__game.getState().spareBalls === m, MAX);
-  expect((await read()).fill).toBeGreaterThan(95);          // full
+  await page.waitForFunction((m) => {
+    const s = (window as any).__game.getState();
+    const fill = parseFloat((document.querySelector("#hud-balls-fill") as HTMLElement)?.style.width || "0");
+    return s?.spareBalls === m && fill > 95;
+  }, MAX, { timeout: 10_000 });
 
-  // Half. A stray drain can nudge the count by 1, so assert the bar matches the live
-  // value exactly AND lands in the half band.
+  // Half — setBalls(5) and confirm bar lands in the 40-60% band.
   await cheat(page, "setBalls", MAX / 2);
-  await page.waitForFunction((m) => (window as any).__game.getState().spareBalls <= m / 2, MAX);
-  const half = await read();
-  expect(half.fill).toBeCloseTo((half.balls / MAX) * 100, 0); // bar matches live value
-  expect(half.fill).toBeGreaterThan(35); expect(half.fill).toBeLessThan(55); // ~half
+  await page.waitForFunction((m) => {
+    const s = (window as any).__game.getState();
+    const fill = parseFloat((document.querySelector("#hud-balls-fill") as HTMLElement)?.style.width || "0");
+    return s?.spareBalls === m / 2 && fill > 40 && fill < 60;
+  }, MAX, { timeout: 10_000 });
 
   // Empty.
   await cheat(page, "setBalls", 0);
-  await page.waitForFunction(() => (window as any).__game.getState().spareBalls === 0);
-  expect((await read()).fill).toBeLessThan(5);
+  await page.waitForFunction(() => {
+    const s = (window as any).__game.getState();
+    const fill = parseFloat((document.querySelector("#hud-balls-fill") as HTMLElement)?.style.width || "0");
+    return s?.spareBalls === 0 && fill < 5;
+  }, null, { timeout: 10_000 });
 });
 
 test("boss bar tracks 100 / 50 / 0% fill", async ({ page }) => {

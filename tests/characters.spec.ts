@@ -10,7 +10,7 @@ test("character select: fire_mage starts unlocked; bosses earn the rest (docs/04
 
   // 4 character cards should be visible.
   const cards = page.locator("[data-character]");
-  await expect(cards).toHaveCount(4);
+  await expect(cards).toHaveCount(4, { timeout: 15_000 });
 
   // fire_mage should be marked selected (has CSS class 'selected').
   const fireMageCard = page.locator("[data-character='fire_mage']");

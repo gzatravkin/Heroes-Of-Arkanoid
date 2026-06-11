@@ -2,15 +2,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: ".",
-  // 45s (was 30s): heavy multi-floor sim tests need headroom under 4-worker CPU contention.
+  // 45s headroom for tests with 1-2 remaining page.evaluate() stalls.
   timeout: 45_000,
   globalSetup: "./global-setup.ts",
-  // Parallel-safe: each worker uses its own backend profile namespace (see
-  // helpers/fixtures.ts) so meta-state tests never clobber each other, and sim
-  // state is already per-WebSocket. Capped at 4 workers to keep the machine
-  // responsive and well under the WebGL-context ceiling.
   fullyParallel: true,
-  workers: 4,
+  // 2 workers instead of 4: halves Chromium instances, halves backend sessions,
+  // and cuts GPU stall duration from 12-15s (4-way) down to ~6-8s (2-way).
+  workers: 2,
   retries: 1,
   use: {
     baseURL: "http://localhost:5175",
@@ -20,9 +18,9 @@ export default defineConfig({
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
-    // DPR 2 (not 3): still a mobile/retina backing store but ~2.25× less GPU
-    // fill per frame, which cuts render cost and keeps parallel workers smooth.
-    deviceScaleFactor: 2,
+    // DPR 1: 390×844 physical pixels instead of 780×1688 at DPR 2 — 4× less
+    // GPU fill per frame, significantly reducing GPU load during parallel runs.
+    deviceScaleFactor: 1,
   },
   webServer: [
     {

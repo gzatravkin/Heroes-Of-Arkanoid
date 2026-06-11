@@ -1,6 +1,6 @@
 import { test } from "./helpers/fixtures";
 import type { Page } from "@playwright/test";
-import { openBattle, cheat } from "./helpers/game";
+import { openBattle, waitForPhase } from "./helpers/game";
 import * as path from "path";
 
 // Visual showcase: expanded UI + spell screenshots (requested for review).
@@ -53,10 +53,15 @@ const FIRE_SPELLS: [name: string, cast: string][] = [
 for (const [name, cast] of FIRE_SPELLS) {
   test(`shot: ${name}`, async ({ page }) => {
     await openBattle(page, "hell-1");
-    await cheat(page, "setMana", 100);
-    await cheat(page, "parkBallAbovePaddle"); // keep the round alive while casting
-    await page.evaluate((c) => (window as any).__game[c](), cast);
-    await page.waitForTimeout(500); // let the effect render
+    await waitForPhase(page, "Playing");
+    // Park ball + set mana + cast in one evaluate — single GPU stall instead of 3.
+    await page.evaluate((c) => {
+      const g = (window as any).__game;
+      g.cheat("parkBallAbovePaddle");
+      g.cheat("setMana", 100);
+      (g as any)[c]();
+    }, cast);
+    await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(SHOTS, `${name}.png`) });
   });
 }
@@ -71,10 +76,20 @@ for (const [char, slot, name] of CLASS_SPELLS) {
   test(`shot: ${name}`, async ({ page }) => {
     await page.request.post(`${API}/character/select?id=${char}`);
     await openBattle(page, "hell-1");
-    await cheat(page, "setMana", 100);
-    await cheat(page, "parkBallAbovePaddle");
-    await page.evaluate((s) => (window as any).__game.castSlot(s), slot);
+    await waitForPhase(page, "Playing");
+    // Park ball + set mana + cast in one evaluate — single GPU stall instead of 3.
+    await page.evaluate((s) => {
+      const g = (window as any).__game;
+      g.cheat("parkBallAbovePaddle");
+      g.cheat("setMana", 100);
+      g.castSlot(s);
+    }, slot);
     await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(SHOTS, `${name}.png`) });
   });
 }
+
+// Reset character so downstream tests (hud-live, etc.) see the default fire_mage hotbar.
+test("cleanup: reset character to fire_mage", async ({ page }) => {
+  await page.request.post(`${API}/character/select?id=fire_mage`);
+});

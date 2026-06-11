@@ -26,6 +26,9 @@ test("campaign win flow: complete hell-1 → reward overlay → hell-2 unlocked"
   // Wait for battle to be active
   await page.waitForFunction(() => !!(window as any).__game?.getState());
   await page.waitForFunction(() => (window as any).__game.getState()?.balls.length > 0);
+  // Poke serve so winNow fires even if auto-serve timer hasn't fired yet.
+  // waitForFunction avoids a GPU stall (unlike page.evaluate).
+  await page.waitForFunction(() => { (window as any).__game?.serve?.(); return true; });
 
   // Cheat to win
   await cheat(page, "winNow");
