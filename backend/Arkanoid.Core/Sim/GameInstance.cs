@@ -364,6 +364,9 @@ public sealed class GameInstance
         var half = Paddle.Width / 2;
         var clamped = System.Math.Clamp(x, half, Level.Grid.Width - half);
         Paddle.Center = new Vec2(clamped, Paddle.Center.Y);
+        // Keep the ball on the paddle during the serve phase.
+        if (Phase == GamePhase.Serving && Balls.Count > 0 && Balls[0].Alive)
+            Balls[0].Pos = new Vec2(clamped, Paddle.Center.Y - Paddle.Height / 2 - Balls[0].Radius - 1);
     }
 
     public void Tick(double dt)
