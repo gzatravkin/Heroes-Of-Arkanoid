@@ -111,8 +111,8 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
   name.id = "hud-boss-name";
   name.style.cssText = [
     "font-size:10px", "font-weight:900",
-    "color:#ff6644", "letter-spacing:2px",
-    "text-shadow:0 0 6px #ff3300,0 1px 3px #000",
+    "color:var(--danger-bright)", "letter-spacing:2px",
+    "text-shadow:0 0 6px var(--danger-bright),0 1px 3px #000",
     "text-align:center", "white-space:nowrap",
   ].join(";");
   outer.appendChild(name);
@@ -121,7 +121,7 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
     id: "hud-boss-bar", fillId: "hud-boss-hp-fill",
     width: "100%", height: BOSS_BAR_H,
     emptySrc: "/ui/BattleHPEmpty.png",
-    gradient: "linear-gradient(to right,#880000,#cc2222)",
+    gradient: "linear-gradient(to right,var(--color-boss-deep),var(--color-boss-hp))",
   });
   outer.appendChild(bar);
 
@@ -133,7 +133,7 @@ export function buildManaBar(): HTMLElement {
     id: "hud-mana", fillId: "hud-mana-fill",
     width: "min(220px,80cqw)", height: BAR_H,
     emptySrc: "/ui/BattleMPEmpty.png",
-    gradient: "linear-gradient(to right,#1f9fb8,#5fe6f5)",
+    gradient: "linear-gradient(to right,var(--color-mana-deep),var(--color-mana))",
   });
 
   const label = el("span");

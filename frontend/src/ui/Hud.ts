@@ -115,7 +115,7 @@ export class Hud {
     const livesBar = buildLabelledBar({
       id: "hud-lives", fillId: "hud-lives-fill", labelId: "hud-lives-label",
       emptySrc: "/ui/BattleHPEmpty.png",
-      gradient: "linear-gradient(to right,#cc2a2a,#ff5a4a)",
+      gradient: "linear-gradient(to right,var(--color-hp-deep),var(--color-hp))",
       icon: "/ui/BonusHP.png",
     });
     this.livesEl = livesBar.outer;
@@ -127,7 +127,7 @@ export class Hud {
     const ballsBar = buildLabelledBar({
       id: "hud-balls", fillId: "hud-balls-fill", labelId: "hud-balls-label",
       emptySrc: "/ui/BattleMPEmpty.png",
-      gradient: "linear-gradient(to right,#1f7fc8,#56d6ff)",
+      gradient: "linear-gradient(to right,var(--color-balls-deep),var(--color-balls))",
       icon: "/ui/BattleLifeBall.png",
     });
     this.ballsEl = ballsBar.outer;
@@ -355,11 +355,11 @@ export class Hud {
       const bossType = bossBlock ? inferBossType(bossBlock.sprite) : "Unknown";
       this.bossNameEl.textContent = bossLabel(bossType);
       if (hpPct < 33) {
-        this.bossBarFill.style.background = "linear-gradient(to right,#cc2200,#ff4422)";
+        this.bossBarFill.style.background = "linear-gradient(to right,var(--color-boss-deep),var(--danger-bright))";
       } else if (hpPct < 66) {
-        this.bossBarFill.style.background = "linear-gradient(to right,#cc6600,#ff9933)";
+        this.bossBarFill.style.background = "linear-gradient(to right,var(--color-boss-deep),var(--color-fire))";
       } else {
-        this.bossBarFill.style.background = "linear-gradient(to right,#880000,#cc2222)";
+        this.bossBarFill.style.background = "linear-gradient(to right,var(--color-boss-deep),var(--color-boss-hp))";
       }
     } else {
       this.bossBarEl.style.display = "none";
@@ -371,16 +371,16 @@ export class Hud {
       const t = Math.ceil(s.timeLeft ?? 0);
       const mm = Math.floor(t / 60), ss = (t % 60).toString().padStart(2, "0");
       if (s.timerMode === "survive") {
-        this.timerEl.style.color = "#ffd700";
+        this.timerEl.style.color = "var(--gold)";
         this.timerEl.textContent = `SURVIVE ${mm}:${ss}`;
       } else {
-        this.timerEl.style.color = t <= 10 ? "#ff5544" : "#ffffff";
+        this.timerEl.style.color = t <= 10 ? "var(--danger-bright)" : "var(--text)";
         this.timerEl.textContent = `TIME ${mm}:${ss}`;
       }
     } else if ((s.floorCount ?? 1) > 1 && s.phase === "Playing") {
       // Multi-floor collapse: show progress through the mine shaft.
       this.timerEl.style.display = "block";
-      this.timerEl.style.color = "#ccbbaa";
+      this.timerEl.style.color = "var(--text-dim)";
       this.timerEl.textContent = `FLOOR ${s.floor}/${s.floorCount}`;
     } else {
       this.timerEl.style.display = "none";

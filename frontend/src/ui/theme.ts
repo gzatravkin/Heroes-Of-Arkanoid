@@ -50,6 +50,16 @@ const THEME_CSS = `
     --color-equip:   #bfe3ff;  /* equip action button text */
     --color-unequip: #f3b8a8;  /* unequip action button text */
 
+    /* ── Battle HUD game-state bar colours ──────────────────────────── */
+    --color-hp:        #ff5a4a;  /* HP bar fill (highlight) */
+    --color-hp-deep:   #cc2a2a;  /* HP bar fill (base) */
+    --color-balls:     #56d6ff;  /* spare-balls bar fill (highlight) */
+    --color-balls-deep:#1f7fc8;  /* spare-balls bar fill (base) */
+    --color-mana:      #5fe6f5;  /* mana bar fill (highlight) */
+    --color-mana-deep: #1f9fb8;  /* mana bar fill (base) */
+    --color-boss-hp:   #cc2222;  /* boss HP bar (normal phase) */
+    --color-boss-deep: #880000;  /* boss HP bar (base/dark phase) */
+
     /* ── Interaction state filters ──────────────────────────────────── */
     --filter-locked:   saturate(0.45) brightness(0.8);
     --filter-dim:      saturate(0.25) brightness(0.65);

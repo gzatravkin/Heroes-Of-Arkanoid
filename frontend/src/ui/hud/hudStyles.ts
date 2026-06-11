@@ -7,7 +7,7 @@ export const HUD_STYLES = `
                     rgba(0,0,0,0.45);
         border-radius: 20px;
         padding: 3px 10px 3px 8px;
-        color: #eee;
+        color: var(--text);
         font-size: 12px;
         display: inline-flex;
         align-items: center;
