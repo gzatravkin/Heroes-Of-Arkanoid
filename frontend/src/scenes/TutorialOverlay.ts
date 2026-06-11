@@ -223,7 +223,7 @@ function injectTutorialStyles() {
       align-items: center;
       justify-content: center;
       z-index: 2000;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       padding: max(env(safe-area-inset-top,0px),12px) 16px max(env(safe-area-inset-bottom,0px),12px);
       box-sizing: border-box;
       gap: 12px;
@@ -267,8 +267,9 @@ function injectTutorialStyles() {
 
     .tut-title {
       margin: 0;
-      font-size: 1.5rem;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: var(--fs-title);
+      font-weight: 700;
       color: var(--gold-bright);
       letter-spacing: 0.07em;
       text-shadow: 0 0 16px rgba(255,200,50,0.5), 0 2px 4px rgba(0,0,0,0.9);
@@ -346,8 +347,8 @@ function injectTutorialStyles() {
       min-width: 100px;
       ${btnInterface()}
       cursor: pointer;
-      font-family: sans-serif;
-      font-size: 15px;
+      font-family: var(--font-body);
+      font-size: var(--fs-section);
       font-weight: 700;
       letter-spacing: 0.04em;
       color: var(--text);
@@ -378,7 +379,7 @@ function injectTutorialStyles() {
       font-size: 12px;
       cursor: pointer;
       padding: 8px;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       -webkit-tap-highlight-color: transparent;
     }
     .tut-skip:hover { color: rgba(200,180,140,0.85); }
