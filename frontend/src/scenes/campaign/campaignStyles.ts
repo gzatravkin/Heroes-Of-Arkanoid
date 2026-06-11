@@ -270,7 +270,7 @@ export const CAMPAIGN_STYLES = `
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: #b9a06a;
+      color: var(--text-dim);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       white-space: nowrap;
       line-height: 1.1;
@@ -278,7 +278,7 @@ export const CAMPAIGN_STYLES = `
     .camp-node-label {
       font-size: var(--fs-small);
       font-weight: 700;
-      color: #f5e6bf;
+      color: var(--text);
       text-shadow: 0 1px 2px rgba(0,0,0,0.95);
       line-height: 1.2;
       white-space: nowrap;

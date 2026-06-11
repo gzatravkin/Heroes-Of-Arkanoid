@@ -164,9 +164,9 @@ function injectOverlayStyles() {
       text-shadow: 0 0 20px currentColor, 0 2px 4px rgba(0,0,0,0.9);
       margin-bottom: var(--sp-2);
     }
-    .ov-title-win   { color: #ffd700; }
-    .ov-title-green { color: #55ee88; }
-    .ov-title-red   { color: #ff4444; }
+    .ov-title-win   { color: var(--gold-bright); }
+    .ov-title-green { color: var(--ok-bright); }
+    .ov-title-red   { color: var(--danger-bright); }
 
     .ov-reward-row {
       display: flex;
@@ -253,7 +253,7 @@ function injectOverlayStyles() {
       font-size: var(--fs-small);
       font-weight: 700;
       text-align: center;
-      color: #e8d8b0;
+      color: var(--text);
       line-height: 1.3;
     }
 
@@ -266,7 +266,7 @@ function injectOverlayStyles() {
       font-size: var(--fs-micro);
       font-weight: 700;
       text-align: center;
-      color: #8fe3a0;
+      color: var(--ok-bright);
       line-height: 1.2;
       letter-spacing: 0.02em;
     }
@@ -282,7 +282,7 @@ function injectOverlayStyles() {
     .ov-pick-title {
       font-size: 1.3rem;
       font-weight: 700;
-      color: #ffcc44;
+      color: var(--gold);
       letter-spacing: 0.06em;
       margin-bottom: var(--sp-3);
       text-shadow: 0 0 12px rgba(255,200,50,0.5);
