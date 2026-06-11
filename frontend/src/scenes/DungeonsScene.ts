@@ -169,7 +169,7 @@ function injectDungeonStyles() {
       font-size: 13px;
       letter-spacing: 0.03em;
       line-height: 1.5;
-      transition: filter 0.15s;
+      transition: filter var(--dur-normal);
     }
     .dng-flavor:hover {
       filter: brightness(1.08);
@@ -188,7 +188,7 @@ function injectDungeonStyles() {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      transition: filter 0.15s;
+      transition: filter var(--dur-normal);
     }
     .dng-card:hover {
       filter: brightness(1.08);
@@ -228,7 +228,7 @@ function injectDungeonStyles() {
       letter-spacing: 0.04em;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       color: var(--gold-bright);
     }

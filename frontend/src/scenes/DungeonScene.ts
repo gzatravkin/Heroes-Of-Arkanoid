@@ -210,7 +210,7 @@ function injectDungeonRunStyles() {
       padding: 4px 8px;
       font-size: 12px;
       color: var(--text-dim);
-      transition: filter 0.15s;
+      transition: filter var(--dur-normal);
     }
     .dngrun-buff-chip:hover {
       filter: brightness(1.08);
@@ -226,7 +226,7 @@ function injectDungeonRunStyles() {
       letter-spacing: 0.04em;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       color: var(--gold-bright);
     }
