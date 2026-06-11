@@ -326,7 +326,7 @@ function injectTutorialStyles() {
       border-radius: 50%;
       background: rgba(200,180,100,0.3);
       border: 1px solid rgba(200,180,100,0.5);
-      transition: background 0.2s;
+      transition: background var(--dur-normal);
     }
     .tut-dot.active {
       background: var(--gold-bright);

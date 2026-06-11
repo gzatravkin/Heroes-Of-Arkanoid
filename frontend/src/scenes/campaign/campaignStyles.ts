@@ -126,7 +126,7 @@ export const CAMPAIGN_STYLES = `
       left: 18px; top: 7px; bottom: 7px; right: 18px;
       background: linear-gradient(180deg, #ffe06a, #d89a2e);
       border-radius: 2px;
-      transition: width 0.3s;
+      transition: width var(--dur-slow);
     }
     .camp-profile-points {
       color: var(--text-dim);
