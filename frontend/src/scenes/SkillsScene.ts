@@ -325,7 +325,7 @@ function injectSkillsStyles() {
       width: min(360px, 96cqw);
     }
     .sk-tab {
-      height: 38px; padding: 0 14px;
+      min-height: 44px; padding: 0 14px;
       ${btnInterface()}
       cursor: pointer;
       font-family: var(--font-body); font-size: var(--fs-caption);
@@ -413,12 +413,12 @@ function injectSkillsStyles() {
 
     /* ── Upgrade button: Button1 9-slice pill ── */
     .sk-upgrade-btn {
-      width: 100%; min-height: 36px;
+      width: 100%; min-height: 44px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
       font-family: var(--font-body); font-size: var(--fs-caption);
       font-weight: 700; color: var(--gold-bright);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      text-shadow: 0 1px 2px var(--shadow-hard);
       letter-spacing: 0.04em;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;

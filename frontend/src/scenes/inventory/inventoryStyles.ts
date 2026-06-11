@@ -213,7 +213,7 @@ export const INVENTORY_STYLES = `
     /* ── Actions: Button1 gold/navy pills ── */
     .inv-buy-btn, .inv-equip-btn {
       width: 100%;
-      min-height: 36px;
+      min-height: 44px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 16px")}
       cursor: pointer;
       font-family: var(--font-body);
@@ -223,7 +223,7 @@ export const INVENTORY_STYLES = `
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       transition: filter var(--dur-normal), transform var(--dur-fast);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      text-shadow: 0 1px 2px var(--shadow-hard);
     }
     .inv-buy-btn { color: var(--gold-bright); }
     .inv-buy-btn:hover:not(:disabled)  { filter: brightness(1.18); }

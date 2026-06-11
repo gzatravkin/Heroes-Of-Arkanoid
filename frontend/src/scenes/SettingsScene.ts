@@ -306,10 +306,10 @@ function injectSettingsStyles() {
       filter: brightness(1.18);
     }
 
-    /* Toggle switch */
+    /* Toggle switch — 44px tall tap area, 28px visual track centered inside */
     .set-toggle {
-      position: relative; display: inline-block;
-      width: 48px; height: 28px; flex-shrink: 0;
+      position: relative; display: inline-flex; align-items: center;
+      width: 48px; height: 44px; flex-shrink: 0;
       cursor: pointer;
       transition: filter var(--dur-normal), transform var(--dur-fast);
     }
@@ -322,7 +322,9 @@ function injectSettingsStyles() {
     }
     .set-toggle input { opacity: 0; width: 0; height: 0; }
     .set-toggle-slider {
-      position: absolute; inset: 0;
+      position: absolute; left: 0; right: 0;
+      top: 50%; transform: translateY(-50%);
+      height: 28px;
       background: #241a0d;
       border: 1px solid var(--gold-dim);
       border-radius: 999px;
