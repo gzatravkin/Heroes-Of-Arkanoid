@@ -136,7 +136,7 @@ export function mountCampaign(host: HTMLElement) {
   upgradePanel.appendChild(pointsRemaining);
 
   const spellList = document.createElement("div");
-  css(spellList, { display: "flex", flexDirection: "column", gap: "10px" });
+  css(spellList, { display: "flex", flexDirection: "column", gap: "var(--sp-2h)" });
   upgradePanel.appendChild(spellList);
 
   // ── State ────────────────────────────────────────────────────────────────

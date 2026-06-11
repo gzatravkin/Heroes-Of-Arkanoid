@@ -226,7 +226,7 @@ function injectTutorialStyles() {
       font-family: var(--font-body);
       padding: max(env(safe-area-inset-top,0px),12px) 16px max(env(safe-area-inset-bottom,0px),12px);
       box-sizing: border-box;
-      gap: 12px;
+      gap: var(--sp-3);
       overflow: hidden;
     }
 
@@ -253,7 +253,7 @@ function injectTutorialStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: var(--sp-3);
       box-shadow: 0 8px 40px rgba(0,0,0,0.8), inset 0 0 40px rgba(10,5,30,0.6);
     }
     .tut-panel::before, .tut-panel::after {
@@ -287,7 +287,7 @@ function injectTutorialStyles() {
 
     .tut-icon-row {
       display: flex;
-      gap: 20px;
+      gap: var(--sp-4h);
       justify-content: center;
       flex-wrap: wrap;
     }
@@ -296,7 +296,7 @@ function injectTutorialStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: var(--sp-1h);
     }
 
     .tut-icon-img {
@@ -314,7 +314,7 @@ function injectTutorialStyles() {
 
     .tut-dots {
       display: flex;
-      gap: 8px;
+      gap: var(--sp-2);
       justify-content: center;
       align-items: center;
       min-height: 44px;
@@ -338,8 +338,8 @@ function injectTutorialStyles() {
       width: 100%;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-top: 4px;
+      gap: var(--sp-3);
+      margin-top: var(--sp-1);
     }
 
     .tut-btn {

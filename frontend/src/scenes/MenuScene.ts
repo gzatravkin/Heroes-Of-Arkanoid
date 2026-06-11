@@ -287,7 +287,7 @@ function injectMenuStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: var(--sp-3h);
       margin-top: auto;
       margin-bottom: auto;
       flex-shrink: 0;
@@ -359,7 +359,7 @@ function injectMenuStyles() {
     .menu-dock {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: var(--sp-2h);
       width: min(360px, 94cqw);
       flex-shrink: 0;
       padding: 18px 8px calc(env(safe-area-inset-bottom, 0px) + 10px) 8px;
@@ -369,7 +369,7 @@ function injectMenuStyles() {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: var(--sp-1);
       min-width: 56px;
       min-height: 64px;
       padding: 6px 2px;

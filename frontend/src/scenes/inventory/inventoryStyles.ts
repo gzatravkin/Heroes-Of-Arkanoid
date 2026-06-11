@@ -29,7 +29,7 @@ export const INVENTORY_STYLES = `
     .inv-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--sp-2);
       padding: max(12px, env(safe-area-inset-top, 0px)) 12px 8px 12px;
       flex-shrink: 0;
     }
@@ -54,12 +54,12 @@ export const INVENTORY_STYLES = `
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 4px;
+      gap: var(--sp-1);
     }
 
     /* ── Section plaques (NameBlock scroll bars) ── */
     .inv-equipped-section {
-      padding: 10px 16px 6px;
+      padding: var(--sp-2h) var(--sp-4) var(--sp-1h);
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
@@ -71,7 +71,7 @@ export const INVENTORY_STYLES = `
       justify-content: center;
       min-height: 30px;
       padding: 2px 22px;
-      margin-bottom: 10px;
+      margin-bottom: var(--sp-2h);
       ${nineSlice("/ui/NameBlock.png", "40 120 40 120", "9px 28px")}
       font-family: var(--font-display);
       font-size: var(--fs-caption);
@@ -90,7 +90,7 @@ export const INVENTORY_STYLES = `
     /* ── Equipped row: Kvadrat slot frames ── */
     .inv-equipped-row {
       display: flex;
-      gap: 12px;
+      gap: var(--sp-3);
       justify-content: center;
     }
     .inv-equip-slot {
@@ -131,7 +131,7 @@ export const INVENTORY_STYLES = `
     .inv-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: var(--sp-3);
       padding: 8px 14px 28px;
       overflow-y: auto;
       flex: 1;
@@ -140,7 +140,7 @@ export const INVENTORY_STYLES = `
     /* ── Item card: BarGoods gold-rimmed navy panel ── */
     .inv-card {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 15px")}
-      padding: 6px 4px 6px;
+      padding: var(--sp-1h) var(--sp-1) var(--sp-1h);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -248,7 +248,7 @@ export const INVENTORY_STYLES = `
       font-weight: 700;
       color: var(--gold-bright);
       text-align: center;
-      padding: 6px 0;
+      padding: var(--sp-1h) 0;
       letter-spacing: 0.18em;
       text-shadow: 0 0 8px rgba(255,190,80,0.4);
     }

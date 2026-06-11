@@ -291,7 +291,7 @@ function injectSkillsStyles() {
     .sk-topbar {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--sp-2);
       padding: max(12px, env(safe-area-inset-top,0px)) 0 8px;
       width: min(360px, 96cqw);
       align-self: center;
@@ -302,8 +302,8 @@ function injectSkillsStyles() {
     .sk-points-chip {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 16px;
+      gap: var(--sp-1h);
+      padding: var(--sp-1) var(--sp-4);
       background: rgba(216,168,78,0.18);
       border: 1px solid var(--gold-dim);
       border-radius: 999px;
@@ -312,16 +312,16 @@ function injectSkillsStyles() {
       font-weight: 700;
       color: var(--gold-bright);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-      margin-bottom: 14px;
+      margin-bottom: var(--sp-3h);
       white-space: nowrap;
     }
 
     /* ── Class tabs ── */
     .sk-tabs {
-      display: flex; gap: 8px;
+      display: flex; gap: var(--sp-2);
       flex-wrap: wrap;
       justify-content: center;
-      margin-bottom: 16px;
+      margin-bottom: var(--sp-4);
       width: min(360px, 96cqw);
     }
     .sk-tab {
@@ -351,17 +351,17 @@ function injectSkillsStyles() {
     .sk-spell-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: var(--sp-3);
       width: min(360px, 96cqw);
-      margin-bottom: 12px;
+      margin-bottom: var(--sp-3);
     }
 
     /* ── Spell card: BarGoods gold-rimmed navy panel ── */
     .sk-spell-card {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
-      padding: 10px 6px 10px;
+      padding: var(--sp-2h) var(--sp-1h) var(--sp-2h);
       display: flex; flex-direction: column;
-      align-items: center; gap: 8px;
+      align-items: center; gap: var(--sp-2);
       position: relative;
     }
 

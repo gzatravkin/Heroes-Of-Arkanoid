@@ -12,8 +12,8 @@ export const RIFT_STYLES = `
       z-index: 200;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
+      gap: var(--sp-3);
+      padding: var(--sp-3h) var(--sp-4);
       box-sizing: border-box;
       background:
         linear-gradient(180deg, rgba(60,10,70,0.96), rgba(30,5,40,0.97)),
@@ -42,7 +42,7 @@ export const RIFT_STYLES = `
       color: #e9b8ff; text-shadow: 0 0 10px rgba(190,90,240,0.7);
     }
     .rift-banner-sub { font-size: var(--fs-tiny); color: #c9a8e0; margin-top: 2px; line-height: 1.3; }
-    .rift-banner-actions { display: flex; flex-direction: column; gap: 6px; }
+    .rift-banner-actions { display: flex; flex-direction: column; gap: var(--sp-1h); }
     .rift-btn {
       min-width: 78px; min-height: 44px;
       border: none; border-radius: 8px; cursor: pointer;
@@ -86,8 +86,8 @@ export const CAMPAIGN_STYLES = `
     .camp-profile-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 8px 16px;
+      gap: var(--sp-3);
+      padding: var(--sp-2) var(--sp-4);
       background: url('/ui/LvlUpInterfaceTopBottomPanel.png') repeat-x center / auto 100%;
       border-bottom: 2px solid rgba(180,140,60,0.4);
       flex-shrink: 0;
@@ -144,7 +144,7 @@ export const CAMPAIGN_STYLES = `
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 12px;
+      padding: var(--sp-1) var(--sp-3);
       ${btn1()}
       color: var(--text);
       border-radius: 4px;
@@ -191,7 +191,7 @@ export const CAMPAIGN_STYLES = `
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 32px 16px;
+      padding: var(--sp-4h) var(--sp-4) var(--sp-6) var(--sp-4);
       /* No overflow here — parent camp-content scrolls */
     }
 
@@ -223,9 +223,9 @@ export const CAMPAIGN_STYLES = `
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: var(--sp-1);
       width: 80px;
-      padding: 6px 4px;
+      padding: var(--sp-1h) var(--sp-1);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -298,15 +298,15 @@ export const CAMPAIGN_STYLES = `
                   rgba(10,8,20,0.96);
       border-top: 2px solid rgba(180,140,60,0.5);
       border-radius: 12px 12px 0 0;
-      padding: 20px 20px 32px 20px;
+      padding: var(--sp-4h) var(--sp-4h) var(--sp-6) var(--sp-4h);
       max-height: 60cqh;
       overflow-y: auto;
     }
     .camp-spell-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
+      gap: var(--sp-2h);
+      padding: var(--sp-2) var(--sp-3);
       background: rgba(20,20,50,0.85);
       border-radius: 6px;
       border: 1px solid rgba(100,80,180,0.4);

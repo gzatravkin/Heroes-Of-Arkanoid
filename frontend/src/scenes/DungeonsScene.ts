@@ -161,8 +161,8 @@ function injectDungeonStyles() {
     .dng-topbar .ui-title { flex: 1; text-align: center; }
     .dng-flavor {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
-      padding: 12px 16px;
-      margin: 8px auto 16px;
+      padding: var(--sp-3) var(--sp-4);
+      margin: var(--sp-2) auto var(--sp-4);
       max-width: 520px;
       text-align: center;
       color: var(--text);
@@ -177,17 +177,17 @@ function injectDungeonStyles() {
     .dng-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: var(--sp-3);
       width: 100%;
       max-width: 520px;
       flex: 1;
     }
     .dng-card {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
-      padding: 12px 14px;
+      padding: var(--sp-3) var(--sp-3h);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--sp-2);
       transition: filter var(--dur-normal);
     }
     .dng-card:hover {
@@ -207,7 +207,7 @@ function injectDungeonStyles() {
     .dng-card-meta {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--sp-1h);
       align-items: flex-start;
       font-size: var(--fs-caption);
       color: var(--text-dim);
@@ -215,7 +215,7 @@ function injectDungeonStyles() {
     .dng-reward-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--sp-1h);
     }
     .dng-descend-btn {
       min-height: 44px;

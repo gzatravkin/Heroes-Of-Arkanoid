@@ -223,14 +223,14 @@ const CHARACTER_CSS = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 4px 14px max(env(safe-area-inset-bottom, 0px), 14px);
+    padding: var(--sp-1) var(--sp-3h) max(env(safe-area-inset-bottom, 0px), var(--sp-3h));
   }
   .char-list {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--sp-3);
     width: 100%;
     max-width: 480px;
   }
@@ -240,7 +240,7 @@ const CHARACTER_CSS = `
     flex: 1;
     min-height: 0;
     ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 15px")}
-    padding: 10px 12px 14px;
+    padding: var(--sp-2h) var(--sp-3) var(--sp-3h);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -294,7 +294,7 @@ const CHARACTER_CSS = `
     border-radius: 4px;
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: var(--sp-2);
     /* Fade right edge: cleaner than hard overflow: hidden clip */
     -webkit-mask-image: linear-gradient(90deg, black 72%, transparent 100%);
     mask-image: linear-gradient(90deg, black 72%, transparent 100%);
@@ -331,7 +331,7 @@ const CHARACTER_CSS = `
   .char-banner-name--standalone {
     position: static;
     display: block;
-    margin: 6px 0 10px;
+    margin: var(--sp-1h) 0 var(--sp-2h);
     font-size: var(--fs-large);
   }
 
@@ -348,7 +348,7 @@ const CHARACTER_CSS = `
     color: var(--gold-bright);
     text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     padding: 2px 10px;
-    margin-bottom: 6px;
+    margin-bottom: var(--sp-1h);
     border: 1px solid var(--gold);
     border-radius: 3px;
     background: rgba(216,168,78,0.18);

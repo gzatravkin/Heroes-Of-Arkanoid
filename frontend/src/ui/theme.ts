@@ -80,7 +80,7 @@ const THEME_CSS = `
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
     --sp-6: 32px; --sp-7: 40px; --sp-8: 48px;
     /* Half-step tokens for compact UI and buttons */
-    --sp-1h: 6px; --sp-3h: 14px; --sp-4h: 20px;
+    --sp-1h: 6px; --sp-2h: 10px; --sp-3h: 14px; --sp-4h: 20px;
   }
 
   /* ── Screen scaffold ──────────────────────────────────────────────── */

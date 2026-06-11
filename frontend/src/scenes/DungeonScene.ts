@@ -172,8 +172,8 @@ function injectDungeonRunStyles() {
     .dngrun-topbar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding-bottom: 8px;
+      gap: var(--sp-2);
+      padding-bottom: var(--sp-2);
       align-self: stretch;
     }
     .dngrun-topbar .ui-title { flex: 1; text-align: center; }
@@ -181,22 +181,22 @@ function injectDungeonRunStyles() {
       id: dungeon-floor-progress;
       font-size: var(--fs-body);
       color: var(--text-dim);
-      margin-bottom: 6px;
+      margin-bottom: var(--sp-1h);
       letter-spacing: 0.03em;
     }
     .dngrun-floor-name {
       font-size: var(--fs-section);
       font-weight: 700;
       color: var(--gold-bright);
-      margin-bottom: 16px;
+      margin-bottom: var(--sp-4);
       text-align: center;
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .dngrun-buffs {
       display: flex;
-      gap: 8px;
+      gap: var(--sp-2);
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: var(--sp-4);
       min-height: 36px;
       max-width: 480px;
       justify-content: center;
@@ -207,7 +207,7 @@ function injectDungeonRunStyles() {
       align-items: center;
       justify-content: center;
       gap: 5px;
-      padding: 4px 8px;
+      padding: var(--sp-1) var(--sp-2);
       font-size: var(--fs-caption);
       color: var(--text-dim);
       transition: filter var(--dur-normal);

@@ -124,7 +124,7 @@ function injectOverlayStyles() {
       font-family: var(--font-body);
       color: #e8e8ff;
       gap: 0;
-      padding: 20px;
+      padding: var(--sp-4h);
       box-sizing: border-box;
     }
 
@@ -135,12 +135,12 @@ function injectOverlayStyles() {
                   rgba(10,8,26,0.95);
       border: 2px solid rgba(180,140,60,0.7);
       border-radius: 12px;
-      padding: 24px 32px;
+      padding: var(--sp-5) var(--sp-6);
       min-width: min(280px, 88cqw);
       max-width: min(400px, 92cqw);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--sp-2h);
       align-items: center;
       box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 40px rgba(10,5,30,0.5);
     }
@@ -162,7 +162,7 @@ function injectOverlayStyles() {
       font-weight: 700;
       letter-spacing: 0.1em;
       text-shadow: 0 0 20px currentColor, 0 2px 4px rgba(0,0,0,0.9);
-      margin-bottom: 8px;
+      margin-bottom: var(--sp-2);
     }
     .ov-title-win   { color: #ffd700; }
     .ov-title-green { color: #55ee88; }
@@ -171,13 +171,13 @@ function injectOverlayStyles() {
     .ov-reward-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--sp-2);
       font-size: 1.1rem;
     }
 
     /* Art button — InterfaceButton pill, 9-sliced (fixed rounded ends + stretched middle) */
     .ov-btn {
-      margin-top: 12px;
+      margin-top: var(--sp-3);
       padding: 0 16px;
       height: 52px;
       min-width: min(200px, 70cqw);
@@ -210,7 +210,7 @@ function injectOverlayStyles() {
       height: 80px;
       image-rendering: pixelated;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7));
-      margin-bottom: 4px;
+      margin-bottom: var(--sp-1);
     }
 
     /* Bonus card */
@@ -222,11 +222,11 @@ function injectOverlayStyles() {
                   rgba(10,8,26,0.95);
       border: 2px solid rgba(100,80,160,0.5);
       border-radius: 10px;
-      padding: 12px 8px 10px 8px;
+      padding: var(--sp-3) var(--sp-2) var(--sp-2h) var(--sp-2);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: var(--sp-1h);
       cursor: pointer;
       transition: transform var(--dur-fast), border-color var(--dur-normal), box-shadow var(--dur-normal);
       -webkit-tap-highlight-color: transparent;
@@ -273,7 +273,7 @@ function injectOverlayStyles() {
 
     .ov-bonus-row {
       display: flex;
-      gap: 10px;
+      gap: var(--sp-2h);
       flex-wrap: wrap;
       justify-content: center;
       max-width: min(400px, 96cqw);
@@ -284,7 +284,7 @@ function injectOverlayStyles() {
       font-weight: 700;
       color: #ffcc44;
       letter-spacing: 0.06em;
-      margin-bottom: 12px;
+      margin-bottom: var(--sp-3);
       text-shadow: 0 0 12px rgba(255,200,50,0.5);
     }
   `;

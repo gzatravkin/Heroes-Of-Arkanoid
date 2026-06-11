@@ -204,7 +204,7 @@ function injectSettingsStyles() {
       position: relative; z-index: 1;
       display: flex; flex-direction: column;
       padding: max(12px, env(safe-area-inset-top, 0px)) 16px 24px 16px;
-      gap: 20px;
+      gap: var(--sp-4h);
     }
     .set-back {
       align-self: flex-start;
@@ -247,7 +247,7 @@ function injectSettingsStyles() {
       width: min(360px, 96cqw);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: var(--sp-3);
       padding: 0;
       margin: 0 auto;
     }
@@ -255,8 +255,8 @@ function injectSettingsStyles() {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 12px 14px;
+      gap: var(--sp-4);
+      padding: var(--sp-3) var(--sp-3h);
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "12px 14px")}
     }
     .set-row-text { flex: 1; }
@@ -271,7 +271,7 @@ function injectSettingsStyles() {
     .set-divider {
       border: none;
       border-top: 1px solid var(--gold-dim);
-      margin: 4px 0;
+      margin: var(--sp-1) 0;
     }
     .set-action-btn {
       height: 40px; min-width: 100px;
@@ -346,7 +346,7 @@ function injectSettingsStyles() {
     }
 
     .set-version {
-      margin-top: 20px;
+      margin-top: var(--sp-4h);
       text-align: center;
       font-size: var(--fs-caption);
       color: var(--text-faint);

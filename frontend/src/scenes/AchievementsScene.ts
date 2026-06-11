@@ -231,7 +231,7 @@ function injectAchievementStyles() {
     .ach-topbar {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--sp-2);
       padding: max(12px, env(safe-area-inset-top, 0px)) 12px 8px 12px;
       width: 100%;
       box-sizing: border-box;
@@ -293,28 +293,28 @@ function injectAchievementStyles() {
       color: var(--text-dim);
       font-size: var(--fs-body);
       letter-spacing: 0.04em;
-      margin-bottom: 14px;
-      padding: 0 16px;
+      margin-bottom: var(--sp-3h);
+      padding: 0 var(--sp-4);
     }
 
     /* ── Achievement grid (2-col) ── */
     .ach-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: var(--sp-3);
       width: min(360px, 96cqw);
-      padding-bottom: 24px;
+      padding-bottom: var(--sp-5);
       align-self: center;
     }
 
     /* ── Achievement card: BarGoods gold-rimmed navy panel ── */
     .ach-card {
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 15px")}
-      padding: 10px 8px 10px;
+      padding: var(--sp-2h) var(--sp-2) var(--sp-2h);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: var(--sp-1h);
       position: relative;
       transition: filter var(--dur-normal), transform var(--dur-normal);
     }
@@ -397,10 +397,10 @@ function injectToastStyles() {
       left: 50%;
       transform: translateX(-50%) translateY(-80px);
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 20px")}
-      padding: 10px 16px;
+      padding: var(--sp-2h) var(--sp-4);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: var(--sp-3);
       min-width: min(280px, 85cqw);
       max-width: min(340px, 90cqw);
       z-index: 9999;
