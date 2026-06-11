@@ -15,6 +15,9 @@ export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     await page.addInitScript(
       (pid) => localStorage.setItem("ark_pid", pid), `w${testInfo.parallelIndex}`);
+    // Pre-mark tutorial as seen so auto-serve is not blocked by the tutorial overlay.
+    // Tutorial tests force it explicitly via ?tutorial=1 and are unaffected by this.
+    await page.addInitScript(() => localStorage.setItem("arkanoid_tutorial_seen", "1"));
 
     const console_: string[] = [];
     page.on("console", (m) => console_.push(`[${m.type()}] ${m.text()}`));

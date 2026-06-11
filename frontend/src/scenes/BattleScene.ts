@@ -56,12 +56,14 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
   attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
   installTestHooks(conn);
   // Show tutorial on first battle (non-blocking — serves after tutorial or immediately).
-  // Skip in Playwright/automated environments (navigator.webdriver=true) to avoid
-  // blocking test automation that depends on the ball auto-serving.
+  // Skip when: Playwright drives the browser (navigator.webdriver=true) OR the player
+  // already acknowledged the tutorial (arkanoid_tutorial_seen=1 in localStorage).
+  // Tests pre-set that flag via fixtures so the serve fires regardless of webdriver detection.
   // Can be forced with ?tutorial=1 URL param for dedicated tutorial tests.
   const q2 = new URLSearchParams(location.search);
   const forceTutorial = q2.get("tutorial") === "1";
-  const isAutomated = !!(navigator as any).webdriver && !forceTutorial;
+  const tutorialSeen = typeof localStorage !== "undefined" && localStorage.getItem("arkanoid_tutorial_seen") === "1";
+  const isAutomated = (!!(navigator as any).webdriver || tutorialSeen) && !forceTutorial;
   conn.whenReady(() => {
     if (isAutomated) {
       setTimeout(() => conn.serve(), 300);
