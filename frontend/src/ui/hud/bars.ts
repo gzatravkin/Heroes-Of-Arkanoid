@@ -57,7 +57,7 @@ export function buildBar(opts: {
   fill.style.cssText = [
     "position:absolute", "left:0", "top:0", "bottom:0", "width:100%",
     `background:${opts.gradient}`,
-    "transition:width 0.15s linear",
+    "transition:width var(--dur-normal) linear",
   ].join(";");
   clip.appendChild(fill);
   outer.appendChild(clip);

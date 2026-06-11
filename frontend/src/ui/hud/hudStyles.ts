@@ -27,7 +27,7 @@ export const HUD_STYLES = `
         touch-action: manipulation;
         cursor: pointer;
         pointer-events: auto;
-        transition: filter 0.15s, transform 0.15s;
+        transition: filter var(--dur-normal), transform var(--dur-normal);
         -webkit-tap-highlight-color: transparent;
       }
 
@@ -77,7 +77,7 @@ export const HUD_STYLES = `
         left: 3px;
         font-size: 10px;
         font-weight: 700;
-        color: var(--gold, #d8a84e);
+        color: var(--gold);
         line-height: 1;
         text-shadow: 0 1px 2px rgba(0,0,0,0.9);
         pointer-events: none;
@@ -98,7 +98,7 @@ export const HUD_STYLES = `
       /* Spell name label: BELOW the frame, ≥10px, text-dim */
       .hud-spell-name {
         font-size: 10px;
-        color: var(--text-dim, #c9b182);
+        color: var(--text-dim);
         text-align: center;
         line-height: 1;
         text-shadow: 0 1px 2px rgba(0,0,0,0.9);
@@ -110,13 +110,13 @@ export const HUD_STYLES = `
 
       .hud-banner.win {
         background: rgba(10,40,10,0.85);
-        border: 2px solid #44ff88;
-        color: #44ff88;
+        border: 2px solid var(--ok-bright);
+        color: var(--ok-bright);
       }
       .hud-banner.lose {
         background: rgba(40,5,5,0.85);
-        border: 2px solid #ff3333;
-        color: #ff3333;
+        border: 2px solid var(--danger-bright);
+        color: var(--danger-bright);
       }
       #hud-relics [data-relic-id] {
         cursor: default;

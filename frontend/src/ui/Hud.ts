@@ -95,7 +95,7 @@ export class Hud {
     this.root = this.createElement("div", "hud-root");
     this.root.style.cssText = [
       "position:absolute", "inset:0", "pointer-events:none",
-      "font-family:'Segoe UI',system-ui,sans-serif", "z-index:10",
+      "font-family:var(--font-body)", "z-index:10",
       "user-select:none",
       // Safe-area insets for notched phones.
       "padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)",
@@ -490,7 +490,7 @@ export class Hud {
     if (s.widePaddleActive) chips.push(`↔ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
     if (s.slowBallActive)   chips.push(`slow ${Math.ceil(s.slowBallTimer ?? 0)}s`);
     const html = chips.map(c =>
-      `<span style="background:rgba(0,0,0,0.65);border:1px solid #66aaff;border-radius:4px;padding:1px 5px;font-size:10px;color:#aaddff;">${c}</span>`
+      `<span style="background:rgba(0,0,0,0.65);border:1px solid var(--color-effect);border-radius:4px;padding:1px 5px;font-size:10px;color:var(--color-shield);">${c}</span>`
     ).join("");
     this.effectsEl.innerHTML = html;
   }
@@ -499,9 +499,9 @@ export class Hud {
   /** Active power-up indicators — top-right panel showing collected effects (task 1.2). */
   private updatePowerups(s: Snapshot) {
     const active: { label: string; color: string; timer?: number }[] = [];
-    if (s.widePaddleActive)      active.push({ label: "W", color: "#d4aa00", timer: s.widePaddleTimer });
-    if ((s as any).fireshotActive) active.push({ label: "F", color: "#ff6600", timer: (s as any).fireshotTimer });
-    if ((s as any).shieldActive)   active.push({ label: "◆", color: "#00ddee" });
+    if (s.widePaddleActive)      active.push({ label: "W", color: "var(--color-wide)", timer: s.widePaddleTimer });
+    if ((s as any).fireshotActive) active.push({ label: "F", color: "var(--color-fire)", timer: (s as any).fireshotTimer });
+    if ((s as any).shieldActive)   active.push({ label: "◆", color: "var(--color-shield)" });
 
     if (active.length === 0) {
       this._powerupPanelEl.style.display = "none";
