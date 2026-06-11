@@ -128,7 +128,7 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
   name.style.cssText = [
     "font-size:var(--fs-tiny)", "font-weight:900",
     "color:var(--danger-bright)", "letter-spacing:2px",
-    "text-shadow:0 0 6px var(--danger-bright),0 1px 3px #000",
+    "text-shadow:0 0 6px var(--danger-bright),0 1px 3px var(--shadow-black)",
     "text-align:center", "white-space:nowrap",
   ].join(";");
   outer.appendChild(name);

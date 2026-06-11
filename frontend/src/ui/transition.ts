@@ -29,7 +29,7 @@ function getOverlay(): HTMLDivElement {
   div.style.cssText = `
     position: fixed;
     inset: 0;
-    background: #000;
+    background: var(--shadow-black);
     opacity: 0;
     pointer-events: none;
     z-index: 99999;
