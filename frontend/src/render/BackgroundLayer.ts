@@ -127,6 +127,7 @@ export class BackgroundLayer {
   private _buildAtmosphere(biome: string, cellSize: number): void {
     for (const m of this._motes) this.ambientContainer.removeChild(m.node);
     this._motes = [];
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const base = biome.split("-")[0]; // "village-boss" → "village"
 
     const addDot = (color: number, r: number, vx: number, vy: number, additive: boolean) => {

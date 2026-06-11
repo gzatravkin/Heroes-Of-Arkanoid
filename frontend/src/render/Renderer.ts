@@ -375,10 +375,12 @@ export class Renderer {
     this.fit(s);
 
     // --- screen shake + hit-stop: fire on relevant events ---
+    const shakeEnabled = localStorage.getItem("arkanoid_fx") !== "0"
+      && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     for (const ev of s.events) {
-      if (ev.type === "playerHit") this.screenShake.trigger("playerHit");
+      if (ev.type === "playerHit") { if (shakeEnabled) this.screenShake.trigger("playerHit"); }
       else if (ev.type === "bossAttack") {
-        this.screenShake.trigger("bossAttack");
+        if (shakeEnabled) this.screenShake.trigger("bossAttack");
         // Short hit-stop on boss attacks.
         this._hitStopRemaining = Math.max(this._hitStopRemaining, HIT_STOP_DURATION_BOSS_MS);
       } else if (ev.type === "ignite") {

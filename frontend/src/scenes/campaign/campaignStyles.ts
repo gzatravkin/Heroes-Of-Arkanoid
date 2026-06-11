@@ -31,9 +31,11 @@ export const RIFT_STYLES = `
       border-radius: 50%;
       background: radial-gradient(circle at 38% 35%, #f4d6ff 0%, #c060ff 45%, #5a149a 100%);
       box-shadow: 0 0 14px #c060ff, inset 0 0 6px rgba(255,255,255,0.8);
-      animation: rift-pulse 1.4s ease-in-out infinite;
     }
     @keyframes rift-pulse { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }
+    @media (prefers-reduced-motion: no-preference) {
+      .rift-banner-glyph { animation: rift-pulse 1.4s ease-in-out infinite; }
+    }
     .rift-banner-text { flex: 1; min-width: 0; }
     .rift-banner-title {
       font-size: var(--fs-section); font-weight: 800; letter-spacing: 0.04em;
