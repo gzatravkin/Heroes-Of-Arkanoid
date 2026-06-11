@@ -42,13 +42,18 @@ export const RIFT_STYLES = `
     .rift-banner-sub { font-size: 10px; color: #c9a8e0; margin-top: 2px; line-height: 1.3; }
     .rift-banner-actions { display: flex; flex-direction: column; gap: 6px; }
     .rift-btn {
-      min-width: 78px; min-height: 34px;
+      min-width: 78px; min-height: 44px;
       border: none; border-radius: 8px; cursor: pointer;
       font-size: 13px; font-weight: 700; font-family: var(--font-body);
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .rift-btn:active { transform: scale(0.95); }
+    .rift-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
     .rift-btn-go {
       background: linear-gradient(180deg, #c860ff, #8a28c0);
       color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6);
@@ -145,11 +150,16 @@ export const CAMPAIGN_STYLES = `
       font-size: 13px;
       font-family: var(--font-body);
       font-weight: 600;
-      min-height: 36px;
+      min-height: 44px;
       transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .camp-upgrade-btn:hover:not(:disabled)   { filter: brightness(1.15); }
     .camp-upgrade-btn:active:not(:disabled)  { transform: scale(0.96); }
+    .camp-upgrade-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
     .camp-upgrade-btn.active  { filter: brightness(1.2) saturate(1.4); }
     .camp-upgrade-btn:disabled {
       filter: saturate(0.25) brightness(0.65);
@@ -295,9 +305,9 @@ export const CAMPAIGN_STYLES = `
       border: 1px solid rgba(100,80,180,0.4);
     }
     .camp-plus-btn {
-      width: 32px;
-      height: 32px;
-      background: url('/ui/InterfaceNewButton.png') no-repeat center / contain;
+      width: 44px;
+      height: 44px;
+      background: url('/ui/InterfaceNewButton.png') no-repeat center / 32px 32px;
       border: none;
       cursor: pointer;
       font-size: 0;
@@ -306,6 +316,11 @@ export const CAMPAIGN_STYLES = `
     .camp-plus-btn.can-afford:hover  { filter: brightness(1.2); transform: scale(1.1); }
     .camp-plus-btn.can-afford:active { transform: scale(0.96); }
     .camp-plus-btn.cannot-afford { filter: grayscale(1) opacity(0.4); cursor: default; }
+    .camp-plus-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 50%;
+    }
 
     /* ── Campaign back-link (top-left of profile bar) ── */
     .camp-back-link {
@@ -319,4 +334,9 @@ export const CAMPAIGN_STYLES = `
     }
     .camp-back-link:hover  { filter: brightness(1.15); color: var(--gold-bright); }
     .camp-back-link:active { transform: scale(0.96); }
+    .camp-back-link:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 `;
