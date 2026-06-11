@@ -115,10 +115,15 @@ test("paddle frame does not jump more than 1 step between snapshots", async ({ p
 
   const frames: number[] = [];
   for (let mana = 5; mana <= 95; mana += 10) {
+    const expectedFrame = Math.min(3, Math.floor(mana / 100 * 4));
     await cheat(page, "setMana", mana);
-    // 200ms is enough for the next WebSocket snapshot (60 fps server) to arrive
-    // and for the renderer to call paddleLayer.setMana().
-    await page.waitForTimeout(200);
+    // Poll until the renderer has consumed the new snapshot and settled on the
+    // expected frame — more robust than a fixed delay on loaded CI machines.
+    await page.waitForFunction(
+      (exp) => (window as any).__renderer?.paddleLayer?._animFrame === exp,
+      expectedFrame,
+      { timeout: 5_000 },
+    );
     const frame = await page.evaluate<number>(
       () => (window as any).__renderer?.paddleLayer?._animFrame ?? -1,
     );
