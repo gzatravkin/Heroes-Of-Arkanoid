@@ -145,7 +145,7 @@ export function animStrip(key: string, fps = 12): Texture[] & { fps: number } {
   const { width, height } = texture;
   if (height <= 0 || width <= 0) return result;
   const frameSize = height;
-  const frameCount = Math.max(1, Math.round(width / frameSize));
+  const frameCount = Math.max(1, Math.floor(width / frameSize));
   if (frameCount === 1) {
     result.push(texture);
     return result;
