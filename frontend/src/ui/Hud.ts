@@ -117,6 +117,7 @@ export class Hud {
       emptySrc: "/ui/BattleHPEmpty.png",
       gradient: "linear-gradient(to right,var(--color-hp-deep),var(--color-hp))",
       icon: "/ui/BonusHP.png",
+      fillSrc: "/ui/BattleHPFull.png",
     });
     this.livesEl = livesBar.outer;
     this.livesEl.dataset.lives = "0";
@@ -129,6 +130,7 @@ export class Hud {
       emptySrc: "/ui/BattleMPEmpty.png",
       gradient: "linear-gradient(to right,var(--color-balls-deep),var(--color-balls))",
       icon: "/ui/BattleLifeBall.png",
+      fillSrc: "/ui/BattleMPFull.png",
     });
     this.ballsEl = ballsBar.outer;
     this.ballsEl.dataset.balls = "0";

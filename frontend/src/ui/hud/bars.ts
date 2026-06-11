@@ -20,13 +20,16 @@ function el(tag: string, className?: string): HTMLElement {
 
 /**
  * Build a symmetric 3-slice value bar: the empty sprite supplies the frame via
- * border-image (caps pinned to both ends, middle stretched), and a gradient fill
- * is clipped strictly between the caps so it grows left→right without ever
- * touching the caps. `fill.style.width` stays a plain percentage string.
+ * border-image (caps pinned to both ends, middle stretched), and either a
+ * dedicated fill sprite or a CSS gradient fills the interior.
+ *
+ * When `fillSrc` is provided the fill image is sized to the inner clip region
+ * and anchored left so narrowing `fill.style.width` reveals it left→right
+ * without distortion.  `fill.style.width` stays a plain percentage string.
  */
 export function buildBar(opts: {
   id: string; fillId: string; width: string; height: number;
-  emptySrc: string; gradient: string;
+  emptySrc: string; gradient: string; fillSrc?: string;
 }): { outer: HTMLElement; fill: HTMLElement } {
   const capX = Math.round(BAR_CAP_X * opts.height / BAR_SPRITE_H);
   const capY = Math.round(BAR_CAP_Y * opts.height / BAR_SPRITE_H);
@@ -54,11 +57,24 @@ export function buildBar(opts: {
   ].join(";");
   const fill = el("div");
   fill.id = opts.fillId;
-  fill.style.cssText = [
+  const fillStyles = [
     "position:absolute", "left:0", "top:0", "bottom:0", "width:100%",
-    `background:${opts.gradient}`,
     "transition:width var(--dur-normal) linear",
-  ].join(";");
+  ];
+  if (opts.fillSrc) {
+    // Fixed-size sprite anchored to the left: as fill.width shrinks the right
+    // portion is hidden by clip's overflow:hidden, revealing the correct fill %.
+    const innerW = `calc(${opts.width} - ${2 * capX}px)`;
+    fillStyles.push(
+      `background-image:url('${opts.fillSrc}')`,
+      `background-size:${innerW} 100%`,
+      `background-position:left center`,
+      `background-repeat:no-repeat`,
+    );
+  } else {
+    fillStyles.push(`background:${opts.gradient}`);
+  }
+  fill.style.cssText = fillStyles.join(";");
   clip.appendChild(fill);
   outer.appendChild(clip);
 
@@ -68,12 +84,12 @@ export function buildBar(opts: {
 /** A labelled value bar (icon + count overlay) for the top-left HP / spare-balls. */
 export function buildLabelledBar(opts: {
   id: string; fillId: string; labelId: string;
-  emptySrc: string; gradient: string; icon: string;
+  emptySrc: string; gradient: string; icon: string; fillSrc?: string;
 }): { outer: HTMLElement; fill: HTMLElement; label: HTMLElement } {
   const { outer, fill } = buildBar({
     id: opts.id, fillId: opts.fillId,
     width: "118px", height: BAR_H,
-    emptySrc: opts.emptySrc, gradient: opts.gradient,
+    emptySrc: opts.emptySrc, gradient: opts.gradient, fillSrc: opts.fillSrc,
   });
   const label = el("span");
   label.id = opts.labelId;
@@ -134,6 +150,7 @@ export function buildManaBar(): HTMLElement {
     width: "min(220px,80cqw)", height: BAR_H,
     emptySrc: "/ui/BattleMPEmpty.png",
     gradient: "linear-gradient(to right,var(--color-mana-deep),var(--color-mana))",
+    fillSrc: "/ui/BattleMPFull.png",
   });
 
   const label = el("span");
