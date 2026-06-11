@@ -121,7 +121,7 @@ function injectOverlayStyles() {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       z-index: 1000;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       color: #e8e8ff;
       gap: 0;
       padding: 20px;
@@ -187,12 +187,12 @@ function injectOverlayStyles() {
       border-image: url('/ui/InterfaceButton.png') 26 92 26 92 fill stretch;
       cursor: pointer;
       font-size: 16px;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       font-weight: 700;
       color: #f0e0b8;
       letter-spacing: 0.05em;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
@@ -223,7 +223,7 @@ function injectOverlayStyles() {
       align-items: center;
       gap: 6px;
       cursor: pointer;
-      transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
+      transition: transform var(--dur-fast), border-color var(--dur-normal), box-shadow var(--dur-normal);
       -webkit-tap-highlight-color: transparent;
     }
     .ov-bonus-card:hover {

@@ -22,7 +22,7 @@ export const RIFT_STYLES = `
       border-radius: 12px;
       box-shadow: 0 0 28px rgba(180,70,230,0.55), inset 0 0 30px rgba(120,30,160,0.4);
       color: #f4e6ff;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       transition: transform 0.35s cubic-bezier(0.2, 1.1, 0.4, 1);
     }
     .rift-banner-in { transform: translate(-50%, 0); }
@@ -44,9 +44,9 @@ export const RIFT_STYLES = `
     .rift-btn {
       min-width: 78px; min-height: 34px;
       border: none; border-radius: 8px; cursor: pointer;
-      font-size: 13px; font-weight: 700; font-family: sans-serif;
+      font-size: 13px; font-weight: 700; font-family: var(--font-body);
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .rift-btn:active { transform: scale(0.95); }
     .rift-btn-go {
@@ -71,7 +71,7 @@ export const CAMPAIGN_STYLES = `
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       color: #e8e8ff;
     }
 
@@ -143,10 +143,10 @@ export const CAMPAIGN_STYLES = `
       border-radius: 4px;
       cursor: pointer;
       font-size: 13px;
-      font-family: sans-serif;
+      font-family: var(--font-body);
       font-weight: 600;
       min-height: 36px;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .camp-upgrade-btn:hover:not(:disabled)   { filter: brightness(1.15); }
     .camp-upgrade-btn:active:not(:disabled)  { transform: scale(0.96); }
@@ -218,7 +218,7 @@ export const CAMPAIGN_STYLES = `
       border: none;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.15s, filter 0.15s;
+      transition: transform var(--dur-normal), filter var(--dur-normal);
       -webkit-tap-highlight-color: transparent;
     }
     .camp-node:hover:not(.camp-node-locked) { transform: scale(1.08); filter: brightness(1.15); }
@@ -301,7 +301,7 @@ export const CAMPAIGN_STYLES = `
       border: none;
       cursor: pointer;
       font-size: 0;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .camp-plus-btn.can-afford:hover  { filter: brightness(1.2); transform: scale(1.1); }
     .camp-plus-btn.can-afford:active { transform: scale(0.96); }
@@ -315,7 +315,7 @@ export const CAMPAIGN_STYLES = `
       display: flex;
       align-items: center;
       padding: 0 12px;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .camp-back-link:hover  { filter: brightness(1.15); color: var(--gold-bright); }
     .camp-back-link:active { transform: scale(0.96); }
