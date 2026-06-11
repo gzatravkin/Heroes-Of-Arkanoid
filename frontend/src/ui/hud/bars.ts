@@ -81,7 +81,7 @@ export function buildLabelledBar(opts: {
     "position:absolute", "top:50%", "left:8px",
     "transform:translateY(-50%)",
     "display:flex", "align-items:center", "gap:4px",
-    "font-size:11px", "color:#fff", "font-weight:700",
+    "font-size:var(--fs-small)", "color:#fff", "font-weight:700",
     "text-shadow:0 0 4px #000,0 1px 2px #000", "pointer-events:none", "white-space:nowrap",
   ].join(";");
   label.innerHTML =
@@ -110,7 +110,7 @@ export function buildBossBar(): { outer: HTMLElement; fill: HTMLElement; name: H
   const name = el("div");
   name.id = "hud-boss-name";
   name.style.cssText = [
-    "font-size:10px", "font-weight:900",
+    "font-size:var(--fs-tiny)", "font-weight:900",
     "color:var(--danger-bright)", "letter-spacing:2px",
     "text-shadow:0 0 6px var(--danger-bright),0 1px 3px #000",
     "text-align:center", "white-space:nowrap",
@@ -141,7 +141,7 @@ export function buildManaBar(): HTMLElement {
   label.style.cssText = [
     "position:absolute", "top:50%", "left:50%",
     "transform:translate(-50%,-50%)",
-    "font-size:10px", "color:#fff", "font-weight:600",
+    "font-size:var(--fs-tiny)", "color:#fff", "font-weight:600",
     "text-shadow:0 1px 2px #000", "pointer-events:none", "white-space:nowrap", "z-index:1",
   ].join(";");
   outer.appendChild(label);

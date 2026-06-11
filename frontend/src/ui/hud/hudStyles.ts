@@ -8,7 +8,7 @@ export const HUD_STYLES = `
         border-radius: 20px;
         padding: 3px 10px 3px 8px;
         color: var(--text);
-        font-size: 12px;
+        font-size: var(--fs-caption);
         display: inline-flex;
         align-items: center;
         gap: 3px;
@@ -82,7 +82,7 @@ export const HUD_STYLES = `
         position: absolute;
         top: 2px;
         left: 3px;
-        font-size: 10px;
+        font-size: var(--fs-tiny);
         font-weight: 700;
         color: var(--gold);
         line-height: 1;
@@ -93,7 +93,7 @@ export const HUD_STYLES = `
 
       /* Icon area: fills the inner tile of the Kvadrat frame */
       .hud-spell-icon {
-        font-size: 20px;
+        font-size: var(--fs-xl);
         line-height: 1;
         display: flex;
         align-items: center;
@@ -104,7 +104,7 @@ export const HUD_STYLES = `
 
       /* Spell name label: BELOW the frame, ≥10px, text-dim */
       .hud-spell-name {
-        font-size: 10px;
+        font-size: var(--fs-tiny);
         color: var(--text-dim);
         text-align: center;
         line-height: 1;

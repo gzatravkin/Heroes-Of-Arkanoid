@@ -158,7 +158,7 @@ function injectOverlayStyles() {
     .ov-panel::after  { bottom: 0; border-radius: 0 0 10px 10px; }
 
     .ov-title {
-      font-size: 2rem;
+      font-size: var(--fs-2xl);
       font-weight: 700;
       letter-spacing: 0.1em;
       text-shadow: 0 0 20px currentColor, 0 2px 4px rgba(0,0,0,0.9);
@@ -172,7 +172,7 @@ function injectOverlayStyles() {
       display: flex;
       align-items: center;
       gap: var(--sp-2);
-      font-size: 1.1rem;
+      font-size: var(--fs-large);
     }
 
     /* Art button — InterfaceButton pill, 9-sliced (fixed rounded ends + stretched middle) */
@@ -280,7 +280,7 @@ function injectOverlayStyles() {
     }
 
     .ov-pick-title {
-      font-size: 1.3rem;
+      font-size: var(--fs-section);
       font-weight: 700;
       color: var(--gold);
       letter-spacing: 0.06em;

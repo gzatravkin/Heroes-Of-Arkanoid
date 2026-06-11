@@ -278,7 +278,7 @@ function injectTutorialStyles() {
 
     .tut-caption {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: var(--fs-section);
       color: var(--text-dim);
       line-height: 1.55;
       text-align: center;

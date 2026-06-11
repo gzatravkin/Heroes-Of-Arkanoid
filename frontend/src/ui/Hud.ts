@@ -180,7 +180,7 @@ export class Hud {
     this.timerEl.style.cssText = [
       "position:absolute", "top:44px", "left:50%", "transform:translateX(-50%)",
       "display:none", "padding:2px 14px", "border-radius:10px",
-      "font-size:18px", "font-weight:800", "letter-spacing:1px",
+      "font-size:var(--fs-xl)", "font-weight:800", "letter-spacing:1px",
       "background:rgba(0,0,0,0.45)", "pointer-events:none",
     ].join(";");
     this.root.appendChild(this.timerEl);
@@ -214,7 +214,7 @@ export class Hud {
       "color:var(--gold-bright)",
       "text-shadow:0 0 8px rgba(255,190,80,0.6)",
       "font-family:var(--font-display)",
-      "font-size:18px", "font-weight:bold",
+      "font-size:var(--fs-xl)", "font-weight:bold",
       "background:rgba(0,0,0,0.65)",
       "border:1px solid rgba(255,190,80,0.4)",
       "border-radius:6px", "padding:3px 10px",
@@ -502,7 +502,7 @@ export class Hud {
     if (s.widePaddleActive) chips.push(`↔ ${Math.ceil(s.widePaddleTimer ?? 0)}s`);
     if (s.slowBallActive)   chips.push(`slow ${Math.ceil(s.slowBallTimer ?? 0)}s`);
     const html = chips.map(c =>
-      `<span style="background:rgba(0,0,0,0.65);border:1px solid var(--color-effect);border-radius:4px;padding:1px 5px;font-size:10px;color:var(--color-shield);">${c}</span>`
+      `<span style="background:rgba(0,0,0,0.65);border:1px solid var(--color-effect);border-radius:4px;padding:1px 5px;font-size:var(--fs-tiny);color:var(--color-shield);">${c}</span>`
     ).join("");
     this.effectsEl.innerHTML = html;
   }
@@ -522,7 +522,7 @@ export class Hud {
     this._powerupPanelEl.style.display = "flex";
     this._powerupPanelEl.innerHTML = active.map(({ label, color, timer }) => {
       const t = timer !== undefined ? ` ${Math.ceil(timer)}s` : "";
-      return `<div class="hud-powerup-active" style="background:rgba(0,0,0,0.70);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
+      return `<div class="hud-powerup-active" style="background:rgba(0,0,0,0.70);border:1px solid ${color};border-radius:5px;padding:2px 7px;font-size:var(--fs-small);font-weight:700;color:${color};letter-spacing:.5px;">${label}${t}</div>`;
     }).join("");
   }
 

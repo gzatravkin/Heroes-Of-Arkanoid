@@ -76,6 +76,7 @@ const THEME_CSS = `
     --font-display: "Palatino Linotype", "Book Antiqua", Georgia, serif;
     --font-body: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
     --fs-title:   26px;  /* screen headings */
+    --fs-2xl:     32px;  /* impact headings (win/lose banner, large callout) */
     --fs-xl:      20px;  /* item names, hero text */
     --fs-large:   16px;  /* stat values, section heroes */
     --fs-section: 15px;  /* panel headers, section labels */
@@ -231,7 +232,7 @@ const THEME_CSS = `
   .ui-btn--primary {
     min-height: 48px;
     padding: 4px 18px;
-    font-size: 15px;
+    font-size: var(--fs-section);
     letter-spacing: 0.05em;
     ${nineSlice("/ui/InterfaceButton.png", "26 92 26 92", "9px 30px")}
   }
