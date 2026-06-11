@@ -189,7 +189,7 @@ function injectOverlayStyles() {
       font-size: 16px;
       font-family: var(--font-body);
       font-weight: 700;
-      color: #f0e0b8;
+      color: var(--text);
       letter-spacing: 0.05em;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
       transition: filter var(--dur-normal), transform var(--dur-fast);
@@ -198,6 +198,11 @@ function injectOverlayStyles() {
     }
     .ov-btn:hover  { filter: brightness(1.15); }
     .ov-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+    .ov-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 
     /* Chest image */
     .ov-chest {
@@ -232,6 +237,11 @@ function injectOverlayStyles() {
       box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 12px rgba(220,190,80,0.3);
     }
     .ov-bonus-card:active { transform: scale(0.97); }
+    .ov-bonus-card:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 10px;
+    }
 
     .ov-bonus-icon {
       width: 52px;
