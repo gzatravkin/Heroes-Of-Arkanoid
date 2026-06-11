@@ -250,8 +250,13 @@ function injectAchievementStyles() {
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
+    }
+    .ach-back:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
     }
     .ach-back::before {
       content: "";
@@ -311,7 +316,7 @@ function injectAchievementStyles() {
       align-items: center;
       gap: 6px;
       position: relative;
-      transition: filter 0.15s, transform 0.12s;
+      transition: filter var(--dur-normal), transform var(--dur-normal);
     }
 
     /* Unlocked: full color + gold glow */
@@ -343,7 +348,7 @@ function injectAchievementStyles() {
     }
     /* Locked badge: desaturated ~50%, never blacked out */
     .ach-card.locked .ach-badge {
-      filter: saturate(0.45) brightness(0.8) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+      filter: var(--filter-locked) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
 
     /* ── Text ── */

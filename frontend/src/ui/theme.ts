@@ -47,6 +47,8 @@ const THEME_CSS = `
     --color-fire:    #ff6600;  /* fireshot power-up */
     --color-shield:  #00ddee;  /* shield power-up */
     --color-effect:  #66aaff;  /* generic active effect (border) */
+    --color-equip:   #bfe3ff;  /* equip action button text */
+    --color-unequip: #f3b8a8;  /* unequip action button text */
 
     /* ── Interaction state filters ──────────────────────────────────── */
     --filter-locked:   saturate(0.45) brightness(0.8);

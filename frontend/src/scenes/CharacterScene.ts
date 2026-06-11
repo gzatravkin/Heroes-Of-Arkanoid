@@ -246,7 +246,7 @@ const CHARACTER_CSS = `
     position: relative;
     cursor: pointer;
     box-sizing: border-box;
-    transition: filter 0.15s, transform 0.12s;
+    transition: filter var(--dur-normal), transform var(--dur-normal);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
@@ -270,9 +270,14 @@ const CHARACTER_CSS = `
   .char-card:active:not(.locked) {
     transform: scale(0.97);
   }
+  .char-card:not(.locked):focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
   /* Locked: desaturated ~50%, never blacked out (Rulebook §6) */
   .char-card.locked {
-    filter: saturate(0.45) brightness(0.82);
+    filter: var(--filter-locked);
     cursor: default;
   }
 

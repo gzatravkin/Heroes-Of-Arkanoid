@@ -224,10 +224,15 @@ function injectSettingsStyles() {
       text-decoration: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .set-back:hover  { filter: brightness(1.18); }
     .set-back:active { transform: scale(0.94); }
+    .set-back:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
     .set-title {
       margin: 0;
       font-family: var(--font-display);
@@ -279,12 +284,17 @@ function injectSettingsStyles() {
       padding: 0 16px;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       flex-shrink: 0;
       /* NOTE: no \`border: none\` here — it would kill the 9-slice border-image. */
     }
     .set-action-btn:hover  { filter: brightness(1.18); }
     .set-action-btn:active { transform: scale(0.96); }
+    .set-action-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
     .set-action-btn:disabled {
       filter: saturate(0.25) brightness(0.65);
       cursor: default;
@@ -301,17 +311,22 @@ function injectSettingsStyles() {
       position: relative; display: inline-block;
       width: 48px; height: 28px; flex-shrink: 0;
       cursor: pointer;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .set-toggle:hover  { filter: brightness(1.15); }
     .set-toggle:active { transform: scale(0.96); }
+    .set-toggle:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
     .set-toggle input { opacity: 0; width: 0; height: 0; }
     .set-toggle-slider {
       position: absolute; inset: 0;
       background: #241a0d;
       border: 1px solid var(--gold-dim);
       border-radius: 999px;
-      transition: background 0.15s, box-shadow 0.15s;
+      transition: background var(--dur-normal), box-shadow var(--dur-normal);
     }
     .set-toggle-slider::before {
       content: '';
@@ -320,7 +335,7 @@ function injectSettingsStyles() {
       left: 3px; bottom: 3px;
       background: radial-gradient(circle at 38% 32%, #ffe9b0, #d8a84e 70%);
       border-radius: 50%;
-      transition: transform 0.15s;
+      transition: transform var(--dur-normal);
     }
     .set-toggle input:checked + .set-toggle-slider {
       background: #3a2a10;

@@ -222,7 +222,7 @@ export const INVENTORY_STYLES = `
       letter-spacing: 0.04em;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
       text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .inv-buy-btn { color: var(--gold-bright); }
@@ -232,10 +232,15 @@ export const INVENTORY_STYLES = `
       filter: saturate(0.25) brightness(0.6);
       cursor: default;
     }
-    .inv-equip-btn { color: #bfe3ff; }
-    .inv-btn-unequip { color: #f3b8a8; }
+    .inv-equip-btn { color: var(--color-equip); }
+    .inv-btn-unequip { color: var(--color-unequip); }
     .inv-equip-btn:hover  { filter: brightness(1.18); }
     .inv-equip-btn:active { transform: scale(0.96); }
+    .inv-buy-btn:focus-visible, .inv-equip-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 
     .inv-max-badge {
       font-family: var(--font-display);

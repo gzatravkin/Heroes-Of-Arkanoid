@@ -139,11 +139,14 @@ export function mountSkills(host: HTMLElement) {
 
   function renderTabs() {
     if (!allData) return;
+    tabs.setAttribute("role", "tablist");
     tabs.innerHTML = "";
     for (const ch of allData.characters) {
       const tab = document.createElement("button");
       tab.className = `sk-tab ${ch.id === currentClassId ? "active" : ""}`;
       tab.textContent = ch.name;
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", ch.id === currentClassId ? "true" : "false");
       tab.addEventListener("click", () => {
         currentClassId = ch.id;
         renderTabs();
@@ -330,7 +333,12 @@ function injectSkillsStyles() {
       filter: saturate(0.4) brightness(0.75);
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, color 0.15s;
+      transition: filter var(--dur-normal), color var(--dur-normal);
+    }
+    .sk-tab:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
     }
     .sk-tab.active {
       filter: none;
@@ -414,7 +422,12 @@ function injectSkillsStyles() {
       letter-spacing: 0.04em;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
+    }
+    .sk-upgrade-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
     }
     .sk-upgrade-btn:hover:not(:disabled)  { filter: brightness(1.15); }
     .sk-upgrade-btn:active:not(:disabled) { transform: scale(0.96); }
