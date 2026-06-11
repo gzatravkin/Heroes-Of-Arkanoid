@@ -26,7 +26,7 @@ const from = q.get("from") ?? "";
 // Load the sprite atlas before mounting any scene.
 // Shows a minimal loading indicator while fetching.
 const loading = document.createElement("div");
-loading.style.cssText = "color:var(--text-dim,#c9b182);font-family:var(--font-body,sans-serif);text-align:center;padding-top:40cqh;font-size:1.2rem";
+loading.style.cssText = "color:var(--text-dim,#c9b182);font-family:var(--font-body,sans-serif);text-align:center;padding-top:40cqh;font-size:var(--fs-xl,1.2rem)";
 loading.textContent = "Loading assets…";
 host.appendChild(loading);
 

@@ -66,7 +66,7 @@ export function mountDungeons(host: HTMLElement) {
     } catch {
       const err = document.createElement("div");
       err.textContent = "Failed to load dungeons.";
-      css(err, { color: "#ff6666" });
+      css(err, { color: "var(--danger-light)" });
       list.appendChild(err);
       return;
     }

@@ -39,6 +39,7 @@ const THEME_CSS = `
     --bg-2: #050308;
     --danger:        #c8413a;
     --danger-bright: #ff3333;  /* loss banner, error state */
+    --danger-light:  #ff6666;  /* inline error messages */
     --ok:            #56b04a;
     --ok-bright:     #44ff88;  /* win banner, success state */
 
@@ -69,6 +70,12 @@ const THEME_CSS = `
     --color-label-muted: #88aaaa;  /* muted section labels */
     --color-relic:       #cc88ff;  /* relic item display */
     --color-fail-muted:  #aa5555;  /* permadeath / fail sub-text */
+
+    /* ── Campaign / Dungeon UI colours ──────────────────────────────── */
+    --color-upgrade-hdr:   #e8c870;  /* upgrade panel section heading */
+    --color-spell-name:    #e8e8ff;  /* spell name text in upgrade list */
+    --color-dungeon-label: #8899cc;  /* dungeon run status / buff labels */
+    --color-empty:         #555577;  /* empty-state placeholder text */
 
     /* ── Interaction state filters ──────────────────────────────────── */
     --filter-locked:   saturate(0.45) brightness(0.8);

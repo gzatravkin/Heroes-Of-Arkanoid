@@ -59,14 +59,14 @@ export function mountDungeon(host: HTMLElement) {
   function renderError(msg: string) {
     const el = document.createElement("div");
     el.textContent = msg;
-    css(el, { color: "#ff6666", marginTop: "40px" });
+    css(el, { color: "var(--danger-light)", marginTop: "var(--sp-7)" });
     root.appendChild(el);
   }
 
   function renderInactive() {
     const msg = document.createElement("div");
     msg.textContent = "No active run.";
-    css(msg, { marginTop: "40px", fontSize: "1.1rem", color: "#8899cc" });
+    css(msg, { marginTop: "var(--sp-7)", fontSize: "var(--fs-large)", color: "var(--color-dungeon-label)" });
     root.appendChild(msg);
     // Back affordance is the persistent topbar back chip above.
   }
@@ -75,7 +75,7 @@ export function mountDungeon(host: HTMLElement) {
     titleEl.textContent = "Dungeon Cleared!";
     const msg = document.createElement("div");
     msg.textContent = "Dungeon Cleared!";
-    css(msg, { marginTop: "40px", fontSize: "1.5rem", fontWeight: "700", color: "#55ee88",
+    css(msg, { marginTop: "var(--sp-7)", fontSize: "var(--fs-title)", fontWeight: "700", color: "var(--ok-bright)",
                textShadow: "0 0 16px rgba(50,220,100,0.5)" });
     root.appendChild(msg);
     // Back affordance is the persistent topbar back chip above.
@@ -104,7 +104,7 @@ export function mountDungeon(host: HTMLElement) {
     // Collected buffs
     const buffsLabel = document.createElement("div");
     buffsLabel.textContent = "Collected Buffs";
-    css(buffsLabel, { fontSize: "13px", color: "#8899cc", marginBottom: "8px", alignSelf: "flex-start" });
+    css(buffsLabel, { fontSize: "var(--fs-body)", color: "var(--color-dungeon-label)", marginBottom: "var(--sp-2)", alignSelf: "flex-start" });
     root.appendChild(buffsLabel);
 
     const buffsRow = document.createElement("div");
@@ -116,7 +116,7 @@ export function mountDungeon(host: HTMLElement) {
     if (allBuffs.length === 0) {
       const emptyEl = document.createElement("span");
       emptyEl.textContent = "None yet";
-      css(emptyEl, { color: "#555577", fontSize: "13px" });
+      css(emptyEl, { color: "var(--color-empty)", fontSize: "var(--fs-body)" });
       buffsRow.appendChild(emptyEl);
     } else {
       for (const buffId of allBuffs) {

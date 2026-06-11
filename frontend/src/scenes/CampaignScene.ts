@@ -127,12 +127,12 @@ export function mountCampaign(host: HTMLElement) {
 
   const upgTitle = document.createElement("h3");
   upgTitle.textContent = "Spell Upgrades";
-  css(upgTitle, { margin: "0 0 12px 0", color: "#e8c870", fontSize: "1.1rem", letterSpacing: "0.05em" });
+  css(upgTitle, { margin: "0 0 var(--sp-3) 0", color: "var(--color-upgrade-hdr)", fontSize: "var(--fs-large)", letterSpacing: "0.05em" });
   upgradePanel.appendChild(upgTitle);
 
   const pointsRemaining = document.createElement("div");
   pointsRemaining.id = "upgrade-points-remaining";
-  css(pointsRemaining, { marginBottom: "var(--sp-4)", color: "#ffcc44", fontSize: "14px" });
+  css(pointsRemaining, { marginBottom: "var(--sp-4)", color: "var(--color-pts)", fontSize: "var(--fs-subhead)" });
   upgradePanel.appendChild(pointsRemaining);
 
   const spellList = document.createElement("div");
@@ -171,13 +171,13 @@ export function mountCampaign(host: HTMLElement) {
 
       const nameEl = document.createElement("span");
       nameEl.textContent = SPELL_NAMES[spellId] ?? spellId;
-      css(nameEl, { flex: "1", fontWeight: "600", color: "#e8e8ff" });
+      css(nameEl, { flex: "1", fontWeight: "600", color: "var(--color-spell-name)" });
       row.appendChild(nameEl);
 
       const levelSpan = document.createElement("span");
       levelSpan.id = `spell-level-${spellId}`;
       levelSpan.textContent = `${lvl}`;
-      css(levelSpan, { color: "#88aaff", fontSize: "15px", minWidth: "24px", textAlign: "center" });
+      css(levelSpan, { color: "var(--color-xp)", fontSize: "var(--fs-section)", minWidth: "24px", textAlign: "center" });
       row.appendChild(levelSpan);
 
       const btnPlus = document.createElement("button");
