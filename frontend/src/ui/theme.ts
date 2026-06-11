@@ -37,8 +37,28 @@ const THEME_CSS = `
     --bg-0: #1a0e06;          /* warm background gradient stops */
     --bg-1: #0d0808;
     --bg-2: #050308;
-    --danger: #c8413a;
-    --ok:     #56b04a;
+    --danger:        #c8413a;
+    --danger-bright: #ff3333;  /* loss banner, error state */
+    --ok:            #56b04a;
+    --ok-bright:     #44ff88;  /* win banner, success state */
+
+    /* ── Power-up / status colours ─────────────────────────────────── */
+    --color-wide:    #d4aa00;  /* wide-paddle power-up */
+    --color-fire:    #ff6600;  /* fireshot power-up */
+    --color-shield:  #00ddee;  /* shield power-up */
+    --color-effect:  #66aaff;  /* generic active effect (border) */
+
+    /* ── Interaction state filters ──────────────────────────────────── */
+    --filter-locked:   saturate(0.45) brightness(0.8);
+    --filter-dim:      saturate(0.25) brightness(0.65);
+    --filter-hover:    brightness(1.15);
+    --filter-active:   brightness(0.92);
+    --filter-disabled: saturate(0.25) brightness(0.65);
+
+    /* ── Animation durations ────────────────────────────────────────── */
+    --dur-fast:   0.1s;
+    --dur-normal: 0.15s;
+    --dur-slow:   0.35s;
 
     /* ── Type ───────────────────────────────────────────────────────── */
     --font-display: "Palatino Linotype", "Book Antiqua", Georgia, serif;
@@ -109,7 +129,7 @@ const THEME_CSS = `
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    transition: filter 0.15s, transform 0.1s;
+    transition: filter var(--dur-normal), transform var(--dur-fast);
   }
   .ui-back::before {
     content: "";
@@ -120,6 +140,11 @@ const THEME_CSS = `
   }
   .ui-back:hover  { filter: brightness(1.18); }
   .ui-back:active { transform: scale(0.94); }
+  .ui-back:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
 
   /* ── Section plaque (NameBlock.png 826×110 — ornate gold scroll bar) ─ */
   .ui-plaque {
@@ -166,14 +191,19 @@ const THEME_CSS = `
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    transition: filter 0.15s, transform 0.1s;
+    transition: filter var(--dur-normal), transform var(--dur-fast);
     background: none;
   }
-  .ui-btn:hover:not(:disabled)  { filter: brightness(1.15); }
-  .ui-btn:active:not(:disabled) { transform: scale(0.96); filter: brightness(0.92); }
+  .ui-btn:hover:not(:disabled)  { filter: var(--filter-hover); }
+  .ui-btn:active:not(:disabled) { transform: scale(0.96); filter: var(--filter-active); }
   .ui-btn:disabled {
-    filter: saturate(0.25) brightness(0.65);
+    filter: var(--filter-disabled);
     cursor: default;
+  }
+  .ui-btn:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
   /* Primary pill — the menu's ornate gold/blue button (InterfaceButton 626×162) */
@@ -185,9 +215,9 @@ const THEME_CSS = `
     ${nineSlice("/ui/InterfaceButton.png", "26 92 26 92", "9px 30px")}
   }
 
-  /* Small pill — compact actions (Button1 438×110) */
+  /* Small pill — compact actions (Button1 438×110) — 44px min to meet touch target */
   .ui-btn--small {
-    min-height: 38px;
+    min-height: 44px;
     padding: 2px 14px;
     font-size: var(--fs-body);
     ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}

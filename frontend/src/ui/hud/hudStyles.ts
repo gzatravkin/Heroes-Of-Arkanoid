@@ -70,6 +70,13 @@ export const HUD_STYLES = `
         transform: scale(1.06);
       }
 
+      /* Keyboard / assistive focus ring */
+      .hud-spell-slot:focus-visible {
+        outline: 2px solid var(--gold-bright);
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+
       /* Keybind letter chip: absolute top-left in gold */
       .hud-spell-key {
         position: absolute;

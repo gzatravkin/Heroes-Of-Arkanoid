@@ -340,6 +340,7 @@ export class Hud {
       const canAfford = mana >= cost;
       el.classList.toggle("affordable",   canAfford);
       el.classList.toggle("unaffordable", !canAfford);
+      el.setAttribute("aria-disabled", canAfford ? "false" : "true");
     }
 
     // -- relics --
@@ -432,6 +433,11 @@ export class Hud {
       // Use legacy id for Fire Mage spells (for test backwards-compatibility).
       slot.id = FIRE_MAGE_SLOT_IDS[spell.id] ?? `hud-spell-${spell.id}`;
       slot.className = "hud-spell-slot affordable";
+      slot.setAttribute("role", "button");
+      slot.setAttribute("tabindex", "0");
+      const cost = SPELL_COSTS[spell.id] ?? 0;
+      const costLabel = cost > 0 ? `, costs ${cost} mana` : "";
+      slot.setAttribute("aria-label", `Cast ${spell.name} — key ${key}${costLabel}`);
 
       // Kvadrat-framed inner box: key badge (absolute top-left) + icon
       const frame = this.createElement("div", "hud-spell-frame");
@@ -467,6 +473,12 @@ export class Hud {
       const slotIndex = i;
       el.addEventListener("pointerdown", (e) => {
         e.stopPropagation();
+        const cost = SPELL_COSTS[spell.id] ?? 0;
+        if (this._mana >= cost) conn.castSlot(slotIndex);
+      });
+      el.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
         const cost = SPELL_COSTS[spell.id] ?? 0;
         if (this._mana >= cost) conn.castSlot(slotIndex);
       });
