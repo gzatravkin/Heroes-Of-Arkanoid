@@ -211,9 +211,9 @@ export class Hud {
     this._comboBadgeEl.style.cssText = [
       "position:absolute", "top:155px", "right:8px",
       "display:none",
-      "color:var(--gold-bright,#ffc84e)",
+      "color:var(--gold-bright)",
       "text-shadow:0 0 8px rgba(255,190,80,0.6)",
-      "font-family:var(--font-display,'Segoe UI',system-ui,sans-serif)",
+      "font-family:var(--font-display)",
       "font-size:18px", "font-weight:bold",
       "background:rgba(0,0,0,0.65)",
       "border:1px solid rgba(255,190,80,0.4)",
