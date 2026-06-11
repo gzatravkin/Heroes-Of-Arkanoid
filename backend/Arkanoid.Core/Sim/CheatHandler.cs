@@ -120,6 +120,14 @@ internal static class CheatHandler
                 }
                 break;
 
+            case "damageBlock":
+                // Deal exactly 1 HP of damage to the block with id == value without ball physics.
+                // Used to activate spawners/triggers (hp: maxHp → maxHp-1) without the oscillation
+                // that ballToBlock causes (ball stuck 1px inside block hits every tick until dead).
+                var dmgTarget = g.Blocks.FirstOrDefault(b => !b.Dead && b.Id == (int)value);
+                if (dmgTarget != null)
+                    Systems.BlockDamage.DamageBlock(g, dmgTarget, 1, igniteSource: false, decaySource: false);
+                break;
             case "spawnBonus":
                 // Force-spawn a bonus of the given catalog index (value = index) above the paddle.
                 if (g.BonusCatalog != null && g.BonusCatalog.Defs.Count > 0)

@@ -217,6 +217,28 @@ test("Witchland cauldron bubbles in village-2 (mana siphon enemy)", async ({ pag
 
 test("Hell lava spawner creeps new lava cells over time", async ({ page }) => {
   await openBattle(page, "hell-5");
+
+  // Spawner only activates after taking its first hit — drive the ball into it first.
+  const spawnerId = await page.evaluate(() => {
+    const s = (window as any).__game.getState();
+    return s.blocks.find((b: any) => b.sprite === "LavaSpowner")?.id ?? -1;
+  });
+  expect(spawnerId, "hell-5 must contain a LavaSpowner block").toBeGreaterThan(-1);
+
+  // Deal exactly 1 HP without ball physics — ballToBlock oscillates (1px overlap keeps
+  // the ball inside the block forever, killing the spawner in 2 ticks before we can poll).
+  await cheat(page, "damageBlock", spawnerId);
+  // Wait for the damage to land in the snapshot (hp 2→1, spawner still alive).
+  await page.waitForFunction(
+    (id) => {
+      const s = (window as any).__game.getState();
+      const blk = s?.blocks.find((b: any) => b.id === id);
+      return blk && blk.hp < blk.maxHp;
+    },
+    spawnerId,
+    { timeout: 5_000 },
+  );
+
   const before = await page.evaluate(() => (window as any).__game.getState().blocks.length);
   // Two creep intervals (6s each @60Hz) — the field should grow.
   await cheat(page, "fastForward", 800);
