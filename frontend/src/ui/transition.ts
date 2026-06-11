@@ -15,6 +15,12 @@ const FADE_OUT_MS = 200; // fade duration before navigation
 const FADE_IN_MS  = 220; // fade-in after page load
 
 let _overlay: HTMLDivElement | null = null;
+let _navigateHandler: ((url: string) => void) | null = null;
+
+/** Register a SPA handler; when set, navigateTo() calls this instead of location.href. */
+export function setNavigateHandler(fn: (url: string) => void): void {
+  _navigateHandler = fn;
+}
 
 function getOverlay(): HTMLDivElement {
   if (_overlay) return _overlay;
@@ -34,17 +40,31 @@ function getOverlay(): HTMLDivElement {
   return div;
 }
 
-/** Navigate to a new URL with a fade-out transition. */
+/** Navigate to a new URL with a fade-out/in transition. */
 export function navigateTo(url: string): void {
   const overlay = getOverlay();
-  // Force reflow so the transition triggers from opacity=0.
   overlay.style.opacity = "0";
   void overlay.offsetHeight;
   overlay.style.pointerEvents = "all";
   overlay.style.opacity = "1";
   setTimeout(() => {
-    location.href = url;
-  }, FADE_OUT_MS + 20); // small buffer after fade completes
+    if (_navigateHandler) {
+      _navigateHandler(url);
+      // Fade back in after SPA mount
+      overlay.style.pointerEvents = "none";
+      let started = false;
+      const startFadeIn = () => {
+        if (started) return;
+        started = true;
+        overlay.style.transition = `opacity ${FADE_IN_MS}ms ease-in-out`;
+        overlay.style.opacity = "0";
+      };
+      requestAnimationFrame(() => requestAnimationFrame(startFadeIn));
+      setTimeout(startFadeIn, 150);
+    } else {
+      location.href = url;
+    }
+  }, FADE_OUT_MS + 20);
 }
 
 /** Call this once on page load to fade in the new scene. */

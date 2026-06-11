@@ -1,6 +1,7 @@
 import { metaApi } from "../net/metaApi";
 import type { BlockTypeDef } from "../net/metaApi";
 import { ART_BASE, DEFAULT_COLS, DEFAULT_ROWS, LEGEND_CHARS, btn } from "./editor/editorUtils";
+import { navigateTo } from "../ui/transition";
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
@@ -279,7 +280,7 @@ export function mountEditor(host: HTMLElement) {
     "border:1px solid #333",
     "border-radius:6px",
     "cursor:pointer",
-  ].join(";"), () => { location.href = "/?scene=menu"; });
+  ].join(";"), () => { navigateTo("/?scene=menu"); });
   actions.appendChild(backBtn);
 
   const statusEl = document.createElement("span");

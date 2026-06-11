@@ -163,24 +163,8 @@ internal static class BallSystem
                 return; // ball is now held
             }
 
-            // Lava: a deadly block — touching it drains the ball (Hell hazard).
-            // Hellwalker relic: once per serve the lava rebounds the ball instead.
-            if (blk.Lava)
-            {
-                if (g.HasRelic("hellwalker") && !g._hellwalkerUsedThisServe)
-                {
-                    g._hellwalkerUsedThisServe = true;
-                    var away = (b.Pos - c);
-                    b.Vel = (away.Length > 0.0001 ? away.Normalized() : new Vec2(0, -1)) * g.Config.BallSpeed;
-                    g.RaiseEvent("hellwalk", c.X, c.Y);
-                    g._log.Log(g.TickCount, "relic", "hellwalker save", $"ball={b.Id}");
-                    return;
-                }
-                b.Alive = false;
-                g.RaiseEvent("lava", c.X, c.Y);
-                g._log.Log(g.TickCount, "lava", "ball drained", $"ball={b.Id}");
-                return;
-            }
+            // Lava: ball passes through — lava drains HP only when it reaches the paddle zone.
+            if (blk.Lava) continue;
 
             // Altar: hitting it pacifies the Heaven statues; then bounce off as a solid block.
             if (blk.Altar)

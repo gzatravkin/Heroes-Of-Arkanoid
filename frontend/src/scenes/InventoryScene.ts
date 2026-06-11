@@ -1,6 +1,7 @@
 import { metaApi, type ItemDef } from "../net/metaApi";
 import { unlockAchievement } from "./AchievementsScene";
 import { INVENTORY_STYLES } from "./inventory/inventoryStyles";
+import { navigateTo } from "../ui/transition";
 
 // ---------------------------------------------------------------------------
 // Inventory / Shop scene
@@ -26,7 +27,7 @@ export async function mountInventory(host: HTMLElement) {
   backBtn.id = "btn-inv-back";
   backBtn.className = "ui-back";
   backBtn.setAttribute("aria-label", "Back to menu");
-  backBtn.addEventListener("click", () => { location.href = "/?scene=menu"; });
+  backBtn.addEventListener("click", () => { navigateTo("/?scene=menu"); });
   header.appendChild(backBtn);
 
   const title = document.createElement("h1");

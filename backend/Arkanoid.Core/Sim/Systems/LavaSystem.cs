@@ -12,14 +12,35 @@ internal static class LavaSystem
 {
     internal static void Update(GameInstance g, double dt)
     {
+        // Lava in the paddle danger zone drains player HP over time.
+        CheckDangerZone(g, dt);
+
         foreach (var blk in g.Blocks.Where(b => !b.Dead && b.LavaSpawner).ToList())
         {
+            // Lava only flows after the spawner takes its first hit (hp < maxHp).
+            if (blk.Hp >= blk.MaxHp) continue;
+
             blk.EmitAccumulator += dt;
             if (blk.EmitAccumulator < g.Config.LavaCreepInterval) continue;
             blk.EmitAccumulator -= g.Config.LavaCreepInterval;
             if (blk.SpawnedCount >= g.Config.LavaCreepMax) continue;
             Creep(g, blk);
         }
+    }
+
+    private static void CheckDangerZone(GameInstance g, double dt)
+    {
+        int dangerRow = g.Level.Grid.Rows - 2;
+        bool lavaInDanger = g.Blocks.Any(b => !b.Dead && b.Lava && b.Row >= dangerRow);
+        if (!lavaInDanger) { g._lavaDrainAccumulator = 0; return; }
+
+        g._lavaDrainAccumulator += dt;
+        if (g._lavaDrainAccumulator < g.Config.LavaDrainInterval) return;
+        g._lavaDrainAccumulator -= g.Config.LavaDrainInterval;
+
+        g.Lives = System.Math.Max(0, g.Lives - 1);
+        g.RaiseEvent("lavaDrain", 0, 0);
+        g._log.Log(g.TickCount, "lava", "hp drained by lava in danger zone", $"lives={g.Lives}");
     }
 
     private static void Creep(GameInstance g, Block spawner)

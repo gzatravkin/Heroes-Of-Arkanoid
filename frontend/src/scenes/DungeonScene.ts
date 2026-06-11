@@ -1,5 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import { nineSlice } from "../ui/nineSlice";
+import { navigateTo } from "../ui/transition";
 import type { DungeonRunState } from "../net/metaApi";
 import { css, buffName, buffIcon } from "./battle/overlays";
 
@@ -139,7 +140,7 @@ export function mountDungeon(host: HTMLElement) {
     enterBtn.className = "dngrun-enter-btn";
     enterBtn.textContent = "Enter Floor";
     enterBtn.addEventListener("click", () => {
-      location.href = `/?scene=battle&level=${encodeURIComponent(currentFloor)}&from=dungeon`;
+      navigateTo(`/?scene=battle&level=${encodeURIComponent(currentFloor)}&from=dungeon`);
     });
     root.appendChild(enterBtn);
   }

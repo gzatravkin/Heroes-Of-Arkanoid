@@ -106,10 +106,10 @@ public class EnemyTests
         Assert.True(System.Math.Abs(cart!.Vel.X) > 0 && cart.Vel.Y == 0, "cart rolls horizontally");
     }
 
-    // ── Lava (deadly block drains the ball) ───────────────────────────────────
+    // ── Lava (ball passes through — only drains HP when in paddle zone) ──────────
 
     [Fact]
-    public void Lava_DrainsBall_OnContact()
+    public void Lava_BallPassesThrough_OnContact()
     {
         var g = Make(
             "{\"types\":[" +
@@ -117,8 +117,8 @@ public class EnemyTests
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"l.k\",\"...\",\"...\"],\"legend\":{\"l\":\"l\",\"k\":\"k\"}}");
         int sparesBefore = g.SpareBalls;
-        BallHit(g, g.Blocks[0]); // the lava block drains the ball → a spare is consumed on re-serve
-        Assert.True(g.SpareBalls < sparesBefore, "lava drained the ball (a spare was consumed)");
+        BallHit(g, g.Blocks[0]); // ball passes through lava — no spare consumed
+        Assert.Equal(sparesBefore, g.SpareBalls);
     }
 
     // ── Altar / Vase pacify the Heaven statues ────────────────────────────────
@@ -436,11 +436,16 @@ public class EnemyTests
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"s\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"lavaSpawner\"}," +
+            "{\"id\":\"s\",\"biome\":\"t\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":false,\"behavior\":\"lavaSpawner\"}," +
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5,\"rows_data\":[\"....k\",\"..S..\",\".....\",\".....\",\".....\"],\"legend\":{\"S\":\"s\",\"k\":\"k\"}}");
         var spawner = g.Blocks.First(b => b.LavaSpawner);
         Park(g);
+
+        // Lava only flows after the spawner takes its first hit (hp 2→1).
+        BallHit(g, spawner);
+        Assert.Equal(1, spawner.Hp); // not dead, just activated
+        Park(g); // re-park so the ball doesn't bounce back and kill the spawner
 
         // Two creep intervals → two lava cells owned by the spawner.
         var creepTicks = (int)(SimConfig.Default.LavaCreepInterval / SimConfig.Default.FixedDt) + 2;

@@ -85,6 +85,7 @@ export class Connection {
   castTurret() { this.send({ kind: "CastTurret" }); }
   castSlot(slot: number) { this.send({ kind: "CastSlot", slot }); }
   cheat(op: string, value = 0) { this.send({ kind: "Cheat", cheat: op, value }); }
+  close() { this.ws.close(); }
   whenReady(cb: () => void) {
     if (this.ws.readyState === 1) cb(); else this.ws.addEventListener("open", cb, { once: true });
   }

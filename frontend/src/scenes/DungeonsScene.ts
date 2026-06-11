@@ -1,5 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import { nineSlice } from "../ui/nineSlice";
+import { navigateTo } from "../ui/transition";
 import type { DungeonDef } from "../net/metaApi";
 import { css } from "./battle/overlays";
 
@@ -114,7 +115,7 @@ export function mountDungeons(host: HTMLElement) {
         descBtn.textContent = "Starting…";
         try {
           await metaApi.startDungeon(d.id);
-          location.href = "/?scene=dungeon";
+          navigateTo("/?scene=dungeon");
         } catch {
           descBtn.disabled = false;
           descBtn.textContent = "Descend";

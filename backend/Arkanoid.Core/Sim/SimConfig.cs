@@ -198,6 +198,8 @@ public sealed class SimConfig
     public double LavaCreepInterval     { get; init; } = 6.0;
     /// <summary>Maximum lava cells a single spawner can creep (cap keeps levels winnable).</summary>
     public int    LavaCreepMax          { get; init; } = 6;
+    /// <summary>Seconds between each 1-HP drain while any lava block is in the bottom 2 rows.</summary>
+    public double LavaDrainInterval     { get; init; } = 3.0;
 
     // --- Boss signature mechanics (docs/11 §4 bosses) ---
     /// <summary>HP damage the Demon's fist slam deals if the paddle is in the struck column.</summary>

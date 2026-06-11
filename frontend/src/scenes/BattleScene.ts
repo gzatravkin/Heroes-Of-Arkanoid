@@ -17,6 +17,7 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
   (window as any).__renderer = r;
   const hud = new Hud(host);
   const conn = new Connection(level, seed, run);
+  (window as any).__conn = conn;
 
   const flow =
     from === "campaign" ? createCampaignFlow(level) :

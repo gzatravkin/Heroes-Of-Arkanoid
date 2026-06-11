@@ -1,5 +1,6 @@
 import { metaApi } from "../net/metaApi";
 import { nineSlice } from "../ui/nineSlice";
+import { navigateTo } from "../ui/transition";
 
 // Hero icon images per backend icon key
 const ICON_FILES: Record<string, string> = {
@@ -45,7 +46,7 @@ export function mountCharacters(host: HTMLElement) {
   const backBtn = document.createElement("button");
   backBtn.className = "ui-back";
   backBtn.setAttribute("aria-label", "Back to menu");
-  backBtn.addEventListener("click", () => { location.href = "/?scene=menu"; });
+  backBtn.addEventListener("click", () => { navigateTo("/?scene=menu"); });
   topbar.appendChild(backBtn);
 
   const h1 = document.createElement("h1");

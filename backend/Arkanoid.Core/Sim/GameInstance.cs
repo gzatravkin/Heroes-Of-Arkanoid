@@ -115,6 +115,9 @@ public sealed class GameInstance
     // --- Necromancer: Drain ---
     internal double _drainRemaining;
     public bool DrainActive => _drainRemaining > 0;
+
+    // --- Lava: danger-zone HP drain ---
+    internal double _lavaDrainAccumulator;
     internal readonly ISimLog _log;
     public RelicCatalog?  RelicCatalog  { get; }
     public BonusCatalog?  BonusCatalog  { get; }
