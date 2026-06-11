@@ -101,8 +101,7 @@ const THEME_CSS = `
     --fs-body:    13px;  /* primary body copy */
     --fs-caption: 12px;  /* compact labels, badges */
     --fs-small:   11px;  /* secondary copy, hints */
-    --fs-tiny:    10px;  /* metadata, timestamps */
-    --fs-micro:    8px;  /* ultra-small kickers */
+    --fs-tiny:    10px;  /* metadata, timestamps, ultra-small kickers */
 
     /* ── Space ──────────────────────────────────────────────────────── */
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;

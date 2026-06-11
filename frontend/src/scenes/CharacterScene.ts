@@ -342,7 +342,7 @@ const CHARACTER_CSS = `
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: var(--fs-micro);
+    font-size: var(--fs-tiny);
     font-weight: 900;
     letter-spacing: 0.16em;
     color: var(--gold-bright);

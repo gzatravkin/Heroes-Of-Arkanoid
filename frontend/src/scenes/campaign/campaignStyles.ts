@@ -266,7 +266,7 @@ export const CAMPAIGN_STYLES = `
       gap: 1px;
     }
     .camp-node-kicker {
-      font-size: var(--fs-micro);
+      font-size: var(--fs-tiny);
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;

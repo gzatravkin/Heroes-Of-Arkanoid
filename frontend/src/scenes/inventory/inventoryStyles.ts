@@ -117,7 +117,7 @@ export const INVENTORY_STYLES = `
     }
     .inv-slot-label {
       font-family: var(--font-body);
-      font-size: var(--fs-micro);
+      font-size: var(--fs-tiny);
       color: var(--text-dim);
       text-align: center;
       line-height: 1.1;
@@ -184,7 +184,7 @@ export const INVENTORY_STYLES = `
       line-height: 1.2;
     }
     .inv-tier-badge {
-      font-size: var(--fs-micro);
+      font-size: var(--fs-tiny);
       font-weight: 900;
       padding: 1px 5px;
       border-radius: 3px;

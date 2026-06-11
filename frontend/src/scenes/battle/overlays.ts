@@ -263,7 +263,7 @@ function injectOverlayStyles() {
       box-shadow: 0 0 14px rgba(120, 220, 140, 0.35);
     }
     .ov-bonus-hint {
-      font-size: var(--fs-micro);
+      font-size: var(--fs-tiny);
       font-weight: 700;
       text-align: center;
       color: var(--ok-bright);
