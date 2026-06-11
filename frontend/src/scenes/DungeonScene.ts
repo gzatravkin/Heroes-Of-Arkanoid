@@ -216,7 +216,7 @@ function injectDungeonRunStyles() {
       filter: brightness(1.08);
     }
     .dngrun-enter-btn {
-      min-height: 36px;
+      min-height: 44px;
       padding: 2px 14px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
@@ -233,8 +233,13 @@ function injectDungeonRunStyles() {
     .dngrun-enter-btn:hover:not(:disabled)  { filter: brightness(1.18); }
     .dngrun-enter-btn:active:not(:disabled) { transform: scale(0.96); }
     .dngrun-enter-btn:disabled {
-      filter: saturate(0.25) brightness(0.6);
+      filter: var(--filter-disabled);
       cursor: default;
+    }
+    .dngrun-enter-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
     }
   `;
   document.head.appendChild(style);
