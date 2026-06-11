@@ -1,5 +1,15 @@
 import { Page, expect } from "@playwright/test";
 
+/** Captures N screenshots at intervalMs apart, returns array of Buffers. */
+export async function captureFrames(page: Page, n: number, intervalMs: number): Promise<Buffer[]> {
+  const frames: Buffer[] = [];
+  for (let i = 0; i < n; i++) {
+    frames.push(await page.screenshot());
+    if (i < n - 1) await page.waitForTimeout(intervalMs);
+  }
+  return frames;
+}
+
 /** Open a battle pre-set to a given level/seed and wait until the sim is streaming. */
 export async function openBattle(page: Page, level = "hell-1", seed = 1) {
   const run = `${level}-${seed}-${Date.now()}`;
