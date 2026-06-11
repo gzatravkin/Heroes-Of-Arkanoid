@@ -254,4 +254,9 @@ const THEME_CSS = `
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
   .ui-link:hover { color: var(--gold-bright); }
+  .ui-link:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 `;
