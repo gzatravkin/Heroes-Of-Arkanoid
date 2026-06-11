@@ -132,7 +132,7 @@ export function mountCampaign(host: HTMLElement) {
 
   const pointsRemaining = document.createElement("div");
   pointsRemaining.id = "upgrade-points-remaining";
-  css(pointsRemaining, { marginBottom: "16px", color: "#ffcc44", fontSize: "14px" });
+  css(pointsRemaining, { marginBottom: "var(--sp-4)", color: "#ffcc44", fontSize: "14px" });
   upgradePanel.appendChild(pointsRemaining);
 
   const spellList = document.createElement("div");

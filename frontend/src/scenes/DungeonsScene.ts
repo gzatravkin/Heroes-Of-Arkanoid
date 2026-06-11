@@ -154,8 +154,8 @@ function injectDungeonStyles() {
     .dng-topbar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding-bottom: 8px;
+      gap: var(--sp-2);
+      padding-bottom: var(--sp-2);
       align-self: stretch;
     }
     .dng-topbar .ui-title { flex: 1; text-align: center; }
