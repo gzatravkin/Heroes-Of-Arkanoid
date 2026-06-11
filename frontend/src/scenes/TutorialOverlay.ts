@@ -108,10 +108,14 @@ export function showTutorial(host: HTMLElement, onDone?: () => void) {
     // Content panel overlay
     const panel = document.createElement("div");
     panel.className = "tut-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "tutorial-title");
 
     const title = document.createElement("h2");
     title.textContent = slide.title;
     title.className = "tut-title";
+    title.id = "tutorial-title";
     panel.appendChild(title);
 
     const caption = document.createElement("p");
@@ -197,6 +201,10 @@ export function showTutorial(host: HTMLElement, onDone?: () => void) {
 
   render();
   host.appendChild(overlay);
+
+  // Focus first focusable element for keyboard/screen-reader accessibility
+  const firstBtn = overlay.querySelector<HTMLElement>('button, a, input, [tabindex="0"]');
+  firstBtn?.focus();
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -238,7 +246,7 @@ function injectTutorialStyles() {
       z-index: 1;
       background: url('/ui/LvlUpInterfacePanel.png') no-repeat center / cover,
                   rgba(8,6,20,0.96);
-      border: 2px solid rgba(180,140,60,0.7);
+      border: 2px solid var(--gold-dim);
       border-radius: 16px;
       padding: 28px 24px 20px;
       width: min(340px, 92cqw);
@@ -261,7 +269,7 @@ function injectTutorialStyles() {
       margin: 0;
       font-size: 1.5rem;
       font-weight: 800;
-      color: #ffd700;
+      color: var(--gold-bright);
       letter-spacing: 0.07em;
       text-shadow: 0 0 16px rgba(255,200,50,0.5), 0 2px 4px rgba(0,0,0,0.9);
       text-align: center;
@@ -270,7 +278,7 @@ function injectTutorialStyles() {
     .tut-caption {
       margin: 0;
       font-size: 0.95rem;
-      color: #c8d0e8;
+      color: var(--text-dim);
       line-height: 1.55;
       text-align: center;
       max-width: 300px;
@@ -299,7 +307,7 @@ function injectTutorialStyles() {
 
     .tut-icon-label {
       font-size: 11px;
-      color: #aabbcc;
+      color: var(--text-dim);
       text-align: center;
     }
 
@@ -307,6 +315,9 @@ function injectTutorialStyles() {
       display: flex;
       gap: 8px;
       justify-content: center;
+      align-items: center;
+      min-height: 44px;
+      padding: 18px 0;
     }
 
     .tut-dot {
@@ -317,7 +328,7 @@ function injectTutorialStyles() {
       transition: background 0.2s;
     }
     .tut-dot.active {
-      background: #ffd700;
+      background: var(--gold-bright);
       box-shadow: 0 0 6px rgba(255,210,0,0.6);
     }
 
@@ -339,11 +350,11 @@ function injectTutorialStyles() {
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.04em;
-      color: #f0e0b8;
+      color: var(--text);
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: filter 0.15s, transform 0.1s;
+      transition: filter var(--dur-normal), transform var(--dur-fast);
     }
     .tut-btn:hover  { filter: brightness(1.15); }
     .tut-btn:active { transform: scale(0.97); filter: brightness(0.9); }
