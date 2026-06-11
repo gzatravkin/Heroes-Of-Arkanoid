@@ -60,6 +60,16 @@ const THEME_CSS = `
     --color-boss-hp:   #cc2222;  /* boss HP bar (normal phase) */
     --color-boss-deep: #880000;  /* boss HP bar (base/dark phase) */
 
+    /* ── Reward / overlay semantic colours ─────────────────────────── */
+    --color-xp:          #88aaff;  /* EXP reward text */
+    --color-pts:         #ffcc44;  /* skill-points reward text */
+    --color-crystal:     #44ddff;  /* crystal currency display */
+    --color-levelup:     #ffd700;  /* level-up notification */
+    --color-first-clear: #aa88ff;  /* first-clear achievement */
+    --color-label-muted: #88aaaa;  /* muted section labels */
+    --color-relic:       #cc88ff;  /* relic item display */
+    --color-fail-muted:  #aa5555;  /* permadeath / fail sub-text */
+
     /* ── Interaction state filters ──────────────────────────────────── */
     --filter-locked:   saturate(0.45) brightness(0.8);
     --filter-dim:      saturate(0.25) brightness(0.65);

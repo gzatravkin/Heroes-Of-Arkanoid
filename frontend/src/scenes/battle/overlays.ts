@@ -328,7 +328,7 @@ export function buildRewardOverlay(
     expEl.appendChild(expIco);
     const expText = document.createElement("span");
     expText.textContent = `+${reward.expGained} EXP`;
-    css(expText, { color: "#88aaff", fontSize: "1.1rem" });
+    css(expText, { color: "var(--color-xp)", fontSize: "var(--fs-large)" });
     expEl.appendChild(expText);
     panel.appendChild(expEl);
 
@@ -341,7 +341,7 @@ export function buildRewardOverlay(
     pointsEl.appendChild(ptIco);
     const ptText = document.createElement("span");
     ptText.textContent = `+${reward.pointsGained} Skill Points`;
-    css(ptText, { color: "#ffcc44", fontSize: "1.1rem" });
+    css(ptText, { color: "var(--color-pts)", fontSize: "var(--fs-large)" });
     pointsEl.appendChild(ptText);
     panel.appendChild(pointsEl);
 
@@ -354,7 +354,7 @@ export function buildRewardOverlay(
     crystalsEl.appendChild(cIco);
     const cText = document.createElement("span");
     cText.textContent = `+${reward.crystalsGained} Crystals`;
-    css(cText, { color: "#44ddff", fontSize: "1.1rem" });
+    css(cText, { color: "var(--color-crystal)", fontSize: "var(--fs-large)" });
     crystalsEl.appendChild(cText);
     panel.appendChild(crystalsEl);
 
@@ -362,20 +362,20 @@ export function buildRewardOverlay(
       const lvlUp = document.createElement("div");
       lvlUp.id = "reward-levelup";
       lvlUp.textContent = `Level Up! → Lv ${reward.newLevel}`;
-      css(lvlUp, { fontSize: "1.1rem", color: "#ffd700", fontWeight: "700", marginTop: "4px" });
+      css(lvlUp, { fontSize: "var(--fs-large)", color: "var(--color-levelup)", fontWeight: "700", marginTop: "var(--sp-1)" });
       panel.appendChild(lvlUp);
     }
 
     if (reward.firstClear) {
       const first = document.createElement("div");
       first.textContent = "First Clear!";
-      css(first, { fontSize: "0.9rem", color: "#aa88ff", marginTop: "4px" });
+      css(first, { fontSize: "var(--fs-subhead)", color: "var(--color-first-clear)", marginTop: "var(--sp-1)" });
       panel.appendChild(first);
     }
   } else {
     const msg = document.createElement("div");
     msg.textContent = "Level complete!";
-    css(msg, { color: "#88aaff" });
+    css(msg, { color: "var(--color-xp)" });
     panel.appendChild(msg);
   }
 
@@ -506,7 +506,7 @@ export function buildDungeonClearOverlay(
 
   const rewardTitle = document.createElement("div");
   rewardTitle.textContent = "Permanent Reward";
-  css(rewardTitle, { fontSize: "0.85rem", color: "#88aaaa", letterSpacing: "0.05em" });
+  css(rewardTitle, { fontSize: "var(--fs-body)", color: "var(--color-label-muted)", letterSpacing: "0.05em" });
   panel.appendChild(rewardTitle);
 
   const profile = data.profile;
@@ -520,7 +520,7 @@ export function buildDungeonClearOverlay(
     crystalEl.appendChild(gemImg);
     const crystalText = document.createElement("span");
     crystalText.textContent = `${profile.crystals} Crystals`;
-    css(crystalText, { fontSize: "1.2rem", color: "#44ddff" });
+    css(crystalText, { fontSize: "var(--fs-xl)", color: "var(--color-crystal)" });
     crystalEl.appendChild(crystalText);
     panel.appendChild(crystalEl);
   }
@@ -536,7 +536,7 @@ export function buildDungeonClearOverlay(
     const relicText = document.createElement("span");
     relicText.id = "dungeon-clear-relic";
     relicText.textContent = RELIC_NAMES[lastRelic] ?? lastRelic;
-    css(relicText, { fontSize: "1.1rem", color: "#cc88ff" });
+    css(relicText, { fontSize: "var(--fs-large)", color: "var(--color-relic)" });
     relicRow.appendChild(relicText);
     panel.appendChild(relicRow);
   }
@@ -568,7 +568,7 @@ export function buildDungeonFailOverlay(onExit: () => void): HTMLElement {
 
   const sub = document.createElement("div");
   sub.textContent = "The rift claims you.";
-  css(sub, { color: "#aa5555", fontSize: "1.1rem", letterSpacing: "0.04em", marginBottom: "8px" });
+  css(sub, { color: "var(--color-fail-muted)", fontSize: "var(--fs-large)", letterSpacing: "0.04em", marginBottom: "var(--sp-2)" });
   overlay.appendChild(sub);
 
   const exitBtn = document.createElement("button");
