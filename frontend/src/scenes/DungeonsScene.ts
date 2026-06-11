@@ -218,7 +218,7 @@ function injectDungeonStyles() {
       gap: 6px;
     }
     .dng-descend-btn {
-      min-height: 36px;
+      min-height: 44px;
       padding: 2px 14px;
       ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 18px")}
       cursor: pointer;
@@ -237,6 +237,11 @@ function injectDungeonStyles() {
     .dng-descend-btn:disabled {
       filter: saturate(0.25) brightness(0.6);
       cursor: default;
+    }
+    .dng-descend-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
     }
   `;
   document.head.appendChild(style);

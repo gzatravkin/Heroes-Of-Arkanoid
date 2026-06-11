@@ -359,6 +359,11 @@ function injectTutorialStyles() {
     }
     .tut-btn:hover  { filter: brightness(1.15); }
     .tut-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+    .tut-btn:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 
     .tut-btn-secondary {
       opacity: 0.75;
@@ -378,11 +383,19 @@ function injectTutorialStyles() {
       color: rgba(200,180,140,0.55);
       font-size: 12px;
       cursor: pointer;
-      padding: 8px;
+      min-height: 44px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
       font-family: var(--font-body);
       -webkit-tap-highlight-color: transparent;
     }
     .tut-skip:hover { color: rgba(200,180,140,0.85); }
+    .tut-skip:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
   `;
   document.head.appendChild(style);
 }

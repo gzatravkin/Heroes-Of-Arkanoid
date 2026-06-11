@@ -235,6 +235,11 @@ export const CAMPAIGN_STYLES = `
     .camp-node:active:not(.camp-node-locked) { transform: scale(0.96); }
     .camp-node-locked { cursor: default; opacity: 0.7; }
     .camp-node-locked:hover { transform: none; filter: none; }
+    .camp-node:not(.camp-node-locked):focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
 
     .camp-node-img {
       width: 64px;
