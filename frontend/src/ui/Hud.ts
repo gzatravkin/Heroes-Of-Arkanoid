@@ -6,34 +6,6 @@ import { buildLabelledBar, buildManaBar, buildBossBar } from "./hud/bars";
 import { HUD_STYLES } from "./hud/hudStyles";
 import { buildSpellIcon } from "./hud/spellIcon";
 
-// ---------------------------------------------------------------------------
-// Spell cost constants (mirrored from backend; used for affordability dimming).
-// ---------------------------------------------------------------------------
-// Mirrored from backend SimConfig — update here whenever SimConfig spell costs change.
-const SPELL_COSTS: Record<string, number> = {
-  ignite:    0,
-  fireball:  25,  // bumped 20→25 (P7a balance pass)
-  firewall:  35,  // bumped 30→35 (P7a balance pass)
-  turret:    25,
-  shield:    20,
-  spear:     15,
-  duplicate: 25,
-  lightning: 20,
-  rocket:    25,
-  radiation: 30,
-  decay:     0,
-  skeleton:  25,
-  drain:     20,
-  // G2c kit-completion spells
-  phoenix:     30,
-  penetration: 20,
-  lastday:     35,
-  magnet:      20,
-  overload:    25,
-  golem:       30,
-  mage:        25,
-};
-
 // Key labels by slot index (0→Q, 1→E, 2→W, 3→R, 4→T).
 const SLOT_KEYS = ["Q", "E", "W", "R", "T"];
 
@@ -338,7 +310,7 @@ export class Hud {
     for (const spell of this._spells) {
       const el = this.spellSlots.get(spell.id);
       if (!el) continue;
-      const cost = SPELL_COSTS[spell.id] ?? 0;
+      const cost = spell.manaCost ?? 0;
       const canAfford = mana >= cost;
       el.classList.toggle("affordable",   canAfford);
       el.classList.toggle("unaffordable", !canAfford);
@@ -412,12 +384,12 @@ export class Hud {
 
   // -----------------------------------------------------------------------
   private loadFireMageFallback(_conn: Connection) {
-    // Default spell kit matching Fire Mage from characters.json
+    // Fallback when API is unavailable; manaCost values come from characters.json normally.
     const fallback: SpellDef[] = [
-      { id: "ignite",   name: "Ignite",    icon: "FireHeroBall" },
-      { id: "fireball", name: "Fireball",  icon: "FireBallIco" },
-      { id: "firewall", name: "Fire Wall", icon: "FireWallIco" },
-      { id: "turret",   name: "Turret",    icon: "FireTurretIco" },
+      { id: "ignite",   name: "Ignite",    icon: "FireHeroBall", manaCost: 0  },
+      { id: "fireball", name: "Fireball",  icon: "FireBallIco",  manaCost: 25 },
+      { id: "firewall", name: "Fire Wall", icon: "FireWallIco",  manaCost: 35 },
+      { id: "turret",   name: "Turret",    icon: "FireTurretIco",manaCost: 25 },
     ];
     this.loadSpells(fallback);
   }
@@ -437,7 +409,7 @@ export class Hud {
       slot.className = "hud-spell-slot affordable";
       slot.setAttribute("role", "button");
       slot.setAttribute("tabindex", "0");
-      const cost = SPELL_COSTS[spell.id] ?? 0;
+      const cost = spell.manaCost ?? 0;
       const costLabel = cost > 0 ? `, costs ${cost} mana` : "";
       slot.setAttribute("aria-label", `Cast ${spell.name} — key ${key}${costLabel}`);
 
@@ -475,13 +447,13 @@ export class Hud {
       const slotIndex = i;
       el.addEventListener("pointerdown", (e) => {
         e.stopPropagation();
-        const cost = SPELL_COSTS[spell.id] ?? 0;
+        const cost = spell.manaCost ?? 0;
         if (this._mana >= cost) conn.castSlot(slotIndex);
       });
       el.addEventListener("keydown", (e) => {
         if (e.key !== "Enter" && e.key !== " ") return;
         e.preventDefault();
-        const cost = SPELL_COSTS[spell.id] ?? 0;
+        const cost = spell.manaCost ?? 0;
         if (this._mana >= cost) conn.castSlot(slotIndex);
       });
     }
@@ -493,7 +465,7 @@ export class Hud {
       const slotIdx = keyMap[e.key.toLowerCase()];
       if (slotIdx === undefined || slotIdx >= this._spells.length) return;
       const spell = this._spells[slotIdx];
-      const cost = SPELL_COSTS[spell.id] ?? 0;
+      const cost = spell.manaCost ?? 0;
       if (this._mana >= cost) conn.castSlot(slotIdx);
     });
   }

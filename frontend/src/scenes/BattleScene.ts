@@ -54,7 +54,8 @@ export function mountBattle(host: HTMLElement, level: string, seed: number, run:
     .then((data) => { hud.loadEquippedItems(data.items.filter(it => it.equipped)); })
     .catch(() => { /* non-fatal */ });
 
-  attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
+  const detachInput = attachPaddleInput(r.app.view as HTMLCanvasElement, conn, () => conn.latest);
+  (window as any).__detachInput = detachInput;
   installTestHooks(conn);
   // Show tutorial on first battle (non-blocking — serves after tutorial or immediately).
   // Skip when: Playwright drives the browser (navigator.webdriver=true) OR the player

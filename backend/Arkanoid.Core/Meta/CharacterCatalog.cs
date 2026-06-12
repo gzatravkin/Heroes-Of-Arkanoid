@@ -4,9 +4,10 @@ namespace Arkanoid.Core.Meta;
 
 public sealed class SpellSlotDef
 {
-    [JsonPropertyName("id")]   public string Id   { get; set; } = "";
-    [JsonPropertyName("name")] public string Name { get; set; } = "";
-    [JsonPropertyName("icon")] public string Icon { get; set; } = "";
+    [JsonPropertyName("id")]       public string Id       { get; set; } = "";
+    [JsonPropertyName("name")]     public string Name     { get; set; } = "";
+    [JsonPropertyName("icon")]     public string Icon     { get; set; } = "";
+    [JsonPropertyName("manaCost")] public int    ManaCost { get; set; }
 }
 
 public sealed class CharacterDef
@@ -18,29 +19,15 @@ public sealed class CharacterDef
     [JsonPropertyName("spells")]  public List<SpellSlotDef> Spells { get; set; } = new();
 }
 
-public sealed class CharacterCatalog
+public sealed class CharacterCatalog : Catalog<CharacterDef>
 {
-    private readonly List<CharacterDef> _characters;
-    private CharacterCatalog(IEnumerable<CharacterDef> characters) => _characters = new List<CharacterDef>(characters);
+    private CharacterCatalog(IEnumerable<CharacterDef> defs) : base(defs, d => d.Id) { }
 
-    public IEnumerable<CharacterDef> All => _characters;
-
-    public CharacterDef Get(string id)
-    {
-        var def = _characters.FirstOrDefault(c => c.Id == id);
-        if (def is null) throw new KeyNotFoundException($"Character '{id}' not found");
-        return def;
-    }
-
-    private sealed class Dto
-    {
-        [JsonPropertyName("characters")] public List<CharacterDef> Characters { get; set; } = new();
-    }
+    private sealed class Dto { [JsonPropertyName("characters")] public List<CharacterDef> Characters { get; set; } = new(); }
 
     public static CharacterCatalog FromJson(string json)
     {
-        var dto = JsonSerializer.Deserialize<Dto>(json)
-            ?? throw new InvalidOperationException("Invalid characters JSON");
+        var dto = JsonSerializer.Deserialize<Dto>(json) ?? throw new InvalidOperationException("Invalid characters JSON");
         return new CharacterCatalog(dto.Characters);
     }
 

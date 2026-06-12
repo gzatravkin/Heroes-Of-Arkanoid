@@ -1,31 +1,11 @@
 import type { CompleteResult, FloorClearedResult } from "../../net/metaApi";
+import { getRelicName } from "../../net/relicCache";
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 export function css(el: HTMLElement, styles: Record<string, string>) {
   Object.assign(el.style, styles);
 }
-
-const RELIC_NAMES: Record<string, string> = {
-  glass_cannon: "Glass Cannon",
-  flint_core: "Flint Core",
-  pyroclasm: "Pyroclasm",
-  mana_battery: "Mana Battery",
-  // G2 relic web
-  conductor: "Conductor",
-  overcharge: "Overcharge",
-  split_shot: "Split Shot",
-  souljar: "Souljar",
-  lodestone: "Lodestone",
-  ember_heart: "Ember Heart",
-  second_wind: "Second Wind",
-  midas: "Midas Touch",
-  lead_paddle: "Lead Paddle",
-  sapper: "Sapper's Charge",
-  hellwalker: "Hellwalker",
-  ghost_lens: "Ghost Lens",
-  pillar_doctrine: "Pillar Doctrine",
-};
 
 const RELIC_ICONS: Record<string, string> = {
   glass_cannon: "/art/ItemHummer.png",
@@ -101,7 +81,7 @@ export function synergyWith(choiceId: string, owned: string[]): string | null {
 }
 
 export function buffName(id: string): string {
-  return RELIC_NAMES[id] ?? BALL_CORE_NAMES[id] ?? id;
+  return BALL_CORE_NAMES[id] ?? getRelicName(id);
 }
 
 export function buffIcon(id: string): string {
@@ -535,7 +515,7 @@ export function buildDungeonClearOverlay(
     relicRow.appendChild(relicImg);
     const relicText = document.createElement("span");
     relicText.id = "dungeon-clear-relic";
-    relicText.textContent = RELIC_NAMES[lastRelic] ?? lastRelic;
+    relicText.textContent = getRelicName(lastRelic);
     css(relicText, { fontSize: "var(--fs-large)", color: "var(--color-relic)" });
     relicRow.appendChild(relicText);
     panel.appendChild(relicRow);

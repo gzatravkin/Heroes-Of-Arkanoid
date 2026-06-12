@@ -5,11 +5,11 @@
     "passive": "Ignited kills spread fire to neighbors.",
     "icon": "FireHeroBall",
     "spells": [
-      { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall" },
-      { "id": "fireball", "name": "Fireball", "icon": "FireBallIco" },
-      { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco" },
-      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco" },
-      { "id": "phoenix",  "name": "Phoenix",  "icon": "firemage/spell_phonex/ChosePhoenixLargeIco" }
+      { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall",                               "manaCost": 0  },
+      { "id": "fireball", "name": "Fireball", "icon": "FireBallIco",                                "manaCost": 25 },
+      { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco",                                 "manaCost": 35 },
+      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco",                              "manaCost": 25 },
+      { "id": "phoenix",  "name": "Phoenix",  "icon": "firemage/spell_phonex/ChosePhoenixLargeIco", "manaCost": 30 }
     ]
   },
   {
@@ -18,11 +18,11 @@
     "passive": "Once per level, a lost ball is saved.",
     "icon": "HPFull",
     "spells": [
-      { "id": "shield",      "name": "Shield",      "icon": "paladin/spell_passiveshield/SpellShieldLargeIco" },
-      { "id": "spear",       "name": "Spear",       "icon": "paladin/spell_spear/SpearLargeLargeIco" },
-      { "id": "duplicate",   "name": "Duplicate",   "icon": "paladin/spell_duplication/SplitLargeIco" },
-      { "id": "penetration", "name": "Penetration", "icon": "paladin/spell_penteration/MightyStrikeLargeIco" },
-      { "id": "lastday",     "name": "Last Day",    "icon": "paladin/spell_lastday/LastJudgmentLargeIco" }
+      { "id": "shield",      "name": "Shield",      "icon": "paladin/spell_passiveshield/SpellShieldLargeIco",  "manaCost": 20 },
+      { "id": "spear",       "name": "Spear",       "icon": "paladin/spell_spear/SpearLargeLargeIco",           "manaCost": 15 },
+      { "id": "duplicate",   "name": "Duplicate",   "icon": "paladin/spell_duplication/SplitLargeIco",          "manaCost": 25 },
+      { "id": "penetration", "name": "Penetration", "icon": "paladin/spell_penteration/MightyStrikeLargeIco",   "manaCost": 20 },
+      { "id": "lastday",     "name": "Last Day",    "icon": "paladin/spell_lastday/LastJudgmentLargeIco",        "manaCost": 35 }
     ]
   },
   {
@@ -31,11 +31,11 @@
     "passive": "Mana regenerates faster.",
     "icon": "FireTurretIco",
     "spells": [
-      { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/LightingLargeIco" },
-      { "id": "rocket",    "name": "Rocket",    "icon": "engineer/spell_rocket/RocketLargeIco" },
-      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco" },
-      { "id": "magnet",    "name": "Magnet",    "icon": "engineer/spell_magnet/MagnetLargeIco" },
-      { "id": "overload",  "name": "Overload",  "icon": "dungeon/GrateBomb" }
+      { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/LightingLargeIco",       "manaCost": 20 },
+      { "id": "rocket",    "name": "Rocket",    "icon": "engineer/spell_rocket/RocketLargeIco",           "manaCost": 25 },
+      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco",    "manaCost": 30 },
+      { "id": "magnet",    "name": "Magnet",    "icon": "engineer/spell_magnet/MagnetLargeIco",           "manaCost": 20 },
+      { "id": "overload",  "name": "Overload",  "icon": "dungeon/GrateBomb",                              "manaCost": 25 }
     ]
   },
   {
@@ -44,11 +44,11 @@
     "passive": "Killing blocks grants extra mana (souls).",
     "icon": "MPFull",
     "spells": [
-      { "id": "decay",    "name": "Decay",    "icon": "necromancer/spell_passiveshield/SpellShieldLargeIco" },
-      { "id": "skeleton", "name": "Skeleton", "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon" },
-      { "id": "drain",    "name": "Drain",    "icon": "necromancer/spell_lastday/LastJudgmentLargeIco" },
-      { "id": "golem",    "name": "Bone Golem",   "icon": "necromancer/spell_lastday/BoneGolem" },
-      { "id": "mage",     "name": "Skeletal Mage","icon": "necromancer/spell_duplication/RiseSkeletalMageLargeIcon" }
+      { "id": "decay",    "name": "Decay",        "icon": "necromancer/spell_passiveshield/SpellShieldLargeIco",  "manaCost": 0  },
+      { "id": "skeleton", "name": "Skeleton",     "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon",     "manaCost": 25 },
+      { "id": "drain",    "name": "Drain",        "icon": "necromancer/spell_lastday/LastJudgmentLargeIco",       "manaCost": 20 },
+      { "id": "golem",    "name": "Bone Golem",   "icon": "necromancer/spell_lastday/BoneGolem",                  "manaCost": 30 },
+      { "id": "mage",     "name": "Skeletal Mage","icon": "necromancer/spell_duplication/RiseSkeletalMageLargeIcon", "manaCost": 25 }
     ]
   }
 ]}

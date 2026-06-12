@@ -12,6 +12,9 @@ backend/Arkanoid.Server/saves/
 tests/test-results/
 tests/playwright-report/
 playwright/.cache/
+.playwright-mcp/
+test-results/
+frontend-run.log
 
 # IDE / OS
 .vs/

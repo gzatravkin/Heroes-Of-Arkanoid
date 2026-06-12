@@ -2,21 +2,8 @@ import { metaApi } from "../net/metaApi";
 import { nineSlice } from "../ui/nineSlice";
 import { navigateTo } from "../ui/transition";
 import type { DungeonDef } from "../net/metaApi";
-import { css } from "./battle/overlays";
-
-const RELIC_NAMES: Record<string, string> = {
-  glass_cannon: "Glass Cannon",
-  flint_core: "Flint Core",
-  pyroclasm: "Pyroclasm",
-  mana_battery: "Mana Battery",
-};
-
-const RELIC_ICONS: Record<string, string> = {
-  glass_cannon: "/art/ItemHummer.png",
-  flint_core: "/art/ItemDrill.png",
-  pyroclasm: "/art/ItemTorch.png",
-  mana_battery: "/art/ItemGem.png",
-};
+import { css, buffIcon } from "./battle/overlays";
+import { getRelicName } from "../net/relicCache";
 
 export function mountDungeons(host: HTMLElement) {
   injectDungeonStyles();
@@ -97,11 +84,11 @@ export function mountDungeons(host: HTMLElement) {
       const rewardRow = document.createElement("div");
       rewardRow.className = "dng-reward-row";
       const rewardIcon = document.createElement("img");
-      rewardIcon.src = RELIC_ICONS[d.rewardRelic] ?? "/art/ItemGem.png";
+      rewardIcon.src = buffIcon(d.rewardRelic);
       css(rewardIcon, { width: "20px", height: "20px", imageRendering: "pixelated" });
       rewardRow.appendChild(rewardIcon);
       const rewardText = document.createElement("span");
-      rewardText.textContent = `${RELIC_NAMES[d.rewardRelic] ?? d.rewardRelic} + ${d.rewardCrystals} crystals`;
+      rewardText.textContent = `${getRelicName(d.rewardRelic)} + ${d.rewardCrystals} crystals`;
       rewardRow.appendChild(rewardText);
       meta.appendChild(rewardRow);
       card.appendChild(meta);

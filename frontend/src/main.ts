@@ -12,12 +12,15 @@ import { mountSettings } from "./scenes/SettingsScene";
 import { mountSkills } from "./scenes/SkillsScene";
 import { fadeInOnLoad, setNavigateHandler, navigateTo } from "./ui/transition";
 import { injectTheme } from "./ui/theme";
+import { preloadRelics } from "./net/relicCache";
 
 injectTheme();
 
 const host = document.getElementById("app")!;
 
 function teardownBattle() {
+  const detach = (window as any).__detachInput;
+  if (detach) { try { detach(); } catch (_) {} delete (window as any).__detachInput; }
   const r = (window as any).__renderer;
   if (r) {
     try { r.app.destroy(false); } catch (_) {}
@@ -59,6 +62,8 @@ const loading = document.createElement("div");
 loading.style.cssText = "color:var(--text-dim,#c9b182);font-family:var(--font-body,sans-serif);text-align:center;padding-top:40cqh;font-size:var(--fs-xl,1.2rem)";
 loading.textContent = "Loading assets…";
 host.appendChild(loading);
+
+preloadRelics(); // fire-and-forget; populates relicCache before most scenes render
 
 loadAtlas()
   .then(() => {

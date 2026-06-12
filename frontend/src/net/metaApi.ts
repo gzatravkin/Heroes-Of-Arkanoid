@@ -110,6 +110,18 @@ export interface SpellDef {
   id: string;
   name: string;
   icon: string;
+  manaCost: number;
+}
+
+export interface RelicDef {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export interface RelicsResponse {
+  relics: RelicDef[];
 }
 
 export interface CharacterDef {
@@ -192,6 +204,7 @@ export const metaApi = {
   pick: (choice: string)         => post<unknown>(`/dungeon/pick?choice=${encodeURIComponent(choice)}`),
   fail: ()                       => post<unknown>("/dungeon/fail"),
   getCharacters: ()              => get<CharactersResponse>("/characters"),
+  getRelics: ()                  => get<RelicsResponse>("/relics"),
   selectCharacter: (id: string)  => post<unknown>(`/character/select?id=${encodeURIComponent(id)}`),
   // Items
   getItems: ()                   => get<ItemsResponse>("/items"),
