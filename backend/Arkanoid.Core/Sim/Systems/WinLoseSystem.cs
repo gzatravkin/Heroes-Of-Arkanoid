@@ -14,7 +14,7 @@ internal static class WinLoseSystem
         {
             g.Phase = GamePhase.Won;
             g._log.Log(g.TickCount, "win", "survived the trial");
-            g.RaiseEvent("levelWon", 0, 0);
+            g.RaiseEvent(SimEventKind.LevelWon, 0, 0);
             return;
         }
 
@@ -23,31 +23,31 @@ internal static class WinLoseSystem
         {
             g.Phase = GamePhase.Lost;
             g._log.Log(g.TickCount, "lose", "time limit expired");
-            g.RaiseEvent("timeUp", 0, 0);
-            g.RaiseEvent("levelLost", 0, 0);
+            g.RaiseEvent(SimEventKind.TimeUp, 0, 0);
+            g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
             return;
         }
 
         if (!g.Blocks.Any(b => b.NeedToKill && !b.Dead))
         {
             // Multi-floor collapse (docs/12 Caverns): clear a floor → the next slides in.
-            if (g.FloorIndex < g.Level.ExtraFloors.Count)
+            if (g.FloorIndex < g.ExtraFloors.Count)
             {
-                var next = g.Level.ExtraFloors[g.FloorIndex];
+                var next = g.ExtraFloors[g.FloorIndex];
                 g.FloorIndex++;
                 g.Blocks.RemoveAll(b => !b.Boss); // keep a live boss across floors, drop debris
                 g.Blocks.AddRange(next);
-                g.RaiseEvent("floorDown", 0, 0);
+                g.RaiseEvent(SimEventKind.FloorDown, 0, 0);
                 g._log.Log(g.TickCount, "floor", "collapsed to next floor", $"floor={g.FloorIndex}");
                 return;
             }
             g.Phase = GamePhase.Won;
             g._log.Log(g.TickCount, "win", "all needToKill cleared");
-            g.RaiseEvent("levelWon", 0, 0);
+            g.RaiseEvent(SimEventKind.LevelWon, 0, 0);
             return;
         }
 
-        var drainLine = g.Level.Grid.Height + g.Config.CellSize * 2;
+        var drainLine = g.DrainY;
         foreach (var b in g.Balls)
             if (b.Alive && b.Pos.Y - b.Radius > drainLine)
             { b.Alive = false; g._log.Log(g.TickCount, "drain", "ball lost", $"id={b.Id}"); }
@@ -56,11 +56,11 @@ internal static class WinLoseSystem
         {
             // Shield power-up (task 1.2): one-touch auto-save — catches the ball and re-serves
             // without consuming a spare ball.  Cleared after use.
-            if (g._shieldActive)
+            if (g.Powerups.AutoSaveActive)
             {
-                g._shieldActive = false;
+                g.Powerups.AutoSaveActive = false;
                 g._log.Log(g.TickCount, "powerup", "shield save", "ball caught");
-                g.RaiseEvent("shieldSave", g.Paddle.Center.X, g.Paddle.Center.Y);
+                g.RaiseEvent(SimEventKind.ShieldSave, g.Paddle.Center.X, g.Paddle.Center.Y);
                 g.SpawnBallOnPaddle();
                 return;
             }
@@ -78,7 +78,7 @@ internal static class WinLoseSystem
             {
                 g.Phase = GamePhase.Lost;
                 g._log.Log(g.TickCount, "lose", "out of spare balls");
-                g.RaiseEvent("levelLost", 0, 0);
+                g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
                 return;
             }
             g.SpareBalls--;

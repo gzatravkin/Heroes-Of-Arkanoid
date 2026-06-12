@@ -30,13 +30,14 @@ internal static class StalactiteSystem
         {
             Id     = g._nextHazardId++,
             Pos    = origin,
-            Vel    = new Vec2(0, g.Config.StalactiteFallSpeed),
-            Damage = g.Config.EnemyHazardDamage,
-            Radius = g.Config.EnemyHazardRadius * 1.4,
+            Vel    = new Vec2(0, g.Config.Enemies.StalactiteFallSpeed),
+            Damage = g.Config.Enemies.HazardDamage,
+            Radius = g.Config.Enemies.HazardRadius * 1.4,
             Alive  = true,
-            Kind   = "stalactite",
+            Kind     = "stalactite",
+            Behavior = HazardBehavior.Stalactite,
         });
-        g.RaiseEvent("stalactite", origin.X, origin.Y);
+        g.RaiseEvent(SimEventKind.Stalactite, origin.X, origin.Y);
         g._log.Log(g.TickCount, "stalactite", "dropped", $"id={blk.Id} col={blk.Col} row={blk.Row}");
     }
 
@@ -51,11 +52,12 @@ internal static class StalactiteSystem
             {
                 Id     = g._nextHazardId++,
                 Pos    = new Vec2(x, g.Config.BoardOriginY + g.Config.CellSize),
-                Vel    = new Vec2(0, g.Config.StalactiteFallSpeed),
-                Damage = g.Config.EnemyHazardDamage,
-                Radius = g.Config.EnemyHazardRadius * 1.4,
+                Vel    = new Vec2(0, g.Config.Enemies.StalactiteFallSpeed),
+                Damage = g.Config.Enemies.HazardDamage,
+                Radius = g.Config.Enemies.HazardRadius * 1.4,
                 Alive  = true,
-                Kind   = "stalactite",
+                Kind     = "stalactite",
+            Behavior = HazardBehavior.Stalactite,
             });
         }
         g._log.Log(g.TickCount, "stalactite", "boss drop", $"count={count}");

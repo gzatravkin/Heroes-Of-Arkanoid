@@ -29,7 +29,7 @@ internal static partial class SpellSystem
     internal static void OnPaddleHit(GameInstance g, Entities.Ball b, double t)
     {
         g._log.Log(g.TickCount, "paddle", "deflect", $"t={t:F2} vx={b.Vel.X:F1} vy={b.Vel.Y:F1}");
-        g.RaiseEvent("deflect", b.Pos.X, b.Pos.Y); // audio cue (G1)
+        g.RaiseEvent(SimEventKind.Deflect, b.Pos.X, b.Pos.Y); // audio cue (G1)
         if (System.Math.Abs(t) < g.Config.PerfectDeflectBand)
         {
             var bonus = g.Config.ManaPerfectDeflectBonus
@@ -50,8 +50,7 @@ internal static partial class SpellSystem
         if (!g._igniteArmed) return;
         b.IgniteHitsLeft = Modifiers.IgniteHits(g);
         g._igniteArmed = false;
-        g._log.Log(g.TickCount, "ignite", "imbued ball", $"id={b.Id} hits={b.IgniteHitsLeft}");
-        g.RaiseEvent("ignite", b.Pos.X, b.Pos.Y);
+        g.RaiseEvent(SimEventKind.Ignite, b.Pos.X, b.Pos.Y);
     }
 
     internal static void ApplyDecayOnDeflect(GameInstance g, Entities.Ball b)
@@ -59,8 +58,7 @@ internal static partial class SpellSystem
         if (!g._decayArmed) return;
         b.DecayHitsLeft = g.Config.DecayHits;
         g._decayArmed = false;
-        g._log.Log(g.TickCount, "decay", "imbued ball", $"id={b.Id} hits={b.DecayHitsLeft}");
-        g.RaiseEvent("decay", b.Pos.X, b.Pos.Y);
+        g.RaiseEvent(SimEventKind.Decay, b.Pos.X, b.Pos.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -102,10 +100,10 @@ internal static partial class SpellSystem
                         if ((nc - pr.Pos).Length <= pr.AoeRadius)
                         {
                             BlockDamage.DamageBlock(g, nb, g.Config.RocketAoeDamage, igniteSource: false);
-                            g.RaiseEvent("explosion", nc.X, nc.Y);
+                            g.RaiseEvent(SimEventKind.Explosion, nc.X, nc.Y);
                         }
                     }
-                    g.RaiseEvent("explosion", c.X, c.Y);
+                    g.RaiseEvent(SimEventKind.Explosion, c.X, c.Y);
                     pr.Alive = false;
                     break;
                 }

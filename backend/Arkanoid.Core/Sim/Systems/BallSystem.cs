@@ -13,6 +13,20 @@ internal static class BallSystem
     {
         if (!b.Alive) return;
 
+        // CCD guard: if the ball would travel more than half a cell per tick, split into
+        // 2 sub-steps so it cannot tunnel through a block between samples.
+        var halfCell = g.Config.CellSize * 0.5;
+        if (b.Vel.Length * dt > halfCell)
+        {
+            UpdateBallStep(g, b, dt / 2);
+            if (b.Alive) UpdateBallStep(g, b, dt / 2);
+            return;
+        }
+        UpdateBallStep(g, b, dt);
+    }
+
+    private static void UpdateBallStep(GameInstance g, Ball b, double dt)
+    {
         // Decrement teleport cooldown once per tick (min 0)
         if (b.TeleportCooldown > 0) b.TeleportCooldown--;
 
@@ -21,7 +35,7 @@ internal static class BallSystem
         if (b.GrabberId > 0)
         {
             var carrier = g.Hazards.FirstOrDefault(h => h.Alive && h.Id == b.GrabberId
-                && (h.Kind == "bat" || h.Kind == "witchgrab"));
+                && (h.Behavior == HazardBehavior.Bat || h.Behavior == HazardBehavior.WitchGrab));
             if (carrier != null)
             {
                 b.Pos = carrier.Pos;
@@ -45,8 +59,8 @@ internal static class BallSystem
         {
             SpellSystem.OnPaddleHit(g, b, t);
             // Combo resets on every paddle contact (streak broken).
-            g._comboCount = 0;
-            g._comboMultiplier = 1;
+            g.Combo.Count = 0;
+            g.Combo.Multiplier = 1;
         }
 
         ResolveBarriers(g, b);
@@ -71,7 +85,7 @@ internal static class BallSystem
             {
                 b.Vel = new Vec2(b.Vel.X, -System.Math.Abs(b.Vel.Y));
                 g._log.Log(g.TickCount, "barrier", "reflected ball", $"ballId={b.Id} y={barrier.Y:F1}");
-                g.RaiseEvent("barrierHit", barrier.CenterX, barrier.Y);
+                g.RaiseEvent(SimEventKind.BarrierHit, barrier.CenterX, barrier.Y);
             }
         }
     }
@@ -80,7 +94,7 @@ internal static class BallSystem
     internal static void PacifyStatues(GameInstance g)
     {
         foreach (var s in g.Blocks)
-            if (!s.Dead && s.IsStatue) s.AllyTimer = g.Config.AltarAllyDuration;
+            if (!s.Dead && s.IsStatue) s.AllyTimer = g.Config.Enemies.AltarAllyDuration;
     }
 
     /// <summary>Vase: permanently level every statue up — faster fire, but bigger kill rewards.</summary>
@@ -88,19 +102,25 @@ internal static class BallSystem
     {
         foreach (var s in g.Blocks)
             if (!s.Dead && s.IsStatue) s.StatueLevel++;
-        g.RaiseEvent("vaseLevelUp", 0, 0);
+        g.RaiseEvent(SimEventKind.VaseLevelUp, 0, 0);
         g._log.Log(g.TickCount, "vase", "statues levelled up");
     }
 
+    // 3×3 neighborhood in row-ascending order (row -1 → 0 → +1, left to right within each row).
+    // Row-ascending order matches the original g.Blocks list order, preserving tie-breaking behavior
+    // when the ball overlaps two adjacent blocks simultaneously.
+    private static readonly (int dc, int dr)[] _neighbourOffsets =
+        { (-1,-1),(0,-1),(1,-1), (-1,0),(0,0),(1,0), (-1,1),(0,1),(1,1) };
+
     private static void ResolveBlocks(GameInstance g, Ball b)
     {
-        var cell = g.Config.CellSize;
-        // NOTE: on simultaneous overlap of two blocks (corner), we resolve the FIRST in
-        // list order (deterministic). Sign-based reflection prevents sticking; exact face
-        // selection is a known feel item deferred to the M1 demo pass.
-        foreach (var blk in g.Blocks)
+        var cell      = g.Config.CellSize;
+        int centerCol = (int)System.Math.Floor((b.Pos.X - g.Level.Grid.OriginX) / cell);
+        int centerRow = (int)System.Math.Floor((b.Pos.Y - g.Level.Grid.OriginY) / cell);
+        foreach (var (dc, dr) in _neighbourOffsets)
         {
-            if (blk.Dead) continue;
+            var blk = g.BlockAt(centerCol + dc, centerRow + dr);
+            if (blk == null) continue;
             var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
             var box = Aabb.FromCenter(c, cell / 2, cell / 2);
             if (!box.IntersectsCircle(b.Pos, b.Radius)) continue;
@@ -117,8 +137,8 @@ internal static class BallSystem
                     // nudge one ball-radius along current velocity so ball exits cleanly
                     var nudge = b.Vel.Length > 0 ? b.Vel.Normalized() * b.Radius : new Vec2(0, -b.Radius);
                     b.Pos = destCenter + nudge;
-                    b.TeleportCooldown = g.Config.TeleportCooldownTicks;
-                    g.RaiseEvent("teleport", destCenter.X, destCenter.Y);
+                    b.TeleportCooldown = g.Config.Enemies.TeleportCooldownTicks;
+                    g.RaiseEvent(SimEventKind.Teleport, destCenter.X, destCenter.Y);
                     g._log.Log(g.TickCount, "teleport", "warped",
                         $"ball={b.Id} from=({blk.Col},{blk.Row}) to=({dest.Col},{dest.Row})");
                     return; // do not also reflect
@@ -132,8 +152,8 @@ internal static class BallSystem
                 if (b.TeleportCooldown == 0)
                 {
                     b.Ghost = !b.Ghost;
-                    b.TeleportCooldown = g.Config.TeleportCooldownTicks;
-                    g.RaiseEvent("ghostPortal", c.X, c.Y);
+                    b.TeleportCooldown = g.Config.Enemies.TeleportCooldownTicks;
+                    g.RaiseEvent(SimEventKind.GhostPortal, c.X, c.Y);
                     g._log.Log(g.TickCount, "portal", "phase toggled", $"ball={b.Id} ghost={b.Ghost}");
                 }
                 continue; // always pass through the portal block itself
@@ -146,19 +166,20 @@ internal static class BallSystem
                 blk.Dead = true; // the block becomes the moving carrier
                 var carrier = new Projectile
                 {
-                    Id     = g._nextHazardId++,
-                    Pos    = c,
-                    Vel    = new Vec2(0, g.Config.BatCarrySpeed),
-                    Damage = 0, // never harms the paddle — the threat is the stolen ball
-                    Radius = g.Config.EnemyHazardRadius,
-                    Alive  = true,
-                    Kind   = "bat",
+                    Id       = g._nextHazardId++,
+                    Pos      = c,
+                    Vel      = new Vec2(0, g.Config.Enemies.BatCarrySpeed),
+                    Damage   = 0,
+                    Radius   = g.Config.Enemies.HazardRadius,
+                    Alive    = true,
+                    Kind     = "bat",
+                    Behavior = HazardBehavior.Bat,
                     CarriedBallId = b.Id,
                 };
                 g.Hazards.Add(carrier);
                 b.GrabberId = carrier.Id;
                 b.Vel       = new Vec2(0, 0);
-                g.RaiseEvent("batGrab", c.X, c.Y);
+                g.RaiseEvent(SimEventKind.BatGrab, c.X, c.Y);
                 g._log.Log(g.TickCount, "bat", "carrying ball to drain", $"ball={b.Id} carrier={carrier.Id}");
                 return; // ball is now held
             }
@@ -170,7 +191,7 @@ internal static class BallSystem
             if (blk.Altar)
             {
                 PacifyStatues(g);
-                g.RaiseEvent("altar", c.X, c.Y);
+                g.RaiseEvent(SimEventKind.Altar, c.X, c.Y);
                 // fall through to normal reflection
             }
 
@@ -197,7 +218,7 @@ internal static class BallSystem
                 var freeze = g.Config.FrostFreezeSeconds
                     * (g.HasFusion("echo", "frost") ? g.Config.StasisFreezeMult : 1.0);
                 blk.EmitAccumulator = -freeze;
-                g.RaiseEvent("frost", c.X, c.Y);
+                g.RaiseEvent(SimEventKind.Frost, c.X, c.Y);
             }
 
             // Ghost core: spend a phase charge to punch THROUGH the block (damage, no bounce).

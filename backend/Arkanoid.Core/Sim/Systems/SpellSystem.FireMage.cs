@@ -12,9 +12,7 @@ internal static partial class SpellSystem
     internal static void CastFireball(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.FireballCost)
-        { g._log.Log(g.TickCount, "spell", "fireball denied", $"mana={g.ManaValue:F0} need={g.Config.FireballCost}"); return; }
-        g.ManaValue -= g.Config.FireballCost;
+        if (!Spend(g, g.Config.FireballCost, "fireball")) return;
         g.Projectiles.Add(new Projectile {
             Id     = g._nextProjId++,
             Pos    = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height),
@@ -22,8 +20,7 @@ internal static partial class SpellSystem
             Damage = Modifiers.FireballDamage(g),
             Radius = g.Config.BallRadius
         });
-        g._log.Log(g.TickCount, "spell", "fireball cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -33,11 +30,9 @@ internal static partial class SpellSystem
     internal static void CastIgnite(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.IgniteCost) return;
-        g.ManaValue -= g.Config.IgniteCost;
+        if (!Spend(g, g.Config.IgniteCost, "ignite")) return;
         g._igniteArmed = true;
-        g._log.Log(g.TickCount, "ignite", "armed", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -47,9 +42,7 @@ internal static partial class SpellSystem
     internal static void CastFireWall(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.FireWallCost)
-        { g._log.Log(g.TickCount, "spell", "firewall denied", $"mana={g.ManaValue:F0} need={g.Config.FireWallCost}"); return; }
-        g.ManaValue -= g.Config.FireWallCost;
+        if (!Spend(g, g.Config.FireWallCost, "firewall")) return;
         var wallY = g.Level.Grid.Height;
         g.FireWalls.Add(new FireWall {
             Id            = g._nextWallId++,
@@ -57,8 +50,7 @@ internal static partial class SpellSystem
             Width         = g.Level.Grid.Width,
             LifeRemaining = g.Config.FireWallLifetime
         });
-        g._log.Log(g.TickCount, "spell", "firewall cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, wallY);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, wallY);
     }
 
     // -----------------------------------------------------------------------
@@ -68,13 +60,10 @@ internal static partial class SpellSystem
     internal static void CastTurret(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.TurretCost)
-        { g._log.Log(g.TickCount, "spell", "turret denied", $"mana={g.ManaValue:F0} need={g.Config.TurretCost}"); return; }
-        g.ManaValue -= g.Config.TurretCost;
+        if (!Spend(g, g.Config.TurretCost, "turret")) return;
         g._turretRemaining  = Modifiers.TurretDuration(g);
         g._turretAccumulator = 0;
-        g._log.Log(g.TickCount, "spell", "turret cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -98,7 +87,7 @@ internal static partial class SpellSystem
                         c.Y <= wall.Y + g.Config.FireWallBandHalfHeight)
                     {
                         BlockDamage.DamageBlock(g, blk, Modifiers.FireWallDamage(g), igniteSource: false);
-                        g.RaiseEvent("burn", c.X, c.Y);
+                        g.RaiseEvent(SimEventKind.Burn, c.X, c.Y);
                     }
                 }
                 wall.Accumulator -= g.Config.FireWallDamageInterval;
@@ -125,7 +114,7 @@ internal static partial class SpellSystem
                 Radius = g.Config.BallRadius * 0.6,
                 Kind   = "turret"
             });
-            g.RaiseEvent("turretShot", g.Paddle.Center.X, g.Paddle.Center.Y);
+            g.RaiseEvent(SimEventKind.TurretShot, g.Paddle.Center.X, g.Paddle.Center.Y);
             g._turretAccumulator -= g.Config.TurretFireInterval;
         }
     }

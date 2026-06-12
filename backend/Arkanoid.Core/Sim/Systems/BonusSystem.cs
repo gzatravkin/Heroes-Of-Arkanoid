@@ -23,7 +23,7 @@ internal static class BonusSystem
     internal static void TrySpawnBonus(GameInstance g, double x, double y)
     {
         if (g.BonusCatalog == null) return; // null-check before the roll: keeps RNG sequence stable in catalog-less tests
-        if (g.Rng.NextDouble() >= g.Config.BonusDropChance) return;
+        if (g.Rng.NextDouble() >= g.Config.Pickups.DropChance) return;
         SpawnGuaranteed(g, x, y);
     }
 
@@ -33,7 +33,7 @@ internal static class BonusSystem
     /// </summary>
     internal static void TrySpawnTypedBonus(GameInstance g, double x, double y, string effectType)
     {
-        if (g.Rng.NextDouble() >= g.Config.PowerUpDropChance) return;
+        if (g.Rng.NextDouble() >= g.Config.Pickups.SpecialDropChance) return;
         SpawnWithType(g, x, y, effectType);
     }
 
@@ -41,19 +41,21 @@ internal static class BonusSystem
     /// Spawn a power-up of a specific effect type regardless of the global catalog roll.
     /// Looks up the catalog for the icon; falls back to empty string if the entry is missing.
     /// </summary>
-    private static void SpawnWithType(GameInstance g, double x, double y, string effectType)
+    internal static void SpawnWithType(GameInstance g, double x, double y, string effectType)
     {
-        var icon = g.BonusCatalog?.Defs.FirstOrDefault(d => d.Effect == effectType)?.Icon ?? "";
+        var def = g.BonusCatalog?.All.FirstOrDefault(d => d.Effect == effectType);
         g.Bonuses.Add(new Bonus
         {
-            Id    = g._nextBonusId++,
-            Pos   = new Vec2(x, y),
-            Vel   = new Vec2(0, g.Config.BonusFallSpeed),
-            Type  = effectType,
-            Icon  = icon,
-            Alive = true,
+            Id       = g._nextBonusId++,
+            Pos      = new Vec2(x, y),
+            Vel      = new Vec2(0, g.Config.Pickups.FallSpeed),
+            Type     = effectType,
+            Icon     = def?.Icon ?? "",
+            Count    = def?.Count ?? 1,
+            Duration = def?.Duration ?? 0,
+            Full     = def?.Full ?? false,
+            Alive    = true,
         });
-        g._log.Log(g.TickCount, "bonus", "spawned-typed", $"id={g._nextBonusId-1} type={effectType} x={x:F0} y={y:F0}");
     }
 
     /// <summary>
@@ -64,20 +66,20 @@ internal static class BonusSystem
     {
         if (g.BonusCatalog == null) return;
 
-        var defs = g.BonusCatalog.Defs;
-        var idx  = (int)(g.Rng.NextDouble() * defs.Count) % defs.Count;
-        var def  = defs[idx];
+        var def = g.BonusCatalog.Pick(g.Rng.Range(g.BonusCatalog.Count));
 
         g.Bonuses.Add(new Bonus
         {
-            Id   = g._nextBonusId++,
-            Pos  = new Vec2(x, y),
-            Vel  = new Vec2(0, g.Config.BonusFallSpeed),
-            Type = def.Effect,
-            Icon = def.Icon,
-            Alive = true,
+            Id       = g._nextBonusId++,
+            Pos      = new Vec2(x, y),
+            Vel      = new Vec2(0, g.Config.Pickups.FallSpeed),
+            Type     = def.Effect,
+            Icon     = def.Icon,
+            Count    = def.Count,
+            Duration = def.Duration,
+            Full     = def.Full,
+            Alive    = true,
         });
-        g._log.Log(g.TickCount, "bonus", "spawned", $"id={g._nextBonusId-1} type={def.Effect} x={x:F0} y={y:F0}");
     }
 
     // -----------------------------------------------------------------------
@@ -86,7 +88,7 @@ internal static class BonusSystem
 
     internal static void UpdateBonuses(GameInstance g, double dt)
     {
-        var drainLine  = g.Level.Grid.Height + g.Config.CellSize * 2;
+        var drainLine  = g.DrainY;
         var paddleBox  = Aabb.FromCenter(g.Paddle.Center, g.Paddle.Width / 2, g.Paddle.Height / 2);
 
         foreach (var bonus in g.Bonuses)
@@ -104,7 +106,7 @@ internal static class BonusSystem
             bonus.Pos += bonus.Vel * dt;
 
             // Catch check: AABB of the bonus centre overlapping the paddle box.
-            var bonusBox = Aabb.FromCenter(bonus.Pos, g.Config.BonusCatchHalfW, g.Config.BonusCatchHalfH);
+            var bonusBox = Aabb.FromCenter(bonus.Pos, g.Config.Pickups.CatchHalfW, g.Config.Pickups.CatchHalfH);
             if (BoxesOverlap(bonusBox, paddleBox))
             {
                 bonus.Alive = false;
@@ -113,18 +115,15 @@ internal static class BonusSystem
                 if (g.HasRelic("midas"))
                 {
                     g.Crystals += g.Config.MidasCrystals;
-                    g._log.Log(g.TickCount, "relic", "midas", $"crystals={g.Crystals}");
                 }
-                g.RaiseEvent("bonusCaught", bonus.Pos.X, bonus.Pos.Y);
-                g._log.Log(g.TickCount, "bonus", "caught", $"id={bonus.Id} type={bonus.Type}");
+                g.RaiseEvent(SimEventKind.BonusCaught, bonus.Pos.X, bonus.Pos.Y);
                 continue;
             }
 
             // Past drain line → silently remove.
-            if (bonus.Pos.Y - g.Config.BonusCatchHalfH > drainLine)
+            if (bonus.Pos.Y - g.Config.Pickups.CatchHalfH > drainLine)
             {
                 bonus.Alive = false;
-                g._log.Log(g.TickCount, "bonus", "missed", $"id={bonus.Id}");
             }
         }
 
@@ -143,93 +142,49 @@ internal static class BonusSystem
         switch (bonus.Type)
         {
             case "extra_ball":
-                SpawnExtraBall(g);
+                for (int i = 0; i < bonus.Count; i++) SpawnExtraBall(g);
                 break;
 
             case "mana_surge":
-                g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + g.Config.ManaSurgeAmount);
-                g._log.Log(g.TickCount, "bonus", "mana_surge", $"mana={g.ManaValue:F0}");
+                g.ManaValue = bonus.Full
+                    ? g.ManaMaxValue
+                    : System.Math.Min(g.ManaMaxValue, g.ManaValue + g.Config.Pickups.ManaSurgeAmount);
                 break;
 
             case "wide_paddle":
-                if (!g._widePaddleActive)
-                {
-                    g._widePaddleActive = true;
-                    g._widePaddleTimer  = g.Config.BonusEffectDuration;
-                    g.Paddle.Width     += g.Config.WidePaddleBonus;
-                    g._log.Log(g.TickCount, "bonus", "wide_paddle start", $"w={g.Paddle.Width:F0}");
-                }
-                else
-                {
-                    // Refresh timer if already active.
-                    g._widePaddleTimer = g.Config.BonusEffectDuration;
-                }
+                ActivateWidePaddle(g, bonus.Duration > 0 ? bonus.Duration : g.Config.Pickups.EffectDuration);
                 break;
 
             case "slow_ball":
-                if (!g._slowBallActive)
+                if (!g.Powerups.SlowBallActive)
                 {
-                    g._slowBallActive = true;
-                    g._slowBallTimer  = g.Config.BonusEffectDuration;
+                    g.Powerups.SlowBallActive = true;
+                    g.Powerups.SlowBallTimer  = g.Config.Pickups.EffectDuration;
                     foreach (var b in g.Balls)
                         if (b.Alive && b.Vel.Length > 0)
-                            b.Vel = b.Vel * g.Config.SlowBallFactor;
-                    g._log.Log(g.TickCount, "bonus", "slow_ball start", "");
+                            b.Vel = b.Vel * g.Config.Pickups.SlowBallFactor;
                 }
                 else
                 {
-                    g._slowBallTimer = g.Config.BonusEffectDuration;
+                    g.Powerups.SlowBallTimer = g.Config.Pickups.EffectDuration;
                 }
                 break;
 
             case "heal":
-                g.Lives++;
-                g._log.Log(g.TickCount, "bonus", "heal", $"lives={g.Lives}");
+                g.Hp++;
                 break;
 
             case "coins":
-                g.Crystals += g.Config.CoinsBonus;
-                g._log.Log(g.TickCount, "bonus", "coins", $"crystals={g.Crystals}");
+                g.Crystals += g.Config.Pickups.CoinsCrystals;
                 break;
 
-            // ---- Power-up types (task 1.2) ----
-
-            case "powerup_wide":
-                if (!g._widePaddleActive)
-                {
-                    g._widePaddleActive = true;
-                    g._widePaddleTimer  = g.Config.PowerUpWideDuration;
-                    g.Paddle.Width     += g.Config.WidePaddleBonus;
-                    g._log.Log(g.TickCount, "bonus", "powerup_wide start", $"w={g.Paddle.Width:F0} dur={g.Config.PowerUpWideDuration}");
-                }
-                else
-                {
-                    // Refresh with the longer power-up duration.
-                    g._widePaddleTimer = g.Config.PowerUpWideDuration;
-                }
+            case "fireshot":
+                g.Powerups.FireshotActive = true;
+                g.Powerups.FireshotTimer  = g.Config.Pickups.FireshotDuration;
                 break;
 
-            case "powerup_multiball":
-                // Spawn 2 extra balls (original + 2 = 3 total).
-                SpawnExtraBall(g);
-                SpawnExtraBall(g);
-                g._log.Log(g.TickCount, "bonus", "powerup_multiball", $"balls={g.Balls.Count(b=>b.Alive)}");
-                break;
-
-            case "powerup_fireshot":
-                g._fireshotActive = true;
-                g._fireshotTimer  = g.Config.PowerUpFireshotDuration;
-                g._log.Log(g.TickCount, "bonus", "powerup_fireshot start", $"dur={g.Config.PowerUpFireshotDuration}");
-                break;
-
-            case "powerup_manasurge":
-                g.ManaValue = g.ManaMaxValue;
-                g._log.Log(g.TickCount, "bonus", "powerup_manasurge", $"mana={g.ManaValue:F0}");
-                break;
-
-            case "powerup_shield":
-                g._shieldActive = true;
-                g._log.Log(g.TickCount, "bonus", "powerup_shield", "active");
+            case "shield":
+                g.Powerups.AutoSaveActive = true;
                 break;
         }
     }
@@ -256,7 +211,6 @@ internal static class BonusSystem
             Vel    = extraVel,
             Alive  = true,
         });
-        g._log.Log(g.TickCount, "bonus", "extra_ball spawned", $"id={g._nextBallId-1}");
     }
 
     // -----------------------------------------------------------------------
@@ -265,38 +219,34 @@ internal static class BonusSystem
 
     private static void UpdateTempEffects(GameInstance g, double dt)
     {
-        if (g._widePaddleActive)
+        if (g.Powerups.WidePaddleActive)
         {
-            g._widePaddleTimer -= dt;
-            if (g._widePaddleTimer <= 0)
+            g.Powerups.WidePaddleTimer -= dt;
+            if (g.Powerups.WidePaddleTimer <= 0)
             {
-                g.Paddle.Width    -= g.Config.WidePaddleBonus;
-                g._widePaddleActive = false;
-                g._log.Log(g.TickCount, "bonus", "wide_paddle expired", $"w={g.Paddle.Width:F0}");
+                g.Paddle.Width -= g.Config.Pickups.WidePaddleBonus;
+                g.Powerups.WidePaddleActive = false;
             }
         }
 
-        if (g._slowBallActive)
+        if (g.Powerups.SlowBallActive)
         {
-            g._slowBallTimer -= dt;
-            if (g._slowBallTimer <= 0)
+            g.Powerups.SlowBallTimer -= dt;
+            if (g.Powerups.SlowBallTimer <= 0)
             {
-                // Restore ball speed to the configured baseline for all living balls.
                 foreach (var b in g.Balls)
                     if (b.Alive && b.Vel.Length > 0)
                         b.Vel = b.Vel.Normalized() * g.Config.BallSpeed;
-                g._slowBallActive = false;
-                g._log.Log(g.TickCount, "bonus", "slow_ball expired", "");
+                g.Powerups.SlowBallActive = false;
             }
         }
 
-        if (g._fireshotActive)
+        if (g.Powerups.FireshotActive)
         {
-            g._fireshotTimer -= dt;
-            if (g._fireshotTimer <= 0)
+            g.Powerups.FireshotTimer -= dt;
+            if (g.Powerups.FireshotTimer <= 0)
             {
-                g._fireshotActive = false;
-                g._log.Log(g.TickCount, "bonus", "powerup_fireshot expired", "");
+                g.Powerups.FireshotActive = false;
             }
         }
     }
@@ -308,4 +258,15 @@ internal static class BonusSystem
     private static bool BoxesOverlap(Aabb a, Aabb b)
         => a.MinX <= b.MaxX && a.MaxX >= b.MinX
         && a.MinY <= b.MaxY && a.MaxY >= b.MinY;
+
+    /// <summary>Activate or refresh the wide-paddle effect. Refreshes timer to whichever duration is longer.</summary>
+    private static void ActivateWidePaddle(GameInstance g, double duration)
+    {
+        if (!g.Powerups.WidePaddleActive)
+        {
+            g.Powerups.WidePaddleActive = true;
+            g.Paddle.Width += g.Config.Pickups.WidePaddleBonus;
+        }
+        g.Powerups.WidePaddleTimer = System.Math.Max(g.Powerups.WidePaddleTimer, duration);
+    }
 }

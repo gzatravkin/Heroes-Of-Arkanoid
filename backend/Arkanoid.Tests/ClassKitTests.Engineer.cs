@@ -43,7 +43,7 @@ public partial class ClassKitTests
         MaxManaAndServe(g);
         g.CastSlot(0);
         var events = g.DrainEvents();
-        Assert.Contains(events, e => e.Type == "lightning");
+        Assert.Contains(events, e => e.Kind == SimEventKind.Lightning);
     }
 
     // -------------------------------------------------------------------------

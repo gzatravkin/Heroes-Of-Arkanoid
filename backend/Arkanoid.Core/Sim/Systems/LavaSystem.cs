@@ -21,9 +21,9 @@ internal static class LavaSystem
             if (blk.Hp >= blk.MaxHp) continue;
 
             blk.EmitAccumulator += dt;
-            if (blk.EmitAccumulator < g.Config.LavaCreepInterval) continue;
-            blk.EmitAccumulator -= g.Config.LavaCreepInterval;
-            if (blk.SpawnedCount >= g.Config.LavaCreepMax) continue;
+            if (blk.EmitAccumulator < g.Config.Enemies.LavaCreepInterval) continue;
+            blk.EmitAccumulator -= g.Config.Enemies.LavaCreepInterval;
+            if (blk.SpawnedCount >= g.Config.Enemies.LavaCreepMax) continue;
             Creep(g, blk);
         }
     }
@@ -35,12 +35,12 @@ internal static class LavaSystem
         if (!lavaInDanger) { g._lavaDrainAccumulator = 0; return; }
 
         g._lavaDrainAccumulator += dt;
-        if (g._lavaDrainAccumulator < g.Config.LavaDrainInterval) return;
-        g._lavaDrainAccumulator -= g.Config.LavaDrainInterval;
+        if (g._lavaDrainAccumulator < g.Config.Enemies.LavaDrainInterval) return;
+        g._lavaDrainAccumulator -= g.Config.Enemies.LavaDrainInterval;
 
-        g.Lives = System.Math.Max(0, g.Lives - 1);
-        g.RaiseEvent("lavaDrain", 0, 0);
-        g._log.Log(g.TickCount, "lava", "hp drained by lava in danger zone", $"lives={g.Lives}");
+        g.Hp = System.Math.Max(0, g.Hp - 1);
+        g.RaiseEvent(SimEventKind.LavaDrain, 0, 0);
+        g._log.Log(g.TickCount, "lava", "hp drained by lava in danger zone", $"hp={g.Hp}");
     }
 
     private static void Creep(GameInstance g, Block spawner)
@@ -58,7 +58,7 @@ internal static class LavaSystem
             {
                 int col = src.Col + dc, row = src.Row + dr;
                 if (col < 0 || row < 0 || col >= g.Level.Grid.Cols || row >= g.Level.Grid.Rows) continue;
-                if (g.Blocks.Any(b => !b.Dead && b.Col == col && b.Row == row)) continue;
+                if (g.BlockAt(col, row) != null) continue;
 
                 var lava = new Block
                 {
@@ -71,7 +71,7 @@ internal static class LavaSystem
                 g.Blocks.Add(lava);
                 spawner.SpawnedCount++;
                 var c = g.Level.Grid.CellCenter(col, row);
-                g.RaiseEvent("lavaCreep", c.X, c.Y);
+                g.RaiseEvent(SimEventKind.LavaCreep, c.X, c.Y);
                 g._log.Log(g.TickCount, "lava", "crept", $"spawner={spawner.Id} cell=({col},{row})");
                 return; // one cell per cadence
             }
@@ -86,7 +86,7 @@ internal static class LavaSystem
             if (!b.Dead && b.Lava && b.OwnerId == spawner.Id) { b.Dead = true; n++; }
         if (n > 0)
         {
-            g.RaiseEvent("lavaRetract", 0, 0);
+            g.RaiseEvent(SimEventKind.LavaRetract, 0, 0);
             g._log.Log(g.TickCount, "lava", "retracted", $"spawner={spawner.Id} cells={n}");
         }
     }

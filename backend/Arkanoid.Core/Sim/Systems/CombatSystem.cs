@@ -14,7 +14,7 @@ internal static class CombatSystem
 
     internal static void UpdateHazards(GameInstance g, double dt)
     {
-        var drainLine = g.Level.Grid.Height + g.Config.CellSize * 2;
+        var drainLine = g.DrainY;
         var paddleBox = Aabb.FromCenter(g.Paddle.Center, g.Paddle.Width / 2, g.Paddle.Height / 2);
 
         // Index loop: UpdateBatCarrier may append the flyaway hazard mid-iteration.
@@ -26,7 +26,7 @@ internal static class CombatSystem
 
             // Bat carrier dragging a ball to the drain: poppable by a second ball or
             // any spell projectile; reaching the drain costs the ball (docs/11).
-            if (hz.Kind == "bat" && hz.CarriedBallId > 0)
+            if (hz.Behavior == HazardBehavior.Bat && hz.CarriedBallId > 0)
             {
                 UpdateBatCarrier(g, hz, drainLine);
                 continue;
@@ -34,7 +34,7 @@ internal static class CombatSystem
 
             // Witch grab-hand: homes on a ball, carries it to the boss, holds, then
             // hurls it at the paddle. Poppable like the bat carrier (docs/11).
-            if (hz.Kind == "witchgrab")
+            if (hz.Behavior == HazardBehavior.WitchGrab)
             {
                 UpdateWitchGrab(g, hz, drainLine, dt);
                 continue;
@@ -50,7 +50,7 @@ internal static class CombatSystem
 
             // Falling stalactites smash through blocks (one hit per block) — hanging
             // them over enemy nests makes them a weapon you trigger (docs/11).
-            if (hz.Kind == "stalactite")
+            if (hz.Behavior == HazardBehavior.Stalactite)
                 StalactitePierceBlocks(g, hz);
 
             if (paddleBox.IntersectsCircle(hz.Pos, hz.Radius))
@@ -63,7 +63,7 @@ internal static class CombatSystem
             }
 
             // Carts roll horizontally and despawn once they leave the board (not by falling).
-            if (hz.Kind == "cart")
+            if (hz.Behavior == HazardBehavior.Cart)
             {
                 if (hz.Pos.X < -hz.Radius || hz.Pos.X > g.Level.Grid.Width + hz.Radius)
                     hz.Alive = false;
@@ -92,24 +92,19 @@ internal static class CombatSystem
         if (rescued)
         {
             hz.Alive = false;
-            if (ball != null)
-            {
-                var lean = g.Rng.Range(-0.3, 0.3);
-                ball.Vel = new Vec2(lean, -1).Normalized() * g.Config.BallSpeed;
-                ball.GrabberId = 0;
-            }
+            ReleaseBall(g, ball);
             // The bat flees upward as the usual harmless flyaway.
             g.Hazards.Add(new Projectile
             {
                 Id     = g._nextHazardId++,
                 Pos    = hz.Pos,
-                Vel    = new Vec2(0, -g.Config.BatFlyAwaySpeed),
+                Vel    = new Vec2(0, -g.Config.Enemies.BatFlyAwaySpeed),
                 Damage = 0,
-                Radius = g.Config.EnemyHazardRadius,
+                Radius = g.Config.Enemies.HazardRadius,
                 Alive  = true,
                 Kind   = "bat",
             });
-            g.RaiseEvent("batRelease", hz.Pos.X, hz.Pos.Y);
+            g.RaiseEvent(SimEventKind.BatRelease, hz.Pos.X, hz.Pos.Y);
             g._log.Log(g.TickCount, "bat", "carrier popped — ball rescued", $"ball={hz.CarriedBallId}");
             return;
         }
@@ -118,7 +113,7 @@ internal static class CombatSystem
         if (hz.Pos.Y - hz.Radius > drainLine)
         {
             hz.Alive = false;
-            if (ball != null) { ball.GrabberId = 0; ball.Vel = new Vec2(0, g.Config.BatCarrySpeed); }
+            if (ball != null) { ball.GrabberId = 0; ball.Vel = new Vec2(0, g.Config.Enemies.BatCarrySpeed); }
             g._log.Log(g.TickCount, "bat", "carried ball to the drain", $"ball={hz.CarriedBallId}");
         }
     }
@@ -137,14 +132,8 @@ internal static class CombatSystem
         if (popped)
         {
             hz.Alive = false;
-            var held = g.Balls.FirstOrDefault(b => b.Id == hz.CarriedBallId);
-            if (held != null)
-            {
-                var lean = g.Rng.Range(-0.3, 0.3);
-                held.Vel = new Vec2(lean, -1).Normalized() * g.Config.BallSpeed;
-                held.GrabberId = 0;
-            }
-            g.RaiseEvent("witchGrabPopped", hz.Pos.X, hz.Pos.Y);
+            ReleaseBall(g, g.Balls.FirstOrDefault(b => b.Id == hz.CarriedBallId));
+            g.RaiseEvent(SimEventKind.WitchGrabPopped, hz.Pos.X, hz.Pos.Y);
             g._log.Log(g.TickCount, "boss", "witch grab popped", "");
             return;
         }
@@ -158,14 +147,14 @@ internal static class CombatSystem
             var target = g.Balls.Where(b => b.Alive && b.GrabberId == 0)
                                 .OrderBy(b => (b.Pos - hz.Pos).Length).FirstOrDefault();
             if (target == null) { hz.Alive = false; return; }
-            hz.Vel = (target.Pos - hz.Pos).Normalized() * g.Config.WitchGrabSpeed;
+            hz.Vel = (target.Pos - hz.Pos).Normalized() * g.Config.Boss.WitchGrabSpeed;
             if ((target.Pos - hz.Pos).Length <= hz.Radius + target.Radius)
             {
                 hz.CarriedBallId = target.Id;
                 target.GrabberId = hz.Id;
                 target.Vel       = new Vec2(0, 0);
                 hz.StateTimer    = 0;
-                g.RaiseEvent("witchGrab", hz.Pos.X, hz.Pos.Y);
+                g.RaiseEvent(SimEventKind.WitchGrab, hz.Pos.X, hz.Pos.Y);
                 g._log.Log(g.TickCount, "boss", "witch grabbed ball", $"ball={target.Id}");
             }
             // Missed and flew past the board → give up.
@@ -179,12 +168,12 @@ internal static class CombatSystem
         var toBoss = bossC - hz.Pos;
         if (toBoss.Length > g.Config.CellSize)
         {
-            hz.Vel = toBoss.Normalized() * g.Config.WitchGrabSpeed;
+            hz.Vel = toBoss.Normalized() * g.Config.Boss.WitchGrabSpeed;
             return;
         }
         hz.Vel = new Vec2(0, 0);
         hz.StateTimer += dt;
-        if (hz.StateTimer < g.Config.WitchThrowDelay) return;
+        if (hz.StateTimer < g.Config.Boss.WitchThrowDelay) return;
 
         // The throw: hurl the ball down at the paddle, faster than normal — catch it!
         var ball = g.Balls.FirstOrDefault(b => b.Id == hz.CarriedBallId);
@@ -193,9 +182,9 @@ internal static class CombatSystem
         {
             ball.GrabberId = 0;
             var dir = (g.Paddle.Center - ball.Pos).Normalized();
-            ball.Vel = dir * g.Config.BallSpeed * g.Config.WitchThrowSpeedMult;
+            ball.Vel = dir * g.Config.BallSpeed * g.Config.Boss.WitchThrowSpeedMult;
         }
-        g.RaiseEvent("witchThrow", hz.Pos.X, hz.Pos.Y);
+        g.RaiseEvent(SimEventKind.WitchThrow, hz.Pos.X, hz.Pos.Y);
         g._log.Log(g.TickCount, "boss", "witch threw the ball", "");
     }
 
@@ -203,17 +192,20 @@ internal static class CombatSystem
     private static void StalactitePierceBlocks(GameInstance g, Projectile hz)
     {
         var cell = g.Config.CellSize;
-        foreach (var blk in g.Blocks)
+        var grid = g.Level.Grid;
+        // Restrict scan to the stalactite's column — O(rows) instead of O(all blocks).
+        int col = (int)System.Math.Floor((hz.Pos.X - grid.OriginX) / cell);
+        for (int row = 0; row < grid.Rows; row++)
         {
-            // Boss blocks are exempt: the Goblin rains stalactites from his own row —
-            // no friendly fire on the rig.
-            if (blk.Dead || blk.Indestructible || blk.Boss) continue;
-            var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+            // Boss blocks are exempt: the Goblin rains stalactites from his own row.
+            var blk = g.BlockAt(col, row);
+            if (blk == null || blk.Indestructible || blk.Boss) continue;
+            var c   = grid.CellCenter(blk.Col, blk.Row);
             var box = Aabb.FromCenter(c, cell / 2, cell / 2);
             if (!box.IntersectsCircle(hz.Pos, hz.Radius)) continue;
             hz.HitBlockIds ??= new HashSet<int>();
             if (!hz.HitBlockIds.Add(blk.Id)) continue; // one hit per block while passing
-            BlockDamage.DamageBlock(g, blk, g.Config.StalactiteBlockDamage, igniteSource: false);
+            BlockDamage.DamageBlock(g, blk, g.Config.Enemies.StalactiteBlockDamage, igniteSource: false);
             break; // one block per tick keeps it deterministic
         }
     }
@@ -222,23 +214,31 @@ internal static class CombatSystem
     // Player HP
     // -----------------------------------------------------------------------
 
+    /// <summary>Release a grabbed ball with a random lean — shared by bat-carrier and witch-grab pop paths.</summary>
+    private static void ReleaseBall(GameInstance g, Ball? ball)
+    {
+        if (ball == null) return;
+        ball.Vel       = new Vec2(g.Rng.Range(-0.3, 0.3), -1).Normalized() * g.Config.BallSpeed;
+        ball.GrabberId = 0;
+    }
+
     internal static void DamagePlayer(GameInstance g, int dmg)
     {
         // Second Wind relic: the first HP loss each level is negated.
         if (g.HasRelic("second_wind") && !g._secondWindUsed)
         {
             g._secondWindUsed = true;
-            g.RaiseEvent("secondWind", g.Paddle.Center.X, g.Paddle.Center.Y);
+            g.RaiseEvent(SimEventKind.SecondWind, g.Paddle.Center.X, g.Paddle.Center.Y);
             g._log.Log(g.TickCount, "relic", "second wind — HP loss negated", "");
             return;
         }
-        g.Lives -= dmg;
-        g.RaiseEvent("playerHit", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "hp", "player hit", $"lives={g.Lives}");
-        if (g.Lives <= 0)
+        g.Hp -= dmg;
+        g.RaiseEvent(SimEventKind.PlayerHit, g.Paddle.Center.X, g.Paddle.Center.Y);
+        g._log.Log(g.TickCount, "hp", "player hit", $"hp={g.Hp}");
+        if (g.Hp <= 0)
         {
             g.Phase = GamePhase.Lost;
-            g.RaiseEvent("levelLost", 0, 0);
+            g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
             g._log.Log(g.TickCount, "lose", "hp depleted");
         }
     }

@@ -23,8 +23,7 @@ internal static partial class SpellSystem
         if (!Spend(g, g.Config.PhoenixCost, "phoenix")) return;
         g._phoenixRemaining = g.Config.PhoenixDuration;
         g._phoenixAccum     = 0;
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "phoenix cast", $"duration={g.Config.PhoenixDuration}");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     internal static void CastPenetration(GameInstance g)
@@ -32,8 +31,7 @@ internal static partial class SpellSystem
         if (g.Phase != GamePhase.Playing) return;
         if (!Spend(g, g.Config.PenetrationCost, "penetration")) return;
         g._penetrationArmed = true;
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "penetration armed", "");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     internal static void CastLastDay(GameInstance g)
@@ -41,8 +39,7 @@ internal static partial class SpellSystem
         if (g.Phase != GamePhase.Playing) return;
         if (!Spend(g, g.Config.LastDayCost, "lastday")) return;
         g._lastDayRemaining = g.Config.LastDayDuration;
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "last day cast", $"duration={g.Config.LastDayDuration}");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     internal static void CastMagnet(GameInstance g)
@@ -50,8 +47,7 @@ internal static partial class SpellSystem
         if (g.Phase != GamePhase.Playing) return;
         if (!Spend(g, g.Config.MagnetCost, "magnet")) return;
         g._magnetRemaining = g.Config.MagnetDuration;
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "magnet cast", $"duration={g.Config.MagnetDuration}");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     internal static void CastOverload(GameInstance g)
@@ -62,7 +58,7 @@ internal static partial class SpellSystem
             (g.Paddle.Center.X - g.Config.BoardOriginX) / g.Config.CellSize,
             0, g.Level.Grid.Cols - 1);
         int row = System.Math.Max(0, g.Level.Grid.Rows - g.Config.OverloadPlacementRow);
-        if (g.Blocks.Any(b => !b.Dead && b.Col == col && b.Row == row))
+        if (g.BlockAt(col, row) != null)
         { g._log.Log(g.TickCount, "spell", "overload denied", "cell occupied"); return; }
         if (!Spend(g, g.Config.OverloadCost, "overload")) return;
 
@@ -74,8 +70,7 @@ internal static partial class SpellSystem
             Behavior = BlockBehavior.Bomb, ExplodeRadius = g.Config.OverloadRadius,
         });
         var c = g.Level.Grid.CellCenter(col, row);
-        g.RaiseEvent("spellCast", c.X, c.Y);
-        g._log.Log(g.TickCount, "spell", "overload placed", $"cell=({col},{row})");
+        g.RaiseEvent(SimEventKind.SpellCast, c.X, c.Y);
     }
 
     internal static void CastGolem(GameInstance g)
@@ -93,8 +88,7 @@ internal static partial class SpellSystem
             Kind   = "golem",
             PiercingHitsLeft = g.Config.GolemPierce,
         });
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "golem cast", "");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     internal static void CastMage(GameInstance g)
@@ -119,8 +113,7 @@ internal static partial class SpellSystem
                 Kind = "skeleton_bullet",
             });
         }
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "spell", "skeletal mage volley", $"bolts={n}");
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // ── Per-tick updates ───────────────────────────────────────────────────────
@@ -141,9 +134,9 @@ internal static partial class SpellSystem
                     var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
                     if ((c - ball.Pos).Length > g.Config.PhoenixRadius) continue;
                     BlockDamage.DamageBlock(g, blk, g.Config.PhoenixDamage, igniteSource: false);
-                    g.RaiseEvent("burn", c.X, c.Y);
+                    g.RaiseEvent(SimEventKind.Burn, c.X, c.Y);
                 }
-                g.RaiseEvent("phoenix", ball.Pos.X, ball.Pos.Y);
+                g.RaiseEvent(SimEventKind.Phoenix, ball.Pos.X, ball.Pos.Y);
             }
         }
 
@@ -168,7 +161,7 @@ internal static partial class SpellSystem
                         Kind   = "turret",
                     });
                 }
-                g.RaiseEvent("turretShot", g.Paddle.Center.X, py);
+                g.RaiseEvent(SimEventKind.TurretShot, g.Paddle.Center.X, py);
             }
         }
 
@@ -217,8 +210,7 @@ internal static partial class SpellSystem
         foreach (var blk in g.Blocks.Where(x => !x.Dead && !x.Boss && x.Col == col).ToList())
             BlockDamage.DamageBlock(g, blk, g.Config.LastDayDamage, igniteSource: false);
         var colX = g.Level.Grid.CellCenter(col, 0).X;
-        g.RaiseEvent("judgement", colX, g.Level.Grid.Height);
-        g._log.Log(g.TickCount, "spell", "last day smite", $"col={col}");
+        g.RaiseEvent(SimEventKind.Judgement, colX, g.Level.Grid.Height);
     }
 
     /// <summary>Paladin Penetration: applied on the deflect after arming.</summary>
@@ -227,8 +219,7 @@ internal static partial class SpellSystem
         if (!g._penetrationArmed) return;
         g._penetrationArmed = false;
         b.PhasesLeft += g.Config.PenetrationHits;
-        g.RaiseEvent("penetration", b.Pos.X, b.Pos.Y);
-        g._log.Log(g.TickCount, "spell", "penetration applied", $"hits={g.Config.PenetrationHits}");
+        g.RaiseEvent(SimEventKind.Penetration, b.Pos.X, b.Pos.Y);
     }
 
     /// <summary>Shared mana gate.</summary>

@@ -22,17 +22,17 @@ internal static class EmitterSystem
             if (blk.Cart)
             {
                 blk.EmitAccumulator += dt;
-                if (blk.EmitAccumulator < g.Config.CartInterval) continue;
-                blk.EmitAccumulator -= g.Config.CartInterval;
+                if (blk.EmitAccumulator < g.Config.Enemies.CartInterval) continue;
+                blk.EmitAccumulator -= g.Config.Enemies.CartInterval;
                 LaunchCart(g, blk);
                 continue;
             }
 
             if (!blk.Emitter) continue;
-            var interval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
+            var interval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.Enemies.DefaultEmitInterval;
             // Vase level-ups make statues fire faster (the risk half of the trade).
             if (blk.StatueLevel > 0)
-                interval /= 1 + blk.StatueLevel * g.Config.VaseLevelHaste;
+                interval /= 1 + blk.StatueLevel * g.Config.Enemies.VaseLevelHaste;
             blk.EmitAccumulator += dt;
             if (blk.EmitAccumulator < interval) continue;
             blk.EmitAccumulator -= interval;
@@ -61,16 +61,16 @@ internal static class EmitterSystem
         var dir = (tc - origin).Normalized();
         g.Projectiles.Add(new Projectile
         {
-            Id     = g._nextHazardId++,
+            Id     = g._nextProjId++,
             // Spawn outside the statue's own cell so the bolt doesn't hit its caster.
             Pos    = origin + dir * g.Config.CellSize * 0.75,
-            Vel    = dir * g.Config.EnemyHazardSpeed,
-            Damage = g.Config.AllyBoltDamage,
-            Radius = g.Config.EnemyHazardRadius,
+            Vel    = dir * g.Config.Enemies.HazardSpeed,
+            Damage = g.Config.Enemies.AllyBoltDamage,
+            Radius = g.Config.Enemies.HazardRadius,
             Alive  = true,
             Kind   = "allybolt",
         });
-        g.RaiseEvent("allyShot", origin.X, origin.Y);
+        g.RaiseEvent(SimEventKind.AllyShot, origin.X, origin.Y);
         g._log.Log(g.TickCount, "emitter", "ally bolt", $"id={blk.Id} target={target.Id}");
     }
 
@@ -80,15 +80,16 @@ internal static class EmitterSystem
         var y = g.Paddle.Center.Y; // sweeps the paddle row
         g.Hazards.Add(new Projectile
         {
-            Id     = g._nextHazardId++,
-            Pos    = new Vec2(0, y),
-            Vel    = new Vec2(g.Config.CartSpeed, 0),
-            Damage = g.Config.EnemyHazardDamage,
-            Radius = g.Config.EnemyHazardRadius * 1.6,
-            Alive  = true,
-            Kind   = "cart",
+            Id       = g._nextHazardId++,
+            Pos      = new Vec2(0, y),
+            Vel      = new Vec2(g.Config.Enemies.CartSpeed, 0),
+            Damage   = g.Config.Enemies.HazardDamage,
+            Radius   = g.Config.Enemies.HazardRadius * 1.6,
+            Alive    = true,
+            Kind     = "cart",
+            Behavior = HazardBehavior.Cart,
         });
-        g.RaiseEvent("cart", 0, y);
+        g.RaiseEvent(SimEventKind.Cart, 0, y);
     }
 
     private static void Fire(GameInstance g, Block blk)
@@ -102,19 +103,19 @@ internal static class EmitterSystem
         dir = dir.Normalized();
         // Bias downward: keep vy positive so an upward-aimed shot still descends.
         var vy = System.Math.Max(System.Math.Abs(dir.Y), 0.4);
-        var vel = new Vec2(dir.X, vy).Normalized() * g.Config.EnemyHazardSpeed;
+        var vel = new Vec2(dir.X, vy).Normalized() * g.Config.Enemies.HazardSpeed;
 
         g.Hazards.Add(new Projectile
         {
             Id     = g._nextHazardId++,
             Pos    = origin,
             Vel    = vel,
-            Damage = g.Config.EnemyHazardDamage,
-            Radius = g.Config.EnemyHazardRadius,
+            Damage = g.Config.Enemies.HazardDamage,
+            Radius = g.Config.Enemies.HazardRadius,
             Alive  = true,
             Kind   = blk.MissileKind,
         });
-        g.RaiseEvent("enemyShot", origin.X, origin.Y);
+        g.RaiseEvent(SimEventKind.EnemyShot, origin.X, origin.Y);
         g._log.Log(g.TickCount, "emitter", "fired", $"id={blk.Id} aim={blk.EmitAim} kind={blk.MissileKind}");
     }
 

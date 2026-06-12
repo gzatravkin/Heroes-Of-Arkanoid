@@ -51,15 +51,15 @@ internal static class PacingSystem
             if (b.NeedToKill)
             {
                 g.Phase = GamePhase.Lost;
-                g.RaiseEvent("overrun", g.Level.Grid.CellCenter(b.Col, b.Row).X, g.Level.Grid.Height);
-                g.RaiseEvent("levelLost", 0, 0);
+                g.RaiseEvent(SimEventKind.Overrun, g.Level.Grid.CellCenter(b.Col, b.Row).X, g.Level.Grid.Height);
+                g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
                 g._log.Log(g.TickCount, "pacing", "overrun — blocks reached the paddle line");
                 return;
             }
             // Walls/lava/teleporters slide off the bottom instead of crowding the paddle.
             b.Dead = true;
         }
-        g.RaiseEvent("descend", 0, 0);
+        g.RaiseEvent(SimEventKind.Descend, 0, 0);
         g._log.Log(g.TickCount, "pacing", "blocks descended");
     }
 }

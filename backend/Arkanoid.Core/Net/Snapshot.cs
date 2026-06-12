@@ -73,9 +73,12 @@ public sealed class ZoneDto
 
 public sealed class EventDto
 {
-    [JsonPropertyName("type")] public string Type { get; set; } = ""; // e.g. blockDestroyed, spellCast
+    [JsonPropertyName("type")] public string Type { get; set; } = "";
     [JsonPropertyName("x")] public double X { get; set; }
     [JsonPropertyName("y")] public double Y { get; set; }
+    /// <summary>Optional integer payload — only serialized when non-zero (e.g. boss phase number).</summary>
+    [JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonPropertyName("extra")] public int Extra { get; set; }
 }
 
 public sealed class RelicDto
@@ -111,7 +114,8 @@ public sealed class Snapshot
     [JsonPropertyName("cellSize")] public double CellSize { get; set; }
     [JsonPropertyName("cols")]     public int    Cols      { get; set; }
     [JsonPropertyName("rows")]     public int    Rows      { get; set; }
-    [JsonPropertyName("balls")] public List<BallDto> Balls { get; set; } = new();
+    [JsonPropertyName("balls")]        public List<BallDto>        Balls       { get; set; } = new();
+    [JsonPropertyName("projectiles")] public List<ProjectileDto> Projectiles { get; set; } = new();
     [JsonPropertyName("blocks")] public List<BlockDto> Blocks { get; set; } = new();
     [JsonPropertyName("walls")] public List<WallDto> Walls { get; set; } = new();
     [JsonPropertyName("turretActive")]  public bool TurretActive { get; set; }
@@ -129,9 +133,9 @@ public sealed class Snapshot
     [JsonPropertyName("barriers")]        public List<BarrierDto> Barriers { get; set; } = new();
     [JsonPropertyName("zones")]           public List<ZoneDto>    Zones    { get; set; } = new();
     [JsonPropertyName("skeletonActive")]  public bool SkeletonActive  { get; set; }
-    [JsonPropertyName("drainActive")]     public bool DrainActive     { get; set; }
+    [JsonPropertyName("spellDrainActive")]     public bool SpellDrainActive     { get; set; }
     /// <summary>Extra crystals to be awarded at level completion (treasure-item bonus).</summary>
-    [JsonPropertyName("treasureBonus")]   public int  TreasureBonus   { get; set; }
+    [JsonPropertyName("treasureBonus")]   public int  CrystalBonus    { get; set; }
     /// <summary>WindMaster push radius in world units — the renderer draws the aura circle at this size.</summary>
     [JsonPropertyName("windRadius")]      public double WindRadius    { get; set; }
     /// <summary>Objective timer mode: "" | "survive" (win at 0) | "limit" (lose at 0).</summary>
@@ -149,18 +153,22 @@ public sealed class Snapshot
     [JsonPropertyName("fireshotActive")] public bool   FireshotActive { get; set; }
     /// <summary>Seconds remaining on the Fire Shot power-up.</summary>
     [JsonPropertyName("fireshotTimer")]  public double FireshotTimer  { get; set; }
-    /// <summary>True while the Shield power-up is armed (one-touch ball save).</summary>
-    [JsonPropertyName("shieldActive")]   public bool   ShieldActive   { get; set; }
+    /// <summary>True while the powerup_shield auto-save is armed (one-touch ball save, distinct from the Paladin barrier).</summary>
+    [JsonPropertyName("shieldActive")]   public bool   AutoSaveActive { get; set; }
 
     // --- Combo multiplier (task 1.3) ---
     /// <summary>Current combo multiplier (1–4). >1 means the player has a consecutive-hit streak.</summary>
     [JsonPropertyName("comboMultiplier")] public int ComboMultiplier { get; set; } = 1;
 
-    public static Snapshot From(GameInstance g, long tick)
+    /// <summary>
+    /// Build a snapshot. When <paramref name="cachedBlocks"/> is non-null and the caller has
+    /// verified BlockVersion is unchanged, block DTO objects are reused — no per-block allocation.
+    /// </summary>
+    public static Snapshot From(GameInstance g, long tick, List<BlockDto>? cachedBlocks = null)
     {
         var s = new Snapshot {
             Tick = tick, Phase = g.Phase.ToString(),
-            Lives = g.Lives, SpareBalls = g.SpareBalls,
+            Lives = g.Hp, SpareBalls = g.SpareBalls,
             Mana = g.ManaValue, ManaMax = g.ManaMaxValue,
             BoardW = g.Level.Grid.Width, BoardH = g.Level.Grid.Height,
             Biome = g.Level.Biome,
@@ -171,17 +179,23 @@ public sealed class Snapshot
         };
         foreach (var b in g.Balls)
             s.Balls.Add(new BallDto { Id = b.Id, X = b.Pos.X, Y = b.Pos.Y, Ignited = b.IgniteHitsLeft > 0, Decayed = b.DecayHitsLeft > 0, Ghost = b.Ghost });
-        // Legacy: projectiles also appear in Balls list for backwards compat (id offset)
         foreach (var pr in g.Projectiles)
-            s.Balls.Add(new BallDto { Id = 10000 + pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Ignited = pr.Kind is "fireball" or ""});
-        foreach (var blk in g.Blocks)
+            s.Projectiles.Add(new ProjectileDto { Id = pr.Id, X = pr.Pos.X, Y = pr.Pos.Y, Kind = pr.Kind });
+        if (cachedBlocks != null)
         {
-            if (blk.Dead) continue;
-            var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-            var emitInterval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.DefaultEmitInterval;
-            var charging = blk.Emitter && blk.AllyTimer <= 0
-                && emitInterval - blk.EmitAccumulator <= g.Config.EmitTelegraphWindow;
-            s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ShieldTimer > 0, Charging = charging, Allied = blk.AllyTimer > 0, Level = blk.StatueLevel });
+            s.Blocks = cachedBlocks; // reuse caller's cached list — no new BlockDto allocations
+        }
+        else
+        {
+            foreach (var blk in g.Blocks)
+            {
+                if (blk.Dead) continue;
+                var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+                var emitInterval = blk.EmitInterval > 0 ? blk.EmitInterval : g.Config.Enemies.DefaultEmitInterval;
+                var charging = blk.Emitter && blk.AllyTimer <= 0
+                    && emitInterval - blk.EmitAccumulator <= g.Config.Enemies.EmitTelegraphWindow;
+                s.Blocks.Add(new BlockDto { Id = blk.Id, X = c.X, Y = c.Y, Hp = blk.Hp, MaxHp = blk.MaxHp, Sprite = blk.Sprite, BallPhases = blk.BallPhases, Teleporter = blk.Teleporter, Indestructible = blk.Indestructible, Boss = blk.Boss, FlipX = blk.FlipX, FlipY = blk.FlipY, Shielded = blk.ImmunityTimer > 0, Charging = charging, Allied = blk.AllyTimer > 0, Level = blk.StatueLevel });
+            }
         }
         foreach (var w in g.FireWalls)
             s.Walls.Add(new WallDto { Y = w.Y, Width = w.Width });
@@ -205,30 +219,97 @@ public sealed class Snapshot
         }
         foreach (var bn in g.Bonuses)
             s.Bonuses.Add(new BonusDto { Id = bn.Id, X = bn.Pos.X, Y = bn.Pos.Y, Type = bn.Type, Icon = bn.Icon });
-        s.WidePaddleActive = g._widePaddleActive;
-        s.WidePaddleTimer  = g._widePaddleTimer;
-        s.SlowBallActive   = g._slowBallActive;
-        s.SlowBallTimer    = g._slowBallTimer;
+        s.WidePaddleActive = g.WidePaddleActive;
+        s.WidePaddleTimer  = g.WidePaddleTimer;
+        s.SlowBallActive   = g.SlowBallActive;
+        s.SlowBallTimer    = g.SlowBallTimer;
         foreach (var br in g.Barriers)
             s.Barriers.Add(new BarrierDto { Y = br.Y, CenterX = br.CenterX, Width = br.Width });
         foreach (var zn in g.Zones)
             s.Zones.Add(new ZoneDto { X = zn.X, Y = zn.Y, Radius = zn.Radius });
         s.SkeletonActive  = g.SkeletonActive;
-        s.DrainActive     = g.DrainActive;
-        s.TreasureBonus   = g.ItemTreasureBonus;
-        s.WindRadius      = g.Config.WindMasterRadius;
+        s.SpellDrainActive     = g.SpellDrainActive;
+        s.CrystalBonus    = g.ItemCrystalBonus;
+        s.WindRadius      = g.Config.Enemies.WindMasterRadius;
         if (g.Level.SurviveTime > 0)
         { s.TimerMode = "survive"; s.TimeLeft = System.Math.Max(0, g.Level.SurviveTime - g.ElapsedPlayTime); }
         else if (g.Level.TimeLimit > 0)
         { s.TimerMode = "limit"; s.TimeLeft = System.Math.Max(0, g.Level.TimeLimit - g.ElapsedPlayTime); }
         s.Floor      = g.FloorIndex + 1;
-        s.FloorCount = g.Level.ExtraFloors.Count + 1;
-        s.BricksDestroyedThisLevel = g._bricksDestroyedThisLevel;
-        s.FireshotActive = g._fireshotActive;
-        s.FireshotTimer  = g._fireshotTimer;
-        s.ShieldActive   = g._shieldActive;
-        s.ComboMultiplier = g._comboMultiplier;
-        s.Events.AddRange(g.DrainEvents());
+        s.FloorCount = g.ExtraFloors.Count + 1;
+        s.BricksDestroyedThisLevel = g.BricksDestroyedThisLevel;
+        s.FireshotActive = g.FireshotActive;
+        s.FireshotTimer  = g.FireshotTimer;
+        s.AutoSaveActive = g.AutoSaveActive;
+        s.ComboMultiplier = g.ComboMultiplier;
+        foreach (var ev in g.DrainEvents())
+            s.Events.Add(new EventDto { Type = KindToWire(ev.Kind), X = ev.X, Y = ev.Y, Extra = ev.Payload });
         return s;
     }
+
+    private static string KindToWire(SimEventKind k) => k switch
+    {
+        SimEventKind.SpellCast       => "spellCast",
+        SimEventKind.Ignite          => "ignite",
+        SimEventKind.Burn            => "burn",
+        SimEventKind.Decay           => "decay",
+        SimEventKind.Lightning       => "lightning",
+        SimEventKind.Radiation       => "radiation",
+        SimEventKind.Phoenix         => "phoenix",
+        SimEventKind.SkeletonShot    => "skeletonShot",
+        SimEventKind.TurretShot      => "turretShot",
+        SimEventKind.Penetration     => "penetration",
+        SimEventKind.Judgement       => "judgement",
+        SimEventKind.Frost           => "frost",
+        SimEventKind.BlockDestroyed  => "blockDestroyed",
+        SimEventKind.Explosion       => "explosion",
+        SimEventKind.Deflect         => "deflect",
+        SimEventKind.GhostPortal     => "ghostPortal",
+        SimEventKind.Teleport        => "teleport",
+        SimEventKind.EnemyShot       => "enemyShot",
+        SimEventKind.AllyShot        => "allyShot",
+        SimEventKind.BatGrab         => "batGrab",
+        SimEventKind.BatRelease      => "batRelease",
+        SimEventKind.Cart            => "cart",
+        SimEventKind.Stalactite      => "stalactite",
+        SimEventKind.Corrupt         => "corrupt",
+        SimEventKind.DeathMark       => "deathMark",
+        SimEventKind.BossTelegraph   => "bossTelegraph",
+        SimEventKind.BossAttack      => "bossAttack",
+        SimEventKind.BossPhase       => "bossPhase",
+        SimEventKind.BossHop         => "bossHop",
+        SimEventKind.FistTelegraph   => "fistTelegraph",
+        SimEventKind.FistSlam        => "fistSlam",
+        SimEventKind.WitchGrabCast   => "witchGrabCast",
+        SimEventKind.WitchGrab       => "witchGrab",
+        SimEventKind.WitchThrow      => "witchThrow",
+        SimEventKind.WitchGrabPopped => "witchGrabPopped",
+        SimEventKind.SeraphVase      => "seraphVase",
+        SimEventKind.SeraphAdd       => "seraphAdd",
+        SimEventKind.VaseShatter     => "vaseShatter",
+        SimEventKind.VaseLevelUp     => "vaseLevelUp",
+        SimEventKind.LavaCreep       => "lavaCreep",
+        SimEventKind.LavaRetract     => "lavaRetract",
+        SimEventKind.LavaDrain       => "lavaDrain",
+        SimEventKind.BonusCaught     => "bonusCaught",
+        SimEventKind.SplitShot       => "splitShot",
+        SimEventKind.PlayerHit       => "playerHit",
+        SimEventKind.ShieldSave      => "shieldSave",
+        SimEventKind.ShieldBlock     => "shieldBlock",
+        SimEventKind.Shield          => "shield",
+        SimEventKind.BarrierHit      => "barrierHit",
+        SimEventKind.SecondWind      => "secondWind",
+        SimEventKind.ManaRefund      => "manaRefund",
+        SimEventKind.LevelWon        => "levelWon",
+        SimEventKind.LevelLost       => "levelLost",
+        SimEventKind.TimeUp          => "timeUp",
+        SimEventKind.Overrun         => "overrun",
+        SimEventKind.Descend         => "descend",
+        SimEventKind.FloorDown       => "floorDown",
+        SimEventKind.Revive          => "revive",
+        SimEventKind.ReviveCancelled => "reviveCancelled",
+        SimEventKind.Altar           => "altar",
+        SimEventKind.MidasCrystals   => "midasCrystals",
+        _                            => k.ToString(),
+    };
 }

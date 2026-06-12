@@ -52,8 +52,7 @@ public class BossTests
         // Fast attack interval + telegraph so hazards appear quickly.
         var cfg = new SimConfig
         {
-            BossAttackInterval = 0.05,
-            BossTelegraphDuration = 0.02,
+            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
         };
         var g = MakeBossGame(cfg);
         g.Serve();
@@ -63,11 +62,11 @@ public class BossTests
 
         // Loop attack cycles: in hell the AimedShot pattern is a fist slam (no hazard),
         // so we wait for a hazard-spawning pattern (Rain/Spread) to roll.
-        var dt = cfg.BossAttackInterval + 0.01;
+        var dt = cfg.Boss.AttackInterval + 0.01;
         for (int i = 0; i < 50 && g.Hazards.Count == 0; i++)
         {
             g.Tick(dt);                               // accumulate → telegraph
-            g.Tick(cfg.BossTelegraphDuration + 0.01); // telegraph expires → attack fires
+            g.Tick(cfg.Boss.TelegraphDuration + 0.01); // telegraph expires → attack fires
         }
 
         Assert.True(g.Hazards.Count > 0,
@@ -84,8 +83,7 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossAttackInterval    = 0.05,
-            BossTelegraphDuration = 0.02,
+            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
         };
         var g = MakeGame(
             """
@@ -106,8 +104,8 @@ public class BossTests
         // magic-bolt pattern (Rain/Spread) rolls, then check the bolt tagging.
         for (int i = 0; i < 50 && !g.Hazards.Any(h => h.Kind == "witchmagic"); i++)
         {
-            g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
-            g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+            g.Tick(cfg.Boss.AttackInterval + 0.01);     // telegraph
+            g.Tick(cfg.Boss.TelegraphDuration + 0.01);  // fire
         }
 
         Assert.Contains(g.Hazards, h => h.Kind == "witchmagic");
@@ -125,8 +123,7 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossAttackInterval    = 0.05,
-            BossTelegraphDuration = 0.02,
+            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
         };
         var g = MakeGame(
             """
@@ -146,8 +143,8 @@ public class BossTests
         // hazard pattern (Rain/Spread) rolls, then check the bolt tagging.
         for (int i = 0; i < 50 && g.Hazards.Count == 0; i++)
         {
-            g.Tick(cfg.BossAttackInterval + 0.01);     // telegraph
-            g.Tick(cfg.BossTelegraphDuration + 0.01);  // fire
+            g.Tick(cfg.Boss.AttackInterval + 0.01);     // telegraph
+            g.Tick(cfg.Boss.TelegraphDuration + 0.01);  // fire
         }
 
         Assert.NotEmpty(g.Hazards);
@@ -160,8 +157,7 @@ public class BossTests
 
     private static readonly SimConfig FastBossCfg = new()
     {
-        BossAttackInterval    = 0.05,
-        BossTelegraphDuration = 0.02,
+        Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
     };
 
     /// <summary>Tick until predicate or budget exhausted; returns success.</summary>
@@ -297,7 +293,7 @@ public class BossTests
         // Let the fuse expire → his adds level up.
         var add = g.Blocks.First(b => !b.Dead && b.Emitter && !b.NeedToKill);
         var levelled = TickUntil(g, () => add.StatueLevel > 0,
-            (int)(SimConfig.Default.SeraphVaseFuse / SimConfig.Default.FixedDt) + 200);
+            (int)(SimConfig.Default.Boss.SeraphVaseFuse / SimConfig.Default.FixedDt) + 200);
         Assert.True(levelled, "fuse expiry must level the Seraph's adds");
     }
 
@@ -310,30 +306,27 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossHazardDamage   = 1,
-            BossHazardRadius   = 9,
-            BossAttackInterval = 999,   // disable automatic spawning
-            BossTelegraphDuration = 999,
+            Boss = new() { HazardDamage = 1, HazardRadius = 9, AttackInterval = 999, TelegraphDuration = 999 },
         };
         var g = MakeBossGame(cfg);
         g.Serve();
 
-        int livesBefore = g.Lives;
+        int livesBefore = g.Hp;
 
         // Inject a hazard just above the paddle center, moving downward.
         var paddleCenter = g.Paddle.Center;
         g.Hazards.Add(new Projectile {
             Id     = 999,
-            Pos    = new Vec2(paddleCenter.X, paddleCenter.Y - g.Paddle.Height / 2 - cfg.BossHazardRadius + 1),
-            Vel    = new Vec2(0, cfg.BossHazardSpeed > 0 ? cfg.BossHazardSpeed : 240),
-            Damage = cfg.BossHazardDamage,
-            Radius = cfg.BossHazardRadius,
+            Pos    = new Vec2(paddleCenter.X, paddleCenter.Y - g.Paddle.Height / 2 - cfg.Boss.HazardRadius + 1),
+            Vel    = new Vec2(0, cfg.Boss.HazardSpeed > 0 ? cfg.Boss.HazardSpeed : 240),
+            Damage = cfg.Boss.HazardDamage,
+            Radius = cfg.Boss.HazardRadius,
             Alive  = true
         });
 
         g.Tick(SimConfig.Default.FixedDt);
 
-        Assert.Equal(livesBefore - cfg.BossHazardDamage, g.Lives);
+        Assert.Equal(livesBefore - cfg.Boss.HazardDamage, g.Hp);
         Assert.Empty(g.Hazards); // consumed on hit
     }
 
@@ -346,28 +339,26 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossHazardDamage   = 1,
-            BossAttackInterval = 999,
-            BossTelegraphDuration = 999,
+            Boss = new() { HazardDamage = 1, AttackInterval = 999, TelegraphDuration = 999 },
         };
         var g   = MakeBossGame(cfg);
         g.Serve();
 
-        int livesBefore = g.Lives;
+        int livesBefore = g.Hp;
 
-        var drainLine = g.Level.Grid.Height + cfg.CellSize * 2 + cfg.BossHazardRadius + 10;
+        var drainLine = g.Level.Grid.Height + cfg.CellSize * 2 + cfg.Boss.HazardRadius + 10;
         g.Hazards.Add(new Projectile {
             Id     = 998,
             Pos    = new Vec2(g.Level.Grid.Width * 2, drainLine), // far right AND already past drain
             Vel    = new Vec2(0, 1),
-            Damage = cfg.BossHazardDamage,
-            Radius = cfg.BossHazardRadius,
+            Damage = cfg.Boss.HazardDamage,
+            Radius = cfg.Boss.HazardRadius,
             Alive  = true
         });
 
         g.Tick(SimConfig.Default.FixedDt);
 
-        Assert.Equal(livesBefore, g.Lives); // no damage
+        Assert.Equal(livesBefore, g.Hp); // no damage
         Assert.Empty(g.Hazards);            // removed as missed
     }
 
@@ -380,10 +371,8 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossHazardDamage   = 1,
-            BossAttackInterval = 999,
-            BossTelegraphDuration = 999,
-            StartLives = 2,
+            Boss = new() { HazardDamage = 1, AttackInterval = 999, TelegraphDuration = 999 },
+            StartHp = 2,
         };
         var g = MakeBossGame(cfg);
         g.Serve();
@@ -438,13 +427,16 @@ public class BossTests
         // We count total hazards produced over many cycles and confirm > 1 distinct batch size.
         var cfg = new SimConfig
         {
-            BossAttackInterval    = 0.05,
-            BossTelegraphDuration = 0.02,
-            BossPhase3Threshold   = 1.0,  // always phase 3 from the start
-            BossSpreadCount       = 4,
-            BossRainCount         = 3,
-            BossSummonSpeedMult   = 1.6,
-            BossHazardSpeed       = 1,    // very slow hazards so they stay alive long enough to count
+            Boss = new()
+            {
+                AttackInterval    = 0.05,
+                TelegraphDuration = 0.02,
+                Phase3Threshold   = 1.0, // always phase 3 from the start
+                SpreadCount       = 4,
+                RainCount         = 3,
+                SummonSpeedMult   = 1.6,
+                HazardSpeed       = 1,   // very slow hazards so they stay alive long enough to count
+            },
         };
 
         // Single boss block for simple counting.
@@ -482,7 +474,7 @@ public class BossTests
             int spawned = g.Hazards.Count - prevHazardCount;
             // Count every attack event (the hell fist slam spawns no hazards);
             // batch sizes only from hazard-spawning patterns.
-            if (evts.Any(e => e.Type == "bossAttack"))
+            if (evts.Any(e => e.Kind == SimEventKind.BossAttack))
             {
                 totalAttackEvents++;
                 if (spawned > 0) distinctBatchSizes.Add(spawned);
@@ -505,14 +497,13 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossAttackInterval    = 0.05,
-            BossTelegraphDuration = 0.04,  // separate enough to see in different ticks
+            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.04 }, // separate enough to see in different ticks
         };
         var g = MakeBossGame(cfg);
         g.Serve();
 
         // Collect events across multiple small ticks.
-        var eventLog = new List<string>();
+        var eventLog = new List<SimEventKind>();
 
         // We need small ticks so telegraph and attack don't collapse into the same tick.
         double smallDt = 0.01;
@@ -523,19 +514,19 @@ public class BossTests
             g.Tick(smallDt);
             var evts = g.DrainEvents();
             foreach (var e in evts)
-                if (e.Type is "bossTelegraph" or "bossAttack")
-                    eventLog.Add(e.Type);
+                if (e.Kind is SimEventKind.BossTelegraph or SimEventKind.BossAttack)
+                    eventLog.Add(e.Kind);
         }
 
         // We expect both event types to have appeared
-        Assert.Contains("bossTelegraph", eventLog);
-        Assert.Contains("bossAttack",    eventLog);
+        Assert.Contains(SimEventKind.BossTelegraph, eventLog);
+        Assert.Contains(SimEventKind.BossAttack,    eventLog);
 
         // Every bossAttack must be preceded by a bossTelegraph (the first bossAttack index must be
         // > 0 and the entry before it must be a bossTelegraph or an intervening non-boss event).
         // Simplified: the index of the first bossTelegraph < index of first bossAttack.
-        int firstTelegraph = eventLog.IndexOf("bossTelegraph");
-        int firstAttack    = eventLog.IndexOf("bossAttack");
+        int firstTelegraph = eventLog.IndexOf(SimEventKind.BossTelegraph);
+        int firstAttack    = eventLog.IndexOf(SimEventKind.BossAttack);
         Assert.True(firstTelegraph < firstAttack,
             $"bossTelegraph must appear before first bossAttack; log=[{string.Join(",", eventLog)}]");
     }
@@ -549,10 +540,7 @@ public class BossTests
     {
         var cfg = new SimConfig
         {
-            BossAttackInterval    = 999,  // freeze attacks; we only care about phase events
-            BossTelegraphDuration = 0.001,
-            BossPhase2Threshold   = 0.60,
-            BossPhase3Threshold   = 0.30,
+            Boss = new() { AttackInterval = 999, TelegraphDuration = 0.001, Phase2Threshold = 0.60, Phase3Threshold = 0.30 }, // freeze attacks; we only care about phase events
         };
 
         // One boss block with HP 10 so fractions are clean.
@@ -579,14 +567,14 @@ public class BossTests
         if (g.Phase == GamePhase.Serving) g.Serve();
         g.Tick(SimConfig.Default.FixedDt);
         var evts2 = g.DrainEvents();
-        Assert.Contains(evts2, e => e.Type == "bossPhase" && (int)e.X == 2);
+        Assert.Contains(evts2, e => e.Kind == SimEventKind.BossPhase && e.Payload == 2);
 
         // Reduce HP to 2 (20 % < 30 % threshold) — should trigger phase 3.
         bossBlock.Hp = 2;
         if (g.Phase == GamePhase.Serving) g.Serve();
         g.Tick(SimConfig.Default.FixedDt);
         var evts3 = g.DrainEvents();
-        Assert.Contains(evts3, e => e.Type == "bossPhase" && (int)e.X == 3);
+        Assert.Contains(evts3, e => e.Kind == SimEventKind.BossPhase && e.Payload == 3);
     }
 
     // -----------------------------------------------------------------------
@@ -604,14 +592,17 @@ public class BossTests
         // Phase 1 game (hp full, 100%) — large spare-ball count so the game never ends.
         var cfg1 = new SimConfig
         {
-            BossAttackInterval       = 1.6,
-            BossPhase2AttackInterval = 1.2,
-            BossPhase3AttackInterval = 0.75,
-            BossTelegraphDuration    = 0.1,
-            BossPhase2Threshold      = 0.60,
-            BossPhase3Threshold      = 0.30,
-            StartBalls               = 9999,
-            StartLives               = 9999,
+            Boss = new()
+            {
+                AttackInterval       = 1.6,
+                Phase2AttackInterval = 1.2,
+                Phase3AttackInterval = 0.75,
+                TelegraphDuration    = 0.1,
+                Phase2Threshold      = 0.60,
+                Phase3Threshold      = 0.30,
+            },
+            StartBalls = 9999,
+            StartHp    = 9999,
         };
         var g1 = MakeGame(
             """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}""",
@@ -623,14 +614,17 @@ public class BossTests
         // Phase 3 game (hp pinned low via threshold = 1.0 — always phase 3).
         var cfg3 = new SimConfig
         {
-            BossAttackInterval       = 1.6,
-            BossPhase2AttackInterval = 1.2,
-            BossPhase3AttackInterval = 0.75,
-            BossTelegraphDuration    = 0.1,
-            BossPhase2Threshold      = 1.0, // always phase 2+
-            BossPhase3Threshold      = 1.0, // always phase 3
-            StartBalls               = 9999,
-            StartLives               = 9999,
+            Boss = new()
+            {
+                AttackInterval       = 1.6,
+                Phase2AttackInterval = 1.2,
+                Phase3AttackInterval = 0.75,
+                TelegraphDuration    = 0.1,
+                Phase2Threshold      = 1.0, // always phase 2+
+                Phase3Threshold      = 1.0, // always phase 3
+            },
+            StartBalls = 9999,
+            StartHp    = 9999,
         };
         var g3 = MakeGame(
             """{"id":"boss","biome":"hell","hp":10,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}""",
@@ -652,7 +646,7 @@ public class BossTests
             if (g.Phase == GamePhase.Serving) g.Serve();
             if (g.Phase != GamePhase.Playing) break; // Lost — can't continue
             g.Tick(dt);
-            count += g.DrainEvents().Count(e => e.Type == "bossAttack");
+            count += g.DrainEvents().Count(e => e.Kind == SimEventKind.BossAttack);
         }
         return count;
     }
@@ -664,7 +658,7 @@ public class BossTests
     [Fact]
     public void Snapshot_ExposedBossHp()
     {
-        var cfg = new SimConfig { BossAttackInterval = 999, BossTelegraphDuration = 999 };
+        var cfg = new SimConfig { Boss = new() { AttackInterval = 999, TelegraphDuration = 999 } };
 
         // One boss block hp=10
         var g = MakeGame(

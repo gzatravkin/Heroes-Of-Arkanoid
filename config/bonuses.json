@@ -1,13 +1,13 @@
 { "bonuses": [
-  { "id": "extra_ball",        "name": "Extra Ball",    "icon": "ui/bonus/BonusSplit",      "effect": "extra_ball"        },
-  { "id": "mana_surge",        "name": "Mana Surge",    "icon": "ui/bonus/BonusMana",       "effect": "mana_surge"        },
-  { "id": "wide_paddle",       "name": "Wide Paddle",   "icon": "ui/bonus/BonusLargerBita", "effect": "wide_paddle"       },
-  { "id": "slow_ball",         "name": "Slow Ball",     "icon": "ui/bonus/BonusProtection", "effect": "slow_ball"         },
-  { "id": "heal",              "name": "Heal",          "icon": "ui/bonus/BonusHP",         "effect": "heal"              },
-  { "id": "coins",             "name": "Treasure",      "icon": "ui/bonus/BonusGem",        "effect": "coins"             },
-  { "id": "powerup_wide",      "name": "Wide Paddle+",  "icon": "",                         "effect": "powerup_wide"      },
-  { "id": "powerup_multiball", "name": "Multi-ball",    "icon": "",                         "effect": "powerup_multiball" },
-  { "id": "powerup_fireshot",  "name": "Fire Shot",     "icon": "",                         "effect": "powerup_fireshot"  },
-  { "id": "powerup_manasurge", "name": "Mana Surge+",   "icon": "",                         "effect": "powerup_manasurge" },
-  { "id": "powerup_shield",    "name": "Shield",        "icon": "",                         "effect": "powerup_shield"    }
+  { "id": "extra_ball",        "name": "Extra Ball",    "icon": "ui/bonus/BonusSplit",      "effect": "extra_ball",  "count": 1        },
+  { "id": "mana_surge",        "name": "Mana Surge",    "icon": "ui/bonus/BonusMana",       "effect": "mana_surge"                    },
+  { "id": "wide_paddle",       "name": "Wide Paddle",   "icon": "ui/bonus/BonusLargerBita", "effect": "wide_paddle"                   },
+  { "id": "slow_ball",         "name": "Slow Ball",     "icon": "ui/bonus/BonusProtection", "effect": "slow_ball"                     },
+  { "id": "heal",              "name": "Heal",          "icon": "ui/bonus/BonusHP",         "effect": "heal"                          },
+  { "id": "coins",             "name": "Treasure",      "icon": "ui/bonus/BonusGem",        "effect": "coins"                         },
+  { "id": "powerup_wide",      "name": "Wide Paddle+",  "icon": "",                         "effect": "wide_paddle", "duration": 15.0 },
+  { "id": "powerup_multiball", "name": "Multi-ball",    "icon": "",                         "effect": "extra_ball",  "count": 2        },
+  { "id": "powerup_fireshot",  "name": "Fire Shot",     "icon": "",                         "effect": "fireshot"                      },
+  { "id": "powerup_manasurge", "name": "Mana Surge+",   "icon": "",                         "effect": "mana_surge",  "full": true      },
+  { "id": "powerup_shield",    "name": "Shield",        "icon": "",                         "effect": "shield"                        }
 ]}

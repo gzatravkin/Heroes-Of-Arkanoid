@@ -19,19 +19,16 @@ internal static partial class SpellSystem
     internal static void CastShield(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.ShieldCost)
-        { g._log.Log(g.TickCount, "spell", "shield denied", $"mana={g.ManaValue:F0} need={g.Config.ShieldCost}"); return; }
-        g.ManaValue -= g.Config.ShieldCost;
+        if (!Spend(g, g.Config.PaladinBarrierCost, "shield")) return;
         var shieldY = g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Config.BallRadius;
         g.Barriers.Add(new Entities.Barrier {
             Id            = g._nextBarrierId++,
             Y             = shieldY,
             CenterX       = g.Paddle.Center.X,
-            Width         = g.Paddle.Width * g.Config.ShieldWidthMult,
-            LifeRemaining = g.Config.ShieldLifetime
+            Width         = g.Paddle.Width * g.Config.PaladinBarrierWidthMult,
+            LifeRemaining = g.Config.PaladinBarrierLifetime
         });
-        g._log.Log(g.TickCount, "spell", "shield cast", $"mana={g.ManaValue:F0} y={shieldY:F1}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -41,9 +38,7 @@ internal static partial class SpellSystem
     internal static void CastSpear(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.SpearCost)
-        { g._log.Log(g.TickCount, "spell", "spear denied", $"mana={g.ManaValue:F0} need={g.Config.SpearCost}"); return; }
-        g.ManaValue -= g.Config.SpearCost;
+        if (!Spend(g, g.Config.SpearCost, "spear")) return;
         g.Projectiles.Add(new Projectile {
             Id               = g._nextProjId++,
             Pos              = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height),
@@ -53,8 +48,7 @@ internal static partial class SpellSystem
             Kind             = "spear",
             PiercingHitsLeft = g.Config.SpearPiercingHits
         });
-        g._log.Log(g.TickCount, "spell", "spear cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -64,11 +58,9 @@ internal static partial class SpellSystem
     internal static void CastDuplicate(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.DuplicateCost)
-        { g._log.Log(g.TickCount, "spell", "duplicate denied", $"mana={g.ManaValue:F0} need={g.Config.DuplicateCost}"); return; }
         var alive = g.Balls.Where(b => b.Alive).ToList();
         if (alive.Count == 0) return;
-        g.ManaValue -= g.Config.DuplicateCost;
+        if (!Spend(g, g.Config.DuplicateCost, "duplicate")) return;
         // Duplicate the first alive ball N times; each copy gets a small velocity splay
         var src = alive[0];
         for (int i = 0; i < g.Config.DuplicateExtraBalls; i++)
@@ -89,8 +81,7 @@ internal static partial class SpellSystem
                 DecayHitsLeft  = src.DecayHitsLeft
             });
         }
-        g._log.Log(g.TickCount, "spell", "duplicate cast", $"mana={g.ManaValue:F0} balls={g.Balls.Count(b => b.Alive)}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -100,11 +91,9 @@ internal static partial class SpellSystem
     internal static void CastLightning(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.LightningCost)
-        { g._log.Log(g.TickCount, "spell", "lightning denied", $"mana={g.ManaValue:F0} need={g.Config.LightningCost}"); return; }
         var alive = g.Blocks.Where(b => !b.Dead).ToList();
         if (alive.Count == 0) return;
-        g.ManaValue -= g.Config.LightningCost;
+        if (!Spend(g, g.Config.LightningCost, "lightning")) return;
 
         // Pick a random alive block as the starting target (deterministic via Rng)
         int startIdx = g.Rng.Range(alive.Count);
@@ -113,7 +102,7 @@ internal static partial class SpellSystem
 
         BlockDamage.DamageBlock(g, current, g.Config.LightningDamage, igniteSource: false);
         var cPos = g.Level.Grid.CellCenter(current.Col, current.Row);
-        g.RaiseEvent("lightning", cPos.X, cPos.Y);
+        g.RaiseEvent(SimEventKind.Lightning, cPos.X, cPos.Y);
 
         // Jump to nearby blocks up to ChainJumps times (+1 with the Conductor relic)
         var chainJumps = g.Config.LightningChainJumps + (g.HasRelic("conductor") ? 1 : 0);
@@ -131,9 +120,8 @@ internal static partial class SpellSystem
             cPos    = next.center;
             hit.Add(current.Id);
             BlockDamage.DamageBlock(g, current, g.Config.LightningDamage, igniteSource: false);
-            g.RaiseEvent("lightning", cPos.X, cPos.Y);
+            g.RaiseEvent(SimEventKind.Lightning, cPos.X, cPos.Y);
         }
-        g._log.Log(g.TickCount, "spell", "lightning cast", $"mana={g.ManaValue:F0} hits={hit.Count}");
     }
 
     // -----------------------------------------------------------------------
@@ -143,9 +131,7 @@ internal static partial class SpellSystem
     internal static void CastRocket(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.RocketCost)
-        { g._log.Log(g.TickCount, "spell", "rocket denied", $"mana={g.ManaValue:F0} need={g.Config.RocketCost}"); return; }
-        g.ManaValue -= g.Config.RocketCost;
+        if (!Spend(g, g.Config.RocketCost, "rocket")) return;
         g.Projectiles.Add(new Projectile {
             Id        = g._nextProjId++,
             Pos       = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height),
@@ -156,8 +142,7 @@ internal static partial class SpellSystem
             Homing    = true,
             AoeRadius = g.Config.RocketAoeRadius
         });
-        g._log.Log(g.TickCount, "spell", "rocket cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -167,9 +152,7 @@ internal static partial class SpellSystem
     internal static void CastRadiation(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.RadiationCost)
-        { g._log.Log(g.TickCount, "spell", "radiation denied", $"mana={g.ManaValue:F0} need={g.Config.RadiationCost}"); return; }
-        g.ManaValue -= g.Config.RadiationCost;
+        if (!Spend(g, g.Config.RadiationCost, "radiation")) return;
         // Zone spawns at the paddle position; it will immediately start ticking damage on nearby blocks
         g.Zones.Add(new Zone {
             Id             = g._nextZoneId++,
@@ -180,8 +163,7 @@ internal static partial class SpellSystem
             DamagePerTick  = g.Config.RadiationDamage,
             DamageInterval = g.Config.RadiationDamageInterval
         });
-        g._log.Log(g.TickCount, "spell", "radiation cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -191,11 +173,9 @@ internal static partial class SpellSystem
     internal static void CastDecay(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.DecayCost) return;
-        g.ManaValue -= g.Config.DecayCost;
+        if (!Spend(g, g.Config.DecayCost, "decay")) return;
         g._decayArmed = true;
-        g._log.Log(g.TickCount, "decay", "armed", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -205,13 +185,10 @@ internal static partial class SpellSystem
     internal static void CastSkeleton(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.SkeletonCost)
-        { g._log.Log(g.TickCount, "spell", "skeleton denied", $"mana={g.ManaValue:F0} need={g.Config.SkeletonCost}"); return; }
-        g.ManaValue -= g.Config.SkeletonCost;
+        if (!Spend(g, g.Config.SkeletonCost, "skeleton")) return;
         g._skeletonRemaining  = g.Config.SkeletonDuration;
         g._skeletonAccumulator = 0;
-        g._log.Log(g.TickCount, "spell", "skeleton cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -221,12 +198,9 @@ internal static partial class SpellSystem
     internal static void CastDrain(GameInstance g)
     {
         if (g.Phase != GamePhase.Playing) return;
-        if (g.ManaValue < g.Config.DrainCost)
-        { g._log.Log(g.TickCount, "spell", "drain denied", $"mana={g.ManaValue:F0} need={g.Config.DrainCost}"); return; }
-        g.ManaValue -= g.Config.DrainCost;
+        if (!Spend(g, g.Config.DrainCost, "drain")) return;
         g._drainRemaining = g.Config.DrainDuration;
-        g._log.Log(g.TickCount, "spell", "drain cast", $"mana={g.ManaValue:F0}");
-        g.RaiseEvent("spellCast", g.Paddle.Center.X, g.Paddle.Center.Y);
+        g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
     }
 
     // -----------------------------------------------------------------------
@@ -261,7 +235,7 @@ internal static partial class SpellSystem
                     if ((c - new Vec2(zone.X, zone.Y)).Length <= zone.Radius)
                     {
                         BlockDamage.DamageBlock(g, blk, zone.DamagePerTick, igniteSource: false);
-                        g.RaiseEvent("radiation", c.X, c.Y);
+                        g.RaiseEvent(SimEventKind.Radiation, c.X, c.Y);
                     }
                 }
                 zone.Accumulator -= zone.DamageInterval;
@@ -286,7 +260,7 @@ internal static partial class SpellSystem
                 Radius = g.Config.BallRadius * 0.5,
                 Kind   = "skeleton_bullet"
             });
-            g.RaiseEvent("skeletonShot", g.Paddle.Center.X, g.Paddle.Center.Y);
+            g.RaiseEvent(SimEventKind.SkeletonShot, g.Paddle.Center.X, g.Paddle.Center.Y);
             g._skeletonAccumulator -= g.Config.SkeletonFireInterval;
         }
     }
@@ -302,5 +276,5 @@ internal static partial class SpellSystem
     /// via Drain state check in GameInstance).
     /// </summary>
     internal static double DrainBonusMana(GameInstance g)
-        => g.DrainActive ? g.Config.DrainBonusManaPerKill : 0.0;
+        => g.SpellDrainActive ? g.Config.DrainBonusManaPerKill : 0.0;
 }

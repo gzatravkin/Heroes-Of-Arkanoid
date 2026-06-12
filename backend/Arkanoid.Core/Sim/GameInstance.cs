@@ -14,23 +14,58 @@ public sealed class GameInstance
     public Rng Rng { get; internal set; }
 
     public GamePhase Phase { get; internal set; } = GamePhase.Serving;
-    public int Lives { get; internal set; }
+    /// <summary>Player HP: reduced by enemy damage. SpareBalls tracks the ball-count axis.</summary>
+    public int Hp { get; internal set; }
     public int SpareBalls { get; internal set; }
 
     public Paddle Paddle { get; }
     public List<Ball> Balls { get; } = new();
-    public List<Block> Blocks => Level.Blocks;
+    /// <summary>
+    /// Mutable game-state copy of the level's blocks. Deep-copied from LevelData at construction
+    /// so that LevelData remains an immutable template (safe for caching/reuse across sessions).
+    /// </summary>
+    private readonly List<Block> _blocks;
+    public List<Block> Blocks => _blocks;
+    /// <summary>Extra floors (multi-floor Caverns collapse). Deep-copied from LevelData, consumed in order.</summary>
+    private readonly List<List<Block>> _extraFloors;
+    internal List<List<Block>> ExtraFloors => _extraFloors;
+    /// <summary>Y coordinate below which balls/hazards/bonuses are considered drained.
+    /// One authoritative expression so the three callers never drift.</summary>
+    internal double DrainY => Level.Grid.Height + Config.CellSize * 2;
+
+    // Spatial block index — rebuilt once per tick on first BlockAt() call.
+    private readonly Dictionary<(int, int), Block> _blockGrid = new();
+    private bool _blockGridDirty = true;
+    internal void InvalidateBlockGrid() { _blockGridDirty = true; BlockVersion++; }
+    /// <summary>
+    /// Increments whenever the block list or any block's HP/visual state changes.
+    /// GameSession uses this to skip rebuilding BlockDto objects on unchanged ticks.
+    /// </summary>
+    public int BlockVersion { get; private set; } = 1;
+    internal void MarkBlocksDirty() => BlockVersion++;
+
+    internal Block? BlockAt(int col, int row)
+    {
+        if (_blockGridDirty)
+        {
+            _blockGrid.Clear();
+            foreach (var b in Blocks)
+                if (!b.Dead) _blockGrid[(b.Col, b.Row)] = b;
+            _blockGridDirty = false;
+        }
+        return _blockGrid.TryGetValue((col, row), out var found) && !found.Dead ? found : null;
+    }
 
     internal int _nextBallId = 1;
     internal int _nextProjId = 1;
 
-    /// <summary>Counts destructible blocks destroyed this level; drives speed escalation (docs plan 2026-06-10).</summary>
-    internal int _bricksDestroyedThisLevel = 0;
-
-    /// <summary>Consecutive brick destructions without paddle contact — drives the combo multiplier.</summary>
-    internal int _comboCount = 0;
-    /// <summary>Current combo multiplier (1–4). Every 3 consecutive destructions adds ×1; resets to ×1 on paddle contact.</summary>
-    internal int _comboMultiplier = 1;
+    internal sealed class ComboState
+    {
+        internal int BricksDestroyed;
+        internal int Count;
+        internal int Multiplier = 1;
+    }
+    internal readonly ComboState Combo = new();
     public List<Projectile> Projectiles { get; } = new();
 
     internal int _nextWallId = 1;
@@ -61,39 +96,48 @@ public sealed class GameInstance
         return _nextBlockId++;
     }
 
-    /// <summary>Blocks queued for Necromant revival: (block, seconds remaining).</summary>
+    /// <summary>Blocks queued for Reviver revival: (block, seconds remaining).</summary>
     internal readonly List<(Entities.Block Block, double Timer)> _reviveQueue = new();
 
-    // --- Temp-effect state (wide_paddle / slow_ball) ---
-    internal bool   _widePaddleActive = false;
-    internal double _widePaddleTimer  = 0;
-    internal bool   _slowBallActive   = false;
-    internal double _slowBallTimer    = 0;
+    internal sealed class PowerupState
+    {
+        internal bool   WidePaddleActive;
+        internal double WidePaddleTimer;
+        internal bool   SlowBallActive;
+        internal double SlowBallTimer;
+        internal bool   FireshotActive;
+        internal double FireshotTimer;
+        internal bool   AutoSaveActive;
+    }
+    internal readonly PowerupState Powerups = new();
 
-    // --- Power-up state (task 1.2): fireshot + shield ---
-    internal bool   _fireshotActive = false;
-    internal double _fireshotTimer  = 0;
-    internal bool   _shieldActive   = false;
+    // Read-only snapshot surface — Snapshot.From uses these instead of private state.
+    public bool   WidePaddleActive          => Powerups.WidePaddleActive;
+    public double WidePaddleTimer           => Powerups.WidePaddleTimer;
+    public bool   SlowBallActive            => Powerups.SlowBallActive;
+    public double SlowBallTimer             => Powerups.SlowBallTimer;
+    public bool   FireshotActive            => Powerups.FireshotActive;
+    public double FireshotTimer             => Powerups.FireshotTimer;
+    /// <summary>True while the powerup_shield auto-save is armed (distinct from the Paladin barrier spell).</summary>
+    public bool   AutoSaveActive            => Powerups.AutoSaveActive;
+    public int    ComboMultiplier           => Combo.Multiplier;
+    public int    BricksDestroyedThisLevel  => Combo.BricksDestroyed;
 
     // --- Coin/crystal counter (coins bonus) ---
     public int Crystals { get; internal set; } = 0;
 
-    // --- Boss multi-pattern state ---
-    internal double _bossAttackAccumulator;
-    /// <summary>Current boss phase (1/2/3). 0 = not yet computed.</summary>
-    internal int    _bossPhase = 0;
-    /// <summary>True while we are in the telegraph window before the next attack fires.</summary>
-    internal bool   _bossTelegraphPending;
-    /// <summary>Seconds remaining in the current telegraph window.</summary>
-    internal double _bossTelegraphTimer;
-    /// <summary>Encoded pattern index queued to fire when the telegraph expires.</summary>
-    internal int    _bossPendingPattern;
-    /// <summary>Hell Demon fist: column locked at telegraph time (so the slam is dodgeable).</summary>
-    internal int    _bossFistCol = -1;
-    /// <summary>Caverns Goblin hop: current anchor index in the 3-anchor cycle.</summary>
-    internal int    _goblinAnchorIdx;
-    /// <summary>Heaven Seraph: alternates summoning a statue add vs a fused boss vase.</summary>
-    internal bool   _seraphSummonVase;
+    internal sealed class BossState
+    {
+        internal double AttackAccumulator;
+        internal int    Phase;
+        internal bool   TelegraphPending;
+        internal double TelegraphTimer;
+        internal int    PendingPattern;
+        internal int    FistCol            = -1;
+        internal int    GoblinAnchorIdx;
+        internal bool   SeraphSummonVase;
+    }
+    internal readonly BossState Boss = new();
 
     // --- Objective timers + pacing modes (docs/12) ---
     /// <summary>Seconds of Playing-phase time elapsed (drives timeLimit/surviveTime).</summary>
@@ -114,7 +158,7 @@ public sealed class GameInstance
 
     // --- Necromancer: Drain ---
     internal double _drainRemaining;
-    public bool DrainActive => _drainRemaining > 0;
+    public bool SpellDrainActive => _drainRemaining > 0;
 
     // --- Lava: danger-zone HP drain ---
     internal double _lavaDrainAccumulator;
@@ -140,7 +184,7 @@ public sealed class GameInstance
     /// <summary>Bonus damage vs tough blocks from equipped items (crit_tough effect).</summary>
     public int    ItemCritToughBonus     { get; set; } = 0;
     /// <summary>Extra crystals awarded at level clear from equipped items (treasure effect).</summary>
-    public int    ItemTreasureBonus      { get; set; } = 0;
+    public int    ItemCrystalBonus       { get; set; } = 0;
     /// <summary>Additive bonus to the kill-mana multiplier from equipped items (kill_mana effect).</summary>
     public double ItemKillManaMultBonus  { get; set; } = 0;
 
@@ -247,7 +291,10 @@ public sealed class GameInstance
         Level = level; Config = config; Rng = new Rng(seed); _log = log ?? NullSimLog.Instance;
         RelicCatalog = relics;
         BonusCatalog = bonuses;
-        Lives = config.StartLives;
+        // Deep-copy block lists so LevelData stays as an immutable template.
+        _blocks      = level.Blocks.Select(b => b.Clone()).ToList();
+        _extraFloors = level.ExtraFloors.Select(f => f.Select(b => b.Clone()).ToList()).ToList();
+        Hp = config.StartHp;
         SpareBalls = config.StartBalls;
         ManaMaxValue = config.ManaMax;
         _wallSaveAvailable = true;
@@ -257,7 +304,7 @@ public sealed class GameInstance
             Center = new Vec2(level.Grid.Width / 2.0, level.Grid.Height + config.CellSize)
         };
         SpawnBallOnPaddle();
-        _log.Log(0, "init", "instance created", $"level={level.Id} seed={seed} blocks={Blocks.Count} lives={Lives} balls={SpareBalls}");
+        _log.Log(0, "init", "instance created", $"level={level.Id} seed={seed} blocks={Blocks.Count} hp={Hp} balls={SpareBalls}");
     }
 
     // --- G2 relic counters/flags (instance-scoped, reset with the level) ---
@@ -283,7 +330,7 @@ public sealed class GameInstance
         switch (id)
         {
             case "glass_cannon":
-                Lives = System.Math.Max(1, Lives - 1);
+                Hp = System.Math.Max(1, Hp - 1);
                 break;
             case "mana_battery":
                 ManaMaxValue += Config.ManaBatteryBonus;
@@ -372,6 +419,7 @@ public sealed class GameInstance
     public void Tick(double dt)
     {
         if (Phase != GamePhase.Playing) return;
+        _blockGridDirty = true; // rebuild spatial index once on first BlockAt() call this tick
         TickCount++;
         ElapsedPlayTime += dt;
         if (_log.Verbose)
@@ -392,7 +440,7 @@ public sealed class GameInstance
         BossSystem.UpdateVaseFuses(this, dt);
         EmitterSystem.Update(this, dt);
         StalactiteSystem.Update(this, dt);
-        NecromantSystem.Update(this, dt);
+        ReviverSystem.Update(this, dt);
         WindSystem.Update(this, dt);
         ShieldSystem.Update(this, dt);
         CauldronSystem.Update(this, dt);
@@ -401,15 +449,26 @@ public sealed class GameInstance
         CombatSystem.UpdateHazards(this, dt);
         BonusSystem.UpdateBonuses(this, dt);
         WinLoseSystem.ResolveDrainAndWin(this);
+        PruneDeadBlocks();
+    }
+
+    // Prune dead blocks once no Reviver can resurrect them, keeping linear scans short.
+    // The _reviveQueue drains naturally via ReviverSystem (raising reviveCancelled).
+    private void PruneDeadBlocks()
+    {
+        if (Blocks.Any(b => !b.Dead && b.Reviver)) return;
+        if (_reviveQueue.Count > 0) return; // wait for the queue to drain; reviveCancelled events still fire
+        int removed = _blocks.RemoveAll(b => b.Dead);
+        if (removed > 0) InvalidateBlockGrid();
     }
 
     // --- resources/events surface ---
     public double ManaValue { get; set; } = 0;
-    private readonly List<Arkanoid.Core.Net.EventDto> _events = new();
-    public void RaiseEvent(string type, double x, double y)
-        => _events.Add(new Arkanoid.Core.Net.EventDto { Type = type, X = x, Y = y });
-    public List<Arkanoid.Core.Net.EventDto> DrainEvents()
-    { var copy = new List<Arkanoid.Core.Net.EventDto>(_events); _events.Clear(); return copy; }
+    private readonly List<SimEvent> _events = new();
+    public void RaiseEvent(SimEventKind kind, double x, double y, int payload = 0)
+        => _events.Add(new SimEvent(kind, x, y, payload));
+    public List<SimEvent> DrainEvents()
+    { var copy = new List<SimEvent>(_events); _events.Clear(); return copy; }
 
     public void CastFireball()  => SpellSystem.CastFireball(this);
     public void CastIgnite()    => SpellSystem.CastIgnite(this);
