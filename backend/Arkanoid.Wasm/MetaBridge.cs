@@ -293,7 +293,7 @@ public static partial class MetaBridge
             selected      = p.SelectedCharacter,
             unlocked      = p.UnlockedCharacters,
             shards        = p.Shards,
-            unlockCost    = 40, // CharacterEndpoints.CharacterUnlockShardCost
+            unlockCost    = ProgressionConfig.CharacterUnlockShardCost,
         });
     }
 
@@ -447,8 +447,10 @@ public static partial class MetaBridge
     [JSExport]
     public static string GrantCard(string pid, string cardId)
     {
+        if (!Cards.TryGet(cardId, out _))
+            return Serialize(new { ok = false });
         var p = Store.Load(pid);
-        if (Cards.TryGet(cardId, out _)) CardService.Grant(p, cardId);
+        CardService.Grant(p, cardId);
         Store.Save(p, pid);
         return Serialize(new { ok = true, owned = p.OwnedCards });
     }

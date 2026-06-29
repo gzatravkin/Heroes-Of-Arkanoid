@@ -17,6 +17,12 @@ public sealed class ProgressionConfig
     /// <summary>Crystals awarded on first clear of a level.</summary>
     public int CrystalsRewardPerLevel { get; set; } = 10;
 
+    /// <summary>Campaign Gold (docs/04 §5/§6.1) awarded on first clear of a regular level — spent at
+    /// campaign shop nodes.</summary>
+    public int CampaignGoldRewardPerLevel { get; set; } = 10;
+    /// <summary>Campaign Gold awarded on first clear of a biome boss (a bigger payout before the shop).</summary>
+    public int CampaignGoldRewardPerBoss { get; set; } = 25;
+
     /// <summary>Maximum spell upgrade level a player can reach.</summary>
     public int MaxSpellLevel { get; set; } = 10;
 
@@ -25,10 +31,16 @@ public sealed class ProgressionConfig
     /// opt-in dungeon run entry point. Tunable here so designers can dial how often
     /// rifts interrupt the campaign without touching code.
     /// </summary>
-    public double RiftChance { get; set; } = 0.34;
+    public double RiftChance { get; set; } = 0.10; // §7: rare, hard gauntlet (down from 0.34)
+
+    /// <summary>§7: a Rift is up to this many consecutive biome levels (one HP/ball pool across all).</summary>
+    public int RiftLevels { get; set; } = 10;
 
     /// <summary>EXP threshold to advance from <paramref name="level"/> to the next level.</summary>
     public int ExpToLevel(int level) => (int)global::System.Math.Round(ExpBase * global::System.Math.Pow(ExpGrowth, level - 1));
 
     public static ProgressionConfig Default { get; } = new();
+
+    /// <summary>Shard cost to permanently unlock a character (docs/04 §5 meta-progression).</summary>
+    public const int CharacterUnlockShardCost = 40;
 }
