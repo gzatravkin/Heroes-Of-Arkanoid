@@ -19,4 +19,11 @@ export default defineConfig({
     }),
   ],
   server: { port: 5175, strictPort: true },
+  build: {
+    rollupOptions: {
+      // /_framework/dotnet.js is a runtime URL served from the WASM AppBundle; it is
+      // dynamically imported at runtime and must NOT be bundled or resolved at build time.
+      external: (id) => id.startsWith("/_framework/"),
+    },
+  },
 });

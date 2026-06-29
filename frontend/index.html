@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <script>
+      /* localStorage bridge for .NET [JSImport] — must be defined before dotnet.js loads */
+      window.arkStorage = {
+        get:    function(k)    { return localStorage.getItem(k); },
+        set:    function(k, v) { return localStorage.setItem(k, v); },
+        remove: function(k)    { return localStorage.removeItem(k); }
+      };
+    </script>
     <meta name="theme-color" content="#0b0b12" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

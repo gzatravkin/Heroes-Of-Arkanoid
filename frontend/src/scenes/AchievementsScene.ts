@@ -1,24 +1,4 @@
-/**
- * AchievementsScene.ts — Achievements screen (?scene=achievements).
- *
- * Badge art in public/achievements/:
- *   achievementLvl1Eng–Lvl3Eng, Ll4Eng, Ll5Eng (badge frames, English)
- *   achievementLvl3Oro (gold variant for top tier)
- *
- * NOTE: /achievements/AchievmentPanel.png is a flat navy rounded rectangle
- * (placeholder export — no painted detail). It is NOT rendered here per
- * Rulebook §4 (docs/plans/2026-06-10-ui-overhaul-execution.md).
- * The NameBlock plaque (BarGoods 9-slice) is used for the title area instead.
- *
- * Achievement definitions are client-side; server persists the unlocked set.
- * Unlocks are triggered from battle/campaign events and POSTed to /achievement/unlock.
- *
- * Styled to match the design system: warm bg gradient, BarGoods card panels,
- * locked/unlocked visual rhythm (unlocked: full-color + gold name;
- * locked: saturate(.45) brightness(.8), text-dim name, ??? desc).
- */
-
-import { metaApi } from "../net/metaApi";
+import { wasmApi as metaApi } from "../net/WasmApi";
 import { nineSlice } from "../ui/nineSlice";
 
 // ── Achievement definitions ───────────────────────────────────────────────────
@@ -26,130 +6,33 @@ import { nineSlice } from "../ui/nineSlice";
 export interface AchievementDef {
   id: string;
   name: string;
-  description: string;
-  tier: 1 | 2 | 3 | 4 | 5;  // maps to Lvl1–5 badge art
+  description: string;   // flavour text, shown once unlocked
+  criteria: string;      // plain how-to-earn, shown while still locked
+  tier: 1 | 2 | 3 | 4 | 5;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: "first_win",           name: "First Victory",       description: "The first brick falls. Hell noticed.", tier: 1 },
-  { id: "equip_item",          name: "Geared Up",           description: "Iron does not grant power; it confesses the need for it.", tier: 1 },
-  { id: "clear_biome_hell",    name: "Hell Survivor",        description: "Three floors of fire, and you came back changed.", tier: 2 },
-  { id: "clear_biome_dungeon", name: "Dungeon Crawler",      description: "The descent is voluntary. The return is not guaranteed.", tier: 2 },
-  { id: "clear_biome_village", name: "Village Cleared",      description: "The village prayed for a savior; it got you instead.", tier: 2 },
-  { id: "clear_biome_heaven",  name: "Ascended",             description: "The angels did not welcome you. They stepped aside.", tier: 3 },
-  { id: "beat_boss",           name: "Boss Slayer",          description: "Demons have names. You took one.", tier: 3 },
-  { id: "clear_dungeon",       name: "Dungeon Delver",       description: "The stones remember every screaming soul; yours merely survived.", tier: 4 },
-  { id: "win_fire_mage",       name: "Pyromancer",           description: "The fire answered your call before you knew its name.", tier: 2 },
-  { id: "win_paladin",         name: "Holy Knight",          description: "The blessing was freely given; the mercy was not.", tier: 2 },
-  { id: "win_engineer",        name: "Tech Master",          description: "Where others prayed, you calculated—and the machine did not disappoint.", tier: 2 },
-  { id: "win_necromancer",     name: "Undying",              description: "Death studied you closely, learned nothing, and moved on.", tier: 2 },
-  { id: "campaign_complete",   name: "World Saved",          description: "The world survives—scarred, grateful, and afraid of what it owes you.", tier: 5 },
+  { id: "first_win",           name: "First Victory",       description: "The first brick falls. Hell noticed.", criteria: "Win any level", tier: 1 },
+  { id: "equip_item",          name: "Geared Up",           description: "Iron does not grant power; it confesses the need for it.", criteria: "Equip an item from your inventory", tier: 1 },
+  { id: "clear_biome_hell",    name: "Hell Survivor",        description: "Three floors of fire, and you came back changed.", criteria: "Win a level in Hell", tier: 2 },
+  { id: "clear_biome_dungeon", name: "Dungeon Crawler",      description: "The descent is voluntary. The return is not guaranteed.", criteria: "Win a level in the Caverns", tier: 2 },
+  { id: "clear_biome_village", name: "Village Cleared",      description: "The village prayed for a savior; it got you instead.", criteria: "Win a level in the Village", tier: 2 },
+  { id: "clear_biome_heaven",  name: "Ascended",             description: "The angels did not welcome you. They stepped aside.", criteria: "Win a level in Heaven", tier: 3 },
+  { id: "beat_boss",           name: "Boss Slayer",          description: "Demons have names. You took one.", criteria: "Defeat any boss", tier: 3 },
+  { id: "clear_dungeon",       name: "Dungeon Delver",       description: "The stones remember every screaming soul; yours merely survived.", criteria: "Complete a full Dungeon (rift) run", tier: 4 },
+  { id: "win_fire_mage",       name: "Pyromancer",           description: "The fire answered your call before you knew its name.", criteria: "Win a level as the Fire Mage", tier: 2 },
+  { id: "win_paladin",         name: "Holy Knight",          description: "The blessing was freely given; the mercy was not.", criteria: "Win a level as the Paladin", tier: 2 },
+  { id: "win_engineer",        name: "Tech Master",          description: "Where others prayed, you calculated—and the machine did not disappoint.", criteria: "Win a level as the Engineer", tier: 2 },
+  { id: "win_necromancer",     name: "Undying",              description: "Death studied you closely, learned nothing, and moved on.", criteria: "Win a level as the Necromancer", tier: 2 },
+  { id: "campaign_complete",   name: "World Saved",          description: "The world survives—scarred, grateful, and afraid of what it owes you.", criteria: "Defeat the final boss in Heaven", tier: 5 },
 ];
 
-// ── Badge art mapping: tier → unlocked image ─────────────────────────────────
-// Always the English badge art (non-Eng variants have Russian text baked in).
-// Locked/unlocked visual state is conveyed via CSS filter, not a different sprite.
-
-function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, _unlocked: boolean): string {
+export function badgeSrc(tier: 1 | 2 | 3 | 4 | 5, _unlocked: boolean): string {
   if (tier === 1) return "/achievements/achievementLvl1Eng.png";
   if (tier === 2) return "/achievements/achievementLvl2Eng.png";
   if (tier === 3) return "/achievements/achievementLvl3Oro.png";
   if (tier === 4) return "/achievements/achievementLl4Eng.png";
   return "/achievements/achievementLl5Eng.png";
-}
-
-// ── Mount ─────────────────────────────────────────────────────────────────────
-
-export function mountAchievements(host: HTMLElement) {
-  injectAchievementStyles();
-
-  const root = document.createElement("div");
-  root.id = "achievements-scene";
-  root.className = "ach-root";
-
-  // Warm background layer
-  const bg = document.createElement("div");
-  bg.className = "ach-bg";
-  root.appendChild(bg);
-
-  const inner = document.createElement("div");
-  inner.className = "ach-inner";
-
-  // ── Top bar: back chip · centered title · symmetry spacer ──
-  const topbar = document.createElement("div");
-  topbar.className = "ach-topbar";
-
-  const backBtn = document.createElement("a");
-  backBtn.href = "/?scene=menu";
-  backBtn.className = "ach-back";
-  backBtn.setAttribute("aria-label", "Back to menu");
-  // Arrow rendered by ::before pseudo-element
-  topbar.appendChild(backBtn);
-
-  const title = document.createElement("h1");
-  title.textContent = "Achievements";
-  title.className = "ach-title";
-  topbar.appendChild(title);
-
-  const spacer = document.createElement("div");
-  spacer.className = "ach-topbar-spacer";
-  topbar.appendChild(spacer);
-
-  inner.appendChild(topbar);
-
-  // Progress counter
-  const summary = document.createElement("div");
-  summary.id = "ach-summary";
-  summary.className = "ach-summary";
-  inner.appendChild(summary);
-
-  // Achievement grid
-  const grid = document.createElement("div");
-  grid.id = "ach-grid";
-  grid.className = "ach-grid";
-  inner.appendChild(grid);
-
-  root.appendChild(inner);
-  host.appendChild(root);
-
-  async function render() {
-    const profile = await metaApi.getProfile();
-    const unlocked = new Set(profile.achievements ?? []);
-
-    const unlockedCount = ACHIEVEMENTS.filter(a => unlocked.has(a.id)).length;
-    summary.textContent = `${unlockedCount} / ${ACHIEVEMENTS.length} unlocked`;
-
-    grid.innerHTML = "";
-    for (const ach of ACHIEVEMENTS) {
-      const isUnlocked = unlocked.has(ach.id);
-      const card = document.createElement("div");
-      card.setAttribute("data-achievement", ach.id);
-      card.className = `ach-card ${isUnlocked ? "unlocked" : "locked"}`;
-
-      const badge = document.createElement("img");
-      badge.src = badgeSrc(ach.tier, isUnlocked);
-      badge.alt = ach.name;
-      badge.className = "ach-badge";
-      card.appendChild(badge);
-
-      // Tier data model has only numeric tier (1–5), no tier-name string.
-      // Tier chip is intentionally omitted — do NOT parse from filenames (§A3).
-
-      const nameEl = document.createElement("div");
-      nameEl.textContent = ach.name;
-      nameEl.className = "ach-name";
-      card.appendChild(nameEl);
-
-      const descEl = document.createElement("div");
-      descEl.textContent = isUnlocked ? ach.description : "???";
-      descEl.className = "ach-desc";
-      card.appendChild(descEl);
-
-      grid.appendChild(card);
-    }
-  }
-
-  render().catch(console.error);
 }
 
 // ── Toast helper (exported for use in battle / campaign flow) ─────────────────
@@ -158,7 +41,6 @@ export async function unlockAchievement(id: string): Promise<void> {
   try {
     const result = await metaApi.unlockAchievement(id);
     if (result.ok && result.achievements.includes(id)) {
-      // Check it was newly added (not already there)
       showAchievementToast(id);
     }
   } catch { /* non-fatal */ }
@@ -181,7 +63,6 @@ function showAchievementToast(id: string) {
   injectToastStyles();
   document.body.appendChild(toast);
 
-  // Animate in, hold, animate out
   requestAnimationFrame(() => {
     toast.classList.add("ach-toast-in");
     setTimeout(() => {
@@ -191,206 +72,12 @@ function showAchievementToast(id: string) {
   });
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-function injectAchievementStyles() {
-  const id = "achievement-styles";
-  if (document.getElementById(id)) return;
-  const style = document.createElement("style");
-  style.id = id;
-  style.textContent = `
-    /* ── Screen scaffold ── */
-    .ach-root {
-      position: relative;
-      min-height: 100cqh;
-      width: 100%;
-      color: var(--text);
-      font-family: var(--font-body);
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
-      overflow-x: hidden;
-    }
-    .ach-bg {
-      position: absolute; inset: 0;
-      min-height: 100cqh;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(80,50,20,0.55) 0%, transparent 60%),
-        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 40%, var(--bg-2) 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .ach-inner {
-      position: relative; z-index: 1;
-      display: flex; flex-direction: column;
-      align-items: stretch;
-      padding: 0 0 max(env(safe-area-inset-bottom,0px),24px);
-    }
-
-    /* ── Top bar: back chip · centered title · symmetry spacer ── */
-    .ach-topbar {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-2);
-      padding: max(12px, env(safe-area-inset-top, 0px)) 12px 8px 12px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* Back chip — Button1 9-slice frame with BackArrow via ::before */
-    .ach-back {
-      flex: none;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: filter var(--dur-normal), transform var(--dur-fast);
-      ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
-    }
-    .ach-back:focus-visible {
-      outline: 2px solid var(--gold-bright);
-      outline-offset: 3px;
-      border-radius: 4px;
-    }
-    .ach-back::before {
-      content: "";
-      width: 20px;
-      height: 20px;
-      background: url('/ui/BackArrow.png') no-repeat center / contain;
-      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
-    }
-    .ach-back:hover  { filter: brightness(1.18); }
-    .ach-back:active { transform: scale(0.94); }
-
-    /* Centered display title */
-    .ach-title {
-      flex: 1;
-      text-align: center;
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: var(--fs-title);
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: var(--gold-bright);
-      text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 18px rgba(255,180,60,0.25);
-    }
-
-    /* Symmetry spacer keeps title visually centered */
-    .ach-topbar-spacer {
-      width: 44px;
-      flex: none;
-    }
-
-    /* Progress counter */
-    .ach-summary {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: var(--fs-body);
-      letter-spacing: 0.04em;
-      margin-bottom: var(--sp-3h);
-      padding: 0 var(--sp-4);
-    }
-
-    /* ── Achievement grid (2-col) ── */
-    .ach-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: var(--sp-3);
-      width: min(360px, 96cqw);
-      padding-bottom: var(--sp-5);
-      align-self: center;
-    }
-
-    /* ── Achievement card: BarGoods gold-rimmed navy panel ── */
-    .ach-card {
-      ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 15px")}
-      padding: var(--sp-2h) var(--sp-2) var(--sp-2h);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--sp-1h);
-      position: relative;
-      transition: filter var(--dur-normal), transform var(--dur-normal);
-    }
-
-    /* Unlocked: full color + gold glow */
-    .ach-card.unlocked {
-      filter: drop-shadow(0 0 7px rgba(255,190,80,0.35));
-    }
-    .ach-card.unlocked:hover {
-      filter: drop-shadow(0 0 10px rgba(255,190,80,0.55)) brightness(1.08);
-    }
-    .ach-card.unlocked:active {
-      transform: scale(0.96);
-    }
-
-    /* Locked: readable but clearly unowned — NOT blacked out (docs/13, Rulebook §5) */
-    .ach-card.locked {
-      filter: none;
-    }
-    .ach-card.locked:hover {
-      filter: brightness(1.06);
-    }
-
-    /* ── Badge art (medal) ── */
-    .ach-badge {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      /* painted art — NEVER image-rendering: pixelated (Rulebook §4) */
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
-    }
-    /* Locked badge: desaturated ~50%, never blacked out */
-    .ach-card.locked .ach-badge {
-      filter: var(--filter-locked) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-    }
-
-    /* ── Text ── */
-    .ach-name {
-      font-size: var(--fs-caption);
-      font-weight: 700;
-      color: var(--gold-bright);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-      text-align: center;
-      line-height: 1.3;
-    }
-    .ach-card.locked .ach-name {
-      color: var(--text-dim);
-      text-shadow: none;
-    }
-    .ach-desc {
-      font-size: var(--fs-tiny);
-      color: var(--text-dim);
-      text-align: center;
-      line-height: 1.4;
-    }
-    .ach-card.locked .ach-desc {
-      color: var(--text-faint);
-    }
-
-    /* ── Wider layout on larger containers ── */
-    @container (min-width: 480px) {
-      .ach-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 function injectToastStyles() {
   const id = "ach-toast-styles";
   if (document.getElementById(id)) return;
   const style = document.createElement("style");
   style.id = id;
   style.textContent = `
-    /* Toast: BarGoods panel, position: fixed intentional (body-appended overlay) */
     .ach-toast {
       position: fixed;
       top: max(env(safe-area-inset-top,0px), 20px);
@@ -398,45 +85,23 @@ function injectToastStyles() {
       transform: translateX(-50%) translateY(-80px);
       ${nineSlice("/ui/BarGoods.png", "26 30 26 30", "13px 20px")}
       padding: var(--sp-2h) var(--sp-4);
-      display: flex;
-      align-items: center;
-      gap: var(--sp-3);
-      min-width: min(280px, 85cqw);
-      max-width: min(340px, 90cqw);
+      display: flex; align-items: center; gap: var(--sp-3);
+      min-width: min(280px, 85cqw); max-width: min(340px, 90cqw);
       z-index: 9999;
       box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 12px rgba(220,180,60,0.25);
       transition: transform 0.35s cubic-bezier(0.2,1,0.4,1), opacity 0.35s;
-      opacity: 0;
-      font-family: var(--font-body);
+      opacity: 0; font-family: var(--font-body);
     }
-    .ach-toast-in {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-    .ach-toast-out {
-      transform: translateX(-50%) translateY(-80px);
-      opacity: 0;
-    }
-    .ach-toast-badge {
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
+    .ach-toast-in  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .ach-toast-out { transform: translateX(-50%) translateY(-80px); opacity: 0; }
+    .ach-toast-badge { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
     .ach-toast-label {
-      font-size: var(--fs-tiny);
-      color: var(--gold-bright);
-      letter-spacing: 0.06em;
-      font-weight: 700;
-      text-transform: uppercase;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      font-size: var(--fs-tiny); color: var(--gold-bright); letter-spacing: 0.06em;
+      font-weight: 700; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
     .ach-toast-name {
-      font-size: var(--fs-subhead);
-      color: var(--text);
-      font-weight: 700;
-      margin-top: 2px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      font-size: var(--fs-subhead); color: var(--text); font-weight: 700;
+      margin-top: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
     }
   `;
   document.head.appendChild(style);
