@@ -30,6 +30,18 @@ internal static class BallSystem
         // Decrement teleport cooldown once per tick (min 0)
         if (b.TeleportCooldown > 0) b.TeleportCooldown--;
 
+        // Holy Echo lifetime: tick the timer and expire the ball when it runs out.
+        if (b.IsHolyEcho)
+        {
+            b.HolyEchoTimer -= dt;
+            if (b.HolyEchoTimer <= 0) { b.Alive = false; return; }
+        }
+
+        // §1 Cards (Phase Window / Hot Hand / Redline): per-tick ball-state updates before collisions.
+        CardSystem.OnBallTick(g, b, dt);
+        // §2 Modules (Tidal swift speed, …): per-tick ball-state updates.
+        ModuleSystem.OnBallTick(g, b, dt);
+
         // Carried by a Witchland bat toward the drain (docs/11 redesign): the ball rides
         // the carrier hazard; CombatSystem owns the rescue/escape outcomes.
         if (b.GrabberId > 0)
@@ -49,11 +61,17 @@ internal static class BallSystem
         if (g._log.Verbose)
             g._log.Log(g.TickCount, "ball", "move", $"id={b.Id} x={b.Pos.X:F1} y={b.Pos.Y:F1}");
 
-        // Top-wall contact this tick (read before ResolveWalls flips the velocity).
-        var hitTop = b.Pos.Y - b.Radius < 0 && b.Vel.Y < 0;
-        Arkanoid.Core.Physics.BallPhysics.ResolveWalls(b, g.Level.Grid.Width, g.Config);
+        // Wall contacts this tick (read before ResolveWalls flips the velocity).
+        var width   = g.Level.Grid.Width;
+        var hitTop  = b.Pos.Y - b.Radius < 0 && b.Vel.Y < 0;
+        var hitLeft  = b.Pos.X - b.Radius < 0     && b.Vel.X < 0;
+        var hitRight = b.Pos.X + b.Radius > width && b.Vel.X > 0;
+        Arkanoid.Core.Physics.BallPhysics.ResolveWalls(b, width, g.Config);
         if (hitTop)
             SpellSystem.OnTopWallBounce(g, b); // Paladin Last Day column smite
+        if (hitLeft)  TeslaGridSystem.OnWallBounce(g, b, left: true);   // §3 Tesla Grid charges a wall
+        if (hitRight) TeslaGridSystem.OnWallBounce(g, b, left: false);
+        if (hitLeft || hitRight) CardSystem.OnWallBounce(g, b);         // §1 Bank Shot banks a carom
 
         if (Arkanoid.Core.Physics.BallPhysics.ResolvePaddle(b, g.Paddle, g.Config, out var t))
         {
@@ -63,31 +81,10 @@ internal static class BallSystem
             g.Combo.Multiplier = 1;
         }
 
-        ResolveBarriers(g, b);
+        // (Paladin Shield reverted 2026-06-16 to the LEGACY bullet-reflect barrier — it no longer pit-saves
+        //  the ball; the reflect logic lives in SpellSystem.UpdateBarriers, acting on enemy hazards.)
+        LanceSystem.Resolve(g, b); // §3 Lance of Dawn: bank off temporary pillars
         ResolveBlocks(g, b);
-    }
-
-    /// <summary>
-    /// Paladin Shield barrier: if ball is moving downward and crosses a barrier's Y within its X-span,
-    /// reflect it upward. Mirrors the same logic used for paddle deflection (simplified).
-    /// </summary>
-    private static void ResolveBarriers(GameInstance g, Ball b)
-    {
-        foreach (var barrier in g.Barriers)
-        {
-            if (!barrier.Alive) continue;
-            // Only trigger for downward-moving ball crossing the barrier line
-            if (b.Vel.Y <= 0) continue;
-            double halfW = barrier.Width / 2.0;
-            if (b.Pos.X < barrier.CenterX - halfW || b.Pos.X > barrier.CenterX + halfW) continue;
-            // Check if ball's circle crossed the barrier this tick
-            if (b.Pos.Y + b.Radius >= barrier.Y && b.Pos.Y - b.Radius <= barrier.Y + 4)
-            {
-                b.Vel = new Vec2(b.Vel.X, -System.Math.Abs(b.Vel.Y));
-                g._log.Log(g.TickCount, "barrier", "reflected ball", $"ballId={b.Id} y={barrier.Y:F1}");
-                g.RaiseEvent(SimEventKind.BarrierHit, barrier.CenterX, barrier.Y);
-            }
-        }
     }
 
     /// <summary>Altar: ally every Heaven statue — they fight FOR the player while the timer holds.</summary>
@@ -103,7 +100,6 @@ internal static class BallSystem
         foreach (var s in g.Blocks)
             if (!s.Dead && s.IsStatue) s.StatueLevel++;
         g.RaiseEvent(SimEventKind.VaseLevelUp, 0, 0);
-        g._log.Log(g.TickCount, "vase", "statues levelled up");
     }
 
     // 3×3 neighborhood in row-ascending order (row -1 → 0 → +1, left to right within each row).
@@ -139,8 +135,6 @@ internal static class BallSystem
                     b.Pos = destCenter + nudge;
                     b.TeleportCooldown = g.Config.Enemies.TeleportCooldownTicks;
                     g.RaiseEvent(SimEventKind.Teleport, destCenter.X, destCenter.Y);
-                    g._log.Log(g.TickCount, "teleport", "warped",
-                        $"ball={b.Id} from=({blk.Col},{blk.Row}) to=({dest.Col},{dest.Row})");
                     return; // do not also reflect
                 }
                 // single teleporter: fall through to indestructible bounce below
@@ -154,7 +148,6 @@ internal static class BallSystem
                     b.Ghost = !b.Ghost;
                     b.TeleportCooldown = g.Config.Enemies.TeleportCooldownTicks;
                     g.RaiseEvent(SimEventKind.GhostPortal, c.X, c.Y);
-                    g._log.Log(g.TickCount, "portal", "phase toggled", $"ball={b.Id} ghost={b.Ghost}");
                 }
                 continue; // always pass through the portal block itself
             }
@@ -168,24 +161,34 @@ internal static class BallSystem
                 {
                     Id       = g._nextHazardId++,
                     Pos      = c,
-                    Vel      = new Vec2(0, g.Config.Enemies.BatCarrySpeed),
+                    // LEGACY bat (reverted 2026-06-16): it HOVERS (gentle upward drift) while holding the
+                    // ball for BatHoldTime, then releases + rewards — it does NOT drag the ball to the drain.
+                    Vel      = new Vec2(0, -8),
                     Damage   = 0,
                     Radius   = g.Config.Enemies.HazardRadius,
                     Alive    = true,
                     Kind     = "bat",
                     Behavior = HazardBehavior.Bat,
                     CarriedBallId = b.Id,
+                    StateTimer = g.Config.Enemies.BatHoldTime,
                 };
                 g.Hazards.Add(carrier);
                 b.GrabberId = carrier.Id;
                 b.Vel       = new Vec2(0, 0);
                 g.RaiseEvent(SimEventKind.BatGrab, c.X, c.Y);
-                g._log.Log(g.TickCount, "bat", "carrying ball to drain", $"ball={b.Id} carrier={carrier.Id}");
                 return; // ball is now held
             }
 
-            // Lava: ball passes through — lava drains HP only when it reaches the paddle zone.
-            if (blk.Lava) continue;
+            // Lava: the ball passes THROUGH and DESTROYS the lava cell it flies over (2026-06-15) — active
+            // counterplay to the lava drain. (Lava is otherwise indestructible; only the ball clears it.)
+            if (blk.Lava)
+            {
+                blk.Dead = true;
+                var lc = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+                g.RaiseEvent(SimEventKind.LavaRetract, lc.X, lc.Y);
+                g.InvalidateBlockGrid();
+                continue;
+            }
 
             // Altar: hitting it pacifies the Heaven statues; then bounce off as a solid block.
             if (blk.Altar)
@@ -210,13 +213,45 @@ internal static class BallSystem
             bool ignited = b.IgniteHitsLeft > 0;
             bool decayed = b.DecayHitsLeft  > 0;
             var dmg = Modifiers.BallDamage(g, blk, ignited, b.Ghost);
+            // §1 Cards: position/state-gated ball-damage bonuses (Headhunter, Underdog, Cleanup Crew, …).
+            dmg += CardSystem.BallDamageBonus(g, b, blk);
+            // §2 Modules: ball-damage modifiers (Tidal heavy mode, Hollow Ball penalty, …).
+            dmg += ModuleSystem.BallDamageBonus(g, b, blk);
+            if (dmg < 1) dmg = 1; // a hit always does at least 1 (Hollow Ball can't drop it below)
+            // Holy Echo: echo balls deal 50% of normal damage (minimum 1).
+            if (b.IsHolyEcho) dmg = System.Math.Max(1, (int)System.Math.Round(dmg * 0.5));
             // Echo core: the first block hit after each paddle deflect strikes harder.
-            if (b.EchoArmed) { dmg += g.Config.EchoBonus; b.EchoArmed = false; }
+            if (b.EchoArmed) { dmg += 1; b.EchoArmed = false; } // EchoBonus = 1
+            // Crit (stat engine, design §5.7): a % chance to multiply this hit's damage. Applies to any
+            // real killable target — including bosses (§5.9: "bosses 500+ HP, so big crits pop"); only
+            // indestructible blocks are exempt. Raises a Crit event for renderer juice + read by crit cards.
+            g.LastHitWasCrit = false;
+            if (g.CritChance > 0 && blk.NeedToKill && !blk.Indestructible
+                && g.Rng.NextDouble() < g.CritChance)
+            {
+                int baseDmg = dmg;
+                double critMult = g.CritDamage;
+                // §5.5 Paladin ★5: below 50% HP, +25% crit damage.
+                if (g.HasPerk(Meta.StatResolver.PalLowHpCritDmg) && g.StatMaxHp > 0 && g.Hp * 2 <= g.StatMaxHp)
+                    critMult *= 1.25;
+                // §5.5 Fire Mage ★3: an already-burning block takes +15% from crits.
+                if (g.HasPerk(Meta.StatResolver.FmIgnitedCrit) && blk.BurnRemaining > 0)
+                    critMult *= 1.15;
+                dmg = (int)System.Math.Round(dmg * critMult);
+                // §1 Executioner's Edge: a crit on an already-low block executes for double.
+                dmg += CardSystem.ExecutionerExtra(g, blk, dmg);
+                g.LastHitWasCrit = true;
+                g.RaiseEvent(SimEventKind.Crit, c.X, c.Y, dmg);
+                g._log.Log(g.TickCount, "crit", "ball crit", $"block={blk.Id} base={baseDmg} crit={dmg} mult=x{critMult:0.00}");
+                // §5.5 Necromancer ★3: crits drain mana to you.
+                if (g.HasPerk(Meta.StatResolver.NecroCritDrain))
+                    g.ManaValue = System.Math.Min(g.ManaMaxValue, g.ManaValue + 4);
+            }
             // Frost core: hitting an emitter/statue freezes its cadence.
             if (g.BallCores.Contains("frost") && (blk.Emitter || blk.ShieldStatue))
             {
-                var freeze = g.Config.FrostFreezeSeconds
-                    * (g.HasFusion("echo", "frost") ? g.Config.StasisFreezeMult : 1.0);
+                var freeze = 2.0 // FrostFreezeSeconds
+                    * (g.HasFusion("echo", "frost") ? 2.0 : 1.0); // StasisFreezeMult = 2
                 blk.EmitAccumulator = -freeze;
                 g.RaiseEvent(SimEventKind.Frost, c.X, c.Y);
             }
@@ -241,10 +276,95 @@ internal static class BallSystem
                 b.Vel = Arkanoid.Core.Physics.BallPhysics.EnforceMinAngle(b.Vel);
             }
 
-            BlockDamage.DamageBlock(g, blk, dmg, igniteSource: ignited, decaySource: decayed);
-            if (ignited) b.IgniteHitsLeft--;
-            if (decayed) b.DecayHitsLeft--;
+            // Ignite redesign (2026-06-16): an ignite-imbued hit LIGHTS the block (slow burn) instead of
+            // dealing direct damage — so even 1-HP blocks smoulder down over time rather than popping
+            // instantly. Walls/bosses ignore ignite and take a normal hit.
+            if (ignited && blk.NeedToKill && !blk.Indestructible && !blk.Boss)
+            {
+                BurnSystem.LightBlock(g, blk, 0); // gen-0 seed; BurnSystem creeps the chain + ticks the DoT
+                b.IgniteHitsLeft--;
+            }
+            else
+            {
+                int hpBefore = blk.Hp;
+                BlockDamage.DamageBlock(g, blk, dmg, igniteSource: false, decaySource: decayed);
+                CardSystem.OnBlockHit(g, b, blk, dmg, hpBefore); // §1 Overkill spillover + Erosion (indestructible)
+                ModuleSystem.OnBlockHit(g, b, blk, dmg, hpBefore); // §2 Brittle Glass shatter on indestructible
+                if (decayed) b.DecayHitsLeft--;
+            }
+            // Overload Charge: cast arms the flag; the next ball-block hit on a real block plants a
+            // 0.5 s charge that detonates (chain-explode neighbors) via SpellSystem.UpdateKitSpells.
+            if (g._overloadArmed && !b.IsHolyEcho && blk.NeedToKill && !blk.Indestructible && !blk.Boss)
+            {
+                g._overloadArmed = false;
+                g._overloadChargeTimer = 0.5;
+                g._overloadChargeCol = blk.Col;
+                g._overloadChargeRow = blk.Row;
+                g.RaiseEvent(SimEventKind.SpellCast, c.X, c.Y);
+            }
+            // LEGACY Fire Wall: an armed ball, on its next block hit, ignites an AREA of blocks around the
+            // impact (they then burn + spread over time via BurnSystem). Consumes the arm.
+            if (b.FireWallArmed)
+            {
+                b.FireWallArmed = false;
+                FireWallIgniteArea(g, c);
+            }
             break; // one block per tick keeps it deterministic
+        }
+    }
+
+    /// <summary>LEGACY Fire Wall area-ignite: light the nearest blocks within radius of the impact point;
+    /// BurnSystem then burns + creeps them over time (fire "spreads" as in the old game).</summary>
+    private static void FireWallIgniteArea(GameInstance g, Vec2 center)
+    {
+        var def = g.GetSpellDef("firewall");
+        double radius = def != null && def.Radius > 0 ? def.Radius : 96;
+        int maxBlocks = def != null && def.Count > 0 ? def.Count : 14;
+        var near = g.Blocks
+            .Where(bl => !bl.Dead && !bl.Indestructible && !bl.Boss && bl.BurnRemaining <= 0)
+            .Select(bl => (bl, d: (g.Level.Grid.CellCenter(bl.Col, bl.Row) - center).Length))
+            .Where(x => x.d <= radius)
+            .OrderBy(x => x.d)
+            .Take(maxBlocks)
+            .ToList();
+        foreach (var (bl, _) in near)
+        {
+            BurnSystem.LightBlock(g, bl, 0);
+            var bc = g.Level.Grid.CellCenter(bl.Col, bl.Row);
+            g.RaiseEvent(SimEventKind.Burn, bc.X, bc.Y);
+        }
+    }
+
+    // Apply ball-core on-serve effects: ghost phase-through, ember ignite, split extra ball.
+    internal static void ApplyBallCoresOnServe(GameInstance g, double lean)
+    {
+        if (g.BallCores.Contains("ghost"))
+        {
+            g.Balls[0].PhasesLeft = g.HasFusion("ghost", "split") ? 2 : 1;
+            g._log.Log(g.TickCount, "ballcore", "ghost charges", $"phases={g.Balls[0].PhasesLeft}");
+        }
+        if (g.BallCores.Contains("ember"))
+        {
+            foreach (var b in g.Balls)
+                b.IgniteHitsLeft = System.Math.Max(b.IgniteHitsLeft, 2);
+            g._log.Log(g.TickCount, "ballcore", "ember ignite", "hitsLeft=2");
+        }
+        if (g.BallCores.Contains("split"))
+        {
+            var main = g.Balls[0];
+            var extraLean = lean + 0.15;
+            var extraBall = new Arkanoid.Core.Entities.Ball
+            {
+                Id     = g._nextBallId++,
+                Radius = g.Config.BallRadius,
+                Pos    = new Arkanoid.Core.Math.Vec2(main.Pos.X + g.Config.BallRadius * 2 + 2, main.Pos.Y),
+                Vel    = new Arkanoid.Core.Math.Vec2(extraLean, -1).Normalized() * g.Config.BallSpeed,
+                Alive  = true,
+            };
+            if (g.BallCores.Contains("ember"))
+                extraBall.IgniteHitsLeft = System.Math.Max(extraBall.IgniteHitsLeft, 2);
+            g.Balls.Add(extraBall);
+            g._log.Log(g.TickCount, "ballcore", "split extra ball", $"id={extraBall.Id} lean={extraLean:F3}");
         }
     }
 }

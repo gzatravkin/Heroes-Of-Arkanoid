@@ -1,11 +1,10 @@
-const CACHE = "arkanoid-v1";
+const CACHE = "arkanoid-v2";
+const BASE = "/Heroes-Of-Arkanoid/";
 
-// On install: cache the shell.
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then((cache) =>
-      cache.addAll(["/", "/index.html"])
-      // Don't precache _framework files here — they're large and auto-fetched on first game load.
+      cache.addAll([BASE, BASE + "index.html"])
     )
   );
   self.skipWaiting();
@@ -21,7 +20,7 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // Cache-first for _framework (WASM files) — they don't change between reloads.
+  // Cache-first for _framework (WASM files) — large, never change between deploys.
   if (e.request.url.includes("/_framework/")) {
     e.respondWith(
       caches.open(CACHE).then((cache) =>

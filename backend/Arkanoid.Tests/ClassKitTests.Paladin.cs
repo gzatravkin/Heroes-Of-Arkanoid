@@ -7,9 +7,6 @@ using Xunit;
 /// <summary>Paladin kit: shield / spear / duplicate (partial of ClassKitTests).</summary>
 public partial class ClassKitTests
 {
-    // -------------------------------------------------------------------------
-    // 2. Paladin — Shield
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Paladin_Shield_SpawnsBarrier()
@@ -23,20 +20,26 @@ public partial class ClassKitTests
     }
 
     [Fact]
-    public void Paladin_Shield_ReflectsDownwardBallUpward()
+    public void Paladin_Shield_ReflectsEnemyBulletUpward()
     {
+        // Shield reverted 2026-06-16 to the LEGACY behaviour: it reflects enemy bullets that cross it back
+        // UP as the player's own projectiles (which damage blocks) — no longer a pit-save for the ball.
         var g = Make("paladin");
         MaxManaAndServe(g);
-        g.CastSlot(0); // create barrier
-
+        g.CastSlot(0); // shield barrier
         var barrier = g.Barriers[0];
-        // Place ball directly above the barrier moving downward
-        var ball = g.Balls[0];
-        ball.Pos = new Vec2(barrier.CenterX, barrier.Y - ball.Radius - 1);
-        ball.Vel = new Vec2(0, 400); // downward
-
+        // An enemy bolt descending onto the barrier line.
+        g.Hazards.Add(new Arkanoid.Core.Entities.Projectile {
+            Id = 999, Pos = new Vec2(barrier.CenterX, barrier.Y), Vel = new Vec2(0, 300),
+            Damage = 1, Radius = 5, Alive = true, Kind = "bolt",
+            Behavior = Arkanoid.Core.Entities.HazardBehavior.None,
+        });
         g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(g.Balls[0].Vel.Y < 0, $"Ball should now move upward; vy={g.Balls[0].Vel.Y:F1}");
+        Assert.DoesNotContain(g.Hazards, h => h.Id == 999 && h.Alive); // the enemy bolt was consumed
+        var reflected = g.Projectiles.FirstOrDefault(p => p.Kind == "shieldbolt");
+        Assert.NotNull(reflected);
+        Assert.True(reflected!.Vel.Y < 0, "the reflected bolt flies upward as a player projectile");
+        Assert.True(reflected.Damage > 0, "the reflected bolt damages blocks");
     }
 
     [Fact]
@@ -59,7 +62,7 @@ public partial class ClassKitTests
         // Park ball safely so it never drains, keeping Phase=Playing
         var ball = g.Balls[0];
         double elapsed = 0;
-        while (elapsed < SimConfig.Default.ShieldLifetime + 0.5)
+        while (elapsed < 4.0 /* barrier lifetime */ + 0.5)
         {
             // Keep ball stationary above paddle
             ball.Pos = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height / 2 - ball.Radius - 2);
@@ -70,52 +73,29 @@ public partial class ClassKitTests
         Assert.Empty(g.Barriers);
     }
 
-    // -------------------------------------------------------------------------
-    // 3. Paladin — Spear
-    // -------------------------------------------------------------------------
 
     [Fact]
-    public void Paladin_Spear_SpawnsPiercingProjectile()
+    public void Paladin_Spear_LaunchesPiercingProjectile()
     {
+        // Spear reverted 2026-06-16 to the LEGACY piercing damage projectile (not the Lance of Dawn pillar).
         var g = Make("paladin");
         MaxManaAndServe(g);
-        g.CastSlot(1); // spear
-        Assert.Single(g.Projectiles);
-        Assert.Equal("spear", g.Projectiles[0].Kind);
-        Assert.True(g.Projectiles[0].PiercingHitsLeft > 0);
+        g.CastSlot(1); // Spear
+        var spear = g.Projectiles.FirstOrDefault(p => p.Kind == "spear");
+        Assert.NotNull(spear);
+        Assert.True(spear!.PiercingHitsLeft > 1, "the spear pierces multiple blocks");
+        Assert.Empty(g.Pillars); // no Lance pillar anymore
     }
 
     [Fact]
-    public void Paladin_Spear_DamagesMultipleBlocksInLine()
+    public void Paladin_Spear_PiercesAndDamagesMultipleBlocks()
     {
-        // Build a column of 3 blocks stacked vertically (rows 0,1,2 same col)
-        var cfg = SimConfig.Default;
-        var catalog = BlockCatalog.FromJson(
-            "{\"types\":[{\"id\":\"b\",\"biome\":\"test\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}");
-        var level = LevelLoader.FromJson(
-            "{\"id\":\"t\",\"biome\":\"test\",\"cols\":3,\"rows\":5," +
-            "\"rows_data\":[\".A.\",\".A.\",\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
-            catalog);
-        var g = new GameInstance(level, cfg, seed: 1);
-        g.SetCharacter("paladin");
-        // Serve (required for Phase=Playing)
-        g.ManaValue = g.ManaMaxValue;
-        g.Serve();
-
-        // Manually position the spear at the same X as the blocks, just below them
+        var g = MakeGrid("paladin", blockHp: 1);
+        MaxManaAndServe(g);
+        int alive0 = g.Blocks.Count(b => !b.Dead);
         g.CastSlot(1);
-        var spear = g.Projectiles[0];
-        var col1Center = level.Grid.CellCenter(1, 2); // bottom block of the column
-        spear.Pos = new Vec2(col1Center.X, col1Center.Y + cfg.CellSize / 2 + spear.Radius + 2);
-        spear.Vel = new Vec2(0, -cfg.SpearSpeed);
-
-        // Run enough ticks for spear to hit all 3 blocks
-        for (int i = 0; i < 200 && g.Blocks.Any(b => !b.Dead); i++)
-            g.Tick(cfg.FixedDt);
-
-        // At least 2 of the 3 blocks in line should be killed (hp=1 each, spear pierces 4)
-        int dead = g.Blocks.Count(b => b.Dead);
-        Assert.True(dead >= 2, $"Spear should pierce multiple blocks; dead={dead}");
+        for (int i = 0; i < (int)(2.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(g.Blocks.Count(b => !b.Dead) <= alive0 - 2, "the spear punched through more than one block");
     }
 
     [Fact]
@@ -128,9 +108,6 @@ public partial class ClassKitTests
         Assert.Empty(g.Projectiles);
     }
 
-    // -------------------------------------------------------------------------
-    // 4. Paladin — Duplicate
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Paladin_Duplicate_IncreasesBallCount()
@@ -152,5 +129,18 @@ public partial class ClassKitTests
         int before = g.Balls.Count(b => b.Alive);
         g.CastSlot(2);
         Assert.Equal(before, g.Balls.Count(b => b.Alive));
+    }
+
+    [Fact]
+    public void Paladin_Duplicate_SpawnsSmallerBalls()
+    {
+        // docs/01 §61: Duplication clones a ball into N *smaller* balls (not same-size copies).
+        var g = Make("paladin");
+        MaxManaAndServe(g);
+        double srcRadius = g.Balls[0].Radius;
+        g.CastSlot(2); // duplicate
+        var clone = g.Balls.Last();
+        Assert.True(clone.Radius < srcRadius,
+            $"Clone radius {clone.Radius} should be smaller than source {srcRadius}");
     }
 }

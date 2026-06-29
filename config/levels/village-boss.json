@@ -1,29 +1,35 @@
 {
   "id": "village-boss",
   "biome": "village",
-  "cols": 8,
-  "rows": 14,
+  "cols": 12,
+  "rows": 18,
   "rows_data": [
-    ".A.AA.A.",
-    ".ABBBBA.",
-    ".BBWWBB.",
-    ".BBWWBB.",
-    ".ABBBBA.",
-    "GG.AA.GG",
-    ".A.NN.A.",
-    "GG.AA.GG",
-    ".AGGGGA.",
-    "..A..A..",
-    "........",
-    "........",
-    "........",
-    "........"
+    "............",
+    ".....XX.....",
+    ".....XX.....",
+    "....BAAB....",
+    ".E..AAAA..E.",
+    "...3AAAA4...",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
   "legend": {
+    "3": "village_corner_bl",
+    "4": "village_corner_br",
     "A": "village_basic",
     "B": "village_tough",
-    "G": "village_ghost",
-    "N": "village_necromant",
-    "W": "village_witch_boss"
-  }
+    "E": "village_beholder",
+    "X": "village_witch_boss"
+  },
+  "descendInterval": 14
 }

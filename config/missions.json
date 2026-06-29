@@ -1,0 +1,10 @@
+{ "missions": [
+  { "id": "demo_s",   "name": "Demolition",     "metric": "blocks_destroyed", "target": 150, "rewardGems": 15, "rewardCardDust": 20 },
+  { "id": "demo_m",   "name": "Heavy Demolition","metric": "blocks_destroyed", "target": 250, "rewardGems": 25, "rewardCardDust": 35 },
+  { "id": "demo_l",   "name": "Total Demolition","metric": "blocks_destroyed", "target": 400, "rewardGems": 40, "rewardCardDust": 60 },
+  { "id": "win_1",    "name": "Persistent",     "metric": "levels_won",      "target": 1,   "rewardGems": 15, "rewardCardDust": 20 },
+  { "id": "win_2",    "name": "Victor",         "metric": "levels_won",      "target": 2,   "rewardGems": 25, "rewardCardDust": 35 },
+  { "id": "win_4",    "name": "Conqueror",      "metric": "levels_won",      "target": 4,   "rewardGems": 45, "rewardCardDust": 70 },
+  { "id": "play_3",   "name": "Warm-up",        "metric": "battles_played",  "target": 3,   "rewardGems": 15, "rewardCardDust": 20 },
+  { "id": "play_6",   "name": "Marathon",       "metric": "battles_played",  "target": 6,   "rewardGems": 30, "rewardCardDust": 45 }
+]}

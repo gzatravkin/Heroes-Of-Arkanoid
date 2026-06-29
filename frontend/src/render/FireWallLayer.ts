@@ -21,17 +21,17 @@ export class FireWallLayer {
   update(walls: Wall[], tick: number, cellSize: number, boardW: number): void {
     const wallH = cellSize * FIRE_WALL_HEIGHT_MULT;
     const fireWallFrames = animFrames(FIRE_WALL_ANIM_KEY);
+    const tileW = wallH; // square tiles
+    const tilesPerWall = Math.max(1, Math.ceil(boardW / tileW));
 
     if (walls.length !== this._lastWallCount) {
-      // Destroy old wall anim sprites.
+      // (Re)build the tile sprites only when the wall COUNT changes (create/destroy).
       this.container.removeChildren();
       for (const a of this._wallAnims) { a.stop(); a.destroy(); }
       this._wallAnims = [];
 
-      for (const wall of walls) {
-        const tileW = wallH; // square tiles
-        const count = Math.ceil(boardW / tileW);
-        for (let i = 0; i < count; i++) {
+      for (let w = 0; w < walls.length; w++) {
+        for (let i = 0; i < tilesPerWall; i++) {
           if (fireWallFrames.length >= 2) {
             // Use real animated FireStandAnnimation art.
             const anim = new AnimatedSprite(fireWallFrames);
@@ -41,7 +41,6 @@ export class FireWallLayer {
             anim.width  = tileW + 1;
             anim.height = wallH;
             anim.x = i * tileW;
-            anim.y = wall.y;
             anim.loop = true;
             anim.animationSpeed = 8 / 60; // ~8 fps
             // Stagger offset per tile for organic flicker.
@@ -59,20 +58,24 @@ export class FireWallLayer {
             sp.width  = tileW + 1;
             sp.height = wallH;
             sp.x = i * tileW;
-            sp.y = wall.y;
             sp.alpha = 0.85;
             this.container.addChild(sp);
           }
         }
       }
       this._lastWallCount = walls.length;
-    } else {
-      // Walls unchanged — just flicker alpha for the static-sprite fallback path.
-      for (let i = 0; i < this.container.children.length; i++) {
-        const child = this.container.children[i];
+    }
+
+    // EVERY frame: the wall RISES, so its tiles must track its current Y (this was the bug — Y was
+    // only set on rebuild, so the flame band froze at the spawn point while the sim wall climbed and
+    // burned blocks above it, looking broken). Also flicker the static-sprite fallback.
+    for (let w = 0; w < walls.length; w++) {
+      for (let i = 0; i < tilesPerWall; i++) {
+        const child = this.container.children[w * tilesPerWall + i];
+        if (!child) continue;
+        child.y = walls[w].y;
         if (!(child instanceof AnimatedSprite)) {
-          const flicker = 0.72 + 0.28 * Math.sin(tick * 0.18 + i * 1.3);
-          child.alpha = flicker;
+          child.alpha = 0.72 + 0.28 * Math.sin(tick * 0.18 + i * 1.3);
         }
       }
     }

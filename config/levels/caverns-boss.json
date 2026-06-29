@@ -1,29 +1,33 @@
 {
   "id": "caverns-boss",
   "biome": "caverns",
-  "cols": 8,
-  "rows": 14,
+  "cols": 12,
+  "rows": 18,
   "rows_data": [
-    "R.AAAA.R",
-    ".XBBBBX.",
-    ".BX..XB.",
-    ".BXGGXB.",
-    ".BXGGXB.",
-    ".BX..XB.",
-    ".XBBBBX.",
-    "R.AAAA.R",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
+    "............",
+    ".....GG.....",
+    ".....GG.....",
+    "...B.AA.B...",
+    "..A.B..B.A..",
+    ".W.AA..AA.W.",
+    "....A..A....",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
   "legend": {
     "A": "cavern_basic",
     "B": "cavern_tough",
-    "R": "cavern_rock",
-    "X": "cavern_bomb",
-    "G": "cavern_goblin_boss"
-  }
+    "G": "cavern_goblin_boss",
+    "W": "cavern_rock"
+  },
+  "descendInterval": 14
 }

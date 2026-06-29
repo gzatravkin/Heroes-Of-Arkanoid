@@ -1,0 +1,39 @@
+{
+  "id": "village-11",
+  "biome": "village",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    ".E........E.",
+    "ZAAAANNAAAAZ",
+    "P.BHHMMHHB.P",
+    "P.BHHHHHHB.P",
+    "C.AAAAAAAA.C",
+    "..7AAAAAA8..",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "7": "village_tough_corner_bl",
+    "8": "village_tough_corner_br",
+    "A": "village_basic",
+    "B": "village_tough",
+    "C": "village_cauldron",
+    "E": "village_beholder",
+    "H": "village_ghost",
+    "N": "village_necromant",
+    "M": "village_necromant_ghost",
+    "P": "village_portal",
+    "Z": "village_elite"
+  }
+}

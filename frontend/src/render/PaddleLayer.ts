@@ -1,7 +1,6 @@
 import { Container, Sprite, Texture } from "pixi.js";
 import { tex } from "./textures";
 import { tex as atlasTex } from "./assets";
-import { PROJECTILE_ID_THRESHOLD } from "./BallLayer";
 
 // Paddle + turret rendering, extracted from Renderer. Owns both sprites (in one
 // container for z-order), the per-class bar-frame animation, and the squash/stretch
@@ -37,6 +36,9 @@ export class PaddleLayer {
   ];
   private _animFrame = 0;
 
+  // Post-hit i-frame flash state.
+  private _invuln = false;
+  private _blinkClock = 0;
   // Squash/stretch state.
   private _squashElapsed = -1; // -1 = inactive; >=0 = ms into the animation
   private _baseScaleX = 1;
@@ -66,7 +68,9 @@ export class PaddleLayer {
   update(
     paddleX: number, paddleW: number, paddleH: number,
     boardH: number, cellSize: number, turretActive: boolean, balls: BallLike[],
+    invuln = false,
   ): void {
+    this._invuln = invuln; // post-hit i-frames → updateAnim blinks the paddle
     // --- paddle squash trigger: a ball ENTERING the paddle y-band from above ---
     // Edge-triggered on the band boundary. The old level-trigger restarted the
     // squash every snapshot while a served ball rested on the paddle, so the
@@ -76,7 +80,7 @@ export class PaddleLayer {
     const zoneTop = paddleYCenter - paddleBounceZone;
     const seen = new Set<number>();
     for (const ball of balls) {
-      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue; // skip turret bullets
+
       seen.add(ball.id);
       const prevY = this._prevBallY.get(ball.id);
       if (prevY !== undefined && prevY < zoneTop && ball.y >= zoneTop && this._squashElapsed < 0) {
@@ -138,6 +142,15 @@ export class PaddleLayer {
 
   /** Drives the squash/stretch timeline + the bar-frame cycling each frame. */
   updateAnim(dtMs: number): void {
+    // Post-hit i-frames: blink the paddle so invulnerability reads clearly.
+    if (this._invuln) {
+      this._blinkClock += dtMs;
+      this.container.alpha = 0.45 + 0.4 * Math.abs(Math.sin(this._blinkClock * 0.014));
+    } else if (this.container.alpha !== 1) {
+      this.container.alpha = 1;
+      this._blinkClock = 0;
+    }
+
     // Paddle squash/stretch animation.
     if (this._squashElapsed >= 0) {
       this._squashElapsed += dtMs;

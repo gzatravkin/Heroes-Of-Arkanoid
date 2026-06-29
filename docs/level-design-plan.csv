@@ -1,0 +1,49 @@
+biome,level,id,role,new_element,blocks_used,shape_theme,density
+hell,1,hell-1,Teach basics,ball/paddle + basic block,basic,small centered cluster,teach
+hell,2,hell-2,Tough tier,tough (multi-hit),basic+tough,mirrored rows,teach-reinforce
+hell,3,hell-3,Walls,obsidian indestructible wall,basic+tough+obsidian,side towers/pillars,reinforce(saw)
+hell,4,hell-4,Teach SIGNATURE,hell_ballspawner emitter (1 only, safe lane),basic+1 ballspawner,open with clear lane,teach(saw)
+hell,5,hell-5,Reinforce emitter,2-3 ballspawners,basic+tough+ballspawner,two/three lanes,reinforce
+hell,6,hell-6,Teach teleporter,hell_teleporter pads (pair),basic+teleporter,teleporter pads flanking,reinforce(saw)
+hell,7,hell-7,Combine emitter+teleporter,ballspawner + teleporter,basic+tough+ballspawner+teleporter,mixed,combine
+hell,8,hell-8,Teach lava,hell_lava + lava_spawner creep,basic+lava+lava_spawner,lava floor line,combine(saw)
+hell,9,hell-9,Reinforce lava+walls,lava+obsidian+tough fortress,basic+tough+obsidian+lava+lava_spawner,fortress,high
+hell,10,hell-10,Twist (all lighter),all hell mechanics medium,all hell,creative mix,combine(saw)
+hell,11,hell-11,Mastery gauntlet,all hell densest,all hell,packed symmetric,gauntlet
+hell,12,hell-boss,Boss,hell_demon_boss 2x2,demon_boss+basic+tough+obsidian,boss arena,boss
+caverns,1,caverns-1,Teach basics,ball/paddle + basic block,cavern_basic,vertical channels (sparse columns),teach
+caverns,2,caverns-2,Tough tier,cavern_tough,basic+tough,mirrored columns,teach-reinforce
+caverns,3,caverns-3,Walls,cavern_rock indestructible,basic+tough+rock,rock pillars/channels,reinforce(saw)
+caverns,4,caverns-4,Teach SIGNATURE,stalactite (falls under ball),basic+1-2 stalactite,stalactites hanging in lanes,teach(saw)
+caverns,5,caverns-5,Reinforce hazard,stalactite + cart (rolls paddle row),basic+tough+stalactite+cart,lanes + cart row,reinforce
+caverns,6,caverns-6,Teach bomb,cavern_bomb (explodes neighbours),basic+bomb,bomb clusters,reinforce(saw)
+caverns,7,caverns-7,Combine hazard+bomb,stalactite/cart + bomb,basic+tough+stalactite+bomb,mixed,combine
+caverns,8,caverns-8,Teach union,cavern_union (linked blocks),basic+union,union rows,combine(saw)
+caverns,9,caverns-9,Reinforce union+rock,union+rock+tough,basic+tough+rock+union,fortress channels,high
+caverns,10,caverns-10,Twist (all lighter),all caverns mechanics medium,all caverns,creative mix,combine(saw)
+caverns,11,caverns-11,Mastery gauntlet,all caverns densest,all caverns,packed channels,gauntlet
+caverns,12,caverns-boss,Boss,cavern_goblin_boss 2x2,goblin_boss+basic+tough+rock,boss arena,boss
+village,1,village-1,Teach basics,ball/paddle + basic block,village_basic,small centered cluster,teach
+village,2,village-2,Tough tier,village_tough,basic+tough,mirrored rows,teach-reinforce
+village,3,village-3,Obstacles,tough as wall (no indestructible biome wall),basic+tough,tough barricades,reinforce(saw)
+village,4,village-4,Teach SIGNATURE,village_beholder emitter (1 only),basic+1 beholder,open with clear lane,teach(saw)
+village,5,village-5,Reinforce emitter,2-3 beholders,basic+tough+beholder,multi-lane,reinforce
+village,6,village-6,Teach ghost+bat,ghost (phases) + bat (carries ball),basic+ghost+bat,ghosts + bats,reinforce(saw)
+village,7,village-7,Combine emitter+ghost/bat,beholder + ghost + bat,basic+tough+beholder+ghost+bat,mixed,combine
+village,8,village-8,Teach necromant,necromant (revives) + portal,basic+necromant+portal,necromant guarded cluster,combine(saw)
+village,9,village-9,Reinforce necro+cauldron,necromant+cauldron+tough,basic+tough+necromant+cauldron+portal,fortress,high
+village,10,village-10,Twist (all lighter),all village mechanics medium,all village,creative mix,combine(saw)
+village,11,village-11,Mastery gauntlet,all village densest,all village,packed symmetric,gauntlet
+village,12,village-boss,Boss,village_witch_boss 2x2,witch_boss+basic+tough+beholder,boss arena,boss
+heaven,1,heaven-1,Teach basics,ball/paddle + basic block,heaven_basic,small centered cluster,teach
+heaven,2,heaven-2,Tough tier,heaven_tough,basic+tough,mirrored rows,teach-reinforce
+heaven,3,heaven-3,Walls+columns,heaven_statue wall + columns,basic+tough+statue+columns,temple pillars,reinforce(saw)
+heaven,4,heaven-4,Teach SIGNATURE,heaven_melee_statue emitter (1 only),basic+1 melee_statue,open with clear lane,teach(saw)
+heaven,5,heaven-5,Reinforce emitter,2-3 melee_statues,basic+tough+melee_statue,multi-lane,reinforce
+heaven,6,heaven-6,Teach windmaster,heaven_windmaster (wind pushes ball),basic+windmaster,wind columns,reinforce(saw)
+heaven,7,heaven-7,Combine emitter+wind,melee_statue + windmaster,basic+tough+melee_statue+windmaster,mixed,combine
+heaven,8,heaven-8,Teach shield+altar,shield_statue (shields) + altar (pacify),basic+shield_statue+altar,shielded cluster + altar,combine(saw)
+heaven,9,heaven-9,Reinforce shield+vase,shield_statue+vase+statue,basic+tough+statue+shield_statue+vase,fortress temple,high
+heaven,10,heaven-10,Twist (all lighter),all heaven mechanics medium,all heaven,creative mix,combine(saw)
+heaven,11,heaven-11,Mastery gauntlet,all heaven densest,all heaven,packed cathedral,gauntlet
+heaven,12,heaven-boss,Boss,heaven_angel_boss 2x2,angel_boss+basic+tough+statue,boss arena,boss

@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arkanoid.Core\Arkanoid.Core.csproj" />
+    <!-- Local-only persistence for leaderboard/leagues/seasons (no cloud) -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,0 +1,33 @@
+{
+  "id": "village-10",
+  "biome": "village",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    ".E........E.",
+    "C.AHAHAHAH.C",
+    "P.HAHAHAHA.P",
+    "..AHAHAHAH..",
+    "P.HAHAHAHA.P",
+    "C.AAAAAAAA.C",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "A": "village_basic",
+    "C": "village_cauldron",
+    "E": "village_beholder",
+    "H": "village_ghost",
+    "P": "village_portal"
+  }
+}

@@ -17,7 +17,7 @@ const HAZARD_GLOW_COLOR       = 0xff3333; // additive glow
 const HAZARD_GLOW_ALPHA       = 0.45;
 const HAZARD_GLOW_RADIUS_MULT = 1.9;
 
-interface HazardDto { x: number; y: number; kind?: string }
+interface HazardDto { x: number; y: number; kind?: string; warming?: boolean }
 type Entry = { halo: Graphics; core: Graphics; bat: Sprite; stal: Sprite; magic: Sprite; missile: Sprite };
 
 // The Witch boss casts four distinct magic bolts — cycle the sprites by hazard index.
@@ -89,6 +89,7 @@ export class HazardLayer {
         }
       } else if (hz.kind === "stalactite" || hz.kind === "cart") {
         stal.visible = true;
+        stal.alpha = 1; stal.tint = 0xffffff;
         if (hz.kind === "cart") {
           stal.texture = tex("DungeonCart");
           const cs = HAZARD_RADIUS * 4;
@@ -99,6 +100,14 @@ export class HazardLayer {
           stal.width = ss; stal.height = ss * 1.6;
         }
         stal.x = hz.x; stal.y = hz.y;
+        // Telegraph: a warming hazard (e.g. the cart before it rolls) pulses red with a warning halo.
+        if (hz.warming) {
+          const p = 0.5 + 0.5 * Math.sin(tick * 0.4);
+          stal.alpha = 0.4 + 0.5 * p; stal.tint = 0xff6a3a;
+          halo.visible = true;
+          halo.clear().beginFill(0xff3a1a, 0.22 + 0.26 * p)
+            .drawCircle(hz.x, hz.y, HAZARD_RADIUS * 4).endFill();
+        }
         continue;
       } else if (hz.kind === "bat") {
         const frame = atlasTex("village/enemies/BatFlyAnimation");

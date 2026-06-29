@@ -21,6 +21,12 @@ export class WasmConnection {
   private _rafId = 0;
   private _lastPhase = "";
   private _bridge = gameBridge();
+  // Fixed-timestep accumulator: the sim always steps by FixedDt (1/60s) regardless of
+  // display refresh rate. Without this, a 120Hz monitor runs the sim 2× too fast because
+  // requestAnimationFrame fires twice as often as the sim's expected 60 Hz.
+  private _accumulator = 0;
+  private _lastRafTime = -1;
+  private static readonly _fixedDt = 1 / 60;
 
   constructor(level: string, seed: number, runId: string, mode = "") {
     this.runId = runId;
@@ -39,26 +45,43 @@ export class WasmConnection {
   }
 
   private _startLoop(): void {
-    const tick = () => {
+    const fixedDt = WasmConnection._fixedDt;
+
+    const tick = (now: number) => {
       if (this._closed) return;
 
-      for (const cmd of this._pendingInputs) {
-        this._bridge.EnqueueInput(JSON.stringify(cmd));
+      // Accumulate real elapsed time; cap at 100 ms to avoid a spiral-of-death
+      // if the tab was backgrounded or the frame dropped badly.
+      if (this._lastRafTime >= 0) {
+        this._accumulator += Math.min((now - this._lastRafTime) / 1000, 0.1);
       }
-      this._pendingInputs = [];
+      this._lastRafTime = now;
 
-      const snapJson: string = this._bridge.Tick();
-      if (!snapJson || snapJson === "{}") {
-        this._rafId = requestAnimationFrame(tick);
-        return;
+      let lastSnap: string | null = null;
+
+      // Step the sim as many fixed-dt times as real time allows.
+      while (this._accumulator >= fixedDt) {
+        for (const cmd of this._pendingInputs) {
+          this._bridge.EnqueueInput(JSON.stringify(cmd));
+        }
+        this._pendingInputs = [];
+
+        const snapJson: string = this._bridge.Tick();
+        this._accumulator -= fixedDt;
+
+        if (snapJson && snapJson !== "{}") lastSnap = snapJson;
       }
-      const s = JSON.parse(snapJson) as Snapshot;
-      this.latest = s;
-      if (s.phase !== this._lastPhase) {
-        log("phase", s.phase, { tick: s.tick, hp: s.hp });
-        this._lastPhase = s.phase;
+
+      if (lastSnap) {
+        const s = JSON.parse(lastSnap) as Snapshot;
+        this.latest = s;
+        if (s.phase !== this._lastPhase) {
+          log("phase", s.phase, { tick: s.tick, hp: s.hp });
+          this._lastPhase = s.phase;
+        }
+        this.onSnapshot?.(s);
       }
-      this.onSnapshot?.(s);
+
       this._rafId = requestAnimationFrame(tick);
     };
     this._rafId = requestAnimationFrame(tick);

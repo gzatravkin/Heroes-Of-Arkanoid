@@ -1,2 +1,2 @@
-// WASM entry point — nothing to do synchronously; all work happens via [JSExport] calls.
-Console.WriteLine("[Arkanoid.Wasm] module ready");
+// WASM entry point — returns immediately. All work happens via [JSExport] calls from bridge.ts.
+_ = 0;

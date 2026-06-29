@@ -1,0 +1,40 @@
+{
+  "id": "hell-10",
+  "biome": "hell",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "...E....E...",
+    "............",
+    "1A2.1AA2.1A2",
+    "ABA.ABBA.ABA",
+    "ABA.AZZA.ABA",
+    "3A4.3AA4.3A4",
+    "............",
+    "T.W......W.T",
+    "..W......W..",
+    "............",
+    "....LSSL....",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "1": "hell_corner_tl",
+    "2": "hell_corner_tr",
+    "3": "hell_corner_bl",
+    "4": "hell_corner_br",
+    "A": "hell_basic",
+    "B": "hell_tough",
+    "Z": "hell_elite",
+    "E": "hell_ballspawner",
+    "T": "hell_teleporter",
+    "W": "hell_obsidian",
+    "L": "hell_lava",
+    "S": "hell_lava_spawner"
+  }
+}

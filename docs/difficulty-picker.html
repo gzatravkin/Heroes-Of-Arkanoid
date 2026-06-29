@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arkanoid — Difficulty Tuning Picker</title>
+<style>
+  :root{
+    --bg:#14100b; --panel:#1d1812; --panel2:#241d15; --gold:#d8a84e; --goldhi:#ffe06a;
+    --text:#e9ddc7; --dim:#a89a80; --line:#3a2f20; --pick:#3a6a3a; --pickbg:#1d2b1a;
+    --s:#c2402a; --m:#c8902e; --e:#3a8a5a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0e0b07,#14100b);color:var(--text);
+    font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;padding:18px 16px 120px}
+  h1{font-size:22px;color:var(--goldhi);margin:0 0 2px;letter-spacing:.5px}
+  .sub{color:var(--dim);margin:0 0 16px;font-size:13px}
+  h2{font-size:15px;color:var(--gold);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+  table{border-collapse:collapse;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:2}
+  tr:last-child td{border-bottom:none}
+  .knob{font-weight:600;color:var(--text);white-space:nowrap}
+  .ref{color:var(--dim);font-size:12px;font-style:italic;max-width:230px}
+  .ref b{color:var(--goldhi);font-style:normal}
+  /* option cell as clickable label */
+  td.opt{cursor:pointer;text-align:center;border-left:1px solid var(--line);transition:background .12s;white-space:nowrap;font-variant-numeric:tabular-nums}
+  td.opt:hover{background:#2c2418}
+  td.opt.sel{background:var(--pickbg);box-shadow:inset 0 0 0 2px var(--pick)}
+  td.opt .v{display:block;font-weight:700}
+  td.opt .tag{font-size:10px;color:var(--dim)}
+  th.cur{color:#cfc3aa} th.S{color:#e98a76} th.M{color:#e8c06a} th.E{color:#8fd6ad}
+  .custom input{width:120px;background:#100c07;border:1px solid var(--line);color:var(--goldhi);
+    border-radius:5px;padding:5px 7px;font:13px inherit}
+  .custom input:focus{outline:2px solid var(--gold)}
+  /* presets */
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+  .presets button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);
+    padding:7px 13px;border-radius:7px;font:600 13px inherit}
+  .presets button:hover{border-color:var(--gold);color:var(--goldhi)}
+  .presets button.bS:hover{border-color:var(--s)} .presets button.bM:hover{border-color:var(--m)} .presets button.bE:hover{border-color:var(--e)}
+  .note{color:var(--dim);font-size:12px;margin:8px 0}
+  textarea#extra{width:100%;min-height:60px;background:#100c07;border:1px solid var(--line);color:var(--text);
+    border-radius:7px;padding:9px;font:13px inherit;margin-top:6px}
+  /* sticky footer */
+  .bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(0deg,#0c0904,#1a140d);
+    border-top:2px solid var(--gold);padding:12px 16px;display:flex;gap:12px;align-items:center;z-index:10}
+  .bar button{cursor:pointer;border:none;background:linear-gradient(180deg,var(--goldhi),var(--gold));
+    color:#2a1c08;font:800 15px inherit;padding:11px 22px;border-radius:8px}
+  .bar button:active{transform:scale(.97)}
+  .bar .msg{color:var(--e);font-weight:700;opacity:0;transition:opacity .2s}
+  .bar .msg.show{opacity:1}
+  .kref{font-size:12px;color:var(--dim);margin:2px 0 0}
+  details{margin:6px 0 0}
+  summary{cursor:pointer;color:var(--gold);font-size:13px}
+  code{background:#100c07;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--goldhi)}
+</style>
+</head>
+<body>
+  <h1>⚔ Arkanoid — Difficulty Tuning Picker</h1>
+  <p class="sub">Pick one option per knob (or type a custom value). Use the presets to fill a whole profile, then override individual rows. When done, hit <b>Copy answer</b> and paste it back to me.</p>
+
+  <div class="presets">
+    <span style="align-self:center;color:var(--dim)">Fill all with:</span>
+    <button onclick="setAll('cur')">Current</button>
+    <button class="bS" onclick="setAll('S')">S · Super Hardcore</button>
+    <button class="bM" onclick="setAll('M')">M · Medium ⭐</button>
+    <button class="bE" onclick="setAll('E')">E · Easy, not broken</button>
+  </div>
+
+  <h2>Tuning knobs — choose per row</h2>
+  <table id="grid">
+    <thead><tr>
+      <th>Knob</th>
+      <th class="cur">Current</th>
+      <th class="S">S · Hardcore</th>
+      <th class="M">M · Medium</th>
+      <th class="E">E · Easy</th>
+      <th>Custom</th>
+      <th>Closest reference game</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>Anything else / notes</h2>
+  <textarea id="extra" placeholder="e.g. 'keep board 8x14 for all profiles', 'ramp even faster', 'ignite should also cost more', ..."></textarea>
+
+  <h2>Reference: where each value lives in the code</h2>
+  <details><summary>Show the knob → file map (read-only)</summary>
+  <table style="margin-top:8px"><thead><tr><th>Knob</th><th>Where</th><th>Current</th></tr></thead><tbody id="reftbl"></tbody></table>
+  </details>
+
+  <h2>Reference games (what they teach)</h2>
+  <ul class="note">
+    <li><b>Arkanoid (1986)</b> — silver bricks 2 hits, <b>+1 every 8 stages</b>; gold indestructible; ball <b>accelerates</b>; <b>3 lives, no i-frames</b>. → favors block-HP <b>ramp</b>, faster ball, low HP, tiny i-frames.</li>
+    <li><b>Shatter (2009)</b> — signature power is a <b>metered resource</b>; brick HP/variety escalates per world. → favors <b>costed ignite</b> + slower mana.</li>
+    <li><b>Wizorb</b> — magic is <b>scarce/clutch</b>, slow regen. → favors low mana regen.</li>
+    <li><b>Terraria</b> i-frames = <b>0.67 s</b> (genre norm ~0.5 s). → our 3.0 s is ~5× too long.</li>
+  </ul>
+
+  <div class="bar">
+    <button onclick="copyAnswer()">📋 Copy answer</button>
+    <span class="msg" id="msg">Copied! Paste it back to me.</span>
+    <span style="color:var(--dim);margin-left:auto;font-size:12px">selections update live</span>
+  </div>
+
+<script>
+// knob data: [key,label, current,S,M,E, reference]
+const KNOBS = [
+  ["paddle_default","Paddle width (default)","64","52","60","64","Arkanoid paddle ~15–25% of board"],
+  ["paddle_wide","Paddle width (wide pickup)","112","76","92","108","—"],
+  ["ball_radius","Ball radius","6","5","6","6","Arkanoid: small ball → S"],
+  ["ball_speed","Ball speed base / cap","360/504","440/660","400/580","375/525","Arkanoid: ball accelerates → S/M"],
+  ["board","Board size W×H","8×14","10×16 *","9×15 *","8×14","* width change = re-author 48 levels"],
+  ["mana_max","Mana max","100","120","110","100","—"],
+  ["mana_regen","Mana regen /s","14","5","8","11","Wizorb: scarce → S (24s to fill)"],
+  ["mana_kill","Mana per kill","4","3","4","4","—"],
+  ["ignite_cost","Ignite mana cost","0","12","8","5","Shatter: metered power → S/M"],
+  ["ignite_burn","Ignite burn (dmg / dur)","8 / 2s","3 / 1s","5 / 1.5s","6 / 1.5s","—"],
+  ["ignite_spread","Ignite spread generations","3","1","2","3","—"],
+  ["spell_costs","Other spell costs","base","+60%","+30%","base","Shatter/Wizorb: spells are clutch → S/M"],
+  ["block_hp_base","Block HP base (basic / tough)","base","+1 / +1","+0 / +1","base","—"],
+  ["block_hp_ramp","Block HP ramp (campaign)","none","+1 / 3 lvls (cap +4)","+1 / 5 lvls (cap +3)","+1 / 8 lvls (cap +2)","Arkanoid: +1 every 8 stages → E"],
+  ["start_hp","Start HP","5","3","4","5","Arkanoid: 3 lives → S"],
+  ["iframes","Post-hit i-frames","3.0s","0.6s","1.2s","1.5s","Terraria 0.67s → S; norm ~0.5s"],
+  ["start_balls","Start spare balls","3","2","3","3","—"],
+];
+// reference: where each lives
+const REF = [
+  ["Paddle width (default)","SimConfig.PaddleWidth","64"],
+  ["Paddle wide pickup","Pickups.WidePaddleBonus (+48, 15s)","112"],
+  ["Ball radius / speed","SimConfig.BallRadius / BallSpeed (+5%/20 bricks ≤+40%)","6 / 360→504"],
+  ["Board size","level cols×rows @ CellSize 32","8×14"],
+  ["Mana max / regen / per-kill","SimConfig.ManaMax / ManaRegenPerSec / ManaPerKill","100 / 14 / 4"],
+  ["Ignite cost","characters.json (ignite manaCost)","0"],
+  ["Ignite burn / spread","FireConfig.BurnDamage×BurnInterval×BurnDuration / SpreadGenerations","8 over 2s / 3"],
+  ["Other spell costs","characters.json (per spell manaCost)","fb25 fw35 tur25 ph30 ash30"],
+  ["Block HP","config/blocks.json (per type hp)","hell 2/4 · cav 2/3 · vil 2/3 · hvn 3/5"],
+  ["Block HP ramp","(none today — needs ~10 lines in GameInitializer)","flat"],
+  ["Start HP / i-frames / balls","SimConfig.StartHp / DamageImmunity / StartBalls","5 / 3.0s / 3"],
+];
+const COLS=[["cur",2],["S",3],["M",4],["E",5]];
+const rows=document.getElementById("rows");
+KNOBS.forEach(k=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td class="knob">${k[1]}</td>`;
+  COLS.forEach(([id,idx])=>{
+    const td=document.createElement("td");
+    td.className="opt";td.dataset.k=k[0];td.dataset.val=k[idx];td.dataset.col=id;
+    const tag=id==="cur"?"current":id;
+    td.innerHTML=`<span class="v">${k[idx]}</span><span class="tag">${tag}</span>`;
+    td.onclick=()=>select(k[0],td,k[idx]);
+    tr.appendChild(td);
+  });
+  // custom cell
+  const tdc=document.createElement("td");tdc.className="opt custom";tdc.dataset.k=k[0];tdc.dataset.col="custom";
+  tdc.innerHTML=`<input type="text" placeholder="custom…" data-k="${k[0]}">`;
+  const inp=tdc.querySelector("input");
+  inp.onfocus=()=>{ if(inp.value.trim()) select(k[0],tdc,inp.value.trim()); };
+  inp.oninput=()=>{ if(inp.value.trim()){ select(k[0],tdc,inp.value.trim()); } };
+  tr.appendChild(tdc);
+  // reference
+  const tdr=document.createElement("td");tdr.className="ref";tdr.innerHTML=k[6];
+  tr.appendChild(tdr);
+  rows.appendChild(tr);
+});
+const reftbl=document.getElementById("reftbl");
+REF.forEach(r=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="knob">${r[0]}</td><td><code>${r[1]}</code></td><td>${r[2]}</td>`;reftbl.appendChild(tr);});
+
+const picks={}; // key -> {col,val}
+function select(key,td,val){
+  picks[key]={col:td.dataset.col,val};
+  // clear sels in this row
+  document.querySelectorAll(`td.opt[data-k="${key}"]`).forEach(c=>c.classList.remove("sel"));
+  td.classList.add("sel");
+}
+function setAll(col){
+  KNOBS.forEach(k=>{
+    const td=document.querySelector(`td.opt[data-k="${k[0]}"][data-col="${col}"]`);
+    if(td) select(k[0],td,td.dataset.val);
+  });
+}
+function copyAnswer(){
+  const order={cur:"current",S:"S",M:"M",E:"E",custom:"custom"};
+  let out="=== Difficulty tuning selections ===\n";
+  KNOBS.forEach(k=>{
+    const p=picks[k[0]];
+    const label=k[1];
+    if(!p){ out+=`- ${label}: (not chosen → keep current ${k[2]})\n`; }
+    else { out+=`- ${label}: ${p.val}  [${order[p.col]||p.col}]\n`; }
+  });
+  const extra=document.getElementById("extra").value.trim();
+  if(extra) out+=`\nNotes: ${extra}\n`;
+  navigator.clipboard.writeText(out).then(()=>{
+    const m=document.getElementById("msg");m.classList.add("show");setTimeout(()=>m.classList.remove("show"),2500);
+  }).catch(()=>{
+    // fallback: show in a prompt to copy manually
+    window.prompt("Copy this and paste it back:",out);
+  });
+}
+// default everything to current
+setAll("cur");
+</script>
+</body>
+</html>

@@ -1,10 +1,22 @@
 using Arkanoid.Core.Entities;
 namespace Arkanoid.Core.Grid;
 
+/// <summary>Boss attack pattern type derived from biome at load time, so BossSystem never checks biome strings.</summary>
+public enum BossKind { None, Hell, Village, Heaven, Caverns }
+
 public sealed class LevelData
 {
     public string Id { get; init; } = "";
     public string Biome { get; init; } = "";
+    /// <summary>Boss combat type derived from Biome at load time. <see cref="BossKind.None"/> = no boss level.</summary>
+    public BossKind BossKind => Biome switch
+    {
+        "hell"    => BossKind.Hell,
+        "village" => BossKind.Village,
+        "heaven"  => BossKind.Heaven,
+        "caverns" => BossKind.Caverns,
+        _         => BossKind.None,
+    };
     public Grid Grid { get; init; } = null!;
     public List<Block> Blocks { get; init; } = new();
 

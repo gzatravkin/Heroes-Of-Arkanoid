@@ -19,11 +19,16 @@ export function attachPaddleInput(canvas: HTMLCanvasElement, conn: Connection, g
   const onUp   = (_e: PointerEvent) => { const s = getSnap(); if (s?.phase === "Serving") conn.serve(); };
   const onKey  = (e: KeyboardEvent) => {
     if (e.code === "Space") conn.serve();
-    if (e.key === "q" || e.key === "Q") conn.castIgnite();
-    if (e.key === "e" || e.key === "E") conn.castFireball();
-    if (e.key === "w" || e.key === "W") conn.castFireWall();
-    if (e.key === "r" || e.key === "R") conn.castTurret();
-    if (e.key === "t" || e.key === "T") conn.castSlot(4); // 5th kit slot (G2c)
+    // Q/E/W/R/T → hotbar slots 0–4. Use the class-agnostic castSlot (like the tap
+    // hotbar) so the keys cast the CURRENT class's spells — the old castIgnite/etc.
+    // were hardcoded to Fire-Mage spell ids, so keyboard play was broken for the
+    // other three classes (their keys tried to cast spells they don't have).
+    const k = e.key.toLowerCase();
+    if (k === "q") conn.castSlot(0);
+    else if (k === "e") conn.castSlot(1);
+    else if (k === "w") conn.castSlot(2);
+    else if (k === "r") conn.castSlot(3);
+    else if (k === "t") conn.castSlot(4);
   };
 
   canvas.addEventListener("pointermove", onMove);

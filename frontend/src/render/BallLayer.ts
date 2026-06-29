@@ -1,199 +1,182 @@
 import { Container, Graphics, Sprite, Texture, BLEND_MODES } from "pixi.js";
 import { tex } from "./textures";
-import { anim as animFrames, tex as atlasTex } from "./assets";
+import { tex as atlasTex } from "./assets";
 import { AnimSystem } from "./AnimSystem";
 
-// Ball rendering (pooled by id): per-class ball sprite, turret/fireball projectile
-// art, ignite halo + looping fire aura, ghost tint, and Necromancer decay halo.
-// Owns the balls display container and a dedicated AnimSystem for the fire auras.
-// Extracted from Renderer.
+// Ball rendering (pooled by id): per-class ball sprite + a strict "ball-first" readability treatment —
+// a dark crisp OUTLINE ring (every biome) so the ball separates from any background, a bright HUE-LOCKED
+// core so the ball is always the single brightest point on screen, and STATE shown by a thin ring + a
+// modest glow only (never by recolouring or engulfing the ball). Owns the balls display container.
+// (Readability overhaul 2026-06-16 — docs/2026-06-16-effects-clarity-proposal.md §A.)
 
-// Projectile id threshold: turret bullets + fireballs use id >= this value.
-export const PROJECTILE_ID_THRESHOLD = 10000;
+// The ball renders a notch LARGER than its physics circle so it's easy to track in motion (the old
+// "too huge" was the removed 2.8× fire aura, not the ball itself — so there's headroom). Visual radius =
+// physics radius × this. (owner 2026-06-16)
+const BALL_VISUAL_MULT  = 1.4;
+const BALL_RADIUS_FRAC  = 0.15625; // ball radius as a fraction of cellSize (matches SimConfig.BallRadius 5/32)
 
-// Sprite vs physics circle: keep these close. 2.2 made the ball render wider
-// than a brick (docs/13 battle audit — "ball is super huge"); 1.15 leaves just
-// enough halo allowance while matching the collision size players feel.
-const BALL_SPRITE_SCALE = 1.15;
-const BALL_RADIUS_FRAC  = 0.25; // ball radius as a fraction of cellSize
+// Ball-first treatment.
+const BALL_OUTLINE_COLOR = 0x0a0a12; // dark crisp edge — contrasts with fire/orange AND bright heaven
+const BALL_OUTLINE_ALPHA = 0.72;
+const BALL_CORE_COLOR    = 0xffffff; // hue-LOCKED bright nucleus (never changes with state)
+const BALL_CORE_ALPHA    = 0.92;
 
-// Halo drawn behind ignited balls.
-const IGNITE_HALO_RADIUS_MULT = 1.8;
-const IGNITE_HALO_ALPHA = 0.35;
+// State is communicated by a thin ring + a MODEST glow (not a giant aura).
+const IGNITE_RING   = 0xff7a2a;
+const GHOST_RING    = 0x9b6bff;
+const DECAY_RING    = 0x22cc44;
+const STATE_GLOW_ALPHA = 0.28; // modest — was a 2.8× looping fire aura that merged the ball into the field
 
-// Ignite fire aura: atlas anim key (FireBirth frames) played as a looping aura.
-const IGNITE_AURA_KEY = "firemage/spell_phonex/phoenixbirthanimpic";
-const IGNITE_AURA_FPS = 10; // slow loop looks like a gentle fire aura
-const IGNITE_AURA_SIZE_MULT = 2.8; // aura size as a multiplier of the ball sprite size
-
-// Necromancer decay aura on ball (sickly green, distinct from ignite orange).
-const DECAY_HALO_COLOR       = 0x22cc44;
-const DECAY_HALO_ALPHA       = 0.38;
-const DECAY_HALO_RADIUS_MULT = 1.8;
+// Ghost phase (Witchland portal): swap to the spectral BallGhost sprite so the phased ball reads distinctly.
+const GHOST_BALL_KEY = "village/BallGhost";
 
 // Fireball / firering: art for the active fireball projectile.
 const FIRE_RING_KEY      = "firemage/spell_firering/FireRing";
 const TURRET_MISSILE_KEY = "firemage/spell_fireturret/FireHeroTurretMissile";
 
-interface BallDto { id: number; x: number; y: number; ignited: boolean; decayed?: boolean; ghost?: boolean }
+// Per-kind projectile art (legacy art wired 2026-06-16): each spell projectile uses its own drawn sprite,
+// oriented to its travel direction, instead of a single generic gold missile for everything.
+const PROJ_ART: Record<string, { key: string; sizeMult: number }> = {
+  rocket: { key: "engineer/spell_rocket/Rocket",      sizeMult: 2.4 },
+  spear:  { key: "paladin/spell_spear/KnightChain",   sizeMult: 2.8 },
+  turret: { key: "firemage/spell_fireturret/FireHeroTurretMissile", sizeMult: 1.4 },
+};
+
+interface BallDto { id: number; x: number; y: number; ignited: boolean; decayed?: boolean; ghost?: boolean; summoned?: boolean; radiusScale?: number }
+interface ProjectileDto { id: number; x: number; y: number; kind: string }
 
 export class BallLayer {
-  readonly container = new Container();      // ball sprites + halos
-  readonly auraContainer: Container;          // looping fire auras (separate z-slot)
+  readonly container = new Container();      // ball sprites + outline/core graphics
+  readonly auraContainer: Container;          // kept for z-order compatibility (no longer used for ball auras)
   private auraSys = new AnimSystem();
-  private pool = new Map<number, { sp: Sprite; haloGfx: Graphics; auraId?: number }>();
+  private ballPool = new Map<number, { sp: Sprite; glow: Graphics; core: Graphics }>();
+  private projPool = new Map<number, { sp: Sprite; px: number; py: number; art: boolean }>();
 
   constructor() {
     this.auraContainer = this.auraSys.container;
   }
 
-  /** The looping fire auras are AnimatedSprites — advance them each frame. */
   updateAnim(dtMs: number): void {
     this.auraSys.update(dtMs);
   }
 
-  update(balls: BallDto[], tick: number, cellSize: number, ballSpriteKey: string): void {
-    const ballRadius   = cellSize * BALL_RADIUS_FRAC;
-    const spriteRadius = ballRadius * BALL_SPRITE_SCALE;
+  /** Modest state glow drawn BEHIND the sprite (ignite/ghost/decay). Never engulfs the ball. */
+  private paintGlow(glow: Graphics, ball: BallDto, br: number): void {
+    glow.clear();
+    const c = ball.decayed ? DECAY_RING : ball.ghost ? GHOST_RING : ball.ignited ? IGNITE_RING : 0;
+    if (!c) return;
+    glow.blendMode = BLEND_MODES.ADD;
+    glow.beginFill(c, STATE_GLOW_ALPHA).drawCircle(ball.x, ball.y, br * 1.5).endFill();
+  }
 
-    const ballTex     = atlasTex(ballSpriteKey);
+  /** Dark outline ring + bright hue-locked core + thin state ring, drawn IN FRONT of the sprite. */
+  private paintCore(core: Graphics, ball: BallDto, br: number): void {
+    core.clear();
+    // Dark crisp outline at the ball edge — guarantees separation on every biome.
+    core.lineStyle(Math.max(1, br * 0.30), BALL_OUTLINE_COLOR, BALL_OUTLINE_ALPHA);
+    core.drawCircle(ball.x, ball.y, br * 1.02);
+    // Bright hue-locked nucleus — the single brightest point on screen.
+    core.lineStyle(0);
+    core.beginFill(BALL_CORE_COLOR, BALL_CORE_ALPHA).drawCircle(ball.x, ball.y, br * 0.42).endFill();
+    // Thin state ring just outside the ball.
+    const ring = ball.ignited ? IGNITE_RING : ball.ghost ? GHOST_RING : ball.decayed ? DECAY_RING : 0;
+    if (ring) {
+      core.lineStyle(Math.max(1, br * 0.22), ring, 0.95);
+      core.drawCircle(ball.x, ball.y, br * 1.32);
+    }
+  }
+
+  update(balls: BallDto[], projectiles: ProjectileDto[], tick: number, cellSize: number, ballSpriteKey: string, _biome = ""): void {
+    const ballRadius   = cellSize * BALL_RADIUS_FRAC;
+
+    const ballTex      = atlasTex(ballSpriteKey);
+    const ghostBallTex = atlasTex(GHOST_BALL_KEY);
     const fireRingTex = tex(FIRE_RING_KEY);
     const missileTex  = tex(TURRET_MISSILE_KEY);
-    // Projectile art: prefer FireRing for fireball look; fall back to missile art.
     const projectileTex = fireRingTex !== Texture.WHITE ? fireRingTex
       : (missileTex !== Texture.WHITE ? missileTex : ballTex);
-    const igniteAuraFrames = animFrames(IGNITE_AURA_KEY);
 
-    const liveBallIds = new Set<number>();
-    for (const ball of balls) liveBallIds.add(ball.id);
-
-    // Remove pooled entries for balls that no longer exist.
-    for (const [id, entry] of this.pool) {
+    // ── Real balls ────────────────────────────────────────────────────────────
+    const liveBallIds = new Set(balls.map(b => b.id));
+    for (const [id, entry] of this.ballPool) {
       if (!liveBallIds.has(id)) {
-        this.container.removeChild(entry.haloGfx);
+        this.container.removeChild(entry.glow);
         this.container.removeChild(entry.sp);
-        if (entry.auraId !== undefined) this.auraSys.remove({ id: entry.auraId });
-        this.pool.delete(id);
+        this.container.removeChild(entry.core);
+        this.ballPool.delete(id);
       }
     }
 
     for (const ball of balls) {
-      const isProjectile = ball.id >= PROJECTILE_ID_THRESHOLD;
-
-      if (this.pool.has(ball.id)) {
-        // Update existing pooled entry.
-        const entry = this.pool.get(ball.id)!;
-        const { sp, haloGfx } = entry;
-
-        haloGfx.clear();
-        if (ball.ignited && !isProjectile) {
-          haloGfx.blendMode = BLEND_MODES.ADD;
-          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-
-        sp.x = ball.x;
-        sp.y = ball.y;
-
-        if (isProjectile) {
-          // Turret missile: rotate in direction of travel; pulsate slightly.
-          sp.tint = 0xffcc44;
-          const missileSize = ballRadius * 1.4;
-          sp.width  = missileSize * 2;
-          sp.height = missileSize * 2;
-          sp.rotation = (tick * 0.12); // slow spin
-        } else {
-          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
-          // Pulse ignited balls slightly for visual feedback.
-          const igScale = ball.ignited
-            ? spriteRadius * (1.0 + 0.15 * Math.sin(tick * 0.2))
-            : spriteRadius;
-          sp.width  = igScale * 2;
-          sp.height = igScale * 2;
-        }
-
-        // Update ignite aura position if active.
-        if (entry.auraId !== undefined) {
-          this.auraSys.moveTo({ id: entry.auraId }, ball.x, ball.y);
-          this.auraSys.resize({ id: entry.auraId }, spriteRadius * IGNITE_AURA_SIZE_MULT * 2);
-        }
-
-        // Spawn/remove ignite aura as ignite state changes (non-projectile balls only).
-        if (!isProjectile && ball.ignited && entry.auraId === undefined && igniteAuraFrames.length) {
-          const h = this.auraSys.looping(
-            igniteAuraFrames, IGNITE_AURA_FPS,
-            ball.x, ball.y,
-            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
-            true, 0xff8822,
-          );
-          entry.auraId = h.id;
-        } else if (!ball.ignited && entry.auraId !== undefined) {
-          this.auraSys.remove({ id: entry.auraId });
-          entry.auraId = undefined;
-        }
-      } else {
-        // Create new pooled entry.
-        const haloGfx = new Graphics();
-        if (ball.ignited && !isProjectile) {
-          haloGfx.blendMode = BLEND_MODES.ADD;
-          haloGfx.beginFill(0xff5500, IGNITE_HALO_ALPHA * 0.8)
-            .drawCircle(ball.x, ball.y, ballRadius * IGNITE_HALO_RADIUS_MULT)
-            .endFill();
-        }
-
-        // Projectile (turret bullet/fireball) uses FireRing/missile art; normal ball uses FireHeroBall.
-        const chosenTex: Texture = isProjectile
-          ? projectileTex
-          : (ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
-
-        const sp = new Sprite(chosenTex);
+      const rs = ball.radiusScale ?? 1;
+      const br = ballRadius * rs;
+      const vr = br * BALL_VISUAL_MULT; // visual radius (sprite + outline/core), a notch over the physics circle
+      let entry = this.ballPool.get(ball.id);
+      if (!entry) {
+        const glow = new Graphics();
+        const sp = new Sprite(Texture.WHITE);
         sp.anchor.set(0.5);
-        sp.x = ball.x;
-        sp.y = ball.y;
-
-        if (isProjectile) {
-          sp.tint = 0xffcc44;
-          const missileSize = ballRadius * 1.4;
-          sp.width  = missileSize * 2;
-          sp.height = missileSize * 2;
-        } else {
-          sp.tint = ball.ignited ? 0xff7a2a : (ball.ghost ? 0xaa88ff : 0xffffff);
-          sp.width  = spriteRadius * 2;
-          sp.height = spriteRadius * 2;
-        }
-
-        this.container.addChild(haloGfx);
+        const core = new Graphics();
+        this.container.addChild(glow);
         this.container.addChild(sp);
+        this.container.addChild(core);
+        entry = { sp, glow, core };
+        this.ballPool.set(ball.id, entry);
+      }
+      const { sp, glow, core } = entry;
 
-        // Spawn ignite aura for already-ignited balls.
-        let auraId: number | undefined;
-        if (!isProjectile && ball.ignited && igniteAuraFrames.length) {
-          const h = this.auraSys.looping(
-            igniteAuraFrames, IGNITE_AURA_FPS,
-            ball.x, ball.y,
-            spriteRadius * IGNITE_AURA_SIZE_MULT * 2,
-            true, 0xff8822,
-          );
-          auraId = h.id;
-        }
+      // Hue-LOCK the sprite: a phased ball uses the distinct BallGhost art; the summoned skeleton minion
+      // keeps its green identity; otherwise the ball is never recoloured (state lives in the ring/glow).
+      const useGhostArt = !!ball.ghost && ghostBallTex !== Texture.WHITE;
+      sp.texture = useGhostArt ? ghostBallTex : (ballTex !== Texture.WHITE ? ballTex : Texture.WHITE);
+      sp.tint = ball.summoned ? 0x88ffaa : 0xffffff;
+      sp.x = ball.x;
+      sp.y = ball.y;
+      sp.width = vr * 2;
+      sp.height = vr * 2;
 
-        this.pool.set(ball.id, { sp, haloGfx, auraId });
+      this.paintGlow(glow, ball, vr);
+      this.paintCore(core, ball, vr);
+    }
+
+    // ── Projectiles (turret bullets, fireballs, golems, skeleton bolts) ───────
+    const liveProjIds = new Set(projectiles.map(p => p.id));
+    for (const [id, entry] of this.projPool) {
+      if (!liveProjIds.has(id)) {
+        this.container.removeChild(entry.sp);
+        this.projPool.delete(id);
       }
     }
 
-    // Necromancer decay aura: repaint the halo green for decayed balls.
-    for (const ball of balls) {
-      if (ball.id >= PROJECTILE_ID_THRESHOLD) continue;
-      const entry = this.pool.get(ball.id);
-      if (!entry) continue;
-      if ((ball as any).decayed) {
-        entry.haloGfx.clear();
-        entry.haloGfx.blendMode = BLEND_MODES.ADD;
-        entry.haloGfx.beginFill(DECAY_HALO_COLOR, DECAY_HALO_ALPHA)
-          .drawCircle(ball.x, ball.y, ballRadius * DECAY_HALO_RADIUS_MULT)
-          .endFill();
+    const missileSize = ballRadius * 1.4;
+    for (const proj of projectiles) {
+      const art = PROJ_ART[proj.kind];
+      let entry = this.projPool.get(proj.id);
+      if (!entry) {
+        const artTex = art ? atlasTex(art.key) : Texture.WHITE;
+        const useArt = art != null && artTex !== Texture.WHITE;
+        const sp = new Sprite(useArt ? artTex : projectileTex);
+        sp.anchor.set(0.5);
+        if (!useArt) sp.tint = 0xffcc44;
+        this.container.addChild(sp);
+        entry = { sp, px: proj.x, py: proj.y, art: useArt };
+        this.projPool.set(proj.id, entry);
       }
+      const { sp } = entry;
+      const sz = missileSize * (entry.art && art ? art.sizeMult : 2);
+      sp.x = proj.x;
+      sp.y = proj.y;
+      sp.width  = sz;
+      sp.height = sz;
+      if (entry.art) {
+        // Orient drawn projectiles (rocket/spear/turret) to their travel direction.
+        const dx = proj.x - entry.px, dy = proj.y - entry.py;
+        if (dx * dx + dy * dy > 0.04) sp.rotation = Math.atan2(dy, dx) + Math.PI / 2;
+      } else {
+        sp.rotation = tick * 0.12; // generic projectiles spin
+      }
+      entry.px = proj.x;
+      entry.py = proj.y;
     }
   }
 }

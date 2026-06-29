@@ -8,9 +8,6 @@ using Xunit;
 /// <summary>Tests for the character/archetype system (fire_mage, paladin, engineer, necromancer).</summary>
 public class CharacterTests
 {
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private static readonly string CatalogJson = """
         { "characters": [
@@ -63,15 +60,12 @@ public class CharacterTests
     /// <summary>Aim ball at origin block (col=0, row=0) moving straight up.</summary>
     private static void AimAtOrigin(GameInstance g)
     {
-        var blk = g.Level.Blocks[0];
+        var blk = g.Blocks[0];
         var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
         g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
         g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
     }
 
-    // -------------------------------------------------------------------------
-    // 1. CharacterCatalog
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void CharacterCatalog_LoadsFour()
@@ -101,9 +95,6 @@ public class CharacterTests
         Assert.Throws<KeyNotFoundException>(() => catalog.Get("unknown_hero"));
     }
 
-    // -------------------------------------------------------------------------
-    // 2. Profile — selection default and seeded unlocks
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Profile_NewDefault_SelectionIsFireMage()
@@ -121,9 +112,6 @@ public class CharacterTests
         Assert.Equal(new[] { "fire_mage" }, p.UnlockedCharacters);
     }
 
-    // -------------------------------------------------------------------------
-    // 3. Paladin — wall save
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Paladin_WallSave_SavesOneBallOnce()
@@ -166,49 +154,60 @@ public class CharacterTests
         Assert.Equal(GamePhase.Lost, g.Phase);
     }
 
-    // -------------------------------------------------------------------------
-    // 4. fire_mage — fire spread (regression: default character keeps spread on)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void FireMage_Default_SpreadsFire()
     {
-        // Default character is fire_mage; ignited kill must chip the neighbor.
+        // Default character is fire_mage; an ignite hit LIGHTS the origin (slow burn) and the fire
+        // creeps to the neighbour over time (ignite redesign 2026-06-16).
         var g = MakeWithTwoBlocks(blockHp: 1, character: "fire_mage");
         g.Serve();
-        var origin   = g.Level.Blocks[0]; // (col=0, row=0)
-        var neighbor = g.Level.Blocks[1]; // (col=1, row=0)
+        var origin   = g.Blocks[0]; // (col=0, row=0)
+        var neighbor = g.Blocks[1]; // (col=1, row=0)
         int hpBefore = neighbor.Hp;
 
         // Give the ball ignite hits and aim at origin block
         g.Balls[0].IgniteHitsLeft = 5;
         AimAtOrigin(g);
         g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(origin.BurnRemaining > 0, "ignite should light the origin (not instantly destroy it)");
 
-        // origin should be dead and neighbor chipped by 1
-        Assert.True(origin.Dead);
-        Assert.True(neighbor.Hp < hpBefore, $"Expected fire spread chip; neighbor HP {neighbor.Hp} vs before {hpBefore}");
+        // Fire creeps over time (slow chain): park the ball and run past the spread interval.
+        ParkAndBurn(g, 4.0);
+        Assert.True(neighbor.BurnRemaining > 0 || neighbor.Dead || neighbor.Hp < hpBefore,
+            $"Expected fire to spread to the neighbour over time; HP {neighbor.Hp} vs before {hpBefore}, burn {neighbor.BurnRemaining}");
     }
 
-    // -------------------------------------------------------------------------
-    // 5. paladin — no fire spread (unless pyroclasm relic)
-    // -------------------------------------------------------------------------
+    /// <summary>Freeze the ball away from the blocks, then run the burn window so only
+    /// fire spread (not direct ball hits) can affect neighbours.</summary>
+    private static void ParkAndBurn(GameInstance g, double seconds)
+    {
+        // Park just above the paddle — clear of the top-row blocks so only fire spread acts.
+        g.Balls[0].Pos = new Vec2(g.Paddle.Center.X,
+            g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Balls[0].Radius - 2);
+        g.Balls[0].Vel = new Vec2(0, 0);
+        for (int i = 0; i < (int)(seconds / SimConfig.Default.FixedDt); i++)
+            g.Tick(SimConfig.Default.FixedDt);
+    }
+
 
     [Fact]
     public void Paladin_DoesNotSpreadFire()
     {
         var g = MakeWithTwoBlocks(blockHp: 1, character: "paladin");
         g.Serve();
-        var origin   = g.Level.Blocks[0];
-        var neighbor = g.Level.Blocks[1];
+        var origin   = g.Blocks[0];
+        var neighbor = g.Blocks[1];
         int hpBefore = neighbor.Hp;
 
         g.Balls[0].IgniteHitsLeft = 5;
         AimAtOrigin(g);
         g.Tick(SimConfig.Default.FixedDt);
 
-        Assert.True(origin.Dead);
-        Assert.Equal(hpBefore, neighbor.Hp); // no spread for paladin
+        // The origin may burn, but with no fire-spread the neighbour is never touched.
+        ParkAndBurn(g, 4.0);
+        Assert.Equal(hpBefore, neighbor.Hp); // no spread for paladin, even over time
+        Assert.True(neighbor.BurnRemaining <= 0, "paladin: fire must not spread to the neighbour");
     }
 
     [Fact]
@@ -217,22 +216,20 @@ public class CharacterTests
         var g = MakeWithTwoBlocks(blockHp: 1, character: "paladin");
         g.Serve();
         g.AddRelic("pyroclasm");
-        var origin   = g.Level.Blocks[0];
-        var neighbor = g.Level.Blocks[1];
+        var origin   = g.Blocks[0];
+        var neighbor = g.Blocks[1];
         int hpBefore = neighbor.Hp;
 
         g.Balls[0].IgniteHitsLeft = 5;
         AimAtOrigin(g);
         g.Tick(SimConfig.Default.FixedDt);
 
-        Assert.True(origin.Dead);
-        // pyroclasm overrides the character restriction — spread must happen
-        Assert.True(neighbor.Hp < hpBefore, $"pyroclasm should enable spread; HP {neighbor.Hp} vs {hpBefore}");
+        // pyroclasm overrides the character restriction — fire spreads (over time)
+        ParkAndBurn(g, 4.0);
+        Assert.True(neighbor.BurnRemaining > 0 || neighbor.Dead || neighbor.Hp < hpBefore,
+            $"pyroclasm should enable spread; HP {neighbor.Hp} vs {hpBefore}, burn {neighbor.BurnRemaining}");
     }
 
-    // -------------------------------------------------------------------------
-    // 6. engineer — faster mana regen
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Engineer_RegensManaFaster()
@@ -256,9 +253,48 @@ public class CharacterTests
             $"engineer mana {gEngineer.ManaValue:F1} should exceed fire_mage {gBase.ManaValue:F1}");
     }
 
-    // -------------------------------------------------------------------------
-    // 7. necromancer — extra mana on kill
-    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ManaEconomy_SpellKill_GrantsLessManaThaBallKill()
+    {
+        // Design (tasks list.md): spell/minion kills grant 50% of base kill mana;
+        // chain kills grant 25%. Ball kills remain 100%.
+        var cfg = SimConfig.Default;
+
+        // Ball kill: engineer kills block via ball (full mana, killMult=1.0)
+        var gBall = MakeWithOneBlock(blockHp: 1, character: "engineer");
+        gBall.Serve(); gBall.ManaValue = 0;
+        var blkBall = gBall.Blocks[0];
+        var cBall   = gBall.Level.Grid.CellCenter(blkBall.Col, blkBall.Row);
+        gBall.Balls[0].Pos = new Vec2(cBall.X, cBall.Y + cfg.CellSize / 2 + gBall.Balls[0].Radius + 1);
+        gBall.Balls[0].Vel = new Vec2(0, -cfg.BallSpeed);
+        gBall.Tick(cfg.FixedDt);
+        double ballKillMana = gBall.ManaValue; // should be cfg.ManaPerKill = 1.0
+
+        // Radiation zone kill: engineer radiation zone damages blocks (spell kill, killMult=0.5)
+        // Use a radiation zone that has zero radius so we can trigger it manually at the block.
+        var gSpell = MakeWithOneBlock(blockHp: 1, character: "engineer");
+        gSpell.Serve(); gSpell.ManaValue = 0;
+        var blkSpell = gSpell.Blocks[0];
+        var cSpell   = gSpell.Level.Grid.CellCenter(blkSpell.Col, blkSpell.Row);
+        // Spawn a radiation zone centered exactly on the block
+        gSpell.Zones.Add(new Arkanoid.Core.Entities.Zone
+        {
+            X = cSpell.X, Y = cSpell.Y,
+            Radius    = cfg.CellSize,
+            Alive     = true,
+            DamagePerTick = 5, // lethal
+            DamageInterval = 0.01,
+        });
+        // Tick once to trigger zone damage
+        gSpell.Tick(cfg.FixedDt);
+        double spellKillMana = gSpell.ManaValue;
+
+        Assert.True(ballKillMana > spellKillMana,
+            $"ball kill ({ballKillMana:F3}) should give more mana than spell kill ({spellKillMana:F3})");
+        Assert.True(spellKillMana >= cfg.ManaPerKill * 0.4, // ~50% ± regen noise
+            $"spell kill ({spellKillMana:F3}) should give ~50% of base ({cfg.ManaPerKill})");
+    }
 
     [Fact]
     public void Necromancer_MoreManaOnKill()
@@ -269,7 +305,7 @@ public class CharacterTests
         var gBase = MakeWithOneBlock(blockHp: 1, character: "fire_mage");
         gBase.Serve();
         gBase.ManaValue = 0;
-        var blkBase = gBase.Level.Blocks[0];
+        var blkBase = gBase.Blocks[0];
         var cBase   = gBase.Level.Grid.CellCenter(blkBase.Col, blkBase.Row);
         gBase.Balls[0].Pos = new Vec2(cBase.X, cBase.Y + cfg.CellSize / 2 + gBase.Balls[0].Radius + 1);
         gBase.Balls[0].Vel = new Vec2(0, -cfg.BallSpeed);
@@ -280,7 +316,7 @@ public class CharacterTests
         var gNecro = MakeWithOneBlock(blockHp: 1, character: "necromancer");
         gNecro.Serve();
         gNecro.ManaValue = 0;
-        var blkNecro = gNecro.Level.Blocks[0];
+        var blkNecro = gNecro.Blocks[0];
         var cNecro   = gNecro.Level.Grid.CellCenter(blkNecro.Col, blkNecro.Row);
         gNecro.Balls[0].Pos = new Vec2(cNecro.X, cNecro.Y + cfg.CellSize / 2 + gNecro.Balls[0].Radius + 1);
         gNecro.Balls[0].Vel = new Vec2(0, -cfg.BallSpeed);

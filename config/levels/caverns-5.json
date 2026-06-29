@@ -1,30 +1,32 @@
 {
   "id": "caverns-5",
   "biome": "caverns",
-  "cols": 8,
-  "rows": 14,
+  "cols": 12,
+  "rows": 18,
   "rows_data": [
-    "ALAALAAL",
-    "A.A.A.A.",
-    "CCAACCAA",
-    "A..XX..A",
-    "K......K",
-    "AA.AA.AA",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
+    "............",
+    "..K..K...K..",
+    "............",
+    "AA.AA..AA.AA",
+    "BB.BB..BB.BB",
+    "BB.BB..BB.BB",
+    "AA.AA..AA.AA",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "C..........C",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
   "legend": {
     "A": "cavern_basic",
-    "C": "cavern_tough",
-    "X": "cavern_bomb",
-    "L": "cavern_stalactite",
-    "K": "cavern_cart"
-  },
-  "timeLimit": 90
+    "B": "cavern_tough",
+    "C": "cavern_cart",
+    "K": "cavern_stalactite"
+  }
 }

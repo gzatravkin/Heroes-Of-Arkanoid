@@ -1,33 +1,30 @@
 {
   "id": "heaven-4",
   "biome": "heaven",
-  "cols": 8,
-  "rows": 14,
+  "cols": 12,
+  "rows": 18,
   "rows_data": [
-    "M.HTTH.M",
-    "H.DTTD.H",
-    "S......S",
-    "H.R..V.H",
-    "S......S",
-    "H.MTTM.H",
-    "D.HTTH.D",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
+    ".....E......",
+    "............",
+    "..AAA..AAA..",
+    "..AAA..AAA..",
+    "..AAA..AAA..",
+    "...A....A...",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
   "legend": {
-    "H": "heaven_basic",
-    "T": "heaven_tough",
-    "S": "heaven_statue",
-    "M": "heaven_melee_statue",
-    "D": "heaven_shield_statue",
-    "R": "heaven_altar",
-    "V": "heaven_vase"
-  },
-  "surviveTime": 60,
-  "escalateInterval": 12
+    "A": "heaven_basic",
+    "E": "heaven_melee_statue"
+  }
 }

@@ -33,7 +33,6 @@ internal static class PacingSystem
                 if (g.Blocks.Any(b => !b.Dead && b.IsStatue))
                 {
                     BallSystem.LevelUpStatues(g);
-                    g._log.Log(g.TickCount, "pacing", "statues escalated");
                 }
             }
         }
@@ -53,13 +52,11 @@ internal static class PacingSystem
                 g.Phase = GamePhase.Lost;
                 g.RaiseEvent(SimEventKind.Overrun, g.Level.Grid.CellCenter(b.Col, b.Row).X, g.Level.Grid.Height);
                 g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
-                g._log.Log(g.TickCount, "pacing", "overrun — blocks reached the paddle line");
                 return;
             }
             // Walls/lava/teleporters slide off the bottom instead of crowding the paddle.
             b.Dead = true;
         }
         g.RaiseEvent(SimEventKind.Descend, 0, 0);
-        g._log.Log(g.TickCount, "pacing", "blocks descended");
     }
 }

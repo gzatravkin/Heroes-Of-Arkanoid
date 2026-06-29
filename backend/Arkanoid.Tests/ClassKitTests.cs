@@ -11,9 +11,6 @@ using Xunit;
 /// </summary>
 public partial class ClassKitTests
 {
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Single block at (col=1, row=0) with the given HP.
@@ -58,9 +55,6 @@ public partial class ClassKitTests
         g.Serve();
     }
 
-    // -------------------------------------------------------------------------
-    // 1. CastSlot dispatch
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void CastSlot_FireMage_Slot0_CastsIgnite()
@@ -78,12 +72,17 @@ public partial class ClassKitTests
     }
 
     [Fact]
-    public void CastSlot_FireMage_Slot1_CastsFireball()
+    public void CastSlot_FireMage_Slot1_CastsConflagration()
     {
         var g = Make("fire_mage");
         MaxManaAndServe(g);
-        g.CastSlot(1); // fireball
-        Assert.Single(g.Projectiles);
+        var blk = g.Blocks.First(b => !b.Dead);
+        blk.BurnRemaining = 5.0;           // Conflagration detonates burning blocks (§3)
+        int hp0 = blk.Hp;
+        g.CastSlot(1); // conflagration (reworked fireball — no projectile)
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.Empty(g.Projectiles);
+        Assert.True(blk.Hp < hp0, "slot 1 detonated the burning block");
     }
 
     [Fact]
@@ -131,9 +130,6 @@ public partial class ClassKitTests
     }
 
 
-    // -------------------------------------------------------------------------
-    // 11. Mana cost respected across all classes
-    // -------------------------------------------------------------------------
 
     [Theory]
     [InlineData("paladin",     0)] // shield
@@ -159,7 +155,7 @@ public partial class ClassKitTests
         Assert.Empty(g.Zones);
         Assert.Empty(g.Projectiles);
         Assert.False(g.SkeletonActive);
-        Assert.False(g.DrainActive);
+        Assert.False(g.SpellDrainActive);
         Assert.Equal(hpBefore,    g.Blocks.Sum(b => b.Hp));
         Assert.Equal(ballsBefore, g.Balls.Count(b => b.Alive));
     }

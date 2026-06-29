@@ -9,14 +9,13 @@ internal static class RelicSystem
 {
     internal static void OnBlockDestroyed(GameInstance g, Vec2 c)
     {
-        if (g.HasRelic("split_shot") && ++g._killsSinceSplit >= g.Config.SplitShotEvery)
+        if (Modifiers.HasSplitShot(g) && ++g._killsSinceSplit >= Modifiers.SplitShotCadence(g))
         {
             g._killsSinceSplit = 0;
             BonusSystem.SpawnExtraBall(g);
             g.RaiseEvent(SimEventKind.SplitShot, c.X, c.Y);
-            g._log.Log(g.TickCount, "relic", "split shot", "");
         }
-        if (g.HasRelic("souljar") && ++g._killsSinceSouljar >= g.Config.SouljarEvery)
+        if (Modifiers.HasSouljar(g) && ++g._killsSinceSouljar >= Modifiers.SouljarCadence(g))
         {
             g._killsSinceSouljar = 0;
             g.Crystals++;

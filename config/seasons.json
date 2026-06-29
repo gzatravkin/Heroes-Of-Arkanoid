@@ -1,0 +1,11 @@
+{
+  "themes": ["Inferno Rising", "Frostfall", "Witching Tide", "Ascendant Light"],
+  "tokensPerBattle": 10,
+  "track": [
+    { "tier": 1, "tokens": 40,  "rewardGems": 50,  "rewardCardDust": 0,  "rewardModuleCores": 0 },
+    { "tier": 2, "tokens": 110, "rewardGems": 0,   "rewardCardDust": 80, "rewardModuleCores": 0 },
+    { "tier": 3, "tokens": 200, "rewardGems": 0,   "rewardCardDust": 0,  "rewardModuleCores": 30 },
+    { "tier": 4, "tokens": 320, "rewardGems": 120, "rewardCardDust": 0,  "rewardModuleCores": 0 },
+    { "tier": 5, "tokens": 480, "rewardGems": 0,   "rewardCardDust": 0,  "rewardModuleCores": 60 }
+  ]
+}

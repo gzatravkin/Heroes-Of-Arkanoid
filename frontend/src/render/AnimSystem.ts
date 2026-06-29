@@ -11,8 +11,10 @@
 
 import { Container, AnimatedSprite, BLEND_MODES, Rectangle, Texture } from "pixi.js";
 
-// Max simultaneous one-shot animations (prevents unbounded allocation under spam).
-const MAX_ONE_SHOTS = 48;
+// Max simultaneous one-shot animations. Lowered 48→16 in the readability overhaul (2026-06-16 §E): a
+// field-clear used to fire dozens of overlapping additive explosions at once → a white-out the ball
+// vanished into. 16 keeps impact punchy without burying the playfield.
+const MAX_ONE_SHOTS = 16;
 
 // Blend mode used for additive fire/explosion effects.
 const ADDITIVE = BLEND_MODES.ADD;

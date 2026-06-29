@@ -32,10 +32,10 @@ public class PaddleModAscensionTests
         var g = Make();
         var w0 = g.Paddle.Width;
         g.AddPaddleMod("mod_wide");
-        Assert.Equal(w0 * SimConfig.Default.PaddleModWideMult, g.Paddle.Width, 3);
+        Assert.Equal(w0 * 1.2 /* PaddleModWideMult */, g.Paddle.Width, 3);
         // Idempotent: adding the same mod twice must not stack.
         g.AddPaddleMod("mod_wide");
-        Assert.Equal(w0 * SimConfig.Default.PaddleModWideMult, g.Paddle.Width, 3);
+        Assert.Equal(w0 * 1.2 /* PaddleModWideMult */, g.Paddle.Width, 3);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class PaddleModAscensionTests
     {
         var g = Make();
         g.AddPaddleMod("mod_cannons");
-        var ticks = (int)(SimConfig.Default.PaddleModCannonInterval / SimConfig.Default.FixedDt) + 3;
+        var ticks = (int)(2.5 /* PaddleModCannonInterval */ / SimConfig.Default.FixedDt) + 3;
         for (int i = 0; i < ticks; i++) g.Tick(SimConfig.Default.FixedDt);
         Assert.True(g.Projectiles.FindAll(p => p.Kind == "turret").Count >= 2,
             "both side cannons should have fired a volley");
@@ -104,25 +104,28 @@ public class PaddleModAscensionTests
     // ── Character unlocking (docs/04 §3: bosses earn the roster) ───────────────
 
     [Fact]
-    public void BossClears_UnlockCharacters_FreshProfilesStartWithFireMage()
+    public void BossClears_MakeNextHeroRollable_FreshProfilesStartWithFireMage()
     {
+        // Economy rework §4: a boss clear seeds the next hero into the ROLL POOL (it stays locked until
+        // its first card is rolled), rather than unlocking it directly.
         var p = Profile.NewDefault();
         Assert.Equal(new[] { "fire_mage" }, p.UnlockedCharacters);
 
         var cfg = new ProgressionConfig();
         var r1 = Rewards.GrantLevelCompletion(p, "hell-boss", cfg);
-        Assert.Equal("paladin", r1.CharacterUnlocked);
-        Assert.Contains("paladin", p.UnlockedCharacters);
+        Assert.Equal("paladin", r1.CharacterUnlocked);          // surfaced as "now rollable"
+        Assert.Contains("paladin", p.HeroPool);                 // in the pool…
+        Assert.DoesNotContain("paladin", p.UnlockedCharacters); // …but NOT yet owned (must be rolled)
 
-        // Idempotent: a repeat clear unlocks nothing new.
+        // Idempotent: a repeat clear adds nothing new.
         var r2 = Rewards.GrantLevelCompletion(p, "hell-boss", cfg);
         Assert.Null(r2.CharacterUnlocked);
 
         Rewards.GrantLevelCompletion(p, "caverns-boss", cfg);
         Rewards.GrantLevelCompletion(p, "village-boss", cfg);
-        Assert.Contains("engineer", p.UnlockedCharacters);
-        Assert.Contains("necromancer", p.UnlockedCharacters);
-        // Ordinary levels unlock nothing.
+        Assert.Contains("engineer", p.HeroPool);
+        Assert.Contains("necromancer", p.HeroPool);
+        // Ordinary levels add nothing.
         Assert.Null(Rewards.GrantLevelCompletion(p, "heaven-1", cfg).CharacterUnlocked);
     }
 
@@ -144,10 +147,13 @@ public class PaddleModAscensionTests
         Assert.DoesNotContain("+", t0.Name);
         Assert.Equal(2, t2.Tier);
         Assert.EndsWith("+2", t2.Name);
-        Assert.True(t2.RewardCrystals > t0.RewardCrystals, "ascended rifts pay more");
+        // §7: both are 10-level rifts with depth-scaled rewards (no fixed RewardCrystals); the tier is the
+        // difficulty/ascension marker that travels into the run.
+        Assert.True(t0.IsRift && t2.IsRift);
+        Assert.Equal(10, t2.Floors.Count);
 
-        // The tier travels into the run.
         var run = DungeonService.StartRun(t2, seed: 5);
         Assert.Equal(2, run.Tier);
+        Assert.True(run.IsRift);
     }
 }

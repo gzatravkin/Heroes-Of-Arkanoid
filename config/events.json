@@ -1,0 +1,6 @@
+{ "events": [
+  { "id": "inferno", "name": "Inferno Rising",  "effect": "ball_damage", "magnitude": 1,  "tokenPerBattle": 12, "milestoneTokens": 60, "rewardModuleCores": 40, "rewardGems": 0 },
+  { "id": "manatide","name": "Mana Tide",       "effect": "max_mana",    "magnitude": 25, "tokenPerBattle": 12, "milestoneTokens": 60, "rewardModuleCores": 0,  "rewardGems": 80 },
+  { "id": "goldrush","name": "Gold Rush",       "effect": "crystal_bonus","magnitude": 6, "tokenPerBattle": 12, "milestoneTokens": 60, "rewardModuleCores": 30, "rewardGems": 0 },
+  { "id": "bulwark", "name": "Bulwark Trial",   "effect": "start_life",  "magnitude": 1,  "tokenPerBattle": 12, "milestoneTokens": 60, "rewardModuleCores": 0,  "rewardGems": 100 }
+]}

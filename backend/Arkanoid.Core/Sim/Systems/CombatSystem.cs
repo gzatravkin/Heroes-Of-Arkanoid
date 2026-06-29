@@ -22,13 +22,25 @@ internal static class CombatSystem
         {
             var hz = g.Hazards[i];
             if (!hz.Alive) continue;
+            // Telegraph/warm-up: inert (no move, no damage, no despawn) while warning — e.g. the cart at the
+            // edge before it rolls.
+            if (hz.Warmup > 0) { hz.Warmup -= dt; continue; }
             hz.Pos += hz.Vel * dt;
 
-            // Bat carrier dragging a ball to the drain: poppable by a second ball or
-            // any spell projectile; reaching the drain costs the ball (docs/11).
+            // Cart (Option A 2026-06-15): a rolling obstacle ABOVE the paddle that DEFLECTS the ball — never a
+            // paddle-line HP hazard (a left-right paddle can't dodge a full-line sweep). Despawns off the side.
+            if (hz.Behavior == HazardBehavior.Cart)
+            {
+                DeflectBallsOffCart(g, hz);
+                if (hz.Pos.X < -hz.Radius || hz.Pos.X > g.Level.Grid.Width + hz.Radius)
+                    hz.Alive = false;
+                continue;
+            }
+
+            // Bat carrier (LEGACY, reverted 2026-06-16): holds the ball briefly, then releases + rewards.
             if (hz.Behavior == HazardBehavior.Bat && hz.CarriedBallId > 0)
             {
-                UpdateBatCarrier(g, hz, drainLine);
+                UpdateBatCarrier(g, hz, dt);
                 continue;
             }
 
@@ -56,66 +68,75 @@ internal static class CombatSystem
             if (paddleBox.IntersectsCircle(hz.Pos, hz.Radius))
             {
                 hz.Alive = false;
-                DamagePlayer(g, hz.Damage);
-                g._log.Log(g.TickCount, "hazard", "hit paddle", $"damage={hz.Damage}");
-                // playerHit event already raised inside DamagePlayer
-                continue;
-            }
-
-            // Carts roll horizontally and despawn once they leave the board (not by falling).
-            if (hz.Behavior == HazardBehavior.Cart)
-            {
-                if (hz.Pos.X < -hz.Radius || hz.Pos.X > g.Level.Grid.Width + hz.Radius)
-                    hz.Alive = false;
+                // §2 Riposte Paddle: a moving paddle PARRIES the hit back up as damage instead of taking it.
+                if (!ModuleSystem.OnHazardHitPaddle(g, hz))
+                    DamagePlayer(g, hz.Damage);
                 continue;
             }
 
             if (hz.Pos.Y - hz.Radius > drainLine)
-            {
                 hz.Alive = false; // dodged / missed
-                g._log.Log(g.TickCount, "hazard", "missed paddle", "");
-            }
         }
         g.Hazards.RemoveAll(h => !h.Alive);
     }
 
-    /// <summary>One tick of a bat carrier: rescue checks (second ball / projectile), then drain escape.</summary>
-    private static void UpdateBatCarrier(GameInstance g, Projectile hz, double drainLine)
+    /// <summary>Cart obstacle (Option A 2026-06-15): reflect any ball it overlaps off its surface and push the
+    /// ball clear, so the rolling cart bounces the ball (a mine cart on rails) instead of harming the paddle.</summary>
+    private static void DeflectBallsOffCart(GameInstance g, Projectile cart)
+    {
+        foreach (var ball in g.Balls)
+        {
+            if (!ball.Alive) continue;
+            var d = ball.Pos - cart.Pos;
+            double r = cart.Radius + ball.Radius;
+            if (d.LengthSquared >= r * r) continue;             // not overlapping
+            var n = d.Length > 1e-4 ? d.Normalized() : new Vec2(0, -1);
+            double into = ball.Vel.X * n.X + ball.Vel.Y * n.Y;  // < 0 ⇒ ball moving INTO the cart
+            if (into < 0)
+                ball.Vel = new Vec2(ball.Vel.X - 2 * into * n.X, ball.Vel.Y - 2 * into * n.Y); // reflect (speed-preserving)
+            ball.Pos = cart.Pos + n * (r + 0.5);                // push the ball outside so it doesn't stick
+        }
+    }
+
+    /// <summary>One tick of a bat carrier (LEGACY behaviour, reverted 2026-06-16): it HOLDS the ball
+    /// (which rides along) for BatHoldTime, then releases it AND grants the player a reward (a wide-paddle
+    /// buff — the legacy paddle-speed boost has no analogue in this X-input control), then flies away. An
+    /// early pop (a second ball or any spell projectile) frees the ball immediately but skips the reward.
+    /// The bat is NO LONGER a drain threat.</summary>
+    private static void UpdateBatCarrier(GameInstance g, Projectile hz, double dt)
     {
         var ball = g.Balls.FirstOrDefault(b => b.Id == hz.CarriedBallId);
+        if (ball != null) ball.Pos = hz.Pos; // the held ball rides the bat
 
-        // Rescue: another living ball or any spell projectile pops the carrier.
-        var rescued =
+        // Early pop: a second living ball or any spell projectile frees the ball (no reward).
+        var popped =
             g.Balls.Any(b => b.Alive && b.Id != hz.CarriedBallId
                 && (b.Pos - hz.Pos).Length <= hz.Radius + b.Radius)
             || g.Projectiles.Any(p => p.Alive && (p.Pos - hz.Pos).Length <= hz.Radius + p.Radius);
-        if (rescued)
-        {
-            hz.Alive = false;
-            ReleaseBall(g, ball);
-            // The bat flees upward as the usual harmless flyaway.
-            g.Hazards.Add(new Projectile
-            {
-                Id     = g._nextHazardId++,
-                Pos    = hz.Pos,
-                Vel    = new Vec2(0, -g.Config.Enemies.BatFlyAwaySpeed),
-                Damage = 0,
-                Radius = g.Config.Enemies.HazardRadius,
-                Alive  = true,
-                Kind   = "bat",
-            });
-            g.RaiseEvent(SimEventKind.BatRelease, hz.Pos.X, hz.Pos.Y);
-            g._log.Log(g.TickCount, "bat", "carrier popped — ball rescued", $"ball={hz.CarriedBallId}");
-            return;
-        }
 
-        // Escape: carrier reaches the drain — the stolen ball is lost (WinLose handles it).
-        if (hz.Pos.Y - hz.Radius > drainLine)
+        hz.StateTimer -= dt;
+        if (!popped && hz.StateTimer > 0) return; // still holding
+
+        hz.Alive = false;
+        ReleaseBall(g, ball);
+        if (!popped)
         {
-            hz.Alive = false;
-            if (ball != null) { ball.GrabberId = 0; ball.Vel = new Vec2(0, g.Config.Enemies.BatCarrySpeed); }
-            g._log.Log(g.TickCount, "bat", "carried ball to the drain", $"ball={hz.CarriedBallId}");
+            // Risk→reward: hold the full time and the bat gifts a wide paddle on release.
+            BonusSystem.ActivateWidePaddle(g, g.Config.Pickups.EffectDuration);
+            g._log.Log(g.TickCount, "bat", "released ball + granted wide paddle", $"ball={hz.CarriedBallId}");
         }
+        // The bat flees upward as the usual harmless flyaway.
+        g.Hazards.Add(new Projectile
+        {
+            Id     = g._nextHazardId++,
+            Pos    = hz.Pos,
+            Vel    = new Vec2(0, -g.Config.Enemies.BatFlyAwaySpeed),
+            Damage = 0,
+            Radius = g.Config.Enemies.HazardRadius,
+            Alive  = true,
+            Kind   = "bat",
+        });
+        g.RaiseEvent(SimEventKind.BatRelease, hz.Pos.X, hz.Pos.Y);
     }
 
     /// <summary>One tick of the Witch's grab-hand: home → grab → carry to boss → hold → throw.</summary>
@@ -134,7 +155,6 @@ internal static class CombatSystem
             hz.Alive = false;
             ReleaseBall(g, g.Balls.FirstOrDefault(b => b.Id == hz.CarriedBallId));
             g.RaiseEvent(SimEventKind.WitchGrabPopped, hz.Pos.X, hz.Pos.Y);
-            g._log.Log(g.TickCount, "boss", "witch grab popped", "");
             return;
         }
 
@@ -155,7 +175,6 @@ internal static class CombatSystem
                 target.Vel       = new Vec2(0, 0);
                 hz.StateTimer    = 0;
                 g.RaiseEvent(SimEventKind.WitchGrab, hz.Pos.X, hz.Pos.Y);
-                g._log.Log(g.TickCount, "boss", "witch grabbed ball", $"ball={target.Id}");
             }
             // Missed and flew past the board → give up.
             if (hz.Pos.Y - hz.Radius > drainLine || hz.Pos.Y < g.Config.BoardOriginY - g.Config.CellSize)
@@ -185,7 +204,6 @@ internal static class CombatSystem
             ball.Vel = dir * g.Config.BallSpeed * g.Config.Boss.WitchThrowSpeedMult;
         }
         g.RaiseEvent(SimEventKind.WitchThrow, hz.Pos.X, hz.Pos.Y);
-        g._log.Log(g.TickCount, "boss", "witch threw the ball", "");
     }
 
     /// <summary>Damage each block a falling stalactite passes through, once per block.</summary>
@@ -205,7 +223,7 @@ internal static class CombatSystem
             if (!box.IntersectsCircle(hz.Pos, hz.Radius)) continue;
             hz.HitBlockIds ??= new HashSet<int>();
             if (!hz.HitBlockIds.Add(blk.Id)) continue; // one hit per block while passing
-            BlockDamage.DamageBlock(g, blk, g.Config.Enemies.StalactiteBlockDamage, igniteSource: false);
+            BlockDamage.DamageBlock(g, blk, g.Config.Enemies.StalactiteBlockDamage, igniteSource: false, killMult: 0.5);
             break; // one block per tick keeps it deterministic
         }
     }
@@ -224,22 +242,24 @@ internal static class CombatSystem
 
     internal static void DamagePlayer(GameInstance g, int dmg)
     {
+        // Post-hit i-frames (2026-06-15): immune for a few seconds after any hit — no rapid multi-hits / DoT stacking.
+        if (g._damageImmunity > 0) return;
         // Second Wind relic: the first HP loss each level is negated.
-        if (g.HasRelic("second_wind") && !g._secondWindUsed)
+        if (Modifiers.HasSecondWind(g) && !g._secondWindUsed)
         {
             g._secondWindUsed = true;
             g.RaiseEvent(SimEventKind.SecondWind, g.Paddle.Center.X, g.Paddle.Center.Y);
-            g._log.Log(g.TickCount, "relic", "second wind — HP loss negated", "");
             return;
         }
         g.Hp -= dmg;
+        g._damageImmunity = g.Config.DamageImmunity; // start i-frames
         g.RaiseEvent(SimEventKind.PlayerHit, g.Paddle.Center.X, g.Paddle.Center.Y);
-        g._log.Log(g.TickCount, "hp", "player hit", $"hp={g.Hp}");
+        ReckoningSystem.OnHpLost(g, dmg); // §3 Reckoning: HP lost charges the smite meter
+        CardSystem.OnHpLost(g, dmg);      // §1 Martyr's Brand: getting hit grants a vengeance buff
         if (g.Hp <= 0)
         {
             g.Phase = GamePhase.Lost;
             g.RaiseEvent(SimEventKind.LevelLost, 0, 0);
-            g._log.Log(g.TickCount, "lose", "hp depleted");
         }
     }
 }

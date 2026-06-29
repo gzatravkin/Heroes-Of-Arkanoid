@@ -7,7 +7,7 @@
  * key that isn't found in the atlas.
  */
 
-import { Container, Graphics, Sprite, BLEND_MODES } from "pixi.js";
+import { Container, Graphics, Sprite, AnimatedSprite, Texture, BLEND_MODES } from "pixi.js";
 import type { Snapshot } from "../net/Connection";
 import { tex } from "./textures";
 import { animStrip, anim as animFrames } from "./assets";
@@ -27,6 +27,17 @@ interface Particle {
 // Explosion strip: "effects/Explosion" (7215×555, ~13 frames square)
 const EXPLOSION_KEY = "effects/Explosion";
 const EXPLOSION_FPS = 18;
+
+// Block destruction: the biome crack-strip plays as a snappy shatter; a single small biome-tinted
+// spark adds punch. (Previously THREE overlapping bursts of different scale/blend stacked into an
+// incoherent mess — plus the per-biome "secondary" wrongly played the vaza/hell-ball death on every
+// brick. One shatter + one spark reads cleanly.)
+const BLOCK_SHATTER_FPS = 30;
+const BIOME_SPARK_TINT: Record<string, number> = {
+  hell: 0xff8844, caverns: 0x88ccff, cavern: 0x88ccff, dungeon: 0x88ccff,
+  village: 0x99dd66, heaven: 0xffe9b0,
+};
+function biomeSparkTint(biome: string): number { return BIOME_SPARK_TINT[biome] ?? 0xffd9a0; }
 
 // FireBirth: used for burn/ignite flashes (it's the fire wall birth art, small burst)
 const FIRE_BIRTH_KEY = "firemage/spell_firewall/FireBirth";
@@ -52,12 +63,6 @@ const SKELETON_DEATH_FPS = 12;
 const SKELETON2_DEATH_STRIP_KEY = "necromancer/spell_skeleton/Skeleton2DeathAnimation";
 const SKELETON2_DEATH_FPS = 12;
 
-// Heaven Vaza death and HellBall death: referenced indirectly by getBiomeSecondaryStrip()
-// which is called from spawnBlockDestroy. Keys are literal strings in that function.
-const _HEAVEN_VAZA_REF = "heaven/HeavenVazaDeathAnimation"; // used in getBiomeSecondaryStrip
-const _HELL_BALL_REF = "hell/HellBallDeathAnimation"; // used in getBiomeSecondaryStrip
-void _HEAVEN_VAZA_REF; void _HELL_BALL_REF; // suppress lint — actual keys are in the function below
-
 // Necromant death-mark: a DeathSphere hovers over the marked corpse until the
 // revive fires (or is cancelled by killing the necromant). docs/11 — makes the
 // race visible and tells the player WHICH cells are coming back.
@@ -70,12 +75,16 @@ const DEATH_SPHERE_PULSE_HZ   = 2.5;
 // Demon fist column flashes (docs/11 boss verbs): warning amber, slam red.
 const FIST_TELEGRAPH_COLOR = 0xffaa33;
 const FIST_TELEGRAPH_MS    = 700;
-const FIST_SLAM_COLOR      = 0xff3311;
 const FIST_SLAM_MS         = 350;
 const JUDGEMENT_COLOR      = 0xffd24a; // Paladin Last Day gold
 const FIST_COLUMN_ALPHA    = 0.32;
 
 interface ColumnFlash { gfx: Graphics; life: number; elapsed: number }
+// Transient effect sprites with optional vertical slam (y0→y1, ease-in) + tail fade. Used by the Demon
+// fist (a hellfire pillar + a clawed hand crashing down). 2026-06-16 effects style pass.
+interface FxSprite { sp: Sprite; life: number; elapsed: number; fade: number; y0?: number; y1?: number }
+// Demon fist SLAM: a column of hellfire (the fire-wall stand animation, stretched tall).
+const FIRE_PILLAR_KEY = "firemage/spell_firewall/firestandannimation";
 
 export class Effects {
   readonly container: Container;
@@ -85,6 +94,7 @@ export class Effects {
   private deathMarks = new Map<string, Sprite>();
   private _markClock = 0;
   private columnFlashes: ColumnFlash[] = [];
+  private _fxSprites: FxSprite[] = [];
   /** Board height in world units — set by the renderer each snapshot for column flashes. */
   boardH = 0;
 
@@ -110,6 +120,9 @@ export class Effects {
         case "blockDestroyed":
           this.spawnBlockDestroy(ev.x, ev.y, cellSize, biome ?? "hell");
           break;
+        case "perfectDeflect":
+          this.spawnPerfectDeflect(ev.x, ev.y, cellSize);
+          break;
         case "burn":
           this.spawnBurn(ev.x, ev.y, cellSize);
           break;
@@ -117,13 +130,19 @@ export class Effects {
           this.spawnIgniteFlash(ev.x, ev.y, cellSize);
           break;
         case "spellCast":
-          this.spawnPhoenixFlourish(ev.x, ev.y, cellSize);
+          this.spawnCastFlash(ev.x, ev.y, cellSize, biome ?? "hell");
+          break;
+        case "spellFizzle":
+          this.spawnFizzle(ev.x, ev.y, cellSize);
           break;
         case "lightning":
           this.spawnLightningStrike(ev.x, ev.y, cellSize);
           break;
         case "skeletonDeath":
           this.spawnSkeletonDeath(ev.x, ev.y, cellSize);
+          break;
+        case "ghostPortal":
+          this.spawnPhaseFlash(ev.x, ev.y, cellSize);
           break;
         case "deathMark":
           this.addDeathMark(ev.x, ev.y, cellSize);
@@ -136,7 +155,7 @@ export class Effects {
           this.spawnColumnFlash(ev.x, cellSize, FIST_TELEGRAPH_COLOR, FIST_TELEGRAPH_MS);
           break;
         case "fistSlam":
-          this.spawnColumnFlash(ev.x, cellSize, FIST_SLAM_COLOR, FIST_SLAM_MS);
+          this.spawnFirePillar(ev.x, cellSize);
           this.spawnBlockDestroy(ev.x, this.boardH * 0.5, cellSize, biome ?? "hell");
           break;
         case "judgement": // Paladin Last Day: a golden column smite
@@ -146,15 +165,63 @@ export class Effects {
     }
   }
 
-  /** Full-height column flash at world x — the Demon fist's warning and impact. */
+  /** A column of fire at world x — the Demon fist's warning/impact. A soft funnel that brightens and
+   *  widens toward a glowing pool at the floor (where the fist lands), not a flat full-height bar
+   *  (readability/feel pass 2026-06-16). */
   private spawnColumnFlash(x: number, cellSize: number, color: number, lifeMs: number) {
     const gfx = new Graphics();
     gfx.blendMode = BLEND_MODES.ADD;
-    gfx.beginFill(color, FIST_COLUMN_ALPHA)
-      .drawRect(x - cellSize / 2, 0, cellSize, Math.max(this.boardH, cellSize))
-      .endFill();
+    const h = Math.max(this.boardH, cellSize);
+    const steps = 9;
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);                       // 0 top → 1 floor
+      const a = FIST_COLUMN_ALPHA * (0.12 + 0.88 * t * t); // brightens toward the impact
+      const w = cellSize * (0.45 + 0.65 * t);          // widens toward the impact
+      gfx.beginFill(color, a).drawRect(x - w / 2, h * (i / steps), w, h / steps + 1).endFill();
+    }
+    // bright impact pool at the floor — the unmistakable "here it lands"
+    gfx.beginFill(color, Math.min(0.9, FIST_COLUMN_ALPHA * 1.6))
+      .drawEllipse(x, h, cellSize * 0.85, cellSize * 0.45).endFill();
     this.container.addChild(gfx);
     this.columnFlashes.push({ gfx, life: lifeMs, elapsed: 0 });
+  }
+
+  /** Demon fist SLAM: a pillar of hellfire crashes down the column with a clawed hand + a floor impact —
+   *  painted art (fire-wall frames + DemonHand sprite + Explosion), replacing the old flat red bar. */
+  private spawnFirePillar(x: number, cellSize: number): void {
+    const h = Math.max(this.boardH, cellSize);
+    // 1. Pillar of hellfire down the column.
+    const frames = animFrames(FIRE_PILLAR_KEY);
+    if (frames.length >= 2) {
+      const fire = new AnimatedSprite(frames);
+      fire.anchor.set(0.5, 1);
+      fire.blendMode = BLEND_MODES.ADD;
+      fire.loop = true;
+      fire.animationSpeed = 18 / 60;
+      fire.tint = 0xffd9a0;
+      fire.width = cellSize * 1.7;
+      fire.height = h * 1.02;
+      fire.position.set(x, h);
+      fire.play();
+      this.container.addChild(fire);
+      this._fxSprites.push({ sp: fire, life: 620, elapsed: 0, fade: 0.35 });
+    }
+    // 2. Clawed hand crashing down the column (ease-in slam).
+    const handTex = tex("hell/DemonHand3");
+    if (handTex !== Texture.WHITE) {
+      const hand = new Sprite(handTex);
+      hand.anchor.set(0.5, 0.5);
+      const hw = cellSize * 2.4;
+      hand.width = hw;
+      hand.height = hw * ((handTex.height || 1) / (handTex.width || 1));
+      hand.position.set(x, -cellSize);
+      this.container.addChild(hand);
+      this._fxSprites.push({ sp: hand, life: 420, elapsed: 0, fade: 0.65, y0: -cellSize, y1: h - cellSize * 0.4 });
+    }
+    // 3. Floor impact burst.
+    const spark = this._explosionFrames();
+    if (spark.length) this.animSys.oneShot(spark, EXPLOSION_FPS + 6, x, h - cellSize * 0.3, cellSize * 1.5, true, 0xffcaa0);
+    else this.spawnFallback(tex("Explosion"), x, h - cellSize * 0.3, cellSize * 1.4, 240, 0.5, 1.8, 0xffcaa0);
   }
 
   // ── Necromant death-mark spheres ──────────────────────────────────────────
@@ -188,32 +255,21 @@ export class Effects {
   // ── Block destruction ────────────────────────────────────────────────────
 
   private spawnBlockDestroy(x: number, y: number, cellSize: number, biome: string) {
-    // Use the biome-specific destruction strip if available, then fall back to
-    // the generic Explosion strip.
+    const tint = biomeSparkTint(biome);
     const biomeStrip = getBiomeDestroyStrip(biome);
-    let frames = biomeStrip ? animStrip(biomeStrip, 20) : [];
-    if (!frames.length) frames = this._explosionFrames();
+    const shatter = biomeStrip ? animStrip(biomeStrip) : [];
 
-    if (frames.length) {
-      // Use normal blend for biome strips (they are opaque art); additive for explosion
-      const additive = !biomeStrip || frames.length < 4;
-      this.animSys.oneShot(frames, EXPLOSION_FPS, x, y, cellSize * 1.5, additive, 0xffffff);
-      // Secondary smaller burst with additive explosion for brightness
-      const exFrames = this._explosionFrames();
-      if (exFrames.length) {
-        this.animSys.oneShot(exFrames, EXPLOSION_FPS + 4, x, y, cellSize * 0.9, true, 0xff9933);
-      }
-      // Biome-specific secondary burst (heaven vaza glow, hell ball death)
-      const secondaryKey = getBiomeSecondaryStrip(biome);
-      if (secondaryKey) {
-        const secondaryFrames = animStrip(secondaryKey, 14);
-        if (secondaryFrames.length) {
-          this.animSys.oneShot(secondaryFrames, 14, x, y, cellSize * 1.2, true, 0xffffff);
-        }
-      }
+    if (shatter.length >= 2) {
+      // Primary: the block visibly shatters using its biome art (opaque → normal blend, snappy).
+      this.animSys.oneShot(shatter, BLOCK_SHATTER_FPS, x, y, cellSize * 1.1, false, 0xffffff);
+      // Secondary: one small biome-tinted spark for punch — brief, and clearly subordinate.
+      const spark = this._explosionFrames();
+      if (spark.length) this.animSys.oneShot(spark, EXPLOSION_FPS + 6, x, y, cellSize * 0.45, true, tint);
     } else {
-      // Fallback: static sprite fade
-      this.spawnFallback(tex("Explosion"), x, y, cellSize * 1.4, 280, 1.0, 1.6);
+      // No biome shatter art → a single clean additive poof, biome-tinted.
+      const ex = this._explosionFrames();
+      if (ex.length) this.animSys.oneShot(ex, EXPLOSION_FPS, x, y, cellSize * 1.05, true, tint);
+      else this.spawnFallback(tex("Explosion"), x, y, cellSize * 1.1, 260, 1.0, 1.5, tint);
     }
   }
 
@@ -233,33 +289,63 @@ export class Effects {
   // ── Ignite flash ─────────────────────────────────────────────────────────
 
   private spawnIgniteFlash(x: number, y: number, cellSize: number) {
-    // Small bright flash using FireBirth art, then a phoenix birth flourish scaled down
+    // A small bright FIRE flash where a block ignites — fire art only. (It used to also
+    // overlay a phoenix birth animation; the Phoenix belongs to the Phoenix spell alone.)
     const fbFrames = this._fireBirthFrames();
     if (fbFrames.length) {
       this.animSys.oneShot(fbFrames, FIRE_BIRTH_FPS + 4, x, y, cellSize * 1.2, true, 0xffdd88);
-    }
-    const phoenixFrames = this._phoenixBirthFrames();
-    if (phoenixFrames.length) {
-      this.animSys.oneShot(phoenixFrames, PHOENIX_BIRTH_FPS, x, y, cellSize * 2.5, true, 0xff8833);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.7, 150, 0.8, 1.4, 0xffaa44);
     }
   }
 
-  // ── Phoenix flourish (on spellCast) ──────────────────────────────────────
+  // ── Generic spell-cast flash (on the shared `spellCast` event) ────────────
+  // A small, neutral, biome-tinted puff that simply marks that *a* spell fired.
+  // Deliberately subtle and identity-free: `spellCast` is a SHARED event raised by ~15
+  // systems (every player spell AND several enemy abilities — Bonewalker, Bone Golem,
+  // Ashfall…), so it must NOT carry any one spell's look. (It used to fire a giant
+  // Phoenix flourish here — that bloomed a phoenix on EVERY cast. The Phoenix's identity
+  // belongs to the Phoenix spell alone: its orbiting `PhoenixLayer` entity + its fire
+  // trail via `burn` events, plus a one-time birth flourish wired to the real entity
+  // spawn — see `spawnPhoenixBirth`.)
+  private spawnCastFlash(x: number, y: number, cellSize: number, biome: string) {
+    const tint = biomeSparkTint(biome);
+    const frames = this._explosionFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, EXPLOSION_FPS + 6, x, y, cellSize * 0.8, true, tint);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.7, 150, 0.6, 1.4, tint);
+    }
+  }
 
-  private spawnPhoenixFlourish(x: number, y: number, cellSize: number) {
-    // Try the 20-frame birth sequence first; fall back to death strip.
+  // ── Spell-fizzle "dud" cue ────────────────────────────────────────────────
+  // A small COOL-grey puff when a cast couldn't fire (Fire Wall while the ball is on the paddle,
+  // Conflagration on an empty board). Cool tint (not warm like spawnCastFlash) reads as "nothing
+  // happened", so a blocked cast is never a silent no-op.
+  private spawnFizzle(x: number, y: number, cellSize: number) {
+    const frames = this._explosionFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, EXPLOSION_FPS, x, y, cellSize * 0.5, true, 0x8a93a8);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.45, 180, 0.5, 1.2, 0x8a93a8);
+    }
+  }
+
+  // ── Phoenix BIRTH flourish — ONLY ever called for a real Phoenix entity spawn ─
+  // Driven by PhoenixLayer detecting a newly-spawned phoenix id (NOT by spellCast), so the
+  // phoenix art appears only when the Phoenix spell actually summons its bird.
+  spawnPhoenixBirth(x: number, y: number, cellSize: number) {
     const birthFrames = this._phoenixBirthFrames();
     if (birthFrames.length) {
-      this.animSys.oneShot(birthFrames, PHOENIX_BIRTH_FPS, x, y, cellSize * 4.5, true, 0xff6600);
+      this.animSys.oneShot(birthFrames, PHOENIX_BIRTH_FPS, x, y, cellSize * 3, true, 0xff8a3a);
       return;
     }
     const deathFrames = this._phoenixDeathFrames();
     if (deathFrames.length) {
-      this.animSys.oneShot(deathFrames, PHOENIX_DEATH_FPS, x, y, cellSize * 5, true, 0xff8844);
+      this.animSys.oneShot(deathFrames, PHOENIX_DEATH_FPS, x, y, cellSize * 3, true, 0xff8844);
       return;
     }
-    // Fallback: bright white flash
-    this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.5, 120, 1.0, 1.3);
+    this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.8, 160, 0.8, 1.5, 0xff8a3a);
   }
 
   // ── Lightning strike ─────────────────────────────────────────────────────
@@ -288,6 +374,34 @@ export class Effects {
     }
   }
 
+  /** A bright gold burst rewarding a perfect (centre-band) paddle deflect. */
+  private spawnPerfectDeflect(x: number, y: number, cellSize: number) {
+    const frames = this._explosionFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, EXPLOSION_FPS + 8, x, y, cellSize * 0.7, true, 0xffe060);
+    }
+    this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.5, 150, 0.6, 1.6, 0xfff2a0);
+  }
+
+  /** Witchland portal: a quick spectral burst as the ball flips phase (normal ⇄ ghost). */
+  private spawnPhaseFlash(x: number, y: number, cellSize: number) {
+    const frames = this._explosionFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, EXPLOSION_FPS + 6, x, y, cellSize * 1.1, true, 0x9b6bff);
+    }
+    this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.8, 200, 0.5, 1.9, 0x9b6bff);
+  }
+
+  /** A small bright spark when the ball chips (but doesn't destroy) a block — tactile per-hit feedback. */
+  hitSpark(x: number, y: number, cellSize: number) {
+    const frames = this._explosionFrames();
+    if (frames.length) {
+      this.animSys.oneShot(frames, EXPLOSION_FPS + 6, x, y, cellSize * 0.55, true, 0xfff0b0);
+    } else {
+      this.spawnFallback(tex("Explosion"), x, y, cellSize * 0.5, 110, 1.0, 1.3, 0xfff0b0);
+    }
+  }
+
   // ── Fallback particle (no atlas art) ─────────────────────────────────────
 
   private spawnFallback(
@@ -298,6 +412,13 @@ export class Effects {
     scaleStart: number, scaleEnd: number,
     tint = 0xffffff,
   ) {
+    // Budget (readability overhaul 2026-06-16 §E): cap concurrent additive particles so a flurry of
+    // casts/kills can't white-out the field — recycle the oldest when full.
+    const PARTICLE_BUDGET = 14;
+    while (this.particles.length >= PARTICLE_BUDGET) {
+      const old = this.particles.shift()!;
+      this.container.removeChild(old.sprite);
+    }
     const sp = new Sprite(texture);
     sp.anchor.set(0.5);
     sp.blendMode = BLEND_MODES.ADD;
@@ -324,6 +445,21 @@ export class Effects {
         this.columnFlashes.splice(i, 1);
       } else {
         cf.gfx.alpha = 1 - t;
+      }
+    }
+
+    // Fist effect sprites: ease-in vertical slam + tail fade, then remove.
+    for (let i = this._fxSprites.length - 1; i >= 0; i--) {
+      const f = this._fxSprites[i];
+      f.elapsed += dtMs;
+      const t = Math.min(f.elapsed / f.life, 1);
+      if (f.y0 !== undefined && f.y1 !== undefined) f.sp.y = f.y0 + (f.y1 - f.y0) * (t * t); // accelerate down
+      f.sp.alpha = t > f.fade ? 1 - (t - f.fade) / (1 - f.fade) : 1;
+      if (t >= 1) {
+        this.container.removeChild(f.sp);
+        if (f.sp instanceof AnimatedSprite) f.sp.stop();
+        f.sp.destroy();
+        this._fxSprites.splice(i, 1);
       }
     }
 
@@ -357,6 +493,8 @@ export class Effects {
     this.deathMarks.clear();
     for (const cf of this.columnFlashes) this.container.removeChild(cf.gfx);
     this.columnFlashes = [];
+    for (const f of this._fxSprites) { this.container.removeChild(f.sp); f.sp.destroy(); }
+    this._fxSprites = [];
   }
 }
 
@@ -374,15 +512,6 @@ function getBiomeDestroyStrip(biome: string): string | null {
     case "cavern":  return "dungeon/DungeonStandartDestroyed";
     case "village": return "village/blocks/VillageStandartDestroyed";
     case "heaven":  return "heaven/StandartHavenDestroyed";
-    default:        return null;
-  }
-}
-
-// Expose biome-specific secondary burst keys for richer effects.
-function getBiomeSecondaryStrip(biome: string): string | null {
-  switch (biome) {
-    case "heaven":  return "heaven/HeavenVazaDeathAnimation";
-    case "hell":    return "hell/HellBallDeathAnimation";
     default:        return null;
   }
 }

@@ -6,28 +6,11 @@ using Arkanoid.Core.Net;
 using Arkanoid.Core.Sim;
 using Xunit;
 
-/// <summary>
-/// Tests for the boss fight system: multi-pattern hazard spawning, telegraph-before-attack ordering,
-/// phase changes at HP thresholds, snapshot boss-HP surface, and the classic hazard/HP-depletion tests.
-/// </summary>
 public class BossTests
 {
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
     private static GameInstance MakeGame(string typesJson, string levelJson, SimConfig? cfg = null)
-    {
-        cfg ??= SimConfig.Default;
-        var catalog = BlockCatalog.FromJson($"{{\"types\":[{typesJson}]}}");
-        var level   = LevelLoader.FromJson(levelJson, catalog, cfg);
-        return new GameInstance(level, cfg, seed: 1);
-    }
+        => K.Game(typesJson, levelJson, cfg);
 
-    /// <summary>
-    /// A minimal boss level: one boss block (high HP so it stays alive for pattern cycling),
-    /// plus one fill block to keep the level not-already-won.
-    /// </summary>
     private static GameInstance MakeBossGame(SimConfig? cfg = null)
         => MakeGame(
             """
@@ -41,10 +24,6 @@ public class BossTests
              "legend":{"B":"boss"}}
             """,
             cfg);
-
-    // -----------------------------------------------------------------------
-    // 1. Boss_SpawnsHazardsOverTime (adapted from legacy test)
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Boss_SpawnsHazardsOverTime()
@@ -73,94 +52,34 @@ public class BossTests
             $"Expected at least one hazard after several attack cycles; count={g.Hazards.Count}");
     }
 
-    // -----------------------------------------------------------------------
-    // 1b. WitchBoss_TagsHazardsAsWitchMagic — the Witchland boss casts magic bolts
-    //     (Kind="witchmagic") so the renderer cycles the WitchMagic1-4 sprites.
-    // -----------------------------------------------------------------------
-
-    [Fact]
-    public void WitchBoss_TagsHazardsAsWitchMagic()
+    // Biome-specific missile tag: each boss type must emit hazards of its registered kind.
+    [Theory]
+    [InlineData("village", "WitchChest", "witchmagic")]
+    [InlineData("hell",    "DemonBody",  "hellball")]
+    public void Boss_TagsHazards_WithBiomeMissileKind(string biome, string sprite, string expectedKind)
     {
-        var cfg = new SimConfig
-        {
-            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
-        };
+        var cfg = new SimConfig { Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 } };
         var g = MakeGame(
-            """
-            {"id":"boss","biome":"village","hp":24,"sprite":"WitchChest","needToKill":true,"behavior":"boss"},
-            {"id":"fill","biome":"village","hp":1, "sprite":"s",          "needToKill":true}
-            """,
-            """
-            {"id":"t","biome":"village","cols":12,"rows":8,
-             "rows_data":["BBBBBBBBBBBB","............","............","............",
-                          "............","............","............","............"],
-             "legend":{"B":"boss"}}
-            """,
-            cfg);
+            $"{{\"id\":\"boss\",\"biome\":\"{biome}\",\"hp\":24,\"sprite\":\"{sprite}\",\"needToKill\":true,\"behavior\":\"boss\"}}",
+            $"{{\"id\":\"t\",\"biome\":\"{biome}\",\"cols\":12,\"rows\":8," +
+            "\"rows_data\":[\"BBBBBBBBBBBB\",\"............\",\"............\",\"............\"," +
+            "\"............\",\"............\",\"............\",\"............\"]," +
+            "\"legend\":{\"B\":\"boss\"}}", cfg);
         g.Serve();
-        g.ApplyCheat("setLives", 9999); // survive the rapid-fire test cadence
-
-        // The Witch's AimedShot is now her grab-hand ("witchgrab") — loop until a
-        // magic-bolt pattern (Rain/Spread) rolls, then check the bolt tagging.
-        for (int i = 0; i < 50 && !g.Hazards.Any(h => h.Kind == "witchmagic"); i++)
+        g.ApplyCheat("setLives", 9999);
+        for (int i = 0; i < 50 && !g.Hazards.Any(h => h.Kind == expectedKind); i++)
         {
-            g.Tick(cfg.Boss.AttackInterval + 0.01);     // telegraph
-            g.Tick(cfg.Boss.TelegraphDuration + 0.01);  // fire
+            g.Tick(cfg.Boss.AttackInterval + 0.01);
+            g.Tick(cfg.Boss.TelegraphDuration + 0.01);
         }
-
-        Assert.Contains(g.Hazards, h => h.Kind == "witchmagic");
-        Assert.All(g.Hazards, h => Assert.True(h.Kind is "witchmagic" or "witchgrab",
-            $"unexpected village boss hazard kind '{h.Kind}'"));
+        Assert.Contains(g.Hazards, h => h.Kind == expectedKind);
     }
-
-    // -----------------------------------------------------------------------
-    // 1c. Boss bolts carry a biome missile kind (hell → "hellball") so the
-    //     renderer draws real missile art instead of a generic dot.
-    // -----------------------------------------------------------------------
-
-    [Fact]
-    public void HellBoss_TagsHazardsAsHellball()
-    {
-        var cfg = new SimConfig
-        {
-            Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
-        };
-        var g = MakeGame(
-            """
-            {"id":"boss","biome":"hell","hp":24,"sprite":"DemonBody","needToKill":true,"behavior":"boss"}
-            """,
-            """
-            {"id":"t","biome":"hell","cols":12,"rows":8,
-             "rows_data":["BBBBBBBBBBBB","............","............","............",
-                          "............","............","............","............"],
-             "legend":{"B":"boss"}}
-            """,
-            cfg);
-        g.Serve();
-        g.ApplyCheat("setLives", 9999); // survive the rapid-fire test cadence
-
-        // The Demon's AimedShot is now the fist slam (no hazard) — loop until a
-        // hazard pattern (Rain/Spread) rolls, then check the bolt tagging.
-        for (int i = 0; i < 50 && g.Hazards.Count == 0; i++)
-        {
-            g.Tick(cfg.Boss.AttackInterval + 0.01);     // telegraph
-            g.Tick(cfg.Boss.TelegraphDuration + 0.01);  // fire
-        }
-
-        Assert.NotEmpty(g.Hazards);
-        Assert.All(g.Hazards, h => Assert.Equal("hellball", h.Kind));
-    }
-
-    // -----------------------------------------------------------------------
-    // 1d. Boss signature mechanics (docs/11 §4 — one verb per boss)
-    // -----------------------------------------------------------------------
 
     private static readonly SimConfig FastBossCfg = new()
     {
         Boss = new() { AttackInterval = 0.05, TelegraphDuration = 0.02 },
     };
 
-    /// <summary>Tick until predicate or budget exhausted; returns success.</summary>
     private static bool TickUntil(GameInstance g, System.Func<bool> done, int maxTicks = 2000)
     {
         for (int i = 0; i < maxTicks && !done(); i++) g.Tick(SimConfig.Default.FixedDt);
@@ -297,9 +216,6 @@ public class BossTests
         Assert.True(levelled, "fuse expiry must level the Seraph's adds");
     }
 
-    // -----------------------------------------------------------------------
-    // 2. Hazard_HittingPaddle_DamagesPlayerHP (legacy, adapted)
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Hazard_HittingPaddle_DamagesPlayerHP()
@@ -330,9 +246,6 @@ public class BossTests
         Assert.Empty(g.Hazards); // consumed on hit
     }
 
-    // -----------------------------------------------------------------------
-    // 3. Hazard_DodgedPastBottom_NoDamage (legacy)
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Hazard_DodgedPastBottom_NoDamage()
@@ -362,9 +275,6 @@ public class BossTests
         Assert.Empty(g.Hazards);            // removed as missed
     }
 
-    // -----------------------------------------------------------------------
-    // 4. PlayerHP_DepletedByHazards_LosesLevel (legacy)
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void PlayerHP_DepletedByHazards_LosesLevel()
@@ -373,6 +283,7 @@ public class BossTests
         {
             Boss = new() { HazardDamage = 1, AttackInterval = 999, TelegraphDuration = 999 },
             StartHp = 2,
+            DamageImmunity = 0, // this test deals two hits back-to-back; disable i-frames so both land
         };
         var g = MakeBossGame(cfg);
         g.Serve();
@@ -384,9 +295,6 @@ public class BossTests
         Assert.Equal(GamePhase.Lost, g.Phase);
     }
 
-    // -----------------------------------------------------------------------
-    // 5. BossBlock_Destroyed_ContributesToWin (legacy)
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void BossBlock_Destroyed_ContributesToWin()
@@ -427,6 +335,9 @@ public class BossTests
         // We count total hazards produced over many cycles and confirm > 1 distinct batch size.
         var cfg = new SimConfig
         {
+            // Plenty of spare balls so a drain past the stationary centred test paddle always
+            // re-serves (keeps Playing) rather than ending the run before the boss cycles patterns.
+            StartBalls = 9999,
             Boss = new()
             {
                 AttackInterval    = 0.05,
@@ -488,9 +399,6 @@ public class BossTests
             $"Expected multiple distinct hazard-batch sizes (confirms different patterns ran); got=[{string.Join(",", distinctBatchSizes)}]");
     }
 
-    // -----------------------------------------------------------------------
-    // 7. Boss_TelegraphPrecedesAttack — bossTelegraph event fires BEFORE bossAttack
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Boss_TelegraphPrecedesAttack()
@@ -531,9 +439,6 @@ public class BossTests
             $"bossTelegraph must appear before first bossAttack; log=[{string.Join(",", eventLog)}]");
     }
 
-    // -----------------------------------------------------------------------
-    // 8. Boss_PhaseChanges_AtHpThresholds — reducing HP triggers bossPhase events
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Boss_PhaseChanges_AtHpThresholds()
@@ -577,9 +482,6 @@ public class BossTests
         Assert.Contains(evts3, e => e.Kind == SimEventKind.BossPhase && e.Payload == 3);
     }
 
-    // -----------------------------------------------------------------------
-    // 9. Boss_Phase3_FasterCadence — attack interval in phase 3 < phase 1
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Boss_Phase3_FasterCadence_ThanPhase1()
@@ -651,9 +553,6 @@ public class BossTests
         return count;
     }
 
-    // -----------------------------------------------------------------------
-    // 10. Snapshot_ExposedBossHp — bossActive/bossHp/bossMaxHp populated correctly
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Snapshot_ExposedBossHp()

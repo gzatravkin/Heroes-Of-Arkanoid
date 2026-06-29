@@ -69,7 +69,7 @@ public class BallPhysicsTests
           catalog);
         var g = new GameInstance(level, SimConfig.Default, 1);
         g.Serve();
-        var blk = level.Blocks[0];
+        var blk = g.Blocks[0];
         var c = level.Grid.CellCenter(blk.Col, blk.Row);
         var cell = SimConfig.Default.CellSize;
         // ball just below the block, moving up
@@ -98,7 +98,7 @@ public class BallPhysicsTests
           catalog);
         var g = new GameInstance(level, SimConfig.Default, 1);
         g.Serve();
-        var block = level.Blocks[0];
+        var block = g.Blocks[0];
         var c = level.Grid.CellCenter(block.Col, block.Row);
         // place ball just under the block moving up
         g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + 6);

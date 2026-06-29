@@ -72,7 +72,7 @@ test("floating score text visible at ×2 combo", async ({ page }) => {
 
   // Wait for the renderer to be ready so the floater pool is initialised.
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 

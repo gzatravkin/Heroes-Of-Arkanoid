@@ -41,7 +41,7 @@ test("hell-boss: has boss blocks and spawns hazards, then can be won", async ({ 
   await page.waitForFunction(
     () => {
       const s = (window as any).__game?.getState();
-      return s && ((Array.isArray(s.hazards) && s.hazards.length > 0) || s.lives < 3);
+      return s && ((Array.isArray(s.hazards) && s.hazards.length > 0) || s.hp < 3);
     },
     null,
     { timeout: 20000 }

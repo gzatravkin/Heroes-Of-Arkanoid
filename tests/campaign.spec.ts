@@ -46,3 +46,19 @@ test("campaign win flow: complete hell-1 → reward overlay → hell-2 unlocked"
   await expect(page.locator('[data-level="hell-1"]')).toHaveAttribute("data-state", "completed");
   await expect(page.locator('[data-level="hell-2"]')).toHaveAttribute("data-state", "unlocked");
 });
+
+test("campaign defeat flow: losing shows the defeat overlay with a teaching tip", async ({ page }) => {
+  const run = `defeat-${Date.now()}`;
+  await page.goto(`/?scene=battle&level=hell-1&seed=1&from=campaign&run=${run}`);
+  await page.waitForFunction(() => !!(window as any).__game?.getState());
+  await cheat(page, "loseNow");
+
+  await page.waitForSelector("#defeat-overlay", { timeout: 5000 });
+  // The death screen teaches: a gold TIP label + a non-empty tip line.
+  await expect(page.locator("#defeat-overlay .ov-tip-label")).toHaveText("TIP");
+  const tip = (await page.locator("#defeat-overlay .ov-tip").textContent()) ?? "";
+  expect(tip.replace("TIP", "").trim().length).toBeGreaterThan(10);
+  // Retry + Map are still the two actions.
+  await expect(page.locator("#btn-retry")).toBeVisible();
+  await expect(page.locator("#btn-map")).toBeVisible();
+});

@@ -11,9 +11,6 @@ using Xunit;
 /// </summary>
 public class BonusTests
 {
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private static BonusCatalog MakeCatalog() => BonusCatalog.FromJson("""
     { "bonuses": [
@@ -28,7 +25,7 @@ public class BonusTests
 
     private static GameInstance MakeGame(SimConfig? cfg = null)
     {
-        cfg ??= new SimConfig { BonusDropChance = 1.0 };
+        cfg ??= new SimConfig { Pickups = new() { DropChance = 1.0 } };
         var catalog = BlockCatalog.FromJson("""
           {"types":[{"id":"b","biome":"hell","hp":1,"sprite":"HellStandart","needToKill":true}]}
         """);
@@ -46,7 +43,7 @@ public class BonusTests
     [Fact]
     public void DestroyedBlock_SpawnsBonus_WhenDropChance1()
     {
-        var cfg = new SimConfig { BonusDropChance = 1.0 };
+        var cfg = new SimConfig { Pickups = new() { DropChance = 1.0 } };
         var g   = MakeGame(cfg);
         g.Serve();
 
@@ -63,12 +60,9 @@ public class BonusTests
         // Block should be dead and a bonus should have been spawned.
         Assert.True(blk.Dead, "Block should be dead after direct ball hit");
         Assert.True(g.Bonuses.Count > 0,
-            $"Expected a bonus to be spawned after block death (BonusDropChance=1); count={g.Bonuses.Count}");
+            $"Expected a bonus to be spawned after block death (DropChance=1); count={g.Bonuses.Count}");
     }
 
-    // -------------------------------------------------------------------------
-    // 2. Bonus falls past drain line → removed without effect
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Bonus_PastDrainLine_RemovedWithoutEffect()
@@ -81,28 +75,25 @@ public class BonusTests
         {
             Id    = 999,
             Pos   = new Vec2(g.Paddle.Center.X, drainY),
-            Vel   = new Vec2(0, g.Config.BonusFallSpeed),
+            Vel   = new Vec2(0, g.Config.Pickups.FallSpeed),
             Type  = "heal",
             Icon  = "ui/bonus/BonusHP",
             Alive = true,
         });
 
-        int livesBefore = g.Lives;
+        int livesBefore = g.Hp;
         g.Tick(g.Config.FixedDt);
 
         Assert.Empty(g.Bonuses);           // removed
-        Assert.Equal(livesBefore, g.Lives); // no heal applied
+        Assert.Equal(livesBefore, g.Hp); // no heal applied
     }
 
-    // -------------------------------------------------------------------------
-    // 3. extra_ball bonus: ball count increases on catch
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void ExtraBall_Caught_IncreasesLiveBallCount()
     {
         // BonusFallSpeed=0 so the bonus stays exactly at paddle center for catch detection.
-        var cfg = new SimConfig { BonusDropChance = 1.0, BonusFallSpeed = 0 };
+        var cfg = new SimConfig { Pickups = new() { DropChance = 1.0, FallSpeed = 0 } };
         var g   = MakeGame(cfg);
         g.Serve();
 
@@ -127,18 +118,15 @@ public class BonusTests
             $"Expected more live balls after extra_ball catch; before={ballsBefore} after={ballsAfter}");
     }
 
-    // -------------------------------------------------------------------------
-    // 4. heal bonus: lives increase on catch
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Heal_Caught_IncreasesLives()
     {
-        var cfg = new SimConfig { BonusDropChance = 1.0, BonusFallSpeed = 0 };
+        var cfg = new SimConfig { Pickups = new() { DropChance = 1.0, FallSpeed = 0 } };
         var g   = MakeGame(cfg);
         g.Serve();
 
-        int livesBefore = g.Lives;
+        int livesBefore = g.Hp;
 
         // Place bonus at paddle center so AABB overlaps on next tick.
         g.Bonuses.Add(new Arkanoid.Core.Entities.Bonus
@@ -154,17 +142,14 @@ public class BonusTests
         g.Tick(cfg.FixedDt);
 
         Assert.Empty(g.Bonuses);
-        Assert.Equal(livesBefore + 1, g.Lives);
+        Assert.Equal(livesBefore + 1, g.Hp);
     }
 
-    // -------------------------------------------------------------------------
-    // 5. mana_surge bonus: mana increases on catch
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void ManaSurge_Caught_IncreasesMana()
     {
-        var cfg = new SimConfig { BonusDropChance = 1.0, BonusFallSpeed = 0, ManaSurgeAmount = 30 };
+        var cfg = new SimConfig { Pickups = new() { DropChance = 1.0, FallSpeed = 0, ManaSurgeAmount = 30 } };
         var g   = MakeGame(cfg);
         g.Serve();
 
@@ -187,19 +172,13 @@ public class BonusTests
             $"Expected mana to increase after mana_surge; before={manaBefore} after={g.ManaValue}");
     }
 
-    // -------------------------------------------------------------------------
-    // 6. wide_paddle bonus: paddle widens on catch, restores after duration
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void WidePaddle_CaughtAndExpires_RestoresPaddleWidth()
     {
         var cfg = new SimConfig
         {
-            BonusDropChance     = 1.0,
-            BonusFallSpeed      = 0,
-            WidePaddleBonus     = 48,
-            BonusEffectDuration = 0.05, // expire in ~3 ticks at 60 Hz
+            Pickups = new() { DropChance = 1.0, FallSpeed = 0, WidePaddleBonus = 48, EffectDuration = 0.05 }, // expire in ~3 ticks at 60 Hz
         };
         var g = MakeGame(cfg);
         g.Serve();
@@ -228,9 +207,6 @@ public class BonusTests
         Assert.Equal(widthBefore, g.Paddle.Width, precision: 1);
     }
 
-    // -------------------------------------------------------------------------
-    // 7. Snapshot includes bonus array and temp-effect flags
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Snapshot_IncludesBonusesAndTempFlags()
@@ -258,9 +234,6 @@ public class BonusTests
         Assert.False(snap.SlowBallActive);
     }
 
-    // -------------------------------------------------------------------------
-    // 8. spawnBonus cheat works with catalog index
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void SpawnBonusCheat_AddsBonusToList()

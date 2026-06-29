@@ -11,9 +11,6 @@ using Xunit;
 /// </summary>
 public class BiomeBlockTests
 {
-    // ---------------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------------
 
     /// <summary>
     /// Build a minimal GameInstance from inline JSON catalog + level strings.
@@ -35,9 +32,6 @@ public class BiomeBlockTests
         g.Balls[0].Vel = velocity;
     }
 
-    // ---------------------------------------------------------------------------
-    // 1. Indestructible block takes no damage but ball still bounces
-    // ---------------------------------------------------------------------------
 
     [Fact]
     public void Indestructible_BlockTakesNoDamage_ButBallBounces()
@@ -75,9 +69,6 @@ public class BiomeBlockTests
         Assert.True(g.Balls[0].Vel.Y > 0, "ball should have bounced back downward after hitting indestructible block");
     }
 
-    // ---------------------------------------------------------------------------
-    // 2. Ghost block (ballPhases): ball passes through, projectile still destroys it
-    // ---------------------------------------------------------------------------
 
     [Fact]
     public void GhostBlock_BallPassesThrough_NoReflectionNoDamage()
@@ -128,19 +119,17 @@ public class BiomeBlockTests
              "legend":{"G":"ghost","N":"normal","A":"normal"}}
             """
         );
+        // Ghost blocks phase through the BALL but projectiles still strike them. Spawn a projectile
+        // directly (decoupled from any spell, since the §3 reworks change which spells fire projectiles).
         g.Serve();
-
         var ghostBlk = g.Blocks.First(b => b.TypeId == "ghost");
-
-        // Give enough mana and fire a fireball
-        g.ManaValue = SimConfig.Default.FireballCost;
-        g.CastFireball();
-        Assert.Single(g.Projectiles);
-
-        // Move the projectile directly onto the ghost block
         var c = g.Level.Grid.CellCenter(ghostBlk.Col, ghostBlk.Row);
-        g.Projectiles[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 - 1);
-        g.Projectiles[0].Vel = new Vec2(0, -SimConfig.Default.FireballSpeed);
+        g.Projectiles.Add(new Arkanoid.Core.Entities.Projectile
+        {
+            Id = 1, Damage = 1, Radius = SimConfig.Default.BallRadius,
+            Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 - 1),
+            Vel = new Vec2(0, -400),
+        });
 
         g.Tick(SimConfig.Default.FixedDt);
 
@@ -148,9 +137,74 @@ public class BiomeBlockTests
         Assert.True(ghostBlk.Dead, "projectile must be able to destroy ghost block");
     }
 
-    // ---------------------------------------------------------------------------
-    // 3. Teleporter: warps ball to the paired portal
-    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public void GhostBall_DamagesGhostBlock_ButPhasesThroughPhysical()
+    {
+        // The other half of the phase identity: a GHOST ball collides with ghost blocks and passes
+        // through physical ones (mirror of the normal ball). docs/12 Witchland PHASE.
+        var g = MakeGame(
+            """
+            {"id":"ghost","biome":"test","hp":2,"sprite":"s","needToKill":true,"ballPhases":true},
+            {"id":"normal","biome":"test","hp":2,"sprite":"s","needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"test","cols":3,"rows":3,
+             "rows_data":["G.N","...","..."],
+             "legend":{"G":"ghost","N":"normal"}}
+            """
+        );
+        g.Serve();
+        g.Balls[0].Ghost = true; // phased ball
+
+        var ghostBlk  = g.Blocks.First(b => b.TypeId == "ghost");
+        var normalBlk = g.Blocks.First(b => b.TypeId == "normal");
+
+        // A GHOST ball passes through a PHYSICAL block — no reflection, no damage.
+        AimBallAtBlock(g, normalBlk, new Vec2(0, -SimConfig.Default.BallSpeed));
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(g.Balls[0].Vel.Y < 0, "ghost ball should pass through a physical block");
+        Assert.Equal(2, normalBlk.Hp);
+        Assert.False(normalBlk.Dead);
+
+        // …but it COLLIDES WITH and DAMAGES a ghost block.
+        AimBallAtBlock(g, ghostBlk, new Vec2(0, -SimConfig.Default.BallSpeed));
+        g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(ghostBlk.Hp < 2 || ghostBlk.Dead, "ghost ball should damage the ghost block");
+    }
+
+    [Fact]
+    public void Portal_TogglesBallGhostPhase_AndPassesThrough()
+    {
+        // A portal flips the ball between physical ⇄ ghost and lets it pass through. The keys to the
+        // two worlds (docs/12 idiom A "the double board").
+        var g = MakeGame(
+            """
+            {"id":"portal","biome":"test","hp":1,"sprite":"s","needToKill":false,"behavior":"portal"},
+            {"id":"normal","biome":"test","hp":1,"sprite":"s","needToKill":true}
+            """,
+            """
+            {"id":"t","biome":"test","cols":3,"rows":3,
+             "rows_data":["P.N","...","..."],
+             "legend":{"P":"portal","N":"normal"}}
+            """
+        );
+        g.Serve();
+        var portal = g.Blocks.First(b => b.Portal);
+        Assert.False(g.Balls[0].Ghost);
+
+        var c = g.Level.Grid.CellCenter(portal.Col, portal.Row);
+        g.Balls[0].Pos = new Vec2(c.X, c.Y + g.Balls[0].Radius * 0.5); // overlap the portal cell
+        g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
+        g.Balls[0].TeleportCooldown = 0;
+
+        g.Tick(SimConfig.Default.FixedDt);
+
+        Assert.True(g.Balls[0].Ghost, "portal flips the ball into ghost phase");
+        Assert.True(g.Balls[0].TeleportCooldown > 0, "portal sets the phase cooldown");
+        Assert.True(g.Balls[0].Vel.Y < 0, "ball passes through the portal (no reflection)");
+    }
+
 
     [Fact]
     public void Teleporter_WarpsBallToPairedPortal()
@@ -193,9 +247,6 @@ public class BiomeBlockTests
         Assert.True(g.Balls[0].TeleportCooldown > 0, "teleport cooldown should be > 0 after warp");
     }
 
-    // ---------------------------------------------------------------------------
-    // 4. Teleporter: cooldown prevents immediate re-warp
-    // ---------------------------------------------------------------------------
 
     [Fact]
     public void Teleporter_RespectsCooldown_NoImmediateReWarp()

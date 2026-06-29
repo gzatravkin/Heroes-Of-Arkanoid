@@ -63,7 +63,7 @@ for (const [name, lives, balls, mana] of [
     await cheat(page, "setLives", lives);
     await cheat(page, "setBalls", balls);
     await cheat(page, "setMana", mana);
-    await page.waitForFunction((lv) => (window as any).__game.getState()?.lives === lv, lives);
+    await page.waitForFunction((lv) => (window as any).__game.getState()?.hp === lv, lives);
     await page.screenshot({ path: path.join(SHOTS, `move4-bars-${name}.png`) });
   });
 }

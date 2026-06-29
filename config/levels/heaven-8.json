@@ -1,0 +1,35 @@
+{
+  "id": "heaven-8",
+  "biome": "heaven",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    "..1AAAAAA2..",
+    "..AASAASAA..",
+    "..AAAAAAAA..",
+    "..3AAAAAA4..",
+    "....LLLL....",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "1": "heaven_corner_tl",
+    "2": "heaven_corner_tr",
+    "3": "heaven_corner_bl",
+    "4": "heaven_corner_br",
+    "A": "heaven_basic",
+    "S": "heaven_shield_statue",
+    "L": "heaven_altar"
+  }
+}

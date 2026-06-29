@@ -22,8 +22,8 @@ public class GameInstanceTests
     {
         var g = MakeInstance();
         Assert.Equal(GamePhase.Serving, g.Phase);
-        Assert.Equal(3, g.Lives);
-        Assert.Equal(3, g.SpareBalls);
+        Assert.Equal(3, g.Hp);   // StartHp 5→3 (difficulty rework 2026-06-16)
+        Assert.Equal(2, g.SpareBalls); // StartBalls 3→2
         Assert.Single(g.Balls);
     }
 

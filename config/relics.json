@@ -1,21 +1,21 @@
 { "relics": [
-  { "id": "glass_cannon",    "name": "Glass Cannon",    "description": "+1 ball damage, but -1 life.", "icon": "ItemHummer" },
-  { "id": "flint_core",      "name": "Flint Core",      "description": "+1 damage to tough blocks (3+ HP).", "icon": "ItemDrill" },
-  { "id": "pyroclasm",       "name": "Pyroclasm",       "description": "Fire spread hits harder and farther.", "icon": "ItemTorch" },
-  { "id": "mana_battery",    "name": "Mana Battery",    "description": "+50 max mana and faster regen.", "icon": "ItemGem" },
+  { "id": "glass_cannon",    "name": "Glass Cannon",    "description": "+1 ball damage, but -1 life.", "icon": "ItemHummer",        "effect": "cost_hp",    "magnitude": 1 },
+  { "id": "flint_core",      "name": "Flint Core",      "description": "+1 damage to tough blocks (3+ HP).", "icon": "ItemDrill",   "effect": "",           "magnitude": 1,    "threshold": 3 },
+  { "id": "pyroclasm",       "name": "Pyroclasm",       "description": "Fire spread hits harder and farther.", "icon": "ItemTorch",  "effect": "",           "magnitude": 2 },
+  { "id": "mana_battery",    "name": "Mana Battery",    "description": "+50 max mana and faster regen.", "icon": "ItemGem",          "effect": "mana_max",   "magnitude": 50,   "magnitude2": 1.6 },
 
-  { "id": "conductor",       "name": "Conductor",       "description": "Lightning chains to one extra block.", "icon": "ItemMotor" },
-  { "id": "overcharge",      "name": "Overcharge",      "description": "Perfect-center deflects grant bonus mana.", "icon": "ItemOrb" },
-  { "id": "split_shot",      "name": "Split Shot",      "description": "Every 6th block destroyed splits off an extra ball.", "icon": "ItemJadeBall" },
-  { "id": "souljar",         "name": "Souljar",         "description": "Every 5th block destroyed pays a crystal.", "icon": "ItemMark" },
-  { "id": "lodestone",       "name": "Lodestone",       "description": "Falling bonuses drift toward your paddle.", "icon": "ItemForceRing" },
-  { "id": "ember_heart",     "name": "Ember Heart",     "description": "Ignite lasts 2 extra hits.", "icon": "ItemPhoenix" },
-  { "id": "second_wind",     "name": "Second Wind",     "description": "The first HP you would lose each level is negated.", "icon": "ItemHelm" },
-  { "id": "midas",           "name": "Midas Touch",     "description": "Caught bonuses also pay +2 crystals.", "icon": "ItemMagicCrown" },
-  { "id": "lead_paddle",     "name": "Lead Paddle",     "description": "Paddle +25% wider, but mana regen -25%.", "icon": "ItemStaff" },
+  { "id": "conductor",       "name": "Conductor",       "description": "Lightning chains to one extra block.", "icon": "ItemMotor",  "effect": "",           "magnitude": 1 },
+  { "id": "overcharge",      "name": "Overcharge",      "description": "Perfect-center deflects grant bonus mana.", "icon": "ItemOrb", "effect": "",          "magnitude": 8 },
+  { "id": "split_shot",      "name": "Split Shot",      "description": "Every 6th block destroyed splits off an extra ball.", "icon": "ItemJadeBall", "effect": "", "magnitude": 6 },
+  { "id": "souljar",         "name": "Souljar",         "description": "Every 5th block destroyed pays a crystal.", "icon": "ItemMark",  "effect": "",         "magnitude": 5 },
+  { "id": "lodestone",       "name": "Lodestone",       "description": "Falling bonuses drift toward your paddle.", "icon": "ItemForceRing", "effect": "",      "magnitude": 60 },
+  { "id": "ember_heart",     "name": "Ember Heart",     "description": "Ignite lasts 2 extra hits.", "icon": "ItemPhoenix",            "effect": "",           "magnitude": 2 },
+  { "id": "second_wind",     "name": "Second Wind",     "description": "The first HP you would lose each level is negated.", "icon": "ItemHelm", "effect": "",  "magnitude": 0 },
+  { "id": "midas",           "name": "Midas Touch",     "description": "Caught bonuses also pay +2 crystals.", "icon": "ItemMagicCrown", "effect": "",         "magnitude": 2 },
+  { "id": "lead_paddle",     "name": "Lead Paddle",     "description": "Paddle +25% wider, but mana regen -25%.", "icon": "ItemStaff", "effect": "width_mult", "magnitude": 1.25, "magnitude2": 0.75 },
 
-  { "id": "sapper",          "name": "Sapper's Charge", "description": "Bomb explosions reach one cell farther.", "icon": "ItemSun" },
-  { "id": "hellwalker",      "name": "Hellwalker",      "description": "Once per serve, lava rebounds your ball instead of eating it.", "icon": "ItemFlask" },
-  { "id": "ghost_lens",      "name": "Ghost Lens",      "description": "A ghost-phased ball deals +1 damage.", "icon": "ItemRing" },
-  { "id": "pillar_doctrine", "name": "Pillar Doctrine", "description": "Statues and columns take +1 ball damage.", "icon": "ItemTomOfKnowladge" }
+  { "id": "sapper",          "name": "Sapper's Charge", "description": "Bomb explosions reach one cell farther.", "icon": "ItemSun",   "effect": "",           "magnitude": 1 },
+  { "id": "hellwalker",      "name": "Hellwalker",      "description": "Once per serve, lava rebounds your ball instead of eating it.", "icon": "ItemFlask", "effect": "", "magnitude": 0 },
+  { "id": "ghost_lens",      "name": "Ghost Lens",      "description": "A ghost-phased ball deals +1 damage.", "icon": "ItemRing",      "effect": "",           "magnitude": 1 },
+  { "id": "pillar_doctrine", "name": "Pillar Doctrine", "description": "Statues and columns take +1 ball damage.", "icon": "ItemTomOfKnowladge", "effect": "", "magnitude": 1 }
 ]}

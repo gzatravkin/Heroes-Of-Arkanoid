@@ -185,7 +185,7 @@ internal static class BossSystem
         var colX = g.Level.Grid.CellCenter(col, 0).X;
 
         foreach (var blk in g.Blocks.Where(b => !b.Dead && !b.Boss && b.Col == col).ToList())
-            BlockDamage.DamageBlock(g, blk, g.Config.Boss.FistBlockDamage, igniteSource: false);
+            BlockDamage.DamageBlock(g, blk, g.Config.Boss.FistBlockDamage, igniteSource: false, killMult: 0.5);
 
         var half = g.Config.CellSize / 2;
         if (System.Math.Abs(g.Paddle.Center.X - colX) <= half + g.Paddle.Width / 2)

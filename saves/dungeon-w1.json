@@ -1,0 +1,22 @@
+{
+  "dungeonId": "ember-depths",
+  "floors": [
+    "hell-2",
+    "hell-4",
+    "hell-5"
+  ],
+  "floorIndex": 0,
+  "relics": [],
+  "ballCores": [],
+  "paddleMods": [],
+  "draftedSpells": [],
+  "pendingChoices": [],
+  "hp": 0,
+  "gold": 0,
+  "active": true,
+  "cleared": false,
+  "seed": 1136989765,
+  "tier": 0,
+  "rewardRelic": "pyroclasm",
+  "rewardCrystals": 50
+}

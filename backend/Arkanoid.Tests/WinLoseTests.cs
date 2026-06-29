@@ -23,7 +23,7 @@ public class WinLoseTests
         g.Serve();
         g.Balls[0].Pos = new Vec2(50, g.Level.Grid.Height + 999);
         g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(2, g.SpareBalls);
+        Assert.Equal(1, g.SpareBalls); // StartBalls 3→2, so one drain leaves 1
         Assert.Equal(GamePhase.Serving, g.Phase);
     }
 
@@ -46,7 +46,7 @@ public class WinLoseTests
     {
         var g = Make("\".A.\",\"...\",\"...\"");
         g.Serve();
-        g.Level.Blocks[0].Dead = true;
+        g.Blocks[0].Dead = true;
         g.Tick(SimConfig.Default.FixedDt);
         Assert.Equal(GamePhase.Won, g.Phase);
     }

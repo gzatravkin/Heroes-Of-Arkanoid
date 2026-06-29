@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Arkanoid RPG — Social, Economy & Leaderboard Proposals</title>
+<style>
+  :root{
+    --bg:#0b0814; --bg2:#120a1e; --panel:#170f26; --panel2:#1e1430;
+    --ink:#ece6ff; --dim:#a99fce; --faint:#6f6690;
+    --gold:#ffce5a; --gold2:#d89a2e; --ok:#7fe3a0; --warn:#ff8d6b; --bad:#ff5d7a;
+    --blue:#6cc0ff; --violet:#c060ff; --line:rgba(180,140,60,.35);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font:16px/1.65 -apple-system,Segoe UI,Roboto,Inter,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 50% -10%, rgba(120,60,200,.18), transparent 60%),
+      radial-gradient(900px 500px at 90% 10%, rgba(255,160,60,.08), transparent 60%),
+      linear-gradient(180deg,#0b0814,#070510 60%,#040308);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:40px 22px 90px}
+  header.hero{
+    text-align:center; padding:34px 20px 28px; margin-bottom:30px;
+    border:1px solid var(--line); border-radius:var(--r);
+    background:linear-gradient(180deg,rgba(40,24,64,.6),rgba(20,12,34,.7));
+    box-shadow:0 0 40px rgba(0,0,0,.5), inset 0 0 60px rgba(120,60,180,.08);
+  }
+  h1{margin:.1em 0 .15em; font-size:30px; letter-spacing:.01em;
+     background:linear-gradient(90deg,var(--gold),#fff3cf,var(--gold2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--dim); font-size:15px; max-width:760px; margin:6px auto 0}
+  .kick{color:var(--gold); letter-spacing:.22em; font-size:12px; text-transform:uppercase; font-weight:700}
+  h2{font-size:23px; margin:42px 0 8px; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  h2 .n{color:var(--faint); font-weight:600; margin-right:.4em}
+  h3{font-size:18px; margin:24px 0 6px; color:#fff}
+  h4{margin:16px 0 4px; color:var(--gold); font-size:14px; letter-spacing:.06em; text-transform:uppercase}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.86em}
+  code{background:rgba(120,90,180,.16); padding:1px 6px; border-radius:5px; color:#e7d8ff}
+  .lead{font-size:17px; color:#e9e3ff}
+  .grid{display:grid; gap:16px}
+  @media(min-width:760px){ .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:1fr 1fr} }
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line); border-radius:var(--r); padding:18px 18px 16px}
+  .card h3{margin-top:0}
+  .tag{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.05em; padding:2px 9px; border-radius:999px; border:1px solid var(--line); color:var(--dim); background:rgba(255,255,255,.03)}
+  .tag.ok{color:var(--ok); border-color:rgba(127,227,160,.4)}
+  .tag.gold{color:var(--gold); border-color:rgba(255,206,90,.4)}
+  .tag.violet{color:var(--violet); border-color:rgba(192,96,255,.4)}
+  .tag.warn{color:var(--warn); border-color:rgba(255,141,107,.4)}
+  ul{margin:.4em 0 .6em; padding-left:1.2em} li{margin:.18em 0}
+  .pill-row{display:flex; flex-wrap:wrap; gap:7px; margin:8px 0}
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:14px}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.07); vertical-align:top}
+  th{color:var(--gold); font-size:12px; letter-spacing:.05em; text-transform:uppercase}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  .yes{color:var(--ok)} .no{color:var(--faint)} .mid{color:var(--gold)}
+  pre{background:#0a0713; border:1px solid var(--line); border-left:3px solid var(--violet); border-radius:10px; padding:14px 16px; overflow:auto; font-size:13px; line-height:1.5; color:#d7ccf2}
+  pre .c{color:#7d7399} .k{color:#ff9ecb} .s{color:#9fe6b0} .t{color:#79c6ff}
+  .note{border-left:3px solid var(--gold); background:rgba(255,206,90,.06); padding:10px 14px; border-radius:0 10px 10px 0; margin:14px 0}
+  .danger{border-left-color:var(--bad); background:rgba(255,93,122,.07)}
+  .ok-note{border-left-color:var(--ok); background:rgba(127,227,160,.07)}
+  .flow{font-family:ui-monospace,monospace; font-size:12.5px; white-space:pre; color:var(--dim); background:#0a0713; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto}
+  .rec{border:1px solid rgba(255,206,90,.4); background:linear-gradient(180deg,rgba(60,40,10,.4),rgba(30,20,8,.5)); border-radius:var(--r); padding:18px 20px}
+  .small{font-size:13px; color:var(--dim)}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--dim); margin-top:6px}
+  .swatch{display:inline-block; width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .toc{columns:2; font-size:14px; color:var(--dim)}
+  @media(max-width:600px){.toc{columns:1}}
+  .toc a{display:block; padding:2px 0}
+  .scope{font-size:12px; font-weight:700}
+  hr.sep{border:0; border-top:1px solid var(--line); margin:34px 0}
+  .prop-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .prop-head .scopeb{margin-left:auto}
+  .currency{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:8px; font-size:12.5px; font-weight:600; border:1px solid var(--line); background:rgba(255,255,255,.03)}
+  .dot{width:9px;height:9px;border-radius:50%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kick">Arkanoid RPG · Live-Ops Design</div>
+  <h1>Social Systems, Economy Remake &amp; Leaderboards</h1>
+  <p class="sub">Daily missions (weekly reset) · a <em>The&nbsp;Tower</em>-style league ladder · rotating <em>We&nbsp;Are&nbsp;Warriors</em>-style events — woven into a reconsidered economy and a provably-fair, provider-agnostic leaderboard with shadow-ban anti-cheat. Three integral proposals + a shared technical spine.</p>
+  <div class="pill-row" style="justify-content:center;margin-top:14px">
+    <span class="tag gold">Rewards</span><span class="tag gold">Economy</span><span class="tag gold">Leaderboard</span>
+    <span class="tag violet">Cards &amp; Modules</span><span class="tag ok">Provider-abstracted</span><span class="tag warn">Shadow-ban</span>
+  </div>
+</header>
+
+<div class="card">
+  <h4 style="margin-top:0">On this page</h4>
+  <nav class="toc">
+    <a href="#research">1 · Research digest (what the references actually do)</a>
+    <a href="#today">2 · Where our economy is today (the problem)</a>
+    <a href="#spine">3 · The shared spine — leaderboard, anti-cheat &amp; the season clock</a>
+    <a href="#cards">4 · Cards &amp; Modules — the Tower-style power core</a>
+    <a href="#p1">5 · Proposal A — “Weekly Trial Ladder” (lean)</a>
+    <a href="#p2">6 · Proposal B — “The Spire” (full Tower core)</a>
+    <a href="#p3">7 · Proposal C — “Season Festival” (live-ops first)</a>
+    <a href="#compare">8 · Side-by-side comparison</a>
+    <a href="#rec">9 · Recommendation (a phased path)</a>
+    <a href="#decide">10 · Decisions I need from you</a>
+  </nav>
+</div>
+
+<!-- ============================================================= -->
+<h2 id="research"><span class="n">1</span>Research digest — what the references actually do</h2>
+<p class="lead">Three reference points, distilled to the mechanics that transfer to a brick-breaker RPG.</p>
+
+<div class="grid g3">
+  <div class="card">
+    <h3>🗼 The Tower</h3>
+    <p class="small">Idle/active endless tower-defense; deep meta-progression.</p>
+    <h4>Power core</h4>
+    <ul>
+      <li><b>Cards</b> — a large pool; you equip a <em>limited</em> number (slots unlock over time). Each is a passive modifier (damage, health, cash bonus, free upgrades…). Leveled by playing / spending duplicates.</li>
+      <li><b>Modules</b> — 4 slots (Cannon / Armor / Generator / Core). Each has a <em>rarity</em> (Common→Ancestral), a main effect + <em>rerollable substats</em>, leveled with module shards.</li>
+      <li><b>Lab</b> — time-gated permanent research.</li>
+    </ul>
+    <h4>Social / competitive</h4>
+    <ul><li><b>Weekly tournaments</b> in bracketed <b>leagues</b> (Wood→Champion) with <b>promotion / demotion</b>; placement pays Medals/Stones/Gems.</li>
+    <li>Daily missions, milestones, guilds.</li></ul>
+    <p class="small"><b>Steal:</b> Cards+Modules as the persistent power layer; weekly promo/demo leagues.</p>
+  </div>
+  <div class="card">
+    <h3>⚔️ We Are Warriors</h3>
+    <p class="small">Casual army-merge battler; aggressive live-ops.</p>
+    <h4>Events</h4>
+    <ul>
+      <li><b>Rotating themed events</b> (a new era/army), each with its own <b>event currency</b> and a <b>reward track</b> (battle-pass shape, with a free lane).</li>
+      <li>Time-limited → fresh goals every cycle; event <b>leaderboards</b>; cosmetic + power payouts.</li>
+      <li>Daily login, spin wheel, ad-boosts.</li>
+    </ul>
+    <p class="small"><b>Steal:</b> a rotating event with a reward track is the cheapest way to keep a small game feeling alive between content drops.</p>
+  </div>
+  <div class="card">
+    <h3>🎴 StS / Hades <span class="tag ok">our DNA</span></h3>
+    <p class="small">The roguelite spine the game already has.</p>
+    <ul>
+      <li>High-variance runs; “every choice could go a different way.”</li>
+      <li>Permanent <b>meta-unlocks</b> that persist past a failed run (we already do this: Shards drip on death, boss-clears unlock spells/characters).</li>
+      <li>Run-draft build (relics / ball-cores / paddle-mods / spell picks) — already shipped.</li>
+    </ul>
+    <p class="small"><b>Keep:</b> the run is the fun. Cards/Modules must <em>feed</em> runs, not replace the moment-to-moment.</p>
+  </div>
+</div>
+
+<div class="note">
+  <b>The transfer thesis.</b> Our game is a deterministic, server-replayable brick-breaker RPG. That makes it a near-perfect fit for <em>The Tower’s</em> persistent Cards+Modules grind <b>and</b> for a <em>provably fair</em> competitive ladder — two things idle games fake with trust and we can do for real (see §3). <em>We Are Warriors</em> events are the low-cost retention glue on top.
+</div>
+
+<!-- ============================================================= -->
+<h2 id="today"><span class="n">2</span>Where our economy is today — and why it needs a remake</h2>
+<p>Across the campaign + dungeon work we accreted <b>six</b> currencies. Several overlap, which is exactly the “dangling currency with no sink” trap the design doc already warns about.</p>
+
+<table>
+  <thead><tr><th>Currency</th><th>Scope</th><th>Source</th><th>Sink</th><th>Verdict</th></tr></thead>
+  <tbody>
+    <tr><td><b>Mana</b></td><td>in-run</td><td>regen + kills + perfect deflects</td><td>casting spells</td><td class="yes">Keep — core verb.</td></tr>
+    <tr><td><b>Gold</b></td><td>in-run</td><td>coins pickups</td><td>dungeon shop floors</td><td class="yes">Keep — clean soft currency.</td></tr>
+    <tr><td><b>Crystals</b></td><td>meta</td><td>per-kill drip + level clear + treasure</td><td>items meta-shop</td><td class="mid">Overlaps Campaign&nbsp;Gold.</td></tr>
+    <tr><td><b>Campaign&nbsp;Gold</b></td><td>meta</td><td>level clear (boss&gt;normal)</td><td>campaign shop nodes</td><td class="mid">Overlaps Crystals.</td></tr>
+    <tr><td><b>Shards</b></td><td>meta / prestige</td><td>drip on death</td><td>character &amp; ascension unlocks</td><td class="yes">Keep — prestige sink.</td></tr>
+    <tr><td><b>Skill Points</b></td><td>meta</td><td>level-ups</td><td>spell upgrades</td><td class="mid">Could fold into Cards.</td></tr>
+  </tbody>
+</table>
+
+<p>The remake target is a <b>clean triangle</b> + <b>chase currencies</b> for the new systems:</p>
+<div class="pill-row">
+  <span class="currency"><span class="dot" style="background:var(--gold)"></span>Gold — in-run soft (spend in run shops)</span>
+  <span class="currency"><span class="dot" style="background:var(--blue)"></span>Gems — meta soft (merge Crystals + Campaign Gold)</span>
+  <span class="currency"><span class="dot" style="background:var(--violet)"></span>Shards — prestige / premium (big unlocks)</span>
+</div>
+<div class="pill-row">
+  <span class="currency"><span class="dot" style="background:#ff9ecb"></span>Card Dust — level Cards</span>
+  <span class="currency"><span class="dot" style="background:#9fe6b0"></span>Module Cores — craft/level Modules</span>
+  <span class="currency"><span class="dot" style="background:var(--gold)"></span>Medals — league placement → league shop</span>
+  <span class="currency"><span class="dot" style="background:var(--warn)"></span>Event Tokens — per-event reward track</span>
+</div>
+<p class="small">Each proposal below adopts as much of this as its scope warrants. <b>Skill Points</b> stay or fold into Cards depending on proposal. The Crystals→Gems rename is already logged in <code>round-2-recommendations.md</code>.</p>
+
+<!-- ============================================================= -->
+<h2 id="spine"><span class="n">3</span>The shared spine — leaderboard, anti-cheat &amp; the season clock</h2>
+<p class="lead">This part is identical across all three proposals — it’s the technical contract, not a design fork. It’s where your “abstract the provider” and “shadow-ban impossible scores” requirements live.</p>
+
+<h3>3.1 · Our secret weapon: a deterministic sim = a <em>provably fair</em> ladder</h3>
+<div class="ok-note note">
+  <code>Arkanoid.Core</code> is a <b>pure, deterministic simulation</b> (same seed + same inputs ⇒ same result, by design). So a leaderboard score doesn’t have to be <em>trusted</em> — it can be <b>recomputed</b>. The client submits the <b>seed + the input log</b>, never just a number. The server re-runs the headless sim and derives the <em>canonical</em> score. A score that can’t be reproduced is, literally, impossible → it never enters the board and the account is flagged. Most mobile leaderboards can only guess at cheating; we can <em>prove</em> it.
+</div>
+
+<div class="flow">SUBMIT-SCORE  (server-authoritative, runs on the leaderboard backend)
+┌──────────────────────────────────────────────────────────────────────┐
+│ client ──▶ { playerId, seasonId, seed, inputLog[], clientScore,        │
+│             buildHash, clientVersion, nonce, signature }               │
+│                                                                        │
+│ 1. AUTH        verify signed session token + nonce (no replays)        │
+│ 2. REPLAY      serverScore = Arkanoid.Core.simulate(seed, inputLog)    │
+│ 3. MATCH       |serverScore − clientScore| ≤ ε ?      else → FLAG      │
+│ 4. PLAUSIBLE   apm, duration, score/tick, inputs-in-bounds  → FLAG     │
+│ 5. INTEGRITY   buildHash ∈ allowed, version ≥ min            → REJECT  │
+│ 6. WRITE       upsert max(serverScore) into league bucket             │
+│ 7. SHADOW      if player.shadowed → write to private shadow board only │
+└──────────────────────────────────────────────────────────────────────┘</div>
+
+<h3>3.2 · Provider abstraction (Firebase today, anything tomorrow)</h3>
+<p>The game and server depend only on an interface. Firebase/Firestore is one adapter; you can swap to Supabase, PlayFab, a self-hosted Postgres, or Nakama without touching game logic or UI.</p>
+<pre><span class="c">// One port, many adapters. The game never imports "firebase".</span>
+<span class="k">interface</span> <span class="t">LeaderboardProvider</span> {
+  submitScore(s: <span class="t">ScoreSubmission</span>): <span class="t">Promise</span>&lt;<span class="t">SubmitResult</span>&gt;;   <span class="c">// returns {accepted, rank, shadowed?}</span>
+  getLeague(seasonId, leagueId, page): <span class="t">Promise</span>&lt;<span class="t">LeaderboardPage</span>&gt;;
+  getMyStanding(playerId, seasonId): <span class="t">Promise</span>&lt;<span class="t">Standing</span>&gt;;
+  getSeason(): <span class="t">Promise</span>&lt;<span class="t">SeasonInfo</span>&gt;;            <span class="c">// id, startsAt, endsAt, resetCadence</span>
+  subscribeLeague(seasonId, leagueId, cb): <span class="t">Unsub</span>;   <span class="c">// optional live updates</span>
+}
+
+<span class="c">// Adapters implement the port. Selected by config, never referenced directly.</span>
+<span class="k">class</span> <span class="t">FirebaseLeaderboard</span>  <span class="k">implements</span> <span class="t">LeaderboardProvider</span> { <span class="c">/* Firestore + Cloud Functions */</span> }
+<span class="k">class</span> <span class="t">InMemoryLeaderboard</span>  <span class="k">implements</span> <span class="t">LeaderboardProvider</span> { <span class="c">/* tests / offline dev */</span> }
+<span class="k">class</span> <span class="t">SelfHostedLeaderboard</span> <span class="k">implements</span> <span class="t">LeaderboardProvider</span> { <span class="c">/* our .NET server + Postgres */</span> }</pre>
+<div class="note">
+  <b>Where verification runs matters.</b> Score <em>replay</em> must run on trusted server code — a Firebase <b>Cloud Function</b> that hosts the same <code>Arkanoid.Core</code> rules (compiled to WASM, or a tiny .NET re-impl), <b>or</b> our existing <code>Arkanoid.Server</code> acting as the verifier with Firestore as pure storage. Firestore alone can’t replay; keep the trust boundary on code you control.
+</div>
+
+<h3>3.3 · Shadow-ban — quiet, not loud</h3>
+<table>
+  <thead><tr><th>Layer</th><th>Catches</th><th>Response</th></tr></thead>
+  <tbody>
+    <tr><td><b>Replay mismatch</b></td><td>fabricated / edited scores (the “impossible” case)</td><td>hard reject + strike</td></tr>
+    <tr><td><b>Plausibility bounds</b></td><td>tampered inputs (impossible APM, sub-second clears, score/tick over physical max)</td><td>strike</td></tr>
+    <tr><td><b>Statistical outlier</b></td><td>scores N σ above the seed’s distribution</td><td>review queue</td></tr>
+    <tr><td><b>Rate / nonce</b></td><td>replay &amp; spam submissions</td><td>throttle</td></tr>
+  </tbody>
+</table>
+<p>Past a strike threshold the account is <b>shadowed</b>: it still sees a normal-looking board, but it is served <em>only its own</em> entries (or a fake cohort), and its scores never reach real players. <b>No error, no message</b> — cheaters who get told they’re caught just iterate. Shadow state is a server flag, reversible, appealable, and logged.</p>
+<div class="note danger"><b>Rule:</b> never surface anti-cheat feedback to the client. The honest player never sees any of this; the cheater never learns what tripped.</div>
+
+<h3>3.4 · The season clock (drives <em>every</em> reset)</h3>
+<p>One authority defines time, so dailies, the league ladder, and events never drift apart:</p>
+<div class="flow">SEASON (the unit of competition)         e.g. 4 weeks
+  └─ WEEK (league promo/demo + daily-pool reset)
+       └─ DAY (daily missions reset 00:00 UTC)
+EVENT (overlaps a season, own cadence)   e.g. 7–10 days, themed
+</div>
+<p class="small">Server-owned timestamps only (never the device clock — that’s a free exploit). The client reads <code>getSeason()</code> for <code>endsAt</code> and renders countdowns.</p>
+
+<!-- ============================================================= -->
+<h2 id="cards"><span class="n">4</span>Cards &amp; Modules — the Tower-style power core</h2>
+<p class="lead">The persistent power layer the economy is being remade around. Shown once here; each proposal dials how much of it ships.</p>
+
+<div class="grid g2">
+  <div class="card">
+    <h3>🎴 Cards <span class="tag violet">passive, equip-limited</span></h3>
+    <p>A growing pool of passive modifiers. You <b>equip a few</b> (slots unlock with account level / Shards). Tension = which few.</p>
+    <h4>Examples (reuse our content vocabulary)</h4>
+    <ul>
+      <li><b>Molten Core</b> — +X% ball damage.</li>
+      <li><b>Tithe</b> — +X% Gold from coins.</li>
+      <li><b>Overflow</b> — start each level with +Y mana.</li>
+      <li><b>Second Wind</b> — first lethal hit per level is survived.</li>
+      <li><b>Draftsman</b> — +1 spell-pick option in dungeons.</li>
+    </ul>
+    <h4>Progression</h4>
+    <ul><li>Drop as duplicates → <b>Card Dust</b> levels them (bigger %).</li>
+    <li>Sources: dailies, league chests, event track, dungeon clears.</li></ul>
+    <p class="small">Optionally <b>absorbs Skill Points</b>: “spell level” becomes a per-spell card. Fewer systems, one upgrade verb.</p>
+  </div>
+  <div class="card">
+    <h3>🧩 Modules <span class="tag gold">slotted, rarity, reroll</span></h3>
+    <p>Four slots mapped onto our four build axes — so Modules deepen the identity we already have:</p>
+    <table>
+      <tbody>
+      <tr><td>🔵 <b>Core</b></td><td>ball-core effects (heavy, split, ember…)</td></tr>
+      <tr><td>🟫 <b>Paddle</b></td><td>paddle mods (wide, grip, cannons…)</td></tr>
+      <tr><td>🔴 <b>Ball</b></td><td>damage / speed / crit substats</td></tr>
+      <tr><td>🟣 <b>Field</b></td><td>economy / mana / drop-rate substats</td></tr>
+      </tbody>
+    </table>
+    <h4>Rarity &amp; substats</h4>
+    <ul>
+      <li>Common → Rare → Epic → Legendary → Mythic. Epic+ carries a <b>unique named effect</b>.</li>
+      <li><b>Rerollable substats</b> using <b>Module Cores</b> — the long-tail chase.</li>
+    </ul>
+    <p class="small">Run-draft relics/cores/mods stay the <em>per-run</em> layer; Modules are the <em>permanent</em> layer that makes runs start stronger.</p>
+  </div>
+</div>
+<div class="note"><b>Fidelity guardrail (per CLAUDE.md):</b> Cards/Modules are <em>content</em>. Each must be judged by how it plays vs the design docs, tested for its real trigger/identity, and not collapsed into a generic “+stat” bag. The slots map onto axes that already exist so nothing bespoke gets flattened.</div>
+
+<!-- ============================================================= -->
+<h2 id="p1"><span class="n">5</span>Proposal A — “Weekly Trial Ladder”</h2>
+<div class="prop-head">
+  <span class="tag ok">Lean</span><span class="tag">No new game mode</span><span class="tag">Cards only (Modules later)</span>
+  <span class="scopeb tag gold">Build: ~2–3 wks</span>
+</div>
+<p class="lead">Smallest cohesive system that delivers all three pillars. Best first step; everything else can grow out of it.</p>
+
+<div class="grid g3" style="margin-top:8px">
+  <div class="card"><h4>Leaderboard</h4>
+    <p><b>Weekly Trial:</b> one <em>shared seed</em> per week — everyone plays the same hand-tuned gauntlet level. Score = blocks + depth + time bonus. Same seed ⇒ fair, and replay-verifiable (§3.1).</p>
+    <p><b>Leagues:</b> 30-player cohorts, Wood→Champion. Top 7 promote, bottom 7 demote each week.</p>
+  </div>
+  <div class="card"><h4>Rewards</h4>
+    <p><b>Dailies:</b> 3/day from a rotating pool that <em>reshuffles weekly</em> (“destroy 250 blocks”, “clear a dungeon floor”, “land 15 perfect deflects”). Pay Gems + Card Dust; a 7-day streak chest.</p>
+    <p><b>League chests</b> by placement (Gems, Card Dust, rare Card).</p>
+    <p><b>Event:</b> one monthly biome-modifier event w/ a short token track.</p>
+  </div>
+  <div class="card"><h4>Economy</h4>
+    <p>Merge Crystals + Campaign Gold → <b>Gems</b>. Keep Gold, Shards. Add <b>Cards + Card Dust</b> as the meta-power layer. Modules deferred.</p>
+    <p>Skill Points: keep as-is (don’t fold yet).</p>
+  </div>
+</div>
+<p class="small"><b>Why it’s “integral”:</b> dailies mint Card Dust → Cards make Trial runs stronger → Trial placement mints more Dust + Gems → Gems buy the run-shop edge. One loop, three pillars.</p>
+
+<!-- ============================================================= -->
+<h2 id="p2"><span class="n">6</span>Proposal B — “The Spire”</h2>
+<div class="prop-head">
+  <span class="tag violet">Full Tower core</span><span class="tag warn">New endless mode</span><span class="tag">Cards + Modules</span>
+  <span class="scopeb tag gold">Build: ~6–9 wks</span>
+</div>
+<p class="lead">The most faithful to your <em>The Tower</em> reference, and the highest retention ceiling. Biggest economy remake.</p>
+
+<div class="grid g3" style="margin-top:8px">
+  <div class="card"><h4>New mode: Endless Gauntlet</h4>
+    <p>Infinite escalating waves of blocks + periodic bosses; push for a high score. This becomes the <b>main grind loop</b> and the <b>primary leaderboard</b> — exactly The Tower’s endless run.</p>
+    <p>Per-run Gold + Module Cores scale with depth.</p>
+  </div>
+  <div class="card"><h4>Leaderboard &amp; leagues</h4>
+    <p>Weekly <b>tournament</b> on Endless score, full bracket ladder, promo/demo. Placement → <b>Medals</b> → a <b>league shop</b> (exclusive Modules + cosmetics).</p>
+    <p>Replay-verified (§3); Endless is deterministic per weekly seed.</p>
+  </div>
+  <div class="card"><h4>Economy (full)</h4>
+    <p>Gold (run) · Gems (meta) · Shards (prestige) · <b>Card Dust</b> · <b>Module Cores</b> · <b>Medals</b> · <b>Event Tokens</b>. Skill Points <b>fold into Cards</b>.</p>
+    <p>Cards (equip 5, slots grow) + <b>Modules</b> (4 slots, rarity, reroll) fully in.</p>
+  </div>
+</div>
+<p class="small"><b>Why it’s “integral”:</b> Endless feeds Module Cores → Modules + Cards raise your Endless ceiling → weekly tournament converts skill into Medals → league shop sells the next Module. Dailies + events are the off-ramps that keep non-tournament days rewarding.</p>
+<div class="note"><b>Cost flag:</b> Endless needs new pacing/balance + boss cadence, and the economy remake touches every meta screen. Highest payoff, highest risk — do it <em>after</em> A proves the loop.</div>
+
+<!-- ============================================================= -->
+<h2 id="p3"><span class="n">7</span>Proposal C — “Season Festival”</h2>
+<div class="prop-head">
+  <span class="tag">Live-ops first</span><span class="tag warn">We-Are-Warriors-leaning</span><span class="tag">Cards + Modules-as-chase</span>
+  <span class="scopeb tag gold">Build: ~4–6 wks</span>
+</div>
+<p class="lead">Wraps the <em>existing</em> campaign + dungeon in a recurring <b>Season</b>: a themed event, a reward track, and a ladder — content-ops as the engine.</p>
+
+<div class="grid g3" style="margin-top:8px">
+  <div class="card"><h4>The Season (4–6 wks)</h4>
+    <p>Each season = a theme (e.g., “Inferno Rising”) with a <b>reward track</b> (free lane + optional premium lane), seasonal modifiers across all modes, and a season-end payout.</p>
+  </div>
+  <div class="card"><h4>Leaderboard</h4>
+    <p><b>Season Score</b> = cumulative points earned across campaign + dungeon + event play, snapshotted into <b>weekly league</b> standings (promo/demo). Rewards both grinders and skilled players.</p>
+  </div>
+  <div class="card"><h4>Rewards &amp; economy</h4>
+    <p>Daily board feeds <b>Season Tokens</b> → the track. Cards (moderate) as meta; <b>Modules are the season-track chase items</b>. Currencies: Gold / Gems / Shards + Season Tokens.</p>
+  </div>
+</div>
+<p class="small"><b>Why it’s “integral”:</b> everything you already do earns Season Tokens → the track dispenses Cards/Modules/Gems → those power the next season’s ladder. The leaderboard isn’t a side mode; it’s a readout of the season you’re already playing.</p>
+<div class="note"><b>Cost flag:</b> low <em>code</em> risk, high <em>content-ops</em> commitment — a festival that stops rotating dies loudly. Best if you can commit to a content cadence.</div>
+
+<!-- ============================================================= -->
+<h2 id="compare"><span class="n">8</span>Side-by-side</h2>
+<table>
+  <thead><tr><th>Axis</th><th>A · Weekly Trial</th><th>B · The Spire</th><th>C · Season Festival</th></tr></thead>
+  <tbody>
+    <tr><td>New game mode</td><td class="no">none</td><td class="mid">Endless Gauntlet</td><td class="no">none (modifiers only)</td></tr>
+    <tr><td>Leaderboard source</td><td>shared weekly seed</td><td>endless score</td><td>cumulative season score</td></tr>
+    <tr><td>Leagues (promo/demo)</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes (weekly snapshot)</td></tr>
+    <tr><td>Cards</td><td class="yes">yes</td><td class="yes">yes (+ absorb Skill Pts)</td><td class="yes">yes (moderate)</td></tr>
+    <tr><td>Modules</td><td class="no">deferred</td><td class="yes">full (rarity+reroll)</td><td class="mid">as track chase</td></tr>
+    <tr><td>Economy remake depth</td><td class="mid">light (merge to Gems)</td><td class="bad" style="color:var(--warn)">deep</td><td class="mid">moderate</td></tr>
+    <tr><td>Events</td><td>monthly, light</td><td>monthly, feeds cards</td><td class="yes">core (the season)</td></tr>
+    <tr><td>Anti-cheat strength</td><td class="yes">max (shared seed)</td><td class="yes">max (seed/run)</td><td class="mid">good (mixed sources)</td></tr>
+    <tr><td>Retention ceiling</td><td class="mid">medium</td><td class="yes">high</td><td class="yes">high (if content kept up)</td></tr>
+    <tr><td>Build effort</td><td class="yes">~2–3 wks</td><td class="warn" style="color:var(--warn)">~6–9 wks</td><td class="mid">~4–6 wks</td></tr>
+    <tr><td>Ongoing ops</td><td class="yes">low</td><td class="mid">medium</td><td class="warn" style="color:var(--warn)">high</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================= -->
+<h2 id="rec"><span class="n">9</span>Recommendation — a phased path, not a pick</h2>
+<div class="rec">
+  <p class="lead" style="margin-top:0">Ship <b>A</b> first; let it grow into <b>B</b>. Treat <b>C</b> as the content-ops wrapper you switch on once the systems exist.</p>
+  <ol>
+    <li><b>Phase 1 — Proposal A.</b> Build the shared spine (§3): provider-abstracted leaderboard + replay-verification + shadow-ban + season clock. Add the Weekly Trial, leagues, dailies, and <b>Cards</b>. Merge Crystals+Campaign Gold → Gems. This is the smallest thing that exercises all three pillars and de-risks the hard part (anti-cheat) early.</li>
+    <li><b>Phase 2 — grow into B.</b> Add <b>Modules</b> (the four axes already exist), then the <b>Endless Gauntlet</b> as a second leaderboard. Fold Skill Points into Cards. The ladder you already built just points at a new score source.</li>
+    <li><b>Phase 3 — switch on C.</b> Once Cards/Modules/events exist, wrap them in recurring <b>Seasons</b> with a reward track. Now your live-ops calendar drives everything with no new core code.</li>
+  </ol>
+  <p class="small" style="margin-bottom:0">Each phase is independently shippable and player-visible. The economy is remade <em>incrementally</em> (Gems merge first, chase currencies as their systems land) rather than in one risky cutover.</p>
+</div>
+
+<!-- ============================================================= -->
+<h2 id="decide"><span class="n">10</span>Decisions I need from you</h2>
+<p>These genuinely change the build — they’re yours, not defaults I should pick:</p>
+<div class="grid g2">
+  <div class="card">
+    <h4>① Monetization model</h4>
+    <p>Drives whether <b>Shards/Gems</b> have an IAP faucet, whether there’s a premium event lane, and how generous Card/Module drop rates are.</p>
+    <p class="small">F2P + IAP + ads (Tower-style) · F2P ads-only / cosmetic · Premium / all-earnable.</p>
+  </div>
+  <div class="card">
+    <h4>② Endless mode — yes or later?</h4>
+    <p>The single biggest scope lever. It’s the heart of B and the strongest leaderboard. A &amp; C work without it.</p>
+  </div>
+  <div class="card">
+    <h4>③ Cards/Modules: replace or layer?</h4>
+    <p>Do Modules <b>unify</b> with run-draft relics/cores/mods, or sit as a separate permanent layer above them? (I lean: layer — keep the run draft intact.)</p>
+  </div>
+  <div class="card">
+    <h4>④ Leaderboard score source</h4>
+    <p>Shared weekly seed (fairest, my pick) vs personal-best vs cumulative season score. Affects how “skill vs grind” the ladder feels.</p>
+  </div>
+</div>
+<p class="small" style="margin-top:18px">Backend reality check: the replay-verifier needs trusted server code running the sim rules. We already have <code>Arkanoid.Server</code> + <code>Arkanoid.Core</code> — using it as the verifier (with Firebase as storage) is likely cheaper and stronger than re-implementing the sim in a Cloud Function. Worth confirming before we commit to a pure-Firebase backend.</p>
+
+<hr class="sep" />
+<p class="small" style="text-align:center; color:var(--faint)">Draft proposals · 2026-06-13 · pick a direction (or a phase) and I’ll turn it into a spec + implementation plan.</p>
+
+</div>
+</body>
+</html>

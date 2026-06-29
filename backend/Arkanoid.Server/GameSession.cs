@@ -32,34 +32,51 @@ public sealed class GameSession
     private readonly BonusCatalog? _bonusCatalog;
     private readonly IProfileStore _profileStore;
     private readonly IDungeonStore _dungeonStore;
-    private readonly ItemCatalog? _itemCatalog;
+    private readonly MissionCatalog? _missionCatalog;
+    private readonly Arkanoid.Core.Meta.ILeaderboardStore? _leaderboard;
+    private readonly SeasonCatalog? _seasonCatalog;
+    private readonly EventCatalog? _eventCatalog;
     private readonly string _pid;
+    private readonly string _mode;
+    private bool _dailyRecorded;
+    private bool _trialSubmitted;
     private readonly ConcurrentQueue<InputCommand> _inbox = new();
     private GameInstance _game = null!;
     private FileSimLog _log = null!;
     private long _tick;
     private List<BlockDto>? _cachedBlocks;
     private int _lastBlockVersion = -1;
-    private bool _winGranted;
 
     public GameSession(WebSocket socket, string configRoot,
         BlockCatalog blockCatalog, RelicCatalog relicCatalog, BonusCatalog? bonusCatalog,
-        IProfileStore profileStore, IDungeonStore dungeonStore, ItemCatalog? itemCatalog = null, string pid = "default")
+        IProfileStore profileStore, IDungeonStore dungeonStore,
+        string pid = "default", MissionCatalog? missionCatalog = null,
+        Arkanoid.Core.Meta.ILeaderboardStore? leaderboard = null, string mode = "",
+        SeasonCatalog? seasonCatalog = null, EventCatalog? eventCatalog = null)
     {
         _socket = socket; _configRoot = configRoot;
         _blockCatalog = blockCatalog; _relicCatalog = relicCatalog; _bonusCatalog = bonusCatalog;
         _profileStore = profileStore; _dungeonStore = dungeonStore;
-        _itemCatalog = itemCatalog; _pid = pid;
+        _pid = pid; _missionCatalog = missionCatalog;
+        _leaderboard = leaderboard; _mode = mode;
+        _seasonCatalog = seasonCatalog; _eventCatalog = eventCatalog;
     }
 
     public async Task RunAsync(string levelId, int seed, string runId, CancellationToken ct)
     {
+        // Weekly Trial (plan §A.3): the server owns the level + seed so everyone faces the same gauntlet.
+        if (_mode == "trial")
+        {
+            int weekId = SeasonClock.Default.WeekId(DateTimeOffset.UtcNow);
+            levelId = Arkanoid.Core.Meta.TrialConfig.LevelId;
+            seed    = Arkanoid.Core.Meta.TrialConfig.SeedFor(weekId);
+        }
         var path = System.IO.Path.Combine(FileSimLog.DirFor(), $"{runId}.jsonl");
         _log = new FileSimLog(path, verbose: _verboseLogs);
         _log.Note("conn", "session open", $"run={runId} level={levelId} seed={seed}");
         _game = GameInitializer.Build(levelId, seed, _configRoot,
             _blockCatalog, _relicCatalog, _bonusCatalog,
-            _itemCatalog, _profileStore, _dungeonStore, _pid, _log);
+            _profileStore, _dungeonStore, _pid, _log);
         var recv = ReceiveLoop(ct);
 
         // Fixed-timestep loop: Stopwatch drives simulation so wall-clock drift (send latency,
@@ -80,10 +97,24 @@ public sealed class GameSession
                 _tick++;
                 nextTickAt += dt;
             }
-            if (_game.Phase == GamePhase.Won && !_winGranted)
+            // NOTE: the win reward is granted by the CLIENT's context-aware flow on Won
+            // (campaign → POST /complete, dungeon floor → POST /dungeon/floor-cleared).
+            // A blanket server grant here double-granted with the client (so /complete saw
+            // the level already complete and the reward overlay showed "+0"), and wrongly
+            // granted campaign completion for dungeon floors. So the server does not grant.
+            // Daily-mission progress (plan §A.2): recorded server-authoritatively at battle end, once.
+            if (!_dailyRecorded && _missionCatalog != null
+                && (_game.Phase == GamePhase.Won || _game.Phase == GamePhase.Lost))
             {
-                _winGranted = true;
-                GrantWinReward(levelId);
+                _dailyRecorded = true;
+                RecordDaily(_game.Phase == GamePhase.Won);
+            }
+            // Weekly Trial: submit the server-authoritative score once, at battle end (plan §A.3).
+            if (!_trialSubmitted && _mode == "trial" && _leaderboard != null
+                && (_game.Phase == GamePhase.Won || _game.Phase == GamePhase.Lost))
+            {
+                _trialSubmitted = true;
+                SubmitTrial(_game.Phase == GamePhase.Won);
             }
             var blockCache = _game.BlockVersion == _lastBlockVersion ? _cachedBlocks : null;
             var snap  = Snapshot.From(_game, _tick, blockCache);
@@ -102,22 +133,45 @@ public sealed class GameSession
         try { await recv; } catch { /* socket closed */ }
     }
 
-    private void GrantWinReward(string levelId)
+    /// <summary>Record daily-mission progress + season/event tokens from the just-finished battle
+    /// (server-authoritative stats), and update the season/event leaderboards (plan §A.2/§C).</summary>
+    private void RecordDaily(bool won)
     {
         try
         {
+            var now = DateTimeOffset.UtcNow;
+            int dayId = SeasonClock.Default.DayId(now), weekId = SeasonClock.Default.WeekId(now), seasonId = SeasonClock.Default.SeasonId(now);
             var profile = _profileStore.Load(_pid);
-            var treasureBonus = _itemCatalog != null
-                ? ItemEffects.ComputeTreasureBonus(profile.EquippedItems, profile.OwnedItems, _itemCatalog)
-                : 0;
-            Rewards.GrantLevelCompletion(profile, levelId, ProgressionConfig.Default, treasureBonus);
+            DailyService.Record(profile, _missionCatalog!, dayId, weekId, "blocks_destroyed", _game.BricksDestroyedThisLevel);
+            DailyService.Record(profile, _missionCatalog!, dayId, weekId, "battles_played", 1);
+            if (won) DailyService.Record(profile, _missionCatalog!, dayId, weekId, "levels_won", 1);
+
+            // Season Festival (plan §C): every battle feeds the season track + the live event.
+            if (_seasonCatalog != null) SeasonService.AddTokens(profile, seasonId, _seasonCatalog.TokensPerBattle);
+            var ev = _eventCatalog?.Current(weekId);
+            if (ev != null) EventService.AddTokens(profile, weekId, ev.TokenPerBattle);
+
             _profileStore.Save(profile, _pid);
-            _log.Note("meta", "win-reward granted", $"pid={_pid} level={levelId}");
+
+            if (_leaderboard != null && _seasonCatalog != null)
+                LeaderboardService.Submit(_leaderboard, _pid, _pid, SeasonService.BoardId, seasonId.ToString(), SeasonService.SeasonScore(profile));
+            if (_leaderboard != null && ev != null)
+                LeaderboardService.Submit(_leaderboard, _pid, _pid, EventService.BoardPrefix + ev.Id, weekId.ToString(), profile.Season.EventTokens);
         }
-        catch (Exception ex)
+        catch { /* daily tracking must never break a battle */ }
+    }
+
+    /// <summary>Submit the Weekly Trial score (server-authoritative; the client never sends a number).</summary>
+    private void SubmitTrial(bool won)
+    {
+        try
         {
-            _log.Note("meta", "win-reward failed", ex.Message);
+            int weekId = SeasonClock.Default.WeekId(DateTimeOffset.UtcNow);
+            int score = Arkanoid.Core.Meta.TrialConfig.Score(_game.BricksDestroyedThisLevel, won);
+            Arkanoid.Core.Meta.LeaderboardService.Submit(
+                _leaderboard!, _pid, _pid, Arkanoid.Core.Meta.TrialConfig.BoardId, weekId.ToString(), score);
         }
+        catch { /* leaderboard must never break a battle */ }
     }
 
     private void Apply(InputCommand c)
@@ -131,11 +185,13 @@ public sealed class GameSession
             case InputKind.CastFireball: _game.CastFireball(); break;
             case InputKind.CastFireWall: _game.CastFireWall(); break;
             case InputKind.CastTurret: _game.CastTurret(); break;
+            case InputKind.CastPhoenix: _game.CastPhoenix(); break;
             case InputKind.CastSlot:  _game.CastSlot(c.Slot);  break;
             case InputKind.Cheat:
                 if (_cheatsEnabled) _game.ApplyCheat(c.Cheat ?? "", c.Value);
                 else _log.Note("cheat", "denied", c.Cheat ?? "");
                 break;
+            case InputKind.RiftPick: _game.PickRiftModifier(c.RiftMod ?? ""); break;
         }
     }
 

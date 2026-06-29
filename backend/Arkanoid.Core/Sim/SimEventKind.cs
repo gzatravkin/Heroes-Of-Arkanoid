@@ -8,6 +8,9 @@ public enum SimEventKind
 {
     // ── Spells ──────────────────────────────────────────────────────────────
     SpellCast,
+    /// <summary>A cast that could not take effect (e.g. Fire Wall while the ball rests on the paddle,
+    /// or Conflagration on an empty board) — drives a small "dud" cue so it's never a silent no-op.</summary>
+    SpellFizzle,
     Ignite,
     Burn,
     Decay,
@@ -23,6 +26,10 @@ public enum SimEventKind
     BlockDestroyed,
     Explosion,
     Deflect,
+    /// <summary>A critical hit (stat engine). Payload = the crit damage dealt.</summary>
+    Crit,
+    /// <summary>A perfect (centre-band) paddle deflect — the skill reward worth juicing.</summary>
+    PerfectDeflect,
     GhostPortal,
     Teleport,
     // ── Enemies ──────────────────────────────────────────────────────────────

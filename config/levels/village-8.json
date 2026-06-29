@@ -1,0 +1,35 @@
+{
+  "id": "village-8",
+  "biome": "village",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    "............",
+    "..1AAAAAA2..",
+    "..AABNNBAA..",
+    "..AABBBBAA..",
+    "..3AAAAAA4..",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "1": "village_corner_tl",
+    "2": "village_corner_tr",
+    "3": "village_corner_bl",
+    "4": "village_corner_br",
+    "A": "village_basic",
+    "B": "village_tough",
+    "N": "village_necromant"
+  }
+}

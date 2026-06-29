@@ -1,45 +1,16 @@
+using System.Linq;
 using Arkanoid.Core.Blocks;
 using Arkanoid.Core.Grid;
+using Arkanoid.Core.Math;
 using Arkanoid.Core.Net;
 using Arkanoid.Core.Relics;
 using Arkanoid.Core.Sim;
 using Xunit;
 
-/// <summary>Tests for the relic/synergy system. Each test uses a small helper level.</summary>
 public class RelicTests
 {
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    /// <summary>Make a GameInstance with one block of the given HP at (col=1, row=0).</summary>
-    private static GameInstance MakeWithBlock(int blockHp, SimConfig? cfg = null)
-    {
-        cfg ??= SimConfig.Default;
-        var catalog = BlockCatalog.FromJson(
-            $"{{\"types\":[{{\"id\":\"b\",\"biome\":\"test\",\"hp\":{blockHp},\"sprite\":\"s\",\"needToKill\":true}}]}}");
-        var level = LevelLoader.FromJson(
-            "{\"id\":\"t\",\"biome\":\"test\",\"cols\":3,\"rows\":3," +
-            "\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
-            catalog);
-        return new GameInstance(level, cfg, seed: 1);
-    }
-
-    /// <summary>Drive the ball into the block at (col=1, row=0) on the next tick.</summary>
-    private static void AimAtBlock(GameInstance g)
-    {
-        var blk = g.Level.Blocks[0];
-        var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-        // Place ball just below the block's bottom face, moving straight up.
-        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(
-            c.X,
-            c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
-        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
-    }
-
-    // -------------------------------------------------------------------------
-    // 1. RelicCatalog
-    // -------------------------------------------------------------------------
+    private static GameInstance MakeWithBlock(int blockHp, SimConfig? cfg = null) => K.OneBlock(blockHp, cfg);
+    private static void AimAtBlock(GameInstance g) => K.AimAt(g, g.Blocks[0]);
 
     [Fact]
     public void RelicCatalog_FromJson_LoadsAllFourRelics()
@@ -58,26 +29,23 @@ public class RelicTests
         Assert.True(catalog.TryGet("mana_battery", out _));
     }
 
-    // -------------------------------------------------------------------------
-    // 2. glass_cannon
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void GlassCannon_ReducesLivesByOne_AndAddsBallDamage()
     {
         var g = MakeWithBlock(blockHp: 5);
         g.Serve();
-        int livesBefore = g.Lives;   // 3 from SimConfig.Default
+        int livesBefore = g.Hp;   // 3 from SimConfig.Default
 
         g.AddRelic("glass_cannon");
-        Assert.Equal(livesBefore - 1, g.Lives);   // immediate -1 life
+        Assert.Equal(livesBefore - 1, g.Hp);   // immediate -1 life
 
         // HP-3 block hit: should remove BallDamage + GlassCannonDamageBonus = 1+1 = 2
-        var blk = g.Level.Blocks[0];
+        var blk = g.Blocks[0];
         int hpBefore = blk.Hp;        // 5
         AimAtBlock(g);
         g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(hpBefore - (SimConfig.Default.BallDamage + SimConfig.Default.GlassCannonDamageBonus), blk.Hp);
+        Assert.Equal(hpBefore - (SimConfig.Default.BallDamage + 1 /* GlassCannonDamageBonus */), blk.Hp);
     }
 
     [Fact]
@@ -87,12 +55,9 @@ public class RelicTests
         // Force lives to 1 by adding relic twice
         g.AddRelic("glass_cannon");
         g.AddRelic("glass_cannon"); // second add should still clamp at 1
-        Assert.True(g.Lives >= 1);
+        Assert.True(g.Hp >= 1);
     }
 
-    // -------------------------------------------------------------------------
-    // 3. flint_core
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void FlintCore_AddsDamage_OnlyToToughBlocks()
@@ -101,17 +66,17 @@ public class RelicTests
         var gTough = MakeWithBlock(blockHp: 3);
         gTough.Serve();
         gTough.AddRelic("flint_core");
-        var toughBlk = gTough.Level.Blocks[0];
+        var toughBlk = gTough.Blocks[0];
         AimAtBlock(gTough);
         gTough.Tick(SimConfig.Default.FixedDt);
-        int expectedTough = 3 - (SimConfig.Default.BallDamage + SimConfig.Default.FlintBonus); // 3 - 2 = 1
+        int expectedTough = 3 - (SimConfig.Default.BallDamage + 1 /* FlintBonus */); // 3 - 2 = 1
         Assert.Equal(expectedTough, toughBlk.Hp);
 
         // Weak block (MaxHp == 1 < FlintToughThreshold)
         var gWeak = MakeWithBlock(blockHp: 1);
         gWeak.Serve();
         gWeak.AddRelic("flint_core");
-        var weakBlk = gWeak.Level.Blocks[0];
+        var weakBlk = gWeak.Blocks[0];
         AimAtBlock(gWeak);
         gWeak.Tick(SimConfig.Default.FixedDt);
         // Block dies (hp 1 - BallDamage 1 = 0), NOT 1 - (1+1) = -1.
@@ -123,73 +88,55 @@ public class RelicTests
         var gWeak2 = MakeWithBlock(blockHp: 2);
         gWeak2.Serve();
         gWeak2.AddRelic("flint_core");
-        var weakBlk2 = gWeak2.Level.Blocks[0]; // MaxHp == 2 < 3 threshold
+        var weakBlk2 = gWeak2.Blocks[0]; // MaxHp == 2 < 3 threshold
         AimAtBlock(gWeak2);
         gWeak2.Tick(SimConfig.Default.FixedDt);
         Assert.Equal(2 - SimConfig.Default.BallDamage, weakBlk2.Hp); // 2-1=1, no flint bonus
     }
 
-    // -------------------------------------------------------------------------
-    // 4. pyroclasm
-    // -------------------------------------------------------------------------
 
     [Fact]
-    public void Pyroclasm_IncreasesFireSpreadChip()
+    public void Pyroclasm_SpreadsFireToDiagonalNeighbours()
     {
-        // Without pyroclasm: chip = 1
-        var gNormal = MakeWithBlock(blockHp: 4);
-        gNormal.Serve();
-        // Give ball ignite, aim at kill block to trigger SpreadFire
-        // Level: cols=3, rows=3, block at (1,0). We need a neighbor block.
-        // Use a wider level that has two blocks side-by-side.
-        var catalogPyro = BlockCatalog.FromJson(
-            "{\"types\":[{\"id\":\"b\",\"biome\":\"test\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}");
-        var levelPyro = LevelLoader.FromJson(
-            "{\"id\":\"t\",\"biome\":\"test\",\"cols\":3,\"rows\":3," +
-            "\"rows_data\":[\"AA.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
-            catalogPyro);
+        // Design: pyroclasm deepens fire — it spreads to DIAGONAL neighbours, which base
+        // ignite (cardinal-only) never reaches. Origin at (0,0); the only other block is the
+        // diagonal at (1,1), with no cardinal block between them.
+        const string blocks = "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+        const string level  = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3," +
+                             "\"rows_data\":[\"A..\",\".B.\",\"...\"],\"legend\":{\"A\":\"b\",\"B\":\"b\"}}";
 
-        // Without pyroclasm
-        var gPlain = new GameInstance(levelPyro, SimConfig.Default, seed: 1);
-        gPlain.Serve();
-        var originBlock = levelPyro.Blocks[0]; // (col=0,row=0)
-        var neighborBlock = levelPyro.Blocks[1]; // (col=1,row=0)
-        // Manually kill origin with ignite to trigger SpreadFire
-        gPlain.Balls[0].IgniteHitsLeft = 5;
-        var oc = gPlain.Level.Grid.CellCenter(originBlock.Col, originBlock.Row);
-        gPlain.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(
-            oc.X, oc.Y + SimConfig.Default.CellSize / 2 + gPlain.Balls[0].Radius + 1);
-        gPlain.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
-        int hpNeighborBefore = neighborBlock.Hp;
-        gPlain.Tick(SimConfig.Default.FixedDt);
-        // neighbor should have been chipped by 1
-        int plainChip = hpNeighborBefore - neighborBlock.Hp;
-        Assert.Equal(1, plainChip);
+        int DiagDamage(bool pyroclasm)
+        {
+            var cat = BlockCatalog.FromJson(blocks);
+            var lvl = LevelLoader.FromJson(level, cat);
+            var g = new GameInstance(lvl, SimConfig.Default, seed: 1);
+            g.SetCharacter("fire_mage");
+            g.Serve();
+            if (pyroclasm) g.AddRelic("pyroclasm");
+            var origin = g.Blocks.First(b => b.Col == 0 && b.Row == 0);
+            var diag   = g.Blocks.First(b => b.Col == 1 && b.Row == 1);
 
-        // With pyroclasm — fresh level instance needed (blocks are mutated in place)
-        var levelPyro2 = LevelLoader.FromJson(
-            "{\"id\":\"t\",\"biome\":\"test\",\"cols\":3,\"rows\":3," +
-            "\"rows_data\":[\"AA.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
-            catalogPyro);
-        var gPyro = new GameInstance(levelPyro2, SimConfig.Default, seed: 1);
-        gPyro.Serve();
-        gPyro.AddRelic("pyroclasm");
-        var originPyro   = levelPyro2.Blocks[0];
-        var neighborPyro = levelPyro2.Blocks[1];
-        gPyro.Balls[0].IgniteHitsLeft = 5;
-        var oc2 = gPyro.Level.Grid.CellCenter(originPyro.Col, originPyro.Row);
-        gPyro.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(
-            oc2.X, oc2.Y + SimConfig.Default.CellSize / 2 + gPyro.Balls[0].Radius + 1);
-        gPyro.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
-        int hpNB2 = neighborPyro.Hp;
-        gPyro.Tick(SimConfig.Default.FixedDt);
-        int pyroChip = hpNB2 - neighborPyro.Hp;
-        Assert.Equal(SimConfig.Default.PyroclasmChip, pyroChip);
+            // Ignite + kill the origin block.
+            g.Balls[0].IgniteHitsLeft = 5;
+            var oc = g.Level.Grid.CellCenter(origin.Col, origin.Row);
+            g.Balls[0].Pos = new Vec2(oc.X, oc.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
+            g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
+            g.Tick(SimConfig.Default.FixedDt);
+
+            // Park the ball just above the paddle (clear of blocks) and let the fire burn.
+            g.Balls[0].Pos = new Vec2(g.Paddle.Center.X,
+                g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Balls[0].Radius - 2);
+            g.Balls[0].Vel = new Vec2(0, 0);
+            // Slow fire creep (2026-06-16): run past the spread interval so the chain can reach the diagonal.
+            for (int i = 0; i < (int)(4.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+            return (diag.BurnRemaining > 0 || diag.Dead) ? 1 : 0; // did the diagonal catch fire?
+        }
+
+        Assert.Equal(0, DiagDamage(pyroclasm: false));     // base ignite never spreads diagonally
+        Assert.True(DiagDamage(pyroclasm: true) > 0,       // pyroclasm does
+            "pyroclasm should spread fire to diagonal neighbours");
     }
 
-    // -------------------------------------------------------------------------
-    // 5. mana_battery
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void ManaBattery_RaisesMaxManaAndRegen()
@@ -198,7 +145,7 @@ public class RelicTests
         Assert.Equal(SimConfig.Default.ManaMax, g.ManaMaxValue);
 
         g.AddRelic("mana_battery");
-        Assert.Equal(SimConfig.Default.ManaMax + SimConfig.Default.ManaBatteryBonus, g.ManaMaxValue);
+        Assert.Equal(SimConfig.Default.ManaMax + 50 /* ManaBatteryBonus */, g.ManaMaxValue);
 
         // Verify mana can now exceed the old Config.ManaMax ceiling
         g.Serve();
@@ -232,9 +179,6 @@ public class RelicTests
             $"battery {gBattery.ManaValue:F1} should exceed baseline {gBase.ManaValue:F1}");
     }
 
-    // -------------------------------------------------------------------------
-    // 6. addRelic cheat
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void AddRelicCheat_ParsesIdAndActivates()
@@ -256,9 +200,6 @@ public class RelicTests
         Assert.False(g.HasRelic("pyroclasm"));
     }
 
-    // -------------------------------------------------------------------------
-    // 7. Snapshot includes active relics
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void Snapshot_IncludesActiveRelics()
@@ -282,9 +223,6 @@ public class RelicTests
         Assert.True(snap.ManaMax > SimConfig.Default.ManaMax);
     }
 
-    // -------------------------------------------------------------------------
-    // 8. No-relic baseline unchanged
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void NoRelics_BehaviorUnchanged()
@@ -292,7 +230,7 @@ public class RelicTests
         var g = MakeWithBlock(blockHp: 3);
         g.Serve();
         // No relics added — expect BallDamage only (1)
-        var blk = g.Level.Blocks[0];
+        var blk = g.Blocks[0];
         AimAtBlock(g);
         g.Tick(SimConfig.Default.FixedDt);
         Assert.Equal(3 - SimConfig.Default.BallDamage, blk.Hp); // 3-1=2

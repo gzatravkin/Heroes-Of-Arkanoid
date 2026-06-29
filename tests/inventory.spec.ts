@@ -18,7 +18,7 @@ test("inventory page loads with item grid and equipped slots", async ({ page }) 
   // Equipped row present
   await expect(page.locator("#inv-equipped-row")).toBeVisible({ timeout: 5000 });
   // Item grid has cards
-  const cards = page.locator("#inv-grid .inv-card");
+  const cards = page.locator("#inv-grid .card");
   await expect(cards.first()).toBeVisible({ timeout: 8000 });
   const count = await cards.count();
   expect(count).toBeGreaterThanOrEqual(10); // at least 10 items in catalog
@@ -44,14 +44,14 @@ test("buy an item raises owned tier and deducts crystals", async ({ page }) => {
   }
 
   await page.goto("/?scene=inventory");
-  await expect(page.locator("#inv-grid .inv-card").first()).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#inv-grid .card").first()).toBeVisible({ timeout: 8000 });
 
   // Record initial crystal count
   const crystalsBefore = await page.locator("#inv-crystals").textContent();
   const numBefore = parseInt((crystalsBefore ?? "0").replace(/[^0-9]/g, ""), 10);
 
   // Find first Buy button that's not disabled
-  const buyBtn = page.locator(".inv-buy-btn:not([disabled])").first();
+  const buyBtn = page.locator(".buy-btn:not([disabled])").first();
   await expect(buyBtn).toBeVisible({ timeout: 5000 });
   const costText = await buyBtn.getAttribute("data-cost");
   const cost = parseInt(costText ?? "0", 10);
@@ -71,7 +71,7 @@ test("buy an item raises owned tier and deducts crystals", async ({ page }) => {
   );
 
   // The card should now show a tier badge T1
-  const tierBadge = page.locator(".inv-tier-badge").first();
+  const tierBadge = page.locator(".tier-badge").first();
   await expect(tierBadge).toBeVisible({ timeout: 3000 });
   await expect(tierBadge).toContainText("T1");
 });
@@ -95,26 +95,26 @@ test("equip and unequip an item updates equipped slots", async ({ page }) => {
   await page.request.post(`${API}/item/buy?id=${affordable.id}`);
 
   await page.goto("/?scene=inventory");
-  await expect(page.locator("#inv-grid .inv-card").first()).toBeVisible({ timeout: 8000 });
+  await expect(page.locator("#inv-grid .card").first()).toBeVisible({ timeout: 8000 });
 
   // Find and click Equip on the now-owned item
-  const card = page.locator(`.inv-card[data-item-id="${affordable.id}"]`);
+  const card = page.locator(`.card[data-item-id="${affordable.id}"]`);
   await expect(card).toBeVisible({ timeout: 5000 });
-  const equipBtn = card.locator(".inv-equip-btn");
+  const equipBtn = card.locator(".equip-btn");
   await expect(equipBtn).toBeVisible({ timeout: 3000 });
   expect(await equipBtn.getAttribute("data-equipped")).toBe("false");
 
   await equipBtn.click();
 
   // Equipped row should now show the item
-  await expect(page.locator("#inv-equipped-row .inv-equip-slot-filled")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator("#inv-equipped-row .equip-slot-filled")).toBeVisible({ timeout: 5000 });
 
   // Button should now say Unequip
-  await expect(card.locator(".inv-equip-btn")).toHaveAttribute("data-equipped", "true", { timeout: 3000 });
+  await expect(card.locator(".equip-btn")).toHaveAttribute("data-equipped", "true", { timeout: 3000 });
 
   // Unequip
-  await card.locator(".inv-equip-btn").click();
-  await expect(page.locator("#inv-equipped-row .inv-equip-slot-filled")).toHaveCount(0, { timeout: 5000 });
+  await card.locator(".equip-btn").click();
+  await expect(page.locator("#inv-equipped-row .equip-slot-filled")).toHaveCount(0, { timeout: 5000 });
 });
 
 test("menu has Inventory button linking to ?scene=inventory", async ({ page }) => {
@@ -195,4 +195,35 @@ test("POST /item/equip caps at 3 slots", async ({ page }) => {
   const d4 = await r4.json();
   expect(d4.ok).toBe(false);
   expect(d4.equipped.length).toBe(3);
+});
+
+test("equip button shows 'Slots Full' (disabled) when 3 are already equipped", async ({ page }) => {
+  // Same setup as above: own 4 items, equip 3 — then check the UI on the 4th.
+  const allLevels = [
+    "hell-1", "hell-teleport", "caverns-1", "village-1", "village-ghost", "heaven-1",
+    "level-a", "level-b", "level-c", "level-d", "level-e", "level-f",
+    "level-g", "level-h", "level-i", "level-j", "level-k", "level-l",
+    "level-m", "level-n", "level-o", "level-p", "level-q", "level-r",
+  ];
+  for (const lvl of allLevels) await page.request.post(`${API}/complete?level=${lvl}`);
+
+  const data = await (await page.request.get(`${API}/items`)).json();
+  const four = (data.items as any[]).slice().sort((a: any, b: any) => a.cost[0] - b.cost[0]).slice(0, 4);
+  for (const it of four) await page.request.post(`${API}/item/buy?id=${it.id}`);
+  for (let i = 0; i < 3; i++) await page.request.post(`${API}/item/equip?id=${four[i].id}`);
+
+  await page.goto("/?scene=inventory");
+  const fourthCard = page.locator(`.card[data-item-id="${four[3].id}"]`);
+  await expect(fourthCard).toBeVisible({ timeout: 8000 });
+
+  // The owned-but-unequipped 4th item must not be a silent dead-click.
+  const equipBtn = fourthCard.locator(".equip-btn");
+  await expect(equipBtn).toBeDisabled();
+  await expect(equipBtn).toHaveText("Slots Full");
+
+  // After unequipping one, that same button becomes a live "Equip" again.
+  const equippedCard = page.locator(`.card[data-item-id="${four[0].id}"]`);
+  await equippedCard.locator(".equip-btn").click();
+  await expect(equipBtn).toBeEnabled({ timeout: 5000 });
+  await expect(equipBtn).toHaveText("Equip");
 });

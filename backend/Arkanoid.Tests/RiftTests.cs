@@ -27,35 +27,33 @@ public class RiftTests
     """);
 
     [Fact]
-    public void GeneratedRift_PicksBiomeFloors_EndsAtTheBoss_DeterministicBySeed()
+    public void GeneratedRift_IsA10LevelBiomeGauntlet_BossLast_NoRelic_DeterministicBySeed()
     {
         var catalog = Catalog();
-        var rift = RiftService.GenerateRift("hell-2", seed: 7, catalog, Campaign());
+        var rift = RiftService.GenerateRift("hell-2", seed: 7, catalog, Campaign(), tier: 0, riftLevels: 10);
         Assert.NotNull(rift);
         Assert.Equal("rift-hell", rift!.Id);
 
-        // 3-5 floors total, all from the hell biome, boss last (and only last).
-        Assert.InRange(rift.Floors.Count, 3, 5);
+        // §7: a 10-level escalating biome gauntlet, all hell, boss the FINAL (jackpot) level.
+        Assert.Equal(10, rift.Floors.Count);
         Assert.All(rift.Floors, f => Assert.StartsWith("hell", f));
         Assert.Equal("hell-boss", rift.Floors[^1]);
-        Assert.DoesNotContain("hell-boss", rift.Floors.GetRange(0, rift.Floors.Count - 1));
-
-        // Registered for /dungeon/start lookup.
-        Assert.Equal(rift.Floors, catalog.Get("rift-hell").Floors);
+        Assert.True(rift.IsRift);
+        Assert.Equal("", rift.RewardRelic);   // §7: no permanent relic draft
+        Assert.Equal(0, rift.RewardCrystals);  // §7: reward is depth-scaled, not a fixed grant
 
         // Deterministic by seed.
-        var again = RiftService.GenerateRift("hell-2", seed: 7, Catalog(), Campaign());
+        var again = RiftService.GenerateRift("hell-2", seed: 7, Catalog(), Campaign(), tier: 0, riftLevels: 10);
         Assert.Equal(rift.Floors, again!.Floors);
-        Assert.Equal(rift.RewardRelic, again.RewardRelic);
     }
 
     [Fact]
-    public void Roll_WithCampaign_OffersTheGeneratedRift()
+    public void Roll_WithCampaign_OffersThe10LevelRift()
     {
         var rift = RiftService.Roll("force", 0.0, "hell-2", seed: 3, Catalog(), Campaign());
         Assert.NotNull(rift);
         Assert.Equal("rift-hell", rift!.DungeonId);
-        Assert.InRange(rift.Floors, 3, 5);
+        Assert.Equal(10, rift.Floors);
     }
 
     [Fact]

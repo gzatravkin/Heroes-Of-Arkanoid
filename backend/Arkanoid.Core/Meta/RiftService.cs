@@ -10,6 +10,12 @@ public sealed class RiftOffer
     public string DungeonId { get; set; } = "";
     public string Name      { get; set; } = "";
     public int    Floors    { get; set; }
+    /// <summary>
+    /// Populated for generated rifts; null for catalog lookups. Not serialized — used
+    /// server-side to save the def to the per-profile pending slot instead of the global catalog.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DungeonDef? Def  { get; set; }
 }
 
 /// <summary>
@@ -29,7 +35,7 @@ public static class RiftService
     public const int MaxAscension = 5;
 
     public static RiftOffer? Roll(string? mode, double riftChance, string clearedLevelId, int seed,
-        DungeonCatalog catalog, CampaignCatalog? campaign = null, int ascension = 0)
+        DungeonCatalog catalog, CampaignCatalog? campaign = null, int ascension = 0, int riftLevels = 10)
     {
         bool open;
         if (mode == "force") open = true;
@@ -38,21 +44,24 @@ public static class RiftService
 
         if (!open) return null;
 
-        // With a campaign catalog the rift is GENERATED from the biome's matrix levels
-        // (docs/12 inheritance: every floor carries its biome's identity row);
-        // without one (legacy callers/tests) fall back to the fixed dungeons.
+        // With a campaign catalog the rift is GENERATED as a §7 biome gauntlet (10 escalating biome levels,
+        // one HP/ball pool, §8 modifier picks); without one (legacy callers/tests) fall back to fixed dungeons.
         var tier = System.Math.Clamp(ascension, 0, MaxAscension);
         var def = campaign != null
-            ? GenerateRift(clearedLevelId, seed, catalog, campaign, tier)
+            ? GenerateRift(clearedLevelId, seed, catalog, campaign, tier, riftLevels)
             : PickDungeon(clearedLevelId, catalog);
         if (def is null) return null;
 
+        // For generated rifts, attach the full def so the endpoint can store it per-profile
+        // instead of registering into the shared catalog (avoids concurrent-player race).
+        var isGenerated = campaign != null;
         return new RiftOffer
         {
             Opened    = true,
             DungeonId = def.Id,
             Name      = def.Name,
             Floors    = def.Floors.Count,
+            Def       = isGenerated ? def : null,
         };
     }
 
@@ -78,7 +87,7 @@ public static class RiftService
     /// at the biome's boss. Registered into the catalog under a per-biome id.
     /// </summary>
     public static DungeonDef? GenerateRift(string clearedLevelId, int seed,
-        DungeonCatalog catalog, CampaignCatalog campaign, int tier = 0)
+        DungeonCatalog catalog, CampaignCatalog campaign, int tier = 0, int riftLevels = 10)
     {
         var biome = clearedLevelId.Split('-')[0];
         if (!BiomeFlavor.TryGetValue(biome, out var flavor)) return PickDungeon(clearedLevelId, catalog);
@@ -88,32 +97,25 @@ public static class RiftService
             .Select(n => n.Id).ToList();
         if (pool.Count < MinRunFloors) return PickDungeon(clearedLevelId, catalog);
 
-        var rng    = new Rng(seed);
-        int floors = MinRunFloors + rng.Range(ExtraRunFloorRange);
-        floors     = System.Math.Min(floors, pool.Count);
-
+        // §7: a long ESCALATING gauntlet of up to `riftLevels` biome levels, ending at the biome boss. The
+        // biome usually has fewer than 10 unique levels, so we cycle the shuffled pool to fill the depth.
+        var rng = new Rng(seed);
+        int total = System.Math.Max(MinRunFloors, riftLevels);
+        var shuffled = pool.OrderBy(_ => rng.Range(int.MaxValue)).ToList();
         var picks = new List<string>();
-        var avail = new List<string>(pool);
-        for (int i = 0; i < floors; i++)
-        {
-            int idx = rng.Range(avail.Count);
-            picks.Add(avail[idx]);
-            avail.RemoveAt(idx);
-        }
-        picks.Add($"{biome}-boss"); // every rift ends at the biome's boss
+        for (int i = 0; i < total - 1; i++) picks.Add(shuffled[i % shuffled.Count]);
+        picks.Add($"{biome}-boss"); // the final level is always the biome's boss (the depth-10 jackpot)
 
-        var def = new DungeonDef
+        return new DungeonDef
         {
             Id             = $"rift-{biome}",
-            // Ascended rifts wear their tier on the banner: "Ember Depths +2".
             Name           = tier > 0 ? $"{flavor.Name} +{tier}" : flavor.Name,
             Floors         = picks,
-            RewardRelic    = flavor.Relics[rng.Range(flavor.Relics.Length)],
-            RewardCrystals = RiftRewardCrystals + RiftRewardCrystals * tier,
+            RewardRelic    = "",            // §7: rifts no longer grant a permanent relic draft
+            RewardCrystals = 0,             // §7: reward is DEPTH-scaled (RiftModifierService.DepthCrystals)
             Tier           = tier,
+            IsRift         = true,
         };
-        catalog.Register(def);
-        return def;
     }
 
     /// <summary>

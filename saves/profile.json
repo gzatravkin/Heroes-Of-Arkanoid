@@ -1,0 +1,305 @@
+{
+  "level": 16,
+  "exp": 304,
+  "sparks": 7673,
+  "souls": 15483,
+  "insight": 8180,
+  "currencyMigrated": true,
+  "points": 0,
+  "crystals": 0,
+  "shards": 0,
+  "campaignGold": 0,
+  "cardDust": 0,
+  "moduleCores": 0,
+  "medals": 2,
+  "eventTokens": 0,
+  "seasonTokens": 0,
+  "ownedCards": {
+    "headhunter": {
+      "level": 2,
+      "copies": 0
+    },
+    "opening_gambit": {
+      "level": 2,
+      "copies": 1
+    },
+    "ricochet": {
+      "level": 2,
+      "copies": 4
+    },
+    "channeling": {
+      "level": 1,
+      "copies": 1
+    },
+    "redline": {
+      "level": 2,
+      "copies": 0
+    },
+    "sleight_of_hand": {
+      "level": 2,
+      "copies": 2
+    },
+    "erosion": {
+      "level": 2,
+      "copies": 2
+    },
+    "bank_shot": {
+      "level": 2,
+      "copies": 1
+    },
+    "dead_center": {
+      "level": 1,
+      "copies": 1
+    },
+    "cleanup_crew": {
+      "level": 2,
+      "copies": 2
+    },
+    "avalanche": {
+      "level": 1,
+      "copies": 2
+    },
+    "martyrs_brand": {
+      "level": 1,
+      "copies": 0
+    },
+    "metronome": {
+      "level": 1,
+      "copies": 1
+    },
+    "overkill": {
+      "level": 1,
+      "copies": 2
+    },
+    "domino": {
+      "level": 1,
+      "copies": 0
+    },
+    "hot_hand": {
+      "level": 1,
+      "copies": 0
+    },
+    "keystone": {
+      "level": 1,
+      "copies": 1
+    },
+    "executioners_edge": {
+      "level": 1,
+      "copies": 0
+    }
+  },
+  "equippedCards": [
+    "hot_hand",
+    "ricochet",
+    "cleanup_crew"
+  ],
+  "cardSlots": 3,
+  "daily": {
+    "dayId": 162,
+    "weekId": 23,
+    "missions": [
+      {
+        "id": "win_1",
+        "progress": 1,
+        "claimed": false
+      },
+      {
+        "id": "win_2",
+        "progress": 2,
+        "claimed": false
+      },
+      {
+        "id": "demo_m",
+        "progress": 250,
+        "claimed": false
+      }
+    ],
+    "streak": 0,
+    "lastClaimDay": -1,
+    "streakClaimedDay": -1
+  },
+  "prestigeTier": 0,
+  "ownedModules": {
+    "tidal_core": 1,
+    "gravity_well": 1,
+    "twin_soul_core": 2,
+    "brittle_glass": 1,
+    "pressure_cooker": 1,
+    "riposte_paddle": 2,
+    "drumhead_paddle": 3,
+    "fission_core": 2,
+    "hollow_ball": 2,
+    "gyro_paddle": 1,
+    "toll_roads": 1
+  },
+  "moduleCopies": {
+    "toll_roads": 2,
+    "gyro_paddle": 1,
+    "tidal_core": 2,
+    "fission_core": 5,
+    "gravity_well": 2,
+    "hollow_ball": 4,
+    "riposte_paddle": 2,
+    "drumhead_paddle": 1
+  },
+  "equippedModules": {},
+  "season": {
+    "seasonId": 5,
+    "tokens": 450,
+    "claimedTiers": [],
+    "eventWeek": 23,
+    "eventTokens": 540,
+    "eventClaimed": false
+  },
+  "completedLevels": [
+    "hell-1",
+    "hell-2",
+    "hell-3",
+    "hell-boss",
+    "caverns-1",
+    "caverns-2",
+    "caverns-3",
+    "caverns-4",
+    "caverns-5",
+    "caverns-6",
+    "caverns-7",
+    "caverns-8",
+    "caverns-9",
+    "caverns-10",
+    "caverns-11",
+    "caverns-boss",
+    "village-1",
+    "village-2",
+    "village-3",
+    "village-4",
+    "village-5",
+    "village-6",
+    "village-7",
+    "village-8",
+    "village-9",
+    "village-10",
+    "village-11",
+    "village-boss",
+    "heaven-1",
+    "hell-4",
+    "hell-5",
+    "hell-6",
+    "hell-7",
+    "hell-8",
+    "hell-9",
+    "hell-10",
+    "hell-11",
+    "heaven-2",
+    "heaven-3",
+    "heaven-4",
+    "heaven-5",
+    "heaven-6",
+    "heaven-7",
+    "heaven-8",
+    "heaven-9",
+    "heaven-10",
+    "heaven-11",
+    "heaven-boss"
+  ],
+  "unlockedRelics": [],
+  "spellLevels": {
+    "ignite": 1,
+    "fireball": 2,
+    "firewall": 1,
+    "turret": 2,
+    "skeleton": 1,
+    "slowtime": 1,
+    "duplicate": 1,
+    "rocket": 1,
+    "penetration": 1,
+    "recall": 1,
+    "phoenix": 1,
+    "spear": 1,
+    "lastday": 1,
+    "radiation": 1,
+    "drain": 1,
+    "magnet": 1,
+    "mage": 1,
+    "golem": 1,
+    "lightning": 1,
+    "decay": 1,
+    "raise": 1,
+    "overload": 1,
+    "tesla": 1,
+    "ashfall": 1,
+    "shield": 1,
+    "holy_echo": 1,
+    "reckoning": 1
+  },
+  "spellCopies": {
+    "drain": 0,
+    "magnet": 1,
+    "penetration": 1,
+    "spear": 1,
+    "skeleton": 2,
+    "recall": 1,
+    "mage": 1,
+    "phoenix": 2,
+    "turret": 1,
+    "golem": 0
+  },
+  "equippedSpells": {
+    "fire_mage": [
+      "ignite",
+      "fireball",
+      "firewall",
+      "golem"
+    ],
+    "engineer": [
+      "overload",
+      "magnet",
+      "radiation",
+      "tesla"
+    ]
+  },
+  "unlockedSpellSlots": 5,
+  "heroProgress": {
+    "fire_mage": {
+      "level": 15,
+      "exp": 20,
+      "stars": 0,
+      "ascendPips": 0
+    },
+    "paladin": {
+      "level": 1,
+      "exp": 0,
+      "stars": 1,
+      "ascendPips": 2
+    }
+  },
+  "heroTokens": {},
+  "heroPool": [
+    "paladin",
+    "engineer",
+    "necromancer",
+    "fire_mage"
+  ],
+  "masteries": {
+    "sharpshooter": 5,
+    "brutality": 1
+  },
+  "selectedCharacter": "fire_mage",
+  "unlockedCharacters": [
+    "fire_mage",
+    "paladin",
+    "necromancer",
+    "engineer"
+  ],
+  "achievements": [
+    "first_win",
+    "clear_biome_hell",
+    "win_fire_mage",
+    "clear_biome_dungeon",
+    "beat_boss",
+    "clear_biome_village",
+    "clear_biome_heaven"
+  ],
+  "riftAscension": 1,
+  "tutorialSeen": false,
+  "pendingRift": null
+}

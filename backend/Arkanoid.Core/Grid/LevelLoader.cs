@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Arkanoid.Core.Blocks;
@@ -58,15 +59,17 @@ public static class LevelLoader
                 blocks.Add(new Block {
                     Id = nextId++, Col = col, Row = row,
                     Hp = t.Hp, MaxHp = t.Hp, TypeId = t.Id,
+                    ForcedDropEffect = t.ForcedDropEffect,
                     Sprite = t.Sprite, NeedToKill = t.NeedToKill,
                     Indestructible = t.Indestructible,
                     BallPhases = t.BallPhases,
+                    IsUnion = t.Union,
                     Behavior = t.Behavior,
                     TeleportColor = t.TeleportColor,
                     EmitInterval = t.EmitInterval, EmitAim = t.EmitAim,
                     ExplodeRadius = t.ExplodeRadius,
                     MissileKind = t.MissileKind,
-                    FlipX = t.FlipX, FlipY = t.FlipY
+                    FlipX = t.FlipX, FlipY = t.FlipY, Elite = t.Elite
                 });
             }
         }
@@ -75,4 +78,36 @@ public static class LevelLoader
 
     public static LevelData FromFile(string path, BlockCatalog catalog, SimConfig? cfg = null)
         => FromJson(File.ReadAllText(path), catalog, cfg);
+
+    /// <summary>
+    /// Continuous Rift (2026-06-16): stack a list of floor level JSONs into ONE multi-floor LevelData —
+    /// floor 0's blocks are the starting layout, the rest become <see cref="LevelData.ExtraFloors"/>, so
+    /// the sim slides the next floor in (same GameInstance) when the player clears a floor. Block ids are
+    /// assigned from a single shared counter so they stay unique across all floors. Grid/biome/id come
+    /// from floor 0 (all rift floors share the biome + 12×18 board).
+    /// </summary>
+    public static LevelData FromRiftFloors(IEnumerable<string> floorJsons, BlockCatalog catalog, SimConfig? cfg = null)
+    {
+        cfg ??= SimConfig.Default;
+        var jsons = floorJsons.ToList();
+        if (jsons.Count == 0) throw new InvalidOperationException("rift has no floors");
+        var first = JsonSerializer.Deserialize<Dto>(jsons[0]) ?? throw new InvalidOperationException("bad rift floor json");
+        var grid = new Grid(first.Cols, first.Rows, cfg.CellSize, cfg.BoardOriginX, cfg.BoardOriginY);
+        int nextId = 1;
+        var floors = new List<List<Block>>();
+        foreach (var j in jsons)
+        {
+            var dto = JsonSerializer.Deserialize<Dto>(j) ?? throw new InvalidOperationException("bad rift floor json");
+            floors.Add(BuildBlocks(dto.RowsData, dto.Legend, catalog, ref nextId));
+        }
+        return new LevelData
+        {
+            Id = first.Id, Biome = first.Biome, Grid = grid,
+            Blocks = floors[0],
+            ExtraFloors = floors.Skip(1).ToList(),
+        };
+    }
+
+    public static LevelData FromRiftFloorFiles(IEnumerable<string> paths, BlockCatalog catalog, SimConfig? cfg = null)
+        => FromRiftFloors(paths.Select(File.ReadAllText), catalog, cfg);
 }

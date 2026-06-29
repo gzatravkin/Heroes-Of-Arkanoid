@@ -13,7 +13,7 @@ internal static class CauldronSystem
         foreach (var blk in g.Blocks)
         {
             if (blk.Dead || !blk.Cauldron) continue;
-            var siphon = System.Math.Min(g.ManaValue, g.Config.CauldronSiphonPerSec * dt);
+            var siphon = System.Math.Min(g.ManaValue, g.Config.Enemies.CauldronSiphonPerSec * dt);
             if (siphon <= 0) continue;
             g.ManaValue -= siphon;
             blk.StoredMana += siphon;

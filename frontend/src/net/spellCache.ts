@@ -39,7 +39,7 @@ export async function preloadSpells(): Promise<void> {
   if (_loaded) return;
   try {
     const data = await metaApi.getCharacters();
-    const all = [...data.characters.flatMap(ch => ch.spells ?? []), ...(data.neutralSpells ?? [])];
+    const all = [...data.characters.flatMap((ch: any) => ch.spells ?? []), ...(data.neutralSpells ?? [])];
     for (const sp of all) {
       if (!_names.has(sp.id)) {
         _names.set(sp.id, sp.name);

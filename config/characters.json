@@ -4,12 +4,15 @@
     "name": "Fire Mage",
     "passive": "Ignited kills spread fire to neighbors.",
     "icon": "FireHeroBall",
+    "signature": "ignite",
+    "starting": ["ignite", "fireball", "phoenix"],
     "spells": [
-      { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall",                               "manaCost": 0  },
-      { "id": "fireball", "name": "Fireball", "icon": "FireBallIco",                                "manaCost": 25 },
-      { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco",                                 "manaCost": 35 },
-      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco",                              "manaCost": 25 },
-      { "id": "phoenix",  "name": "Phoenix",  "icon": "firemage/spell_phonex/ChosePhoenixLargeIco", "manaCost": 30 }
+      { "id": "ignite",   "name": "Ignite",   "icon": "FireHeroBall",                               "manaCost": 25, "desc": "Imbue: your next deflects set blocks alight, burning them over time. Fire spreads to neighbors." },
+      { "id": "fireball", "name": "Conflagration", "icon": "FireBallIco",                            "manaCost": 60, "desc": "Detonate every burning block at once in a chain of fire — ignite the board first, then blow it all up." },
+      { "id": "firewall", "name": "Fire Wall","icon": "FireWallIco",                                 "manaCost": 80, "desc": "Enchant the ball — its next block hit erupts into a wall of fire that spreads across the surrounding blocks, burning them over time." },
+      { "id": "turret",   "name": "Turret",   "icon": "FireTurretIco",                              "manaCost": 30, "desc": "Mount a turret on the paddle that fires a bolt each time you catch the ball." },
+      { "id": "phoenix",  "name": "Phoenix",  "icon": "firemage/spell_phonex/ChosePhoenixIco", "manaCost": 70, "desc": "Summon a phoenix that orbits the ball, scorching the blocks it sweeps past." },
+      { "id": "ashfall",  "name": "Ashfall",  "icon": "FireWallIco",                                "manaCost": 40, "desc": "For a few seconds, every burning block you destroy rains a vertical ember down its column, scorching the blocks below." }
     ]
   },
   {
@@ -17,12 +20,16 @@
     "name": "Paladin",
     "passive": "Once per level, a lost ball is saved.",
     "icon": "HPFull",
+    "signature": "shield",
+    "starting": ["shield", "spear", "holy_echo"],
     "spells": [
-      { "id": "shield",      "name": "Shield",      "icon": "paladin/spell_passiveshield/SpellShieldLargeIco",  "manaCost": 20 },
-      { "id": "spear",       "name": "Spear",       "icon": "paladin/spell_spear/SpearLargeLargeIco",           "manaCost": 15 },
-      { "id": "duplicate",   "name": "Duplicate",   "icon": "paladin/spell_duplication/SplitLargeIco",          "manaCost": 25 },
-      { "id": "penetration", "name": "Penetration", "icon": "paladin/spell_penteration/MightyStrikeLargeIco",   "manaCost": 20 },
-      { "id": "lastday",     "name": "Last Day",    "icon": "paladin/spell_lastday/LastJudgmentLargeIco",        "manaCost": 35 }
+      { "id": "shield",      "name": "Shield",      "icon": "paladin/spell_passiveshield/ChoseSpellShieldIco",  "manaCost": 25, "desc": "Conjure a barrier that reflects enemy bullets back up as your own bolts, turning their fire against the blocks." },
+      { "id": "spear",       "name": "Spear", "icon": "paladin/spell_spear/ChoseSpearIco",               "manaCost": 15, "desc": "Hurl a spear of light that pierces straight through a column of blocks, damaging each one it passes." },
+      { "id": "holy_echo",   "name": "Holy Echo",   "icon": "paladin/spell_duplication/ChoseSplitIco",          "manaCost": 40, "desc": "Summon a temporary holy echo of your ball — lasts 8 seconds, deals reduced damage, and carries none of your ball's imbues." },
+      { "id": "duplicate",   "name": "Duplicate",   "icon": "paladin/spell_duplication/ChoseSplitIco",          "manaCost": 40, "desc": "Split the ball into an extra copy for more board coverage." },
+      { "id": "penetration", "name": "Penetration", "icon": "paladin/spell_penteration/ChoseMightyStrikeIco",   "manaCost": 25, "desc": "Imbue: your next hits punch straight through blocks without bouncing." },
+      { "id": "lastday",     "name": "Last Day",    "icon": "paladin/spell_lastday/ChoseLustJudgmentIco",        "manaCost": 80, "desc": "Call down judgment, smiting the column where your ball strikes the ceiling." },
+      { "id": "reckoning",   "name": "Reckoning",   "icon": "paladin/spell_lastday/ChoseLustJudgmentIco",        "manaCost": 35, "desc": "Arm a vengeance meter: every point of HP an enemy takes from you charges it, and when it fills it smites the board with judgment pillars." }
     ]
   },
   {
@@ -30,12 +37,15 @@
     "name": "Engineer",
     "passive": "Mana regenerates faster.",
     "icon": "FireTurretIco",
+    "signature": "overload",
+    "starting": ["overload", "magnet", "radiation"],
     "spells": [
-      { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/LightingLargeIco",       "manaCost": 20 },
-      { "id": "rocket",    "name": "Rocket",    "icon": "engineer/spell_rocket/RocketLargeIco",           "manaCost": 25 },
-      { "id": "radiation", "name": "Radiation", "icon": "engineer/spell_raditation/RadiationLargeIco",    "manaCost": 30 },
-      { "id": "magnet",    "name": "Magnet",    "icon": "engineer/spell_magnet/MagnetLargeIco",           "manaCost": 20 },
-      { "id": "overload",  "name": "Overload",  "icon": "dungeon/GrateBomb",                              "manaCost": 25 }
+      { "id": "lightning", "name": "Lightning", "icon": "engineer/spell_lighting/ChoseLightingIco",       "manaCost": 25, "desc": "Strike a block with lightning that chains to several nearby blocks." },
+      { "id": "rocket",    "name": "Rocket", "icon": "engineer/spell_rocket/ChoseRocketIco",                 "manaCost": 30, "desc": "Launch a homing rocket that seeks the nearest block and detonates, blasting it and everything around it." },
+      { "id": "radiation", "name": "Containment Field", "icon": "engineer/spell_raditation/ChoseRadiationIco", "manaCost": 45, "desc": "Project a field that suppresses enemy emitters caught inside it and melts the blocks within over time." },
+      { "id": "magnet",    "name": "Magnet",    "icon": "engineer/spell_magnet/ChoseMagnetIco",           "manaCost": 20, "desc": "Magnetize the ball, steering it toward blocks for a few seconds." },
+      { "id": "overload",  "name": "Overload",  "icon": "dungeon/GrateBomb",                              "manaCost": 35, "desc": "Plant a bomb-block that chain-detonates the blocks around it." },
+      { "id": "tesla",     "name": "Tesla Grid","icon": "engineer/spell_lighting/ChoseLightingIco",        "manaCost": 80, "desc": "Electrify the side walls: bounce off both and a horizontal lightning curtain arcs across the board, frying everything in its band." }
     ]
   },
   {
@@ -43,12 +53,20 @@
     "name": "Necromancer",
     "passive": "Killing blocks grants extra mana (souls).",
     "icon": "MPFull",
+    "signature": "raise",
+    "starting": ["raise", "decay", "golem"],
     "spells": [
-      { "id": "decay",    "name": "Decay",        "icon": "necromancer/spell_passiveshield/SpellShieldLargeIco",  "manaCost": 0  },
-      { "id": "skeleton", "name": "Skeleton",     "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon",     "manaCost": 25 },
-      { "id": "drain",    "name": "Drain",        "icon": "necromancer/spell_lastday/LastJudgmentLargeIco",       "manaCost": 20 },
-      { "id": "golem",    "name": "Bone Golem",   "icon": "necromancer/spell_lastday/BoneGolem",                  "manaCost": 30 },
-      { "id": "mage",     "name": "Skeletal Mage","icon": "necromancer/spell_duplication/RiseSkeletalMageLargeIcon", "manaCost": 25 }
+      { "id": "decay",    "name": "Rot & Collapse","icon": "necromancer/spell_passiveshield/ChoseSpellShieldIco",  "manaCost": 15, "desc": "Imbue: your next deflects ROT blocks — permanently lowering their max HP — and when a rotted block dies the blocks above it collapse down into the gap." },
+      { "id": "skeleton", "name": "Bonewalker",   "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon",     "manaCost": 40, "desc": "Summon a skeletal minion that walks the rooftops of the block field, meleeing whatever block it stands on as it strides across the top." },
+      { "id": "drain",    "name": "Drain",        "icon": "necromancer/spell_lastday/ChoseLustJudgmentIco",       "manaCost": 20, "desc": "For a time, each block you kill drains extra mana (souls) to you." },
+      { "id": "golem",    "name": "Bone Golem",   "icon": "necromancer/spell_lastday/BoneGolem",                  "manaCost": 70, "desc": "Summon a bone golem bodyguard that rises from the paddle and climbs a column, bulldozing its blocks while bodying enemy fire that would reach you — until it is soaked through." },
+      { "id": "mage",     "name": "Lich's Gaze", "icon": "necromancer/spell_duplication/RiseSkeletalMageLargeIcon", "manaCost": 45, "desc": "Plant a slow lighthouse beam at the paddle that sweeps the board, cursing every block it crosses — cursed blocks take bonus damage from your ball." },
+      { "id": "raise",    "name": "Raise",        "icon": "necromancer/spell_skeleton/RiseSkeletonLargeIcon",     "manaCost": 35, "desc": "Summon a friendly skeleton helper-ball that bounces and breaks blocks alongside yours." }
     ]
   }
-]}
+],
+  "neutralSpells": [
+    { "id": "recall",   "name": "Recall",    "icon": "engineer/spell_magnet/ChoseMagnetIco", "manaCost": 15, "desc": "Steers your balls back toward the paddle for a few seconds — a save when one is about to drop." },
+    { "id": "slowtime", "name": "Slow Time", "icon": "", "manaCost": 20, "desc": "Slows every ball for a few seconds, making tricky bounces easy to read and aim." }
+  ]
+}

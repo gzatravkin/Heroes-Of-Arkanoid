@@ -16,10 +16,26 @@ internal static class StalactiteSystem
         {
             if (blk.Dead || !blk.Stalactite) continue;
             var bc = g.Level.Grid.CellCenter(blk.Col, blk.Row);
+
+            // Already armed (shaking): count down the telegraph, then detach.
+            if (blk.StalArmTimer >= 0)
+            {
+                blk.StalArmTimer -= dt;
+                if (blk.StalArmTimer <= 0) Drop(g, blk, bc);
+                else g.MarkBlocksDirty(); // keep the shaking flag live in the snapshot
+                continue;
+            }
+
+            // Trigger: a ball passes beneath this column → start the shake telegraph (don't drop instantly).
             bool ballBeneath = g.Balls.Any(b => b.Alive
                 && System.Math.Abs(b.Pos.X - bc.X) < g.Config.CellSize
                 && b.Pos.Y > bc.Y);
-            if (ballBeneath) Drop(g, blk, bc);
+            if (ballBeneath)
+            {
+                blk.StalArmTimer = g.Config.Enemies.StalactiteArmDelay;
+                g.MarkBlocksDirty();
+                g.RaiseEvent(SimEventKind.Stalactite, bc.X, bc.Y); // arm cue
+            }
         }
     }
 
@@ -38,7 +54,6 @@ internal static class StalactiteSystem
             Behavior = HazardBehavior.Stalactite,
         });
         g.RaiseEvent(SimEventKind.Stalactite, origin.X, origin.Y);
-        g._log.Log(g.TickCount, "stalactite", "dropped", $"id={blk.Id} col={blk.Col} row={blk.Row}");
     }
 
     /// <summary>Boss-drop variant: scatter <paramref name="count"/> stalactites across the top.</summary>

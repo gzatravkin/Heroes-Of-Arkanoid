@@ -156,6 +156,9 @@ const THEME_CSS = `
     align-items: center;
     gap: var(--sp-2);
     padding: max(var(--sp-3), env(safe-area-inset-top, 0px)) var(--sp-3) var(--sp-2) var(--sp-3);
+    /* Shared header bar — gold/brown, matching the menu-list scenes' .topbar (UI consistency pass). */
+    background: linear-gradient(180deg, rgba(46,34,16,0.96), rgba(24,18,10,0.92));
+    border-bottom: 2px solid rgba(180,140,60,0.45);
   }
   .ui-topbar .ui-title { flex: 1; text-align: center; }
   /* Symmetry spacer so a centered title stays centered next to the back chip */
@@ -169,6 +172,8 @@ const THEME_CSS = `
     color: var(--gold-bright);
     text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 18px rgba(255,180,60,0.25);
     margin: 0;
+    /* Centered title is the shared-header standard (also covers scenes with a local topbar class). */
+    flex: 1; text-align: center;
   }
 
   .ui-back {
@@ -292,6 +297,27 @@ const THEME_CSS = `
     height: 13px;
     background: url('/ui/Gem.png') no-repeat center / contain;
   }
+
+  /* ── Currency: THE single representation of the 3 player coins ─────────
+     Sparks ✦ (items + modules), Souls ◆ (spells + heroes), Insight ◇ (mastery).
+     Every screen shows them through .ui-coins / .ui-coin — never bespoke glyphs. */
+  .ui-coins {
+    display: flex; align-items: center; gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+  .ui-coin {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-weight: 800; font-size: var(--fs-body);
+    padding: 4px 11px; border-radius: 999px; white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  }
+  .ui-coin::before { font-size: 1.05em; line-height: 1; }
+  .ui-coin-sparks  { color: #ffd56a; background: rgba(190,150,50,0.20); border: 1px solid rgba(255,210,100,0.35); }
+  .ui-coin-souls   { color: #6cc0ff; background: rgba(50,110,190,0.20); border: 1px solid rgba(110,180,255,0.35); }
+  .ui-coin-insight { color: #e8a64c; background: rgba(150,95,35,0.20);  border: 1px solid rgba(220,150,70,0.35); }
+  .ui-coin-sparks::before  { content: "✦"; }
+  .ui-coin-souls::before   { content: "◆"; }
+  .ui-coin-insight::before { content: "◇"; }
 
   /* ── Plain text link (replaces bare <a>/underline links) ──────────── */
   .ui-link {

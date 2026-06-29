@@ -1,41 +1,427 @@
-{ "types": [
-  { "id": "hell_basic",      "biome": "hell",    "hp": 2, "sprite": "HellStandart",       "needToKill": true  },
-  { "id": "hell_tough",      "biome": "hell",    "hp": 4, "sprite": "HellStandart2",       "needToKill": true  },
-  { "id": "hell_obsidian",   "biome": "hell",    "hp": 1, "sprite": "HellInvulnerable",    "needToKill": false, "indestructible": true },
-  { "id": "hell_teleporter", "biome": "hell",    "hp": 1, "sprite": "SkullRed",            "needToKill": false, "indestructible": true, "behavior": "teleporter", "teleportColor": 0 },
-  { "id": "hell_teleporter_blue",  "biome": "hell", "hp": 1, "sprite": "SkullBlue",  "needToKill": false, "indestructible": true, "behavior": "teleporter", "teleportColor": 1 },
-  { "id": "hell_teleporter_green", "biome": "hell", "hp": 1, "sprite": "SkullGreen", "needToKill": false, "indestructible": true, "behavior": "teleporter", "teleportColor": 2 },
-  { "id": "hell_demon_boss",    "biome": "hell",    "hp": 24, "sprite": "DemonBody",    "needToKill": true, "behavior": "boss" },
-  { "id": "cavern_goblin_boss", "biome": "cavern",  "hp": 24, "sprite": "GoblinBody",   "needToKill": true, "behavior": "boss" },
-  { "id": "village_witch_boss", "biome": "village", "hp": 24, "sprite": "WitchChest",   "needToKill": true, "behavior": "boss" },
-  { "id": "heaven_angel_boss",  "biome": "heaven",  "hp": 26, "sprite": "HeavenBoss",   "needToKill": true, "behavior": "boss" },
-  { "id": "cavern_basic",    "biome": "cavern",  "hp": 2, "sprite": "DungeonStandart",     "needToKill": true  },
-  { "id": "cavern_tough",    "biome": "cavern",  "hp": 3, "sprite": "DungeonStandart2",    "needToKill": true  },
-  { "id": "cavern_rock",     "biome": "cavern",  "hp": 1, "sprite": "DungeonInvulnerable", "needToKill": false, "indestructible": true },
-  { "id": "village_basic",   "biome": "village", "hp": 2, "sprite": "VillageStandart",     "needToKill": true  },
-  { "id": "village_tough",   "biome": "village", "hp": 3, "sprite": "VillageStandart2",    "needToKill": true  },
-  { "id": "village_ghost",   "biome": "village", "hp": 2, "sprite": "VillageStandart2Ghost","needToKill": true, "ballPhases": true },
-  { "id": "heaven_basic",    "biome": "heaven",  "hp": 3, "sprite": "StandartHaven",       "needToKill": true  },
-  { "id": "heaven_tough",    "biome": "heaven",  "hp": 5, "sprite": "Standart2Haven",      "needToKill": true  },
-  { "id": "heaven_statue",   "biome": "heaven",  "hp": 1, "sprite": "InvulnerableHaven",   "needToKill": false, "indestructible": true },
-
-  { "id": "hell_ballspawner",     "biome": "hell",    "hp": 6, "sprite": "HellBallSpawner", "needToKill": true, "behavior": "emitter", "emitInterval": 1.8, "emitAim": "paddle", "missileKind": "hellball" },
-  { "id": "cavern_bomb",          "biome": "caverns", "hp": 1, "sprite": "Bomb",           "needToKill": true, "behavior": "bomb", "explodeRadius": 1 },
-  { "id": "cavern_stalactite",    "biome": "caverns", "hp": 1, "sprite": "Stalactite",     "needToKill": false, "indestructible": true, "behavior": "stalactite" },
-  { "id": "village_beholder",     "biome": "village", "hp": 4, "sprite": "Beholder1",      "needToKill": true, "behavior": "emitter", "emitInterval": 1.6, "emitAim": "ball", "missileKind": "beholdermissile" },
-  { "id": "village_necromant",    "biome": "village", "hp": 6, "sprite": "VillageDeath",   "needToKill": true, "behavior": "necromant" },
-  { "id": "village_portal",       "biome": "village", "hp": 1, "sprite": "Portal",         "needToKill": false, "behavior": "portal" },
-  { "id": "village_bat",          "biome": "village", "hp": 1, "sprite": "BatSleeping",    "needToKill": false, "behavior": "bat" },
-  { "id": "heaven_melee_statue",  "biome": "heaven",  "hp": 5, "sprite": "HeavenMeleeStatue", "needToKill": true, "behavior": "emitter", "emitInterval": 2.0, "emitAim": "paddle", "missileKind": "heavenmissile" },
-  { "id": "heaven_windmaster",    "biome": "heaven",  "hp": 4, "sprite": "WindMaster2",  "needToKill": true, "behavior": "windMaster" },
-  { "id": "heaven_shield_statue", "biome": "heaven",  "hp": 5, "sprite": "HeavenDefender", "needToKill": true, "behavior": "shieldStatue" },
-  { "id": "heaven_column_top",    "biome": "heaven",  "hp": 4, "sprite": "ColumnTop",     "needToKill": true },
-  { "id": "heaven_column_mid",    "biome": "heaven",  "hp": 4, "sprite": "Column",        "needToKill": true },
-  { "id": "heaven_column_bottom", "biome": "heaven",  "hp": 4, "sprite": "ColumnBottom",  "needToKill": true },
-  { "id": "hell_lava",            "biome": "hell",    "hp": 1, "sprite": "LavaMainPart",   "needToKill": false, "indestructible": true, "behavior": "lava" },
-  { "id": "heaven_altar",         "biome": "heaven",  "hp": 1, "sprite": "HeavenAltarV2",  "needToKill": false, "indestructible": true, "behavior": "altar" },
-  { "id": "heaven_vase",          "biome": "heaven",  "hp": 2, "sprite": "HeavenVaza",     "needToKill": true,  "behavior": "vase" },
-  { "id": "cavern_cart",          "biome": "caverns", "hp": 1, "sprite": "DungeonCart",    "needToKill": false, "indestructible": true, "behavior": "cart" },
-  { "id": "village_cauldron",     "biome": "village", "hp": 3, "sprite": "Kotelok1",       "needToKill": true,  "behavior": "cauldron" },
-  { "id": "hell_lava_spawner",    "biome": "hell",    "hp": 2, "sprite": "LavaSpowner",    "needToKill": false, "behavior": "lavaSpawner" }
-]}
+{
+  "types": [
+    {
+      "id": "hell_basic",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "HellStandart",
+      "needToKill": true
+    },
+    {
+      "id": "hell_tough",
+      "biome": "hell",
+      "hp": 3,
+      "sprite": "HellDemon",
+      "needToKill": true,
+      "forcedDropEffect": "powerup_wide"
+    },
+    {
+      "id": "hell_elite",
+      "biome": "hell",
+      "hp": 5,
+      "sprite": "HellDemon",
+      "needToKill": true,
+      "elite": true
+    },
+    {
+      "comment": "Cosmetic CORNER caps (cobblestone, hp = hell_basic). 4 mirrored orientations build house/structure corners. flipX/flipY are baked per orientation; the sloped sprite chamfers the outside corner.",
+      "id": "hell_corner_tl", "biome": "hell", "hp": 1, "sprite": "HellStandart2", "needToKill": true
+    },
+    { "id": "hell_corner_tr", "biome": "hell", "hp": 1, "sprite": "HellStandart2", "needToKill": true, "flipX": true },
+    { "id": "hell_corner_bl", "biome": "hell", "hp": 1, "sprite": "HellStandart2", "needToKill": true, "flipY": true },
+    { "id": "hell_corner_br", "biome": "hell", "hp": 1, "sprite": "HellStandart2", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "comment": "Cosmetic CORNER caps (demon-rune, hp = hell_tough). For demon-style structures.",
+      "id": "hell_tough_corner_tl", "biome": "hell", "hp": 3, "sprite": "HellDemon2", "needToKill": true
+    },
+    { "id": "hell_tough_corner_tr", "biome": "hell", "hp": 3, "sprite": "HellDemon2", "needToKill": true, "flipX": true },
+    { "id": "hell_tough_corner_bl", "biome": "hell", "hp": 3, "sprite": "HellDemon2", "needToKill": true, "flipY": true },
+    { "id": "hell_tough_corner_br", "biome": "hell", "hp": 3, "sprite": "HellDemon2", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "id": "hell_obsidian",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "HellInvulnerable",
+      "needToKill": false,
+      "indestructible": true
+    },
+    {
+      "id": "hell_teleporter",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "SkullRed",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "teleporter",
+      "teleportColor": 0
+    },
+    {
+      "id": "hell_teleporter_blue",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "SkullBlue",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "teleporter",
+      "teleportColor": 1
+    },
+    {
+      "id": "hell_teleporter_green",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "SkullGreen",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "teleporter",
+      "teleportColor": 2
+    },
+    {
+      "id": "hell_demon_boss",
+      "biome": "hell",
+      "hp": 24,
+      "sprite": "DemonBody",
+      "needToKill": true,
+      "behavior": "boss"
+    },
+    {
+      "id": "cavern_goblin_boss",
+      "biome": "cavern",
+      "hp": 24,
+      "sprite": "GoblinBody",
+      "needToKill": true,
+      "behavior": "boss"
+    },
+    {
+      "id": "village_witch_boss",
+      "biome": "village",
+      "hp": 24,
+      "sprite": "WitchChest",
+      "needToKill": true,
+      "behavior": "boss"
+    },
+    {
+      "id": "heaven_angel_boss",
+      "biome": "heaven",
+      "hp": 26,
+      "sprite": "HeavenBoss",
+      "needToKill": true,
+      "behavior": "boss"
+    },
+    {
+      "id": "cavern_basic",
+      "biome": "cavern",
+      "hp": 1,
+      "sprite": "DungeonStandart",
+      "needToKill": true
+    },
+    {
+      "id": "cavern_tough",
+      "biome": "cavern",
+      "hp": 3,
+      "sprite": "DungeonStandart2",
+      "needToKill": true,
+      "forcedDropEffect": "powerup_wide"
+    },
+    {
+      "id": "cavern_elite",
+      "biome": "cavern",
+      "hp": 5,
+      "sprite": "DungeonStandart2",
+      "needToKill": true,
+      "elite": true
+    },
+    {
+      "id": "cavern_union",
+      "biome": "cavern",
+      "hp": 1,
+      "sprite": "DungeonStandart2",
+      "needToKill": true,
+      "union": true
+    },
+    {
+      "comment": "Cosmetic CORNER caps (sloped rocky, hp = cavern_basic). 4 mirrored orientations.",
+      "id": "cavern_corner_tl", "biome": "cavern", "hp": 1, "sprite": "DungeonCorner", "needToKill": true
+    },
+    { "id": "cavern_corner_tr", "biome": "cavern", "hp": 1, "sprite": "DungeonCorner", "needToKill": true, "flipX": true },
+    { "id": "cavern_corner_bl", "biome": "cavern", "hp": 1, "sprite": "DungeonCorner", "needToKill": true, "flipY": true },
+    { "id": "cavern_corner_br", "biome": "cavern", "hp": 1, "sprite": "DungeonCorner", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "id": "cavern_rock",
+      "biome": "cavern",
+      "hp": 1,
+      "sprite": "DungeonInvulnerable",
+      "needToKill": false,
+      "indestructible": true
+    },
+    {
+      "id": "village_basic",
+      "biome": "village",
+      "hp": 1,
+      "sprite": "VillageStandart",
+      "needToKill": true
+    },
+    {
+      "id": "village_tough",
+      "biome": "village",
+      "hp": 3,
+      "sprite": "VillageStandart2",
+      "needToKill": true
+    },
+    {
+      "id": "village_elite",
+      "biome": "village",
+      "hp": 5,
+      "sprite": "VillageStandart2",
+      "needToKill": true,
+      "elite": true
+    },
+    {
+      "id": "village_ghost",
+      "biome": "village",
+      "hp": 1,
+      "sprite": "VillageStandart2Ghost",
+      "needToKill": true,
+      "ballPhases": true
+    },
+    {
+      "comment": "Alt body variant (cosmetic) — adds visual variety to village fills.",
+      "id": "village_basic2", "biome": "village", "hp": 1, "sprite": "VillageStandart3", "needToKill": true
+    },
+    {
+      "comment": "Cosmetic CORNER caps (hp = village_basic). 4 mirrored orientations.",
+      "id": "village_corner_tl", "biome": "village", "hp": 1, "sprite": "VillageCorner", "needToKill": true
+    },
+    { "id": "village_corner_tr", "biome": "village", "hp": 1, "sprite": "VillageCorner", "needToKill": true, "flipX": true },
+    { "id": "village_corner_bl", "biome": "village", "hp": 1, "sprite": "VillageCorner", "needToKill": true, "flipY": true },
+    { "id": "village_corner_br", "biome": "village", "hp": 1, "sprite": "VillageCorner", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "comment": "Cosmetic CORNER caps (tough style, hp = village_tough).",
+      "id": "village_tough_corner_tl", "biome": "village", "hp": 3, "sprite": "VillageCorner2", "needToKill": true
+    },
+    { "id": "village_tough_corner_tr", "biome": "village", "hp": 3, "sprite": "VillageCorner2", "needToKill": true, "flipX": true },
+    { "id": "village_tough_corner_bl", "biome": "village", "hp": 3, "sprite": "VillageCorner2", "needToKill": true, "flipY": true },
+    { "id": "village_tough_corner_br", "biome": "village", "hp": 3, "sprite": "VillageCorner2", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "id": "heaven_basic",
+      "biome": "heaven",
+      "hp": 1,
+      "sprite": "StandartHaven",
+      "needToKill": true
+    },
+    {
+      "id": "heaven_tough",
+      "biome": "heaven",
+      "hp": 3,
+      "sprite": "Standart2Haven",
+      "needToKill": true,
+      "forcedDropEffect": "powerup_shield"
+    },
+    {
+      "id": "heaven_elite",
+      "biome": "heaven",
+      "hp": 5,
+      "sprite": "Standart2Haven",
+      "needToKill": true,
+      "elite": true
+    },
+    {
+      "comment": "Cosmetic CORNER caps (sloped rock, hp = heaven_basic). 4 mirrored orientations.",
+      "id": "heaven_corner_tl", "biome": "heaven", "hp": 1, "sprite": "HavenCorner", "needToKill": true
+    },
+    { "id": "heaven_corner_tr", "biome": "heaven", "hp": 1, "sprite": "HavenCorner", "needToKill": true, "flipX": true },
+    { "id": "heaven_corner_bl", "biome": "heaven", "hp": 1, "sprite": "HavenCorner", "needToKill": true, "flipY": true },
+    { "id": "heaven_corner_br", "biome": "heaven", "hp": 1, "sprite": "HavenCorner", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "comment": "Cosmetic CORNER caps (brick/marble, hp = heaven_tough).",
+      "id": "heaven_brick_corner_tl", "biome": "heaven", "hp": 3, "sprite": "HavenBrickCorner", "needToKill": true
+    },
+    { "id": "heaven_brick_corner_tr", "biome": "heaven", "hp": 3, "sprite": "HavenBrickCorner", "needToKill": true, "flipX": true },
+    { "id": "heaven_brick_corner_bl", "biome": "heaven", "hp": 3, "sprite": "HavenBrickCorner", "needToKill": true, "flipY": true },
+    { "id": "heaven_brick_corner_br", "biome": "heaven", "hp": 3, "sprite": "HavenBrickCorner", "needToKill": true, "flipX": true, "flipY": true },
+    {
+      "id": "heaven_statue",
+      "biome": "heaven",
+      "hp": 1,
+      "sprite": "InvulnerableHaven",
+      "needToKill": false,
+      "indestructible": true
+    },
+    {
+      "id": "hell_ballspawner",
+      "biome": "hell",
+      "hp": 6,
+      "sprite": "HellBallSpawner",
+      "needToKill": true,
+      "behavior": "emitter",
+      "emitInterval": 1.8,
+      "emitAim": "paddle",
+      "missileKind": "hellball"
+    },
+    {
+      "id": "cavern_bomb",
+      "biome": "caverns",
+      "hp": 1,
+      "sprite": "Bomb",
+      "needToKill": true,
+      "behavior": "bomb",
+      "explodeRadius": 1,
+      "forcedDropEffect": "powerup_multiball"
+    },
+    {
+      "id": "cavern_stalactite",
+      "biome": "caverns",
+      "hp": 1,
+      "sprite": "Stalactite",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "stalactite"
+    },
+    {
+      "id": "village_beholder",
+      "biome": "village",
+      "hp": 4,
+      "sprite": "Beholder1",
+      "needToKill": true,
+      "behavior": "emitter",
+      "emitInterval": 1.6,
+      "emitAim": "ball",
+      "missileKind": "beholdermissile"
+    },
+    {
+      "comment": "Regular necromant: raises REGULAR corpses back as regular blocks.",
+      "id": "village_necromant",
+      "biome": "village",
+      "hp": 6,
+      "sprite": "VillageDeath",
+      "needToKill": true,
+      "behavior": "Reviver"
+    },
+    {
+      "comment": "Ghost necromant: lives on the ghost layer (only a phased ball can hit it) and raises GHOST corpses back as ghosts.",
+      "id": "village_necromant_ghost",
+      "biome": "village",
+      "hp": 6,
+      "sprite": "VillageDeathGhost",
+      "needToKill": true,
+      "ballPhases": true,
+      "behavior": "Reviver"
+    },
+    {
+      "id": "village_portal",
+      "biome": "village",
+      "hp": 1,
+      "sprite": "Portal",
+      "needToKill": false,
+      "behavior": "portal"
+    },
+    {
+      "id": "village_bat",
+      "biome": "village",
+      "hp": 1,
+      "sprite": "BatSleeping",
+      "needToKill": false,
+      "behavior": "bat"
+    },
+    {
+      "id": "heaven_melee_statue",
+      "biome": "heaven",
+      "hp": 5,
+      "sprite": "HeavenMeleeStatue",
+      "needToKill": true,
+      "behavior": "emitter",
+      "emitInterval": 2.0,
+      "emitAim": "paddle",
+      "missileKind": "heavenmissile"
+    },
+    {
+      "id": "heaven_windmaster",
+      "biome": "heaven",
+      "hp": 4,
+      "sprite": "WindMaster2",
+      "needToKill": true,
+      "behavior": "windMaster"
+    },
+    {
+      "id": "heaven_shield_statue",
+      "biome": "heaven",
+      "hp": 5,
+      "sprite": "HeavenDefender",
+      "needToKill": true,
+      "behavior": "shieldStatue"
+    },
+    {
+      "id": "heaven_column_top",
+      "biome": "heaven",
+      "hp": 4,
+      "sprite": "ColumnTop",
+      "needToKill": true
+    },
+    {
+      "id": "heaven_column_mid",
+      "biome": "heaven",
+      "hp": 4,
+      "sprite": "Column",
+      "needToKill": true
+    },
+    {
+      "id": "heaven_column_bottom",
+      "biome": "heaven",
+      "hp": 4,
+      "sprite": "ColumnBottom",
+      "needToKill": true
+    },
+    {
+      "id": "hell_lava",
+      "biome": "hell",
+      "hp": 1,
+      "sprite": "LavaMainPart",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "lava"
+    },
+    {
+      "id": "heaven_altar",
+      "biome": "heaven",
+      "hp": 1,
+      "sprite": "HeavenAltarV2",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "altar"
+    },
+    {
+      "id": "heaven_vase",
+      "biome": "heaven",
+      "hp": 2,
+      "sprite": "HeavenVaza",
+      "needToKill": true,
+      "behavior": "vase",
+      "forcedDropEffect": "powerup_manasurge"
+    },
+    {
+      "id": "cavern_cart",
+      "biome": "caverns",
+      "hp": 1,
+      "sprite": "DungeonCart",
+      "needToKill": false,
+      "indestructible": true,
+      "behavior": "cart"
+    },
+    {
+      "id": "village_cauldron",
+      "biome": "village",
+      "hp": 3,
+      "sprite": "Kotelok1",
+      "needToKill": true,
+      "behavior": "cauldron",
+      "forcedDropEffect": "powerup_fireshot"
+    },
+    {
+      "id": "hell_lava_spawner",
+      "biome": "hell",
+      "hp": 2,
+      "sprite": "LavaSpowner",
+      "needToKill": false,
+      "behavior": "lavaSpawner"
+    }
+  ]
+}

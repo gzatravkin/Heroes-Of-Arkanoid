@@ -1,0 +1,39 @@
+{
+  "level": 1,
+  "exp": 0,
+  "points": 0,
+  "crystals": 20,
+  "shards": 0,
+  "campaignGold": 0,
+  "cardDust": 5,
+  "moduleCores": 0,
+  "medals": 2,
+  "eventTokens": 0,
+  "seasonTokens": 0,
+  "completedLevels": [],
+  "unlockedRelics": [],
+  "spellLevels": {
+    "ignite": 1,
+    "fireball": 1,
+    "firewall": 1,
+    "turret": 1
+  },
+  "equippedSpells": {
+    "fire_mage": [
+      "ignite",
+      "fireball",
+      "firewall"
+    ]
+  },
+  "unlockedSpellSlots": 3,
+  "selectedCharacter": "fire_mage",
+  "unlockedCharacters": [
+    "fire_mage"
+  ],
+  "ownedItems": {},
+  "equippedItems": [],
+  "achievements": [],
+  "riftAscension": 0,
+  "tutorialSeen": false,
+  "pendingRift": null
+}

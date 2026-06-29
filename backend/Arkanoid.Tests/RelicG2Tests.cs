@@ -2,43 +2,26 @@ using Arkanoid.Core.Blocks;
 using Arkanoid.Core.Bonuses;
 using Arkanoid.Core.Grid;
 using Arkanoid.Core.Math;
+using Arkanoid.Core.Relics;
 using Arkanoid.Core.Sim;
 using Xunit;
 
-/// <summary>
-/// G2 build-depth tests (docs/09): the 13 new relics + the 3 new ball cores and
-/// their fusions. Pure-Core, deterministic.
-/// </summary>
 public class RelicG2Tests
 {
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
     private static GameInstance Make(string blocksJson, string levelJson,
-        SimConfig? cfg = null, BonusCatalog? bonuses = null)
+        SimConfig? cfg = null, BonusCatalog? bonuses = null, RelicCatalog? relics = null)
     {
-        var catalog = BlockCatalog.FromJson(blocksJson);
-        var level   = LevelLoader.FromJson(levelJson, catalog);
-        var g = new GameInstance(level, cfg ?? SimConfig.Default, seed: 1, bonuses: bonuses);
+        var cat   = Arkanoid.Core.Blocks.BlockCatalog.FromJson(blocksJson);
+        var level = Arkanoid.Core.Grid.LevelLoader.FromJson(levelJson, cat);
+        var g = new GameInstance(level, cfg ?? SimConfig.Default, seed: 1, bonuses: bonuses, relics: relics);
         g.Serve();
         return g;
     }
-
     private static GameInstance MakeOneBlock(int hp, SimConfig? cfg = null, string typeId = "b")
-        => Make(
-            $"{{\"types\":[{{\"id\":\"{typeId}\",\"biome\":\"t\",\"hp\":{hp},\"sprite\":\"s\",\"needToKill\":true}}]}}",
-            $"{{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{{\"A\":\"{typeId}\"}}}}",
-            cfg);
-
-    /// <summary>Drive the ball into the given block from below; one tick lands the hit.</summary>
-    private static void Hit(GameInstance g, Arkanoid.Core.Entities.Block blk)
-    {
-        var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-        g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
-        g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
-        g.Tick(SimConfig.Default.FixedDt);
-    }
-
-    // ── conductor ──────────────────────────────────────────────────────────────
+        => Make($"{{\"types\":[{{\"id\":\"{typeId}\",\"biome\":\"t\",\"hp\":{hp},\"sprite\":\"s\",\"needToKill\":true}}]}}",
+                $"{{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{{\"A\":\"{typeId}\"}}}}",
+                cfg);
+    private static void Hit(GameInstance g, Arkanoid.Core.Entities.Block blk) => K.Hit(g, blk);
 
     [Fact]
     public void Conductor_AddsOneLightningChainJump()
@@ -63,7 +46,6 @@ public class RelicG2Tests
         Assert.Equal(baseline + 1, boosted);
     }
 
-    // ── overcharge ─────────────────────────────────────────────────────────────
 
     [Fact]
     public void Overcharge_PaysExtraMana_OnPerfectCenterDeflect()
@@ -83,45 +65,45 @@ public class RelicG2Tests
 
         var withRelic = ManaAfterCenterDeflect(true);
         var without   = ManaAfterCenterDeflect(false);
-        Assert.True(withRelic >= without + SimConfig.Default.OverchargeMana * 0.99,
-            $"overcharge should add ~{SimConfig.Default.OverchargeMana}: {without:F1} → {withRelic:F1}");
+        Assert.True(withRelic >= without + 8.0 * 0.99,
+            $"overcharge should add ~8: {without:F1} → {withRelic:F1}");
     }
 
-    // ── split_shot + souljar (kill-cadence payouts) ────────────────────────────
 
     [Fact]
     public void SplitShot_SpawnsExtraBall_EveryNthKill()
     {
-        var cfg = new SimConfig { SplitShotEvery = 2 };
-        var g = Make(
-            "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
-            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":6,\"rows\":2,\"rows_data\":[\"AAAAAA\",\"AAAAAA\"],\"legend\":{\"A\":\"b\"}}",
-            cfg);
+        // Inject catalog with cadence=2 to keep the test short (default=6).
+        var relics = RelicCatalog.FromJson("{\"relics\":[{\"id\":\"split_shot\",\"effect\":\"\",\"magnitude\":2}]}");
+        const string bJson = "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+        const string lJson = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":6,\"rows\":2,\"rows_data\":[\"AAAAAA\",\"AAAAAA\"],\"legend\":{\"A\":\"b\"}}";
+        var g = Make(bJson, lJson, relics: relics);
         g.AddRelic("split_shot");
         Assert.Single(g.Balls);
 
-        Hit(g, g.Blocks[0]); // kill 1 — no split yet
+        var b0 = g.Blocks[0]; var b1 = g.Blocks[1]; // capture before pruning
+        Hit(g, b0); // kill 1 — no split yet
         Assert.Single(g.Balls);
-        Hit(g, g.Blocks[1]); // kill 2 — split!
+        Hit(g, b1); // kill 2 — split!
         Assert.Equal(2, g.Balls.Count);
     }
 
     [Fact]
     public void Souljar_PaysOneCrystal_EveryNthKill()
     {
-        var cfg = new SimConfig { SouljarEvery = 2 };
-        var g = Make(
-            "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
-            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":6,\"rows\":2,\"rows_data\":[\"AAAAAA\",\"AAAAAA\"],\"legend\":{\"A\":\"b\"}}",
-            cfg);
+        // Inject catalog with cadence=2 to keep the test short (default=5).
+        var relics = RelicCatalog.FromJson("{\"relics\":[{\"id\":\"souljar\",\"effect\":\"\",\"magnitude\":2}]}");
+        const string bJson = "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
+        const string lJson = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":6,\"rows\":2,\"rows_data\":[\"AAAAAA\",\"AAAAAA\"],\"legend\":{\"A\":\"b\"}}";
+        var g = Make(bJson, lJson, relics: relics);
         g.AddRelic("souljar");
-        Hit(g, g.Blocks[0]);
+        var b0 = g.Blocks[0]; var b1 = g.Blocks[1]; // capture before pruning
+        Hit(g, b0);
         Assert.Equal(1, g.Crystals); // 1 base combo crystal, souljar not triggered yet (kill 1 of 2)
-        Hit(g, g.Blocks[1]);
+        Hit(g, b1);
         Assert.Equal(3, g.Crystals); // 2 base combo crystals + 1 souljar bonus (triggered at 2nd kill)
     }
 
-    // ── lodestone + midas (bonus pickups) ──────────────────────────────────────
 
     [Fact]
     public void Lodestone_DriftsBonusesTowardThePaddle()
@@ -133,7 +115,7 @@ public class RelicG2Tests
         g.Bonuses.Add(new Arkanoid.Core.Entities.Bonus
         {
             Id = 1, Pos = new Vec2(startX, 10),
-            Vel = new Vec2(0, SimConfig.Default.BonusFallSpeed), Type = "heal", Icon = "i", Alive = true,
+            Vel = new Vec2(0, SimConfig.Default.Pickups.FallSpeed), Type = "heal", Icon = "i", Alive = true,
         });
         for (int i = 0; i < 30; i++) g.Tick(SimConfig.Default.FixedDt);
         Assert.True(g.Bonuses[0].Pos.X > startX, "bonus should drift toward the paddle's x");
@@ -152,10 +134,9 @@ public class RelicG2Tests
         g.Balls[0].Vel = new Vec2(0, 0);
         g.ApplyCheat("spawnBonus", 0); // heal falls onto the paddle
         for (int i = 0; i < 240 && g.Crystals == 0; i++) g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(SimConfig.Default.MidasCrystals, g.Crystals);
+        Assert.Equal(2 /* MidasCrystals */, g.Crystals);
     }
 
-    // ── ember_heart ────────────────────────────────────────────────────────────
 
     [Fact]
     public void EmberHeart_ExtendsIgniteHits()
@@ -173,25 +154,23 @@ public class RelicG2Tests
             return g.Balls[0].IgniteHitsLeft;
         }
 
-        Assert.Equal(HitsAfterDeflect(false) + SimConfig.Default.EmberHeartBonusHits,
+        Assert.Equal(HitsAfterDeflect(false) + 2 /* EmberHeartBonusHits */,
                      HitsAfterDeflect(true));
     }
 
-    // ── second_wind ────────────────────────────────────────────────────────────
 
     [Fact]
     public void SecondWind_NegatesTheFirstHpLossOnly()
     {
         var g = MakeOneBlock(9);
         g.AddRelic("second_wind");
-        int lives = g.Lives;
+        int lives = g.Hp;
         g.DamagePlayer(1);
-        Assert.Equal(lives, g.Lives);     // first loss negated
+        Assert.Equal(lives, g.Hp);     // first loss negated
         g.DamagePlayer(1);
-        Assert.Equal(lives - 1, g.Lives); // second loss lands
+        Assert.Equal(lives - 1, g.Hp); // second loss lands
     }
 
-    // ── lead_paddle (tradeoff) ─────────────────────────────────────────────────
 
     [Fact]
     public void LeadPaddle_WidensPaddle_ButSlowsRegen()
@@ -199,7 +178,7 @@ public class RelicG2Tests
         var g = MakeOneBlock(9);
         var w0 = g.Paddle.Width;
         g.AddRelic("lead_paddle");
-        Assert.Equal(w0 * SimConfig.Default.LeadPaddleWidthMult, g.Paddle.Width, 3);
+        Assert.Equal(w0 * 1.25 /* LeadPaddleWidthMult */, g.Paddle.Width, 3);
 
         var gBase = MakeOneBlock(9);
         g.ManaValue = 0; gBase.ManaValue = 0;
@@ -208,7 +187,6 @@ public class RelicG2Tests
         Assert.True(g.ManaValue < gBase.ManaValue, "lead paddle must slow regen");
     }
 
-    // ── sapper (caverns-keyed) ─────────────────────────────────────────────────
 
     [Fact]
     public void Sapper_ExtendsBombRadius()
@@ -231,10 +209,9 @@ public class RelicG2Tests
         }
 
         Assert.Equal(4, FarBlockHpAfterBomb(false));                                  // untouched
-        Assert.Equal(4 - SimConfig.Default.BombDamage, FarBlockHpAfterBomb(true));    // in reach
+        Assert.Equal(4 - SimConfig.Default.Enemies.BombDamage, FarBlockHpAfterBomb(true));    // in reach
     }
 
-    // ── hellwalker (hell-keyed) ────────────────────────────────────────────────
 
     [Fact]
     public void Hellwalker_LavaBallPassesThrough_NoSpareConsumed()
@@ -258,7 +235,6 @@ public class RelicG2Tests
         Assert.Equal(spares, g.SpareBalls);
     }
 
-    // ── ghost_lens (village-keyed) ─────────────────────────────────────────────
 
     [Fact]
     public void GhostLens_BoostsGhostBallDamage()
@@ -278,11 +254,10 @@ public class RelicG2Tests
             return blk.Hp;
         }
 
-        Assert.Equal(HpAfterGhostHit(false) - SimConfig.Default.GhostLensBonus,
+        Assert.Equal(HpAfterGhostHit(false) - 1 /* GhostLensBonus */,
                      HpAfterGhostHit(true));
     }
 
-    // ── pillar_doctrine (heaven-keyed) ─────────────────────────────────────────
 
     [Fact]
     public void PillarDoctrine_BoostsDamage_VsColumnsAndStatues()
@@ -296,11 +271,10 @@ public class RelicG2Tests
             return blk.Hp;
         }
 
-        Assert.Equal(HpAfterHit(false) - SimConfig.Default.PillarDoctrineBonus,
+        Assert.Equal(HpAfterHit(false) - 1 /* PillarDoctrineBonus */,
                      HpAfterHit(true));
     }
 
-    // ── G2b ball cores ─────────────────────────────────────────────────────────
 
     /// <summary>Build an un-served instance so cores can be added before the first serve.</summary>
     private static GameInstance MakeUnserved(int hp)
@@ -319,7 +293,7 @@ public class RelicG2Tests
         var g = MakeUnserved(5);
         g.AddBallCore("ghost");
         g.Serve();
-        Assert.Equal(SimConfig.Default.GhostCoreCharges, g.Balls[0].PhasesLeft);
+        Assert.Equal(1 /* GhostCoreCharges */, g.Balls[0].PhasesLeft);
 
         var blk = g.Blocks[0];
         Hit(g, blk);
@@ -346,11 +320,11 @@ public class RelicG2Tests
 
         var blk = g.Blocks[0];
         Hit(g, blk);
-        Assert.Equal(9 - SimConfig.Default.BallDamage - SimConfig.Default.EchoBonus, blk.Hp);
+        Assert.Equal(9 - SimConfig.Default.BallDamage - 1 /* EchoBonus */, blk.Hp);
 
         // Echo spent — the next hit is normal.
         Hit(g, blk);
-        Assert.Equal(9 - 2 * SimConfig.Default.BallDamage - SimConfig.Default.EchoBonus, blk.Hp);
+        Assert.Equal(9 - 2 * SimConfig.Default.BallDamage - 1 /* EchoBonus */, blk.Hp);
     }
 
     [Fact]
@@ -365,7 +339,7 @@ public class RelicG2Tests
         g.AddBallCore("frost");
         var emitter = g.Blocks[0];
         Hit(g, emitter);
-        Assert.True(emitter.EmitAccumulator <= -SimConfig.Default.FrostFreezeSeconds * 0.9,
+        Assert.True(emitter.EmitAccumulator <= -2.0 * 0.9, // FrostFreezeSeconds = 2.0
             $"frost should set the cadence back (got {emitter.EmitAccumulator:F2})");
 
         var g2 = Make(blocks, level.Replace("\"id\":\"t\"", "\"id\":\"t2\""));
@@ -373,26 +347,37 @@ public class RelicG2Tests
         g2.AddBallCore("echo"); // echo+frost = Stasis fusion
         var emitter2 = g2.Blocks[0];
         Hit(g2, emitter2);
-        Assert.True(emitter2.EmitAccumulator <=
-            -SimConfig.Default.FrostFreezeSeconds * SimConfig.Default.StasisFreezeMult * 0.9,
+        Assert.True(emitter2.EmitAccumulator <= -2.0 * 2.0 * 0.9, // FrostFreezeSeconds=2.0, StasisFreezeMult=2.0
             $"stasis should double the freeze (got {emitter2.EmitAccumulator:F2})");
     }
 
     [Fact]
     public void MoltenFusion_EnablesAndDeepensFireSpread_ForAnyCharacter()
     {
-        const string blocks = "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true}]}";
+        // 2-hp blocks side by side. A non-fire-mage with the Molten fusion (heavy+ember)
+        // both ENABLES fire spread and DEEPENS it (2 dmg/burn tick), so a 2-hp neighbour
+        // dies within a single burn tick — base burn (1/tick) would leave it alive.
+        const string blocks = "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":true}]}";
         const string level  = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"AA.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}";
 
-        var g = Make(blocks.Replace("\"hp\":4", "\"hp\":1"), level);
+        var g = Make(blocks, level);
         g.SetCharacter("paladin"); // not a fire mage — spread comes from the fusion alone
-        g.AddBallCore("heavy");
-        g.AddBallCore("ember");
+        g.AddBallCore("heavy");    // +1 ball damage → kills the 2-hp origin in one ignited hit
+        g.AddBallCore("ember");    // heavy+ember = Molten fusion
+        var origin    = g.Blocks[0];
         var neighbour = g.Blocks[1];
         g.Balls[0].IgniteHitsLeft = 5;
-        int before = neighbour.Hp;
-        Hit(g, g.Blocks[0]); // ignited kill → molten spread
-        Assert.Equal(before - (1 + SimConfig.Default.MoltenChipBonus), neighbour.Hp);
+        Hit(g, origin);            // ignite lights the origin (slow burn); molten will creep fire to the neighbour
+        Assert.True(origin.BurnRemaining > 0 || origin.Dead, "ignite should light the origin");
+
+        // Park the ball just above the paddle (clear of blocks) so only fire spread acts. Run long enough
+        // for the slow creep (~2.5s) plus a deepened burn tick (~7s) to kill the 2-hp neighbour.
+        g.Balls[0].Vel = new Vec2(0, 0);
+        g.Balls[0].Pos = new Vec2(g.Paddle.Center.X,
+            g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Balls[0].Radius - 2);
+        for (int i = 0; i < (int)(12.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(neighbour.Dead,
+            "molten fusion should spread fire and burn down the neighbour for any character");
     }
 
     [Fact]
@@ -402,6 +387,6 @@ public class RelicG2Tests
         g.AddBallCore("ghost");
         g.AddBallCore("split");
         g.Serve();
-        Assert.Equal(SimConfig.Default.PhantomPhaseCharges, g.Balls[0].PhasesLeft);
+        Assert.Equal(2 /* PhantomPhaseCharges */, g.Balls[0].PhasesLeft);
     }
 }

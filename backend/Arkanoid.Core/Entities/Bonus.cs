@@ -18,4 +18,7 @@ public sealed class Bonus
     /// <summary>Full-refill flag (mana_surge powerup variant).</summary>
     public bool   Full     { get; init; }
     public bool   Alive = true;
+    /// <summary>§1 Sleight of Hand: this pickup was spawned AS a duplicate — it cannot itself be
+    /// re-duplicated, so a centre-caught duplicate never chains into infinite copies.</summary>
+    public bool   NoDuplicate = false;
 }

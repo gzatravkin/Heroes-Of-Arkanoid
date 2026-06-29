@@ -52,20 +52,20 @@ test("HP bar tracks 100 / 50 / 0% fill", async ({ page }) => {
   await cheat(page, "setLives", 10);
   await page.waitForFunction(() => {
     const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
-    return (window as any).__game.getState()?.lives === 10 && fillW > 95;
+    return (window as any).__game.getState()?.hp === 10 && fillW > 95;
   }, null, { timeout: 10_000 });
 
   await cheat(page, "setLives", 5);
   await page.waitForFunction(() => {
     const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
-    const lives = (window as any).__game.getState()?.lives;
+    const lives = (window as any).__game.getState()?.hp;
     return lives === 5 && fillW > 45 && fillW < 55;
   }, null, { timeout: 10_000 });
 
   await cheat(page, "setLives", 0);
   await page.waitForFunction(() => {
     const fillW = parseFloat((document.querySelector("#hud-lives-fill") as HTMLElement | null)?.style.width || "0");
-    return (window as any).__game.getState()?.lives === 0 && fillW < 5;
+    return (window as any).__game.getState()?.hp === 0 && fillW < 5;
   }, null, { timeout: 10_000 });
 });
 

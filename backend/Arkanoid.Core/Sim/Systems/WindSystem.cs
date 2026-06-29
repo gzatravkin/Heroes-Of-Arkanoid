@@ -27,9 +27,9 @@ internal static class WindSystem
                 var wc   = g.Level.Grid.CellCenter(w.Col, w.Row);
                 var d    = b.Pos - wc;
                 var dist = d.Length;
-                if (dist < 0.0001 || dist > g.Config.WindMasterRadius) continue;
-                var falloff = 1 - dist / g.Config.WindMasterRadius;
-                vel += d.Normalized() * g.Config.WindMasterForce * falloff * dt;
+                if (dist < 0.0001 || dist > g.Config.Enemies.WindMasterRadius) continue;
+                var falloff = 1 - dist / g.Config.Enemies.WindMasterRadius;
+                vel += d.Normalized() * g.Config.Enemies.WindMasterForce * falloff * dt;
             }
 
             // Preserve speed, only bend the heading.

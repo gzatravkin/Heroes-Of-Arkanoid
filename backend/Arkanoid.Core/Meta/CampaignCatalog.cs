@@ -4,24 +4,29 @@ namespace Arkanoid.Core.Meta;
 
 public sealed class CampaignNode
 {
-    [JsonPropertyName("id")]       public string Id       { get; set; } = "";
-    [JsonPropertyName("label")]    public string Label    { get; set; } = "";
-    [JsonPropertyName("biome")]    public string Biome    { get; set; } = "";
-    [JsonPropertyName("x")]        public double X        { get; set; }
-    [JsonPropertyName("y")]        public double Y        { get; set; }
-    [JsonPropertyName("requires")] public List<string> Requires { get; set; } = new();
+    [JsonPropertyName("id")]    public string Id    { get; set; } = "";
+    [JsonPropertyName("label")] public string Label { get; set; } = "";
+    [JsonPropertyName("biome")] public string Biome { get; set; } = "";
 }
 
-public sealed class CampaignCatalog
+public sealed class CampaignCatalog : Catalog<CampaignNode>
 {
-    private readonly List<CampaignNode> _nodes;
-    private CampaignCatalog(IEnumerable<CampaignNode> nodes) => _nodes = new List<CampaignNode>(nodes);
+    // The campaign is a LINEAR chain (economy rework, docs/2026-06-14): list ORDER is the sequence,
+    // so we keep the ordered list to resolve a node's predecessor for unlock checks.
+    private readonly List<CampaignNode> _ordered;
 
-    public IEnumerable<CampaignNode> Nodes => _nodes;
+    private CampaignCatalog(List<CampaignNode> nodes) : base(nodes, n => n.Id) { _ordered = nodes; }
 
-    /// <summary>A node is unlocked when every id in Requires appears in completed (empty Requires => always unlocked).</summary>
+    /// <summary>All campaign nodes in sequence order.</summary>
+    public IEnumerable<CampaignNode> Nodes => _ordered;
+
+    /// <summary>A node is unlocked when it's the first level, or the PREVIOUS level in the chain is
+    /// completed. Linear progression — no dependency graph (economy rework, docs/2026-06-14).</summary>
     public bool IsUnlocked(CampaignNode node, ISet<string> completed)
-        => node.Requires.Count == 0 || node.Requires.All(completed.Contains);
+    {
+        int i = _ordered.FindIndex(n => n.Id == node.Id);
+        return i <= 0 || completed.Contains(_ordered[i - 1].Id);
+    }
 
     private sealed class Dto
     {

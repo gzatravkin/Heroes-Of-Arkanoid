@@ -1,7 +1,8 @@
 namespace Arkanoid.Core.Entities;
 
 /// <summary>
-/// Engineer Radiation: a timed AoE damage zone that damages blocks within a radius periodically.
+/// Engineer Containment Field (§3, reworked Radiation): a timed AoE that melts blocks within a radius
+/// periodically and — when <see cref="Suppresses"/> — silences any enemy emitter caught inside it.
 /// </summary>
 public sealed class Zone
 {
@@ -14,4 +15,7 @@ public sealed class Zone
     public bool Alive { get; set; } = true;
     public int DamagePerTick { get; set; }
     public double DamageInterval { get; set; }
+    /// <summary>True for the Containment Field — emitters inside it cannot fire. (Keeps a future
+    /// benign zone spell from silently suppressing emitters.)</summary>
+    public bool Suppresses { get; set; }
 }

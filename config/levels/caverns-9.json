@@ -1,0 +1,36 @@
+{
+  "id": "caverns-9",
+  "biome": "caverns",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    "W.1AAAAAA2.W",
+    "W.AUUUUUUA.W",
+    "W.ABBBBBBA.W",
+    "W.AUUUUUUA.W",
+    "W.ABBBBBBA.W",
+    "W.AUUUUUUA.W",
+    "W.3AAAAAA4.W",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "1": "cavern_corner_tl",
+    "2": "cavern_corner_tr",
+    "3": "cavern_corner_bl",
+    "4": "cavern_corner_br",
+    "A": "cavern_basic",
+    "B": "cavern_tough",
+    "U": "cavern_union",
+    "W": "cavern_rock"
+  }
+}

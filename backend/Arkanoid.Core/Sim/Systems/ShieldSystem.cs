@@ -11,15 +11,19 @@ internal static class ShieldSystem
 {
     internal static void Update(GameInstance g, double dt)
     {
+        // The `shielded`/`allied` flags are time-based, so the block snapshot must refresh
+        // while any timer is live — otherwise the cached DTOs serve a stale flag whenever the
+        // ball isn't chipping a block to bump the version.
+        bool dirty = false;
         // Tick down existing shields + statue pacification (central decrement for AllyTimer).
         foreach (var b in g.Blocks)
         {
-            if (b.ImmunityTimer > 0) b.ImmunityTimer = System.Math.Max(0, b.ImmunityTimer - dt);
-            if (b.AllyTimer  > 0) b.AllyTimer  = System.Math.Max(0, b.AllyTimer  - dt);
+            if (b.ImmunityTimer > 0) { b.ImmunityTimer = System.Math.Max(0, b.ImmunityTimer - dt); dirty = true; }
+            if (b.AllyTimer  > 0)    { b.AllyTimer  = System.Math.Max(0, b.AllyTimer  - dt); dirty = true; }
         }
 
         var statues = g.Blocks.Where(b => !b.Dead && b.ShieldStatue).ToList();
-        if (statues.Count == 0) return;
+        if (statues.Count == 0) { if (dirty) g.MarkBlocksDirty(); return; }
 
         foreach (var st in statues)
         {
@@ -40,11 +44,12 @@ internal static class ShieldSystem
                 if (dist > r) continue;
                 if (allied)
                     // Allied (Altar) shield statue CORRUPTS: it damages what it once protected.
-                    BlockDamage.DamageBlock(g, nb, g.Config.Enemies.CorruptDamage, igniteSource: false);
+                    BlockDamage.DamageBlock(g, nb, g.Config.Enemies.CorruptDamage, igniteSource: false, killMult: 0.5);
                 else
-                    nb.ImmunityTimer = g.Config.Enemies.StatueImmunityDuration;
+                    { nb.ImmunityTimer = g.Config.Enemies.StatueImmunityDuration; dirty = true; }
             }
             g.RaiseEvent(allied ? SimEventKind.Corrupt : SimEventKind.Shield, c.X, c.Y);
         }
+        if (dirty) g.MarkBlocksDirty();
     }
 }

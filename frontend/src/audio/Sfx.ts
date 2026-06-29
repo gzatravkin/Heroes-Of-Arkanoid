@@ -7,9 +7,25 @@
 //
 // Honors the Settings "Audio" toggle (localStorage arkanoid_audio).
 
-const MASTER_VOLUME   = 0.22;
+const MASTER_VOLUME   = 0.22;   // reference gain at 100% on the SFX volume slider
 const EVENT_COOLDOWN_MS = 45;   // per-type rate limit (chain explosions, fire spread…)
 const NOISE_BUFFER_SECONDS = 1;
+const VOLUME_KEY = "arkanoid_sfx_volume"; // 0..100, set by the Settings slider
+
+/** Stored SFX volume as a 0..1 fraction (default 1 = full / current behaviour). */
+function volumeFraction(): number {
+  const raw = localStorage.getItem(VOLUME_KEY);
+  if (raw === null) return 1;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) / 100 : 1;
+}
+
+/** Live-update the SFX master gain (0..100 percent). Settings calls this on slider input. */
+export function setSfxVolume(pct: number): void {
+  const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+  localStorage.setItem(VOLUME_KEY, String(clamped));
+  if (_master) _master.gain.value = MASTER_VOLUME * (clamped / 100);
+}
 
 type Recipe = (ctx: AudioContext, out: GainNode) => void;
 
@@ -29,7 +45,7 @@ function ctx(): AudioContext | null {
     if (!AC) return null;
     _ctx = new AC();
     _master = _ctx.createGain();
-    _master.gain.value = MASTER_VOLUME;
+    _master.gain.value = MASTER_VOLUME * volumeFraction();
     _master.connect(_ctx.destination);
     // Pre-render a noise buffer for percussive recipes.
     _noise = _ctx.createBuffer(1, _ctx.sampleRate * NOISE_BUFFER_SECONDS, _ctx.sampleRate);
@@ -90,6 +106,8 @@ function noiseBurst(
 
 const RECIPES: Record<string, Recipe> = {
   deflect:        (c, o) => tone(c, o, "square", 300, 520, 70, 0.5),
+  // Perfect (centre-band) deflect: a bright rising reward chime over the deflect thock.
+  perfectDeflect: (c, o) => { tone(c, o, "triangle", 1046, 1568, 90, 0.5); tone(c, o, "sine", 2093, 2093, 80, 0.3, 45); },
   blockDestroyed: (c, o) => { noiseBurst(c, o, "bandpass", 900, 90, 0.8); tone(c, o, "triangle", 700, 240, 90, 0.35); },
   explosion:      (c, o) => { noiseBurst(c, o, "lowpass", 320, 280, 1.0); tone(c, o, "sine", 90, 40, 260, 0.9); },
   playerHit:      (c, o) => { tone(c, o, "sawtooth", 220, 90, 160, 0.8); noiseBurst(c, o, "highpass", 1200, 120, 0.4); },

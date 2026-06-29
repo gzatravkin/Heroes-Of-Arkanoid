@@ -35,10 +35,22 @@ test("run + floor clear + pick advances to floor 2 with a buff", async ({ page }
   const choiceCards = page.locator("[data-choice]");
   expect(await choiceCards.count()).toBe(3);
 
-  // Click the first choice card.
-  const firstChoice = choiceCards.first();
-  const firstChoiceId = await firstChoice.getAttribute("data-choice");
-  await firstChoice.click();
+  // Boons state their effect so the pick is informed, not a guess from the name.
+  // (Pool can include picks without a blurb, so assert at least one renders, not all 3.)
+  const descs = page.locator("#pick-overlay .ov-bonus-desc");
+  expect(await descs.count()).toBeGreaterThan(0);
+  expect(((await descs.first().textContent()) ?? "").trim().length).toBeGreaterThan(5);
+
+  // Pick a PERSISTENT buff (relic/core/mod/spell). Skip "heal" (a consumable that adds no buff chip)
+  // and "shop" (opens a sub-screen instead of advancing the floor) so this test stays deterministic.
+  const cards = await choiceCards.all();
+  let chosen = cards[0];
+  let firstChoiceId = await chosen.getAttribute("data-choice");
+  for (const c of cards) {
+    const id = await c.getAttribute("data-choice");
+    if (id && id !== "heal" && id !== "shop") { chosen = c; firstChoiceId = id; break; }
+  }
+  await chosen.click();
 
   // Navigates back to dungeon scene.
   await page.waitForURL("**/?scene=dungeon*", { timeout: 10000 });
@@ -60,6 +72,18 @@ test("run + floor clear + pick advances to floor 2 with a buff", async ({ page }
     // The buff name is rendered in the chip.
     await expect(buffsRow).not.toContainText("None yet", { timeout: 5000 });
   }
+});
+
+test("HP carries across floors: floor-cleared?hp=N persists into run state (docs/04 §6.2)", async ({ page }) => {
+  await page.request.post(`${API}/dungeon/start?id=ember-depths`);
+
+  // Clear floor 1 reporting 4 HP remaining — the server must carry it into the run.
+  const res = await page.request.post(`${API}/dungeon/floor-cleared?hp=4`);
+  expect(res.ok()).toBeTruthy();
+
+  const stateRes = await page.request.get(`${API}/dungeon/state`);
+  const state = await stateRes.json();
+  expect(state.hp).toBe(4); // next floor starts at the carried HP, not the level default
 });
 
 test("permadeath: lose a floor → fail overlay → state inactive", async ({ page }) => {
@@ -107,8 +131,13 @@ test("clear reward: win all 3 floors → clear overlay with reward info", async 
 
     if (expectPick) {
       await expect(page.locator("#pick-overlay")).toBeVisible({ timeout: 15_000 });
-      // Click first choice.
-      await page.locator("[data-choice]").first().click();
+      // Pick a choice that advances the floor directly — skip "shop" (opens a sub-screen).
+      const cards = await page.locator("[data-choice]").all();
+      let target = cards[0];
+      for (const c of cards) {
+        if ((await c.getAttribute("data-choice")) !== "shop") { target = c; break; }
+      }
+      await target.click();
       await page.waitForURL("**/?scene=dungeon*", { timeout: 10000 });
     }
   }

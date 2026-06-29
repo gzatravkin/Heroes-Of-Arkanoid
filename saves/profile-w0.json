@@ -1,0 +1,101 @@
+{
+  "level": 1,
+  "exp": 0,
+  "sparks": 0,
+  "souls": 0,
+  "insight": 0,
+  "currencyMigrated": true,
+  "points": 0,
+  "crystals": 0,
+  "shards": 0,
+  "campaignGold": 0,
+  "cardDust": 0,
+  "moduleCores": 0,
+  "medals": 0,
+  "eventTokens": 0,
+  "seasonTokens": 0,
+  "ownedCards": {
+    "headhunter": {
+      "level": 1,
+      "copies": 0
+    },
+    "opening_gambit": {
+      "level": 1,
+      "copies": 0
+    },
+    "hot_hand": {
+      "level": 5,
+      "copies": 0
+    },
+    "redline": {
+      "level": 5,
+      "copies": 0
+    },
+    "channeling": {
+      "level": 5,
+      "copies": 0
+    }
+  },
+  "equippedCards": [
+    "hot_hand",
+    "redline",
+    "channeling"
+  ],
+  "cardSlots": 3,
+  "daily": {
+    "dayId": -1,
+    "weekId": -1,
+    "missions": [],
+    "streak": 0,
+    "lastClaimDay": -1,
+    "streakClaimedDay": -1
+  },
+  "prestigeTier": 0,
+  "ownedModules": {},
+  "moduleCopies": {},
+  "equippedModules": {},
+  "season": {
+    "seasonId": -1,
+    "tokens": 0,
+    "claimedTiers": [],
+    "eventWeek": -1,
+    "eventTokens": 0,
+    "eventClaimed": false
+  },
+  "completedLevels": [],
+  "unlockedRelics": [],
+  "spellLevels": {
+    "ignite": 1,
+    "fireball": 1,
+    "firewall": 1,
+    "turret": 1
+  },
+  "spellCopies": {},
+  "equippedSpells": {
+    "fire_mage": [
+      "ignite",
+      "fireball",
+      "firewall"
+    ]
+  },
+  "unlockedSpellSlots": 3,
+  "heroProgress": {
+    "fire_mage": {
+      "level": 1,
+      "exp": 0,
+      "stars": 0,
+      "ascendPips": 0
+    }
+  },
+  "heroTokens": {},
+  "heroPool": [],
+  "masteries": {},
+  "selectedCharacter": "fire_mage",
+  "unlockedCharacters": [
+    "fire_mage"
+  ],
+  "achievements": [],
+  "riftAscension": 0,
+  "tutorialSeen": false,
+  "pendingRift": null
+}

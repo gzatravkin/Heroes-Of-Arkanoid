@@ -8,6 +8,11 @@ import { bg as biomedBg, hellParallaxFrames, tex as atlasTex } from "./assets";
 
 // Biome background: slightly darkened so blocks read clearly over it.
 const BG_TINT = 0xaaaaaa; // ~67% brightness multiplier on the sprite
+// During active play the background is dimmed harder (cool/dark) so blocks + ball pop off a calm
+// backdrop (readability overhaul 2026-06-16 §D). Restored to BG_TINT when not Playing.
+const PLAY_BG_TINT = 0x55555f;
+const PLAY_PARALLAX_ALPHA = 0.20;
+const IDLE_PARALLAX_ALPHA = 0.35;
 
 // Ambient beholder keys (cosmetic background, village biome only). Pooled, max 2.
 const BEHOLDER_KEYS = [
@@ -28,11 +33,13 @@ interface Ambient {
 const WRAP_W = 440; // world-space wrap bounds (matches the ambient sprite wrap)
 const WRAP_H = 540;
 
-const HELL_EMBER_COUNT   = 18;
+// Particle counts deliberately low (readability overhaul 2026-06-16): rising embers were the #1 thing
+// competing with the ball for the eye, so the field carries only a sparse hint of atmosphere.
+const HELL_EMBER_COUNT   = 6;
 const HELL_EMBER_COLOR   = 0xffaa44;
-const CAVERN_DUST_COUNT  = 16;
+const CAVERN_DUST_COUNT  = 8;
 const CAVERN_DUST_COLOR  = 0xbbaa99;
-const HEAVEN_MOTE_COUNT  = 10;
+const HEAVEN_MOTE_COUNT  = 6;
 const HEAVEN_MOTE_COLOR  = 0xfff4cc;
 const HEAVEN_CLOUD_KEYS  = ["heaven/Cloud", "heaven/Clouds", "heaven/HeavenClouds"];
 const VILLAGE_SHADOW_KEY = "village/enemies/VillageShadow";
@@ -60,7 +67,7 @@ export class BackgroundLayer {
     this.bgSprite.anchor.set(0);
     this.bgSprite.tint = BG_TINT;
     this.bgLayer.addChild(this.bgSprite);
-    this.ambientContainer.alpha = 0.22; // purely cosmetic
+    this.ambientContainer.alpha = 0.12; // purely cosmetic — kept very low so it never competes with the ball
   }
 
   /** Rebuild the biome background, Hell parallax, and ambient sprites on biome change. */
@@ -121,6 +128,13 @@ export class BackgroundLayer {
         }
       }
     }
+  }
+
+  /** Dim the background harder during active play so blocks + ball pop (readability overhaul §D). */
+  setPlayDim(playing: boolean): void {
+    this.bgSprite.tint = playing ? PLAY_BG_TINT : BG_TINT;
+    const pa = playing ? PLAY_PARALLAX_ALPHA : IDLE_PARALLAX_ALPHA;
+    for (const psp of this._hellParallaxSprites) psp.alpha = pa;
   }
 
   /** Build the biome's atmosphere kit (docs/12): embers / dust / fog shadows / clouds. */

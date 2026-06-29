@@ -41,21 +41,25 @@ internal static class BonusSystem
     /// Spawn a power-up of a specific effect type regardless of the global catalog roll.
     /// Looks up the catalog for the icon; falls back to empty string if the entry is missing.
     /// </summary>
-    internal static void SpawnWithType(GameInstance g, double x, double y, string effectType)
+    internal static Bonus SpawnWithType(GameInstance g, double x, double y, string effectType)
     {
-        var def = g.BonusCatalog?.All.FirstOrDefault(d => d.Effect == effectType);
-        g.Bonuses.Add(new Bonus
+        // Resolve by real effect id OR legacy catalog id (e.g. "powerup_wide" → "wide_paddle"),
+        // and always store the canonical effect so ApplyEffect recognises it.
+        var def = g.BonusCatalog?.All.FirstOrDefault(d => d.Effect == effectType || d.Id == effectType);
+        var bonus = new Bonus
         {
             Id       = g._nextBonusId++,
             Pos      = new Vec2(x, y),
             Vel      = new Vec2(0, g.Config.Pickups.FallSpeed),
-            Type     = effectType,
+            Type     = def?.Effect ?? effectType,
             Icon     = def?.Icon ?? "",
             Count    = def?.Count ?? 1,
             Duration = def?.Duration ?? 0,
             Full     = def?.Full ?? false,
             Alive    = true,
-        });
+        };
+        g.Bonuses.Add(bonus);
+        return bonus;
     }
 
     /// <summary>
@@ -91,15 +95,19 @@ internal static class BonusSystem
         var drainLine  = g.DrainY;
         var paddleBox  = Aabb.FromCenter(g.Paddle.Center, g.Paddle.Width / 2, g.Paddle.Height / 2);
 
-        foreach (var bonus in g.Bonuses)
+        // Index loop (not foreach): §1 Sleight of Hand can spawn a duplicate pickup mid-update, which
+        // appends to g.Bonuses — a foreach would throw. New entries are simply processed on later indices.
+        for (int _i = 0; _i < g.Bonuses.Count; _i++)
         {
+            var bonus = g.Bonuses[_i];
             if (!bonus.Alive) continue;
 
             // Lodestone relic: pickups drift horizontally toward the paddle.
-            if (g.HasRelic("lodestone"))
+            if (Modifiers.HasLodestone(g))
             {
-                var dx = g.Paddle.Center.X - bonus.Pos.X;
-                var step = System.Math.Clamp(dx, -g.Config.LodestoneHoming * dt, g.Config.LodestoneHoming * dt);
+                var dx   = g.Paddle.Center.X - bonus.Pos.X;
+                var rate = Modifiers.LodestoneSpeed(g);
+                var step = System.Math.Clamp(dx, -rate * dt, rate * dt);
                 bonus.Pos = new Vec2(bonus.Pos.X + step, bonus.Pos.Y);
             }
 
@@ -112,11 +120,10 @@ internal static class BonusSystem
                 bonus.Alive = false;
                 ApplyEffect(g, bonus);
                 // Midas relic: every catch also pays crystals.
-                if (g.HasRelic("midas"))
-                {
-                    g.Crystals += g.Config.MidasCrystals;
-                }
+                if (Modifiers.HasMidas(g))
+                    g.Crystals += Modifiers.MidasCrystals(g);
                 g.RaiseEvent(SimEventKind.BonusCaught, bonus.Pos.X, bonus.Pos.Y);
+                CardSystem.OnBonusCaught(g, bonus); // §1 Sleight of Hand duplicates a centre-caught pickup
                 continue;
             }
 
@@ -128,9 +135,6 @@ internal static class BonusSystem
         }
 
         g.Bonuses.RemoveAll(b => !b.Alive);
-
-        // Expire temporary effects.
-        UpdateTempEffects(g, dt);
     }
 
     // -----------------------------------------------------------------------
@@ -156,18 +160,13 @@ internal static class BonusSystem
                 break;
 
             case "slow_ball":
-                if (!g.Powerups.SlowBallActive)
+                if (!EffectSystem.HasEffect(g, "slow_ball"))
                 {
-                    g.Powerups.SlowBallActive = true;
-                    g.Powerups.SlowBallTimer  = g.Config.Pickups.EffectDuration;
                     foreach (var b in g.Balls)
                         if (b.Alive && b.Vel.Length > 0)
                             b.Vel = b.Vel * g.Config.Pickups.SlowBallFactor;
                 }
-                else
-                {
-                    g.Powerups.SlowBallTimer = g.Config.Pickups.EffectDuration;
-                }
+                EffectSystem.Add(g, "slow_ball", g.Config.Pickups.EffectDuration);
                 break;
 
             case "heal":
@@ -175,16 +174,17 @@ internal static class BonusSystem
                 break;
 
             case "coins":
-                g.Crystals += g.Config.Pickups.CoinsCrystals;
+                // docs/04 §5: treasure pickups feed in-run GOLD (spent at shops), not the
+                // Crystals meta-stream that flows to the Profile at level clear.
+                g.Gold += g.Config.Pickups.CoinsGold;
                 break;
 
             case "fireshot":
-                g.Powerups.FireshotActive = true;
-                g.Powerups.FireshotTimer  = g.Config.Pickups.FireshotDuration;
+                EffectSystem.Add(g, "fireshot", g.Config.Pickups.FireshotDuration);
                 break;
 
             case "shield":
-                g.Powerups.AutoSaveActive = true;
+                g._autoSaveActive = true;
                 break;
         }
     }
@@ -214,44 +214,6 @@ internal static class BonusSystem
     }
 
     // -----------------------------------------------------------------------
-    // Temp effect expiry
-    // -----------------------------------------------------------------------
-
-    private static void UpdateTempEffects(GameInstance g, double dt)
-    {
-        if (g.Powerups.WidePaddleActive)
-        {
-            g.Powerups.WidePaddleTimer -= dt;
-            if (g.Powerups.WidePaddleTimer <= 0)
-            {
-                g.Paddle.Width -= g.Config.Pickups.WidePaddleBonus;
-                g.Powerups.WidePaddleActive = false;
-            }
-        }
-
-        if (g.Powerups.SlowBallActive)
-        {
-            g.Powerups.SlowBallTimer -= dt;
-            if (g.Powerups.SlowBallTimer <= 0)
-            {
-                foreach (var b in g.Balls)
-                    if (b.Alive && b.Vel.Length > 0)
-                        b.Vel = b.Vel.Normalized() * g.Config.BallSpeed;
-                g.Powerups.SlowBallActive = false;
-            }
-        }
-
-        if (g.Powerups.FireshotActive)
-        {
-            g.Powerups.FireshotTimer -= dt;
-            if (g.Powerups.FireshotTimer <= 0)
-            {
-                g.Powerups.FireshotActive = false;
-            }
-        }
-    }
-
-    // -----------------------------------------------------------------------
     // Helper
     // -----------------------------------------------------------------------
 
@@ -260,13 +222,17 @@ internal static class BonusSystem
         && a.MinY <= b.MaxY && a.MaxY >= b.MinY;
 
     /// <summary>Activate or refresh the wide-paddle effect. Refreshes timer to whichever duration is longer.</summary>
-    private static void ActivateWidePaddle(GameInstance g, double duration)
+    internal static void ActivateWidePaddle(GameInstance g, double duration)
     {
-        if (!g.Powerups.WidePaddleActive)
+        var existing = g._effects.Find(e => e.Id == "wide_paddle");
+        if (existing == null)
         {
-            g.Powerups.WidePaddleActive = true;
             g.Paddle.Width += g.Config.Pickups.WidePaddleBonus;
+            g._effects.Add(new Sim.ActiveEffect { Id = "wide_paddle", Remaining = duration });
         }
-        g.Powerups.WidePaddleTimer = System.Math.Max(g.Powerups.WidePaddleTimer, duration);
+        else
+        {
+            existing.Remaining = System.Math.Max(existing.Remaining, duration);
+        }
     }
 }

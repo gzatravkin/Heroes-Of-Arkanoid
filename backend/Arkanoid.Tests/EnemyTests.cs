@@ -5,38 +5,12 @@ using Arkanoid.Core.Math;
 using Arkanoid.Core.Sim;
 using Xunit;
 
-/// <summary>
-/// Tests for the ported original enemies/hazards (docs/08-enemy-behaviour-spec.md).
-/// Pure-Core, deterministic.
-/// </summary>
 public class EnemyTests
 {
-    private static GameInstance Make(string blocksJson, string levelJson)
-    {
-        var catalog = BlockCatalog.FromJson(blocksJson);
-        var level   = LevelLoader.FromJson(levelJson, catalog);
-        var g = new GameInstance(level, SimConfig.Default, seed: 1);
-        g.Serve();
-        return g;
-    }
+    private static GameInstance Make(string blocksJson, string levelJson) => K.FullGame(blocksJson, levelJson);
+    private static void Park(GameInstance g)   => K.Park(g);
+    private static void BallHit(GameInstance g, Block target) => K.Hit(g, target);
 
-    /// <summary>Park the ball motionless near the paddle so it can't hit blocks during a wait.</summary>
-    private static void Park(GameInstance g)
-    {
-        g.Balls[0].Pos = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Balls[0].Radius - 2);
-        g.Balls[0].Vel = new Vec2(0, 0);
-    }
-
-    /// <summary>Drive the ball into a specific block from below and tick once (public path).</summary>
-    private static void BallHit(GameInstance g, Block target)
-    {
-        var c = g.Level.Grid.CellCenter(target.Col, target.Row);
-        g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
-        g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
-        g.Tick(SimConfig.Default.FixedDt);
-    }
-
-    // ── Emitter (Hell spawner / Beholder / Melee statue) ──────────────────────
 
     [Fact]
     public void EmitterBlock_FiresHazard_AfterItsInterval()
@@ -65,7 +39,22 @@ public class EnemyTests
         Assert.True(g.Hazards[0].Vel.Y > 0, "hazard must travel downward toward the paddle");
     }
 
-    // ── Bomb (chain explosion) ────────────────────────────────────────────────
+    [Fact]
+    public void Emitter_FiresStraightDownLane_DoesNotHomeOnPaddle()
+    {
+        // Level-UX rework (2026-06-15, Option 1 "fair projectiles"): even an emitAim="paddle" emitter must
+        // fire STRAIGHT DOWN its own column — a predictable, dodgeable lane — not lean toward the paddle.
+        var g = Make(
+            "{\"types\":[{\"id\":\"e\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"emitter\",\"emitInterval\":0.5,\"emitAim\":\"paddle\"}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5,\"rows_data\":[\"E....\",\".....\",\".....\",\".....\",\".....\"],\"legend\":{\"E\":\"e\"}}");
+        g.SetPaddleX(5 * 32);                        // park the paddle far to the RIGHT of the emitter (col 0)
+        for (int i = 0; i < 40; i++) g.Tick(0.016);
+        Assert.NotEmpty(g.Hazards);
+        var h = g.Hazards[0];
+        Assert.Equal(0, h.Vel.X, precision: 3);      // no horizontal lean toward the paddle
+        Assert.True(h.Vel.Y > 0, "still descends");
+    }
+
 
     [Fact]
     public void Bomb_OnDeath_DamagesNeighboursInRadius()
@@ -88,7 +77,6 @@ public class EnemyTests
         Assert.True(right.Hp < rightBefore, "right neighbour took explosion damage");
     }
 
-    // ── Cart (rolls a horizontal hazard across the paddle line) ───────────────
 
     [Fact]
     public void Cart_LaunchesHorizontalHazard_AfterInterval()
@@ -99,17 +87,16 @@ public class EnemyTests
             "{\"id\":\"z\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":8,\"rows\":3,\"rows_data\":[\"k......z\",\"........\",\"........\"],\"legend\":{\"k\":\"k\",\"z\":\"z\"}}");
         Park(g);
-        for (int i = 0; i < (int)(SimConfig.Default.CartInterval / SimConfig.Default.FixedDt) + 2; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.CartInterval / SimConfig.Default.FixedDt) + 2; i++)
             g.Tick(SimConfig.Default.FixedDt);
         var cart = g.Hazards.FirstOrDefault(h => h.Kind == "cart");
         Assert.NotNull(cart);
         Assert.True(System.Math.Abs(cart!.Vel.X) > 0 && cart.Vel.Y == 0, "cart rolls horizontally");
     }
 
-    // ── Lava (ball passes through — only drains HP when in paddle zone) ──────────
 
     [Fact]
-    public void Lava_BallPassesThrough_OnContact()
+    public void Lava_BallPassesThrough_AndDestroysIt_OnContact()
     {
         var g = Make(
             "{\"types\":[" +
@@ -117,11 +104,12 @@ public class EnemyTests
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"l.k\",\"...\",\"...\"],\"legend\":{\"l\":\"l\",\"k\":\"k\"}}");
         int sparesBefore = g.SpareBalls;
-        BallHit(g, g.Blocks[0]); // ball passes through lava — no spare consumed
+        var lava = g.Blocks[0];
+        BallHit(g, lava); // ball passes THROUGH lava (no bounce, no spare) and DESTROYS it (2026-06-15)
         Assert.Equal(sparesBefore, g.SpareBalls);
+        Assert.True(lava.Dead, "the ball destroys the lava cell it flies over");
     }
 
-    // ── Altar / Vase pacify the Heaven statues ────────────────────────────────
 
     [Fact]
     public void Altar_PacifiesStatues_SoEmitterHoldsFire()
@@ -143,7 +131,6 @@ public class EnemyTests
         Assert.Empty(g.Hazards);
     }
 
-    // ── Danger pays (docs/11 R4): enemy kills always drop a bonus ─────────────
 
     [Fact]
     public void EnemyBlockKill_AlwaysDropsBonus_PlainBrickStaysRandom()
@@ -158,20 +145,21 @@ public class EnemyTests
         var level   = LevelLoader.FromJson(levelJson, catalog);
         var bonuses = Arkanoid.Core.Bonuses.BonusCatalog.FromJson(
             "{\"bonuses\":[{\"id\":\"coins\",\"name\":\"Treasure\",\"icon\":\"i\",\"effect\":\"coins\"}]}");
-        // BonusDropChance 0 → any drop from the enemy must come from the guaranteed path.
-        var g = new GameInstance(level, new SimConfig { BonusDropChance = 0 }, seed: 1, bonuses: bonuses);
+        // DropChance 0 → any drop from the enemy must come from the guaranteed path.
+        var g = new GameInstance(level, new SimConfig { Pickups = new() { DropChance = 0 } }, seed: 1, bonuses: bonuses);
         g.Serve();
 
-        BallHit(g, g.Blocks[0]); // kill the emitter
-        Assert.True(g.Blocks[0].Dead);
+        var emitter = g.Blocks[0];
+        var brick   = g.Blocks[1];
+        BallHit(g, emitter); // kill the emitter
+        Assert.True(emitter.Dead);
         Assert.Single(g.Bonuses); // guaranteed drop
 
-        BallHit(g, g.Blocks[1]); // kill the plain brick
-        Assert.True(g.Blocks[1].Dead);
+        BallHit(g, brick); // kill the plain brick
+        Assert.True(brick.Dead);
         Assert.Single(g.Bonuses); // still 1 — plain bricks keep the random roll (chance 0 here)
     }
 
-    // ── Telegraph (docs/11 R2): snapshot flags an emitter about to fire ────────
 
     [Fact]
     public void Snapshot_FlagsEmitterCharging_OnlyInsideTelegraphWindow()
@@ -203,34 +191,32 @@ public class EnemyTests
         Assert.True(Arkanoid.Core.Net.Snapshot.From(g, 0).Blocks[1].Allied);
     }
 
-    // ── Revive cancelled: killing the necromant clears pending death-marks ─────
 
     [Fact]
-    public void NecromantKilled_BeforeReviveTimer_RaisesReviveCancelled()
+    public void ReviverKilled_BeforeReviveTimer_RaisesReviveCancelled()
     {
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"necromant\"}," +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"Reviver\"}," +
             "{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             // third needToKill block keeps the level un-won so the sim keeps ticking
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"n.k\",\"..k\",\"...\"],\"legend\":{\"n\":\"n\",\"k\":\"k\"}}");
-        var necro = g.Blocks[0];
-        var brick = g.Blocks[1];
+        var reviver = g.Blocks[0];
+        var brick   = g.Blocks[1];
 
-        BallHit(g, brick);                 // dies, gets death-marked
+        BallHit(g, brick);                  // dies, gets death-marked
         Assert.True(brick.Dead);
-        BallHit(g, necro);                 // kill the necromant before the revive fires
-        Assert.True(necro.Dead);
+        BallHit(g, reviver);                // kill the Reviver before the revive fires
+        Assert.True(reviver.Dead);
         Park(g);
-        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 3; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ReviveDelay / SimConfig.Default.FixedDt) + 3; i++)
             g.Tick(SimConfig.Default.FixedDt);
 
-        Assert.True(brick.Dead, "block stays dead once the necromant is gone");
+        Assert.True(brick.Dead, "block stays dead once the Reviver is gone");
         var events = Arkanoid.Core.Net.Snapshot.From(g, 0).Events;
         Assert.Contains(events, e => e.Type == "reviveCancelled");
     }
 
-    // ── Bat (grabs the ball, then releases + flies away) ──────────────────────
 
     private const string BatBlocksJson =
         "{\"types\":[" +
@@ -240,27 +226,28 @@ public class EnemyTests
         "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":6,\"rows_data\":[\"v.k\",\"...\",\"...\",\"...\",\"...\",\"...\"],\"legend\":{\"v\":\"v\",\"k\":\"k\"}}";
 
     [Fact]
-    public void Bat_CarriesBallTowardDrain_AndDrainsItIfUnanswered()
+    public void Bat_HoldsBall_ThenReleasesAndRewardsWidePaddle()
     {
+        // Bat reverted 2026-06-16 to the LEGACY reward: it HOLDS the ball briefly, then releases it AND
+        // grants a wide-paddle buff — a risk→reward, NOT a drain threat.
         var g = Make(BatBlocksJson, BatLevelJson);
         var bat    = g.Blocks[0];
         int spares = g.SpareBalls;
 
         BallHit(g, bat);
-        Assert.True(bat.Dead, "bat block becomes the moving carrier");
+        Assert.True(bat.Dead, "bat block becomes the carrier");
         var carrier = g.Hazards.FirstOrDefault(h => h.Kind == "bat" && h.CarriedBallId == g.Balls[0].Id);
         Assert.NotNull(carrier);
-        Assert.True(carrier!.Vel.Y > 0, "carrier drags the ball DOWN toward the drain");
-        Assert.Equal(0, carrier.Damage); // never a paddle threat — the stolen ball is the threat
+        Assert.True(carrier!.Vel.Y < 0, "the bat hovers (does NOT drag the ball toward the drain)");
+        Assert.Equal(0, carrier.Damage);
+        var heldBall = g.Balls[0];
 
-        // The ball rides the carrier.
-        var yBefore = g.Balls[0].Pos.Y;
-        for (int i = 0; i < 30; i++) g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(g.Balls[0].Pos.Y > yBefore, "carried ball moves down with the bat");
-
-        // Unanswered: the carrier reaches the drain and the ball is lost (spare consumed).
-        for (int i = 0; i < 1200 && g.SpareBalls == spares; i++) g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(spares - 1, g.SpareBalls);
+        // Run just past the hold time: the ball is released alive (no spare lost) + a wide paddle is granted.
+        for (int i = 0; i < (int)(3.3 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(heldBall.Alive, "the held ball is released, not drained");
+        Assert.Equal(0, heldBall.GrabberId);
+        Assert.Equal(spares, g.SpareBalls);                 // no spare consumed — the bat is not a threat
+        Assert.True(g.WidePaddleActive, "holding the bat the full time rewards a wide paddle");
     }
 
     [Fact]
@@ -286,7 +273,6 @@ public class EnemyTests
         Assert.Contains(g.Hazards, h => h.Kind == "bat" && h.CarriedBallId == 0 && h.Vel.Y < 0);
     }
 
-    // ── Emitter missile kinds (renderer draws real art from these tags) ───────
 
     [Fact]
     public void Emitter_TagsHazard_WithConfiguredMissileKind()
@@ -299,7 +285,6 @@ public class EnemyTests
         Assert.All(g.Hazards, h => Assert.Equal("beholdermissile", h.Kind));
     }
 
-    // ── Convert system (docs/11): Altar = ally, Vase = level up ───────────────
 
     [Fact]
     public void AlliedMeleeStatue_FiresAllyBolts_ThatDamageBlocks()
@@ -336,11 +321,11 @@ public class EnemyTests
 
         BallHit(g, g.Blocks[0]); // ally via altar
         Park(g);
-        var pulseTicks = (int)(SimConfig.Default.ShieldStatueInterval / SimConfig.Default.FixedDt) + 5;
+        var pulseTicks = (int)(SimConfig.Default.Enemies.ShieldStatueInterval / SimConfig.Default.FixedDt) + 5;
         for (int i = 0; i < pulseTicks; i++) g.Tick(SimConfig.Default.FixedDt);
 
         Assert.True(brick.Hp < hpBefore, "allied shield statue corrupts (damages) its neighbours");
-        Assert.True(brick.ShieldTimer <= 0, "no shield granted while allied");
+        Assert.True(brick.ImmunityTimer <= 0, "no shield granted while allied");
     }
 
     [Fact]
@@ -367,11 +352,10 @@ public class EnemyTests
         BallHit(g, statue);
         BallHit(g, statue);
         Assert.True(statue.Dead);
-        Assert.True(g.ManaValue >= SimConfig.Default.VaseKillManaPerLevel,
+        Assert.True(g.ManaValue >= SimConfig.Default.Enemies.VaseKillManaPerLevel,
             $"levelled statue kill must pay bonus mana (got {g.ManaValue})");
     }
 
-    // ── Stalactite as a weapon (docs/11): falling spikes damage blocks ─────────
 
     [Fact]
     public void FallingStalactite_DamagesBlocksItPassesThrough()
@@ -388,7 +372,8 @@ public class EnemyTests
         var sc = g.Level.Grid.CellCenter(g.Blocks[0].Col, g.Blocks[0].Row);
         g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(sc.X, sc.Y + SimConfig.Default.CellSize * 4);
         g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, 0);
-        g.Tick(SimConfig.Default.FixedDt);
+        // It shakes (telegraph) for StalactiteArmDelay, THEN detaches into a falling hazard.
+        for (int i = 0; i < 40 && !g.Hazards.Any(h => h.Kind == "stalactite"); i++) g.Tick(SimConfig.Default.FixedDt);
         Assert.Contains(g.Hazards, h => h.Kind == "stalactite");
 
         // The falling spike smashes the brick beneath on its way down.
@@ -396,7 +381,6 @@ public class EnemyTests
         Assert.True(brick.Hp < hpBefore, "stalactite damaged the block it fell through");
     }
 
-    // ── Cauldron (docs/11 Economy axis): siphons mana, refunds on death ────────
 
     [Fact]
     public void Cauldron_SiphonsMana_WhileAlive_AndRefundsOnKill()
@@ -417,7 +401,7 @@ public class EnemyTests
 
         // 2 seconds of siphon at the configured rate.
         for (int i = 0; i < (int)(2.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
-        var expectedSiphon = 2.0 * SimConfig.Default.CauldronSiphonPerSec;
+        var expectedSiphon = 2.0 * SimConfig.Default.Enemies.CauldronSiphonPerSec;
         Assert.True(g.ManaValue < 50, "cauldron siphons the player's mana");
         Assert.True(cauldron.StoredMana > expectedSiphon * 0.9, $"stored {cauldron.StoredMana:F1}");
 
@@ -429,7 +413,6 @@ public class EnemyTests
             $"refund expected: before={manaBeforeKill:F1} after={g.ManaValue:F1}");
     }
 
-    // ── Lava spawner (docs/11 lava reform): creep + retract counterplay ────────
 
     [Fact]
     public void LavaSpawner_CreepsLava_AndRetractsWhenKilled()
@@ -448,7 +431,7 @@ public class EnemyTests
         Park(g); // re-park so the ball doesn't bounce back and kill the spawner
 
         // Two creep intervals → two lava cells owned by the spawner.
-        var creepTicks = (int)(SimConfig.Default.LavaCreepInterval / SimConfig.Default.FixedDt) + 2;
+        var creepTicks = (int)(SimConfig.Default.Enemies.LavaCreepInterval / SimConfig.Default.FixedDt) + 2;
         for (int i = 0; i < creepTicks * 2; i++) g.Tick(SimConfig.Default.FixedDt);
         var crept = g.Blocks.Where(b => !b.Dead && b.Lava && b.OwnerId == spawner.Id).ToList();
         Assert.True(crept.Count >= 2, $"expected ≥2 crept lava cells, got {crept.Count}");
@@ -456,7 +439,7 @@ public class EnemyTests
         // The cap holds.
         for (int i = 0; i < creepTicks * 10; i++) g.Tick(SimConfig.Default.FixedDt);
         Assert.True(g.Blocks.Count(b => !b.Dead && b.Lava && b.OwnerId == spawner.Id)
-            <= SimConfig.Default.LavaCreepMax, "creep cap respected");
+            <= SimConfig.Default.Enemies.LavaCreepMax, "creep cap respected");
 
         // Counterplay: kill the spawner → its lava retracts.
         BallHit(g, spawner);
@@ -464,7 +447,6 @@ public class EnemyTests
         Assert.DoesNotContain(g.Blocks, b => !b.Dead && b.Lava && b.OwnerId == spawner.Id);
     }
 
-    // ── Objective flavors + pacing modes (docs/12 identity matrix) ─────────────
 
     private const string PlainBlocksJson =
         "{\"types\":[{\"id\":\"k\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}";
@@ -556,7 +538,6 @@ public class EnemyTests
         Assert.True(statue.StatueLevel >= 2, $"expected ≥2 escalations, got {statue.StatueLevel}");
     }
 
-    // ── Ghost Portal (phase toggle swaps which blocks are solid) ──────────────
 
     [Fact]
     public void GhostPortal_TogglesPhase_GhostBallHitsGhostBlocksAndPhasesNormal()
@@ -587,7 +568,6 @@ public class EnemyTests
         Assert.True(ghost.Hp < xBefore, "ghost ball should damage the ghost block");
     }
 
-    // ── Shield Statue (temporary block immunity) ──────────────────────────────
 
     [Fact]
     public void ShieldStatue_MakesNeighbourImmune_ThenWearsOff()
@@ -601,9 +581,9 @@ public class EnemyTests
 
         // Advance past one shield pulse (ball parked so it doesn't interfere).
         Park(g);
-        for (int i = 0; i < (int)(SimConfig.Default.ShieldStatueInterval / SimConfig.Default.FixedDt) + 2; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ShieldStatueInterval / SimConfig.Default.FixedDt) + 2; i++)
             g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(plain.ShieldTimer > 0, "neighbour was shielded");
+        Assert.True(plain.ImmunityTimer > 0, "neighbour was shielded");
 
         int hpBefore = plain.Hp;
         BallHit(g, plain);
@@ -611,14 +591,13 @@ public class EnemyTests
 
         // Let the shield wear off, then damage lands.
         Park(g);
-        for (int i = 0; i < (int)(SimConfig.Default.ShieldDuration / SimConfig.Default.FixedDt) + 5; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.StatueImmunityDuration / SimConfig.Default.FixedDt) + 5; i++)
             g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(plain.ShieldTimer <= 0, "shield wore off");
+        Assert.True(plain.ImmunityTimer <= 0, "shield wore off");
         BallHit(g, plain);
         Assert.True(plain.Hp < hpBefore, "damage lands after the shield expires");
     }
 
-    // ── WindMaster (deflects the ball away) ───────────────────────────────────
 
     [Fact]
     public void WindMaster_PushesBallAway_PreservingSpeed()
@@ -633,8 +612,9 @@ public class EnemyTests
         var wc = g.Level.Grid.CellCenter(wind.Col, wind.Row);
 
         // Ball just to the RIGHT of the windmaster, within radius, moving straight up.
-        var speed = SimConfig.Default.BallSpeed;
-        g.Balls[0].Pos = new Vec2(wc.X + g.Config.WindMasterRadius * 0.4, wc.Y);
+        // Above the time-accel speed floor (RampedBallSpeed≈360 at t≈0) so only wind affects the magnitude.
+        var speed = SimConfig.Default.BallSpeed * 1.5;
+        g.Balls[0].Pos = new Vec2(wc.X + g.Config.Enemies.WindMasterRadius * 0.4, wc.Y);
         g.Balls[0].Vel = new Vec2(0, -speed);
         g.Tick(SimConfig.Default.FixedDt);
 
@@ -642,7 +622,6 @@ public class EnemyTests
         Assert.Equal(speed, g.Balls[0].Vel.Length, 1); // speed preserved (deflection only)
     }
 
-    // ── Necromant (revives destroyed blocks) ──────────────────────────────────
 
     [Fact]
     public void Necromant_RevivesDestroyedBlock_AfterDelay_AndStopsWhenDead()
@@ -650,7 +629,7 @@ public class EnemyTests
         // Necromant 'N' (col0) + a normal block 'p' (col2). Kill p → it revives while N lives.
         var g = Make(
             "{\"types\":[" +
-            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"necromant\"}," +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"Reviver\"}," +
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"n.p\",\"...\",\"...\"],\"legend\":{\"n\":\"n\",\"p\":\"p\"}}");
 
@@ -663,22 +642,64 @@ public class EnemyTests
         Park(g);
 
         // Before the delay elapses it stays dead; after it, the Necromant revives it.
-        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
             g.Tick(SimConfig.Default.FixedDt);
         Assert.False(plain.Dead, "Necromant should have revived the block");
         Assert.Equal(plain.MaxHp, plain.Hp);
+        // A REGULAR necromant raises a regular corpse back as a REGULAR block (owner 2026-06-16): the
+        // corpse keeps its nature, so a normal ball can re-kill it.
+        Assert.False(plain.BallPhases, "regular necromant revives a regular block as REGULAR (not ghost)");
 
         // Kill the Necromant, then destroy the (revived) block again via the ball → it must NOT revive.
         necro.Hp = 0; necro.Dead = true;
         BallHit(g, plain);
         Assert.True(plain.Dead, "block destroyed again");
         Park(g);
-        for (int i = 0; i < (int)(SimConfig.Default.NecromantReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
             g.Tick(SimConfig.Default.FixedDt);
         Assert.True(plain.Dead, "no revival once the Necromant is dead");
     }
 
-    // ── Stalactite (drops when a ball passes beneath) ─────────────────────────
+
+    [Fact]
+    public void GhostNecromant_RaisesGhostCorpse_AsGhost_RegularNecromantIgnoresIt()
+    {
+        // Symmetric necromancy (owner 2026-06-16): a GHOST necromant 'M' (col0, ballPhases+Reviver) raises
+        // a GHOST block 'b' (col2) back as a ghost. A regular necromant 'n' (col4) must NOT touch a ghost corpse.
+        var g = Make(
+            "{\"types\":[" +
+            "{\"id\":\"m\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"ballPhases\":true,\"behavior\":\"Reviver\"}," +
+            "{\"id\":\"n\",\"biome\":\"t\",\"hp\":3,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"Reviver\"}," +
+            "{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true,\"ballPhases\":true}]}",
+            "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":3,\"rows_data\":[\"m.b.n\",\".....\",\".....\"],\"legend\":{\"m\":\"m\",\"b\":\"b\",\"n\":\"n\"}}");
+
+        var ghostNecro = g.Blocks.First(x => x.TypeId == "m");
+        var regNecro   = g.Blocks.First(x => x.TypeId == "n");
+        var ghostBlk   = g.Blocks.First(x => x.TypeId == "b");
+
+        // A PHASED ball kills the ghost block → ghost corpse, raised by the ghost necromant as a ghost.
+        g.Balls[0].Ghost = true;
+        BallHit(g, ghostBlk);
+        Assert.True(ghostBlk.Dead, "phased ball destroys the ghost block");
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.False(ghostBlk.Dead, "ghost necromant raises the ghost corpse");
+        Assert.True(ghostBlk.BallPhases, "…and it returns on the GHOST layer");
+
+        // Now kill the GHOST necromant (leaving only the regular necromant). The ghost corpse must NOT
+        // revive — a regular necromant cannot raise a ghost.
+        ghostNecro.Hp = 0; ghostNecro.Dead = true;
+        Assert.False(regNecro.Dead, "regular necromant still alive");
+        g.Balls[0].Ghost = true;
+        BallHit(g, ghostBlk);
+        Assert.True(ghostBlk.Dead, "ghost block destroyed again");
+        Park(g);
+        for (int i = 0; i < (int)(SimConfig.Default.Enemies.ReviveDelay / SimConfig.Default.FixedDt) + 5; i++)
+            g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(ghostBlk.Dead, "a regular necromant does not raise a ghost corpse");
+    }
+
 
     [Fact]
     public void Stalactite_Drops_WhenBallPassesBeneath()
@@ -698,16 +719,15 @@ public class EnemyTests
         Assert.False(stal.Dead);
         Assert.Empty(g.Hazards);
 
-        // Ball moves directly beneath the stalactite → it detaches into a falling hazard.
+        // Ball moves directly beneath the stalactite → it shakes (telegraph), then detaches into a falling hazard.
         g.Balls[0].Pos = new Vec2(sc.X, sc.Y + g.Config.CellSize);
-        g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(stal.Dead, "stalactite detached");
+        for (int i = 0; i < 40 && !stal.Dead; i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(stal.Dead, "stalactite detached after the telegraph");
         Assert.Single(g.Hazards);
         Assert.True(g.Hazards[0].Vel.Y > 0, "stalactite falls downward");
         Assert.Equal("stalactite", g.Hazards[0].Kind);
     }
 
-    // ── Colour-paired teleporters ─────────────────────────────────────────────
 
     [Fact]
     public void Teleporter_WarpsToSameColourPartner_NotOtherColour()
@@ -745,9 +765,10 @@ public class EnemyTests
             "{\"id\":\"p\",\"biome\":\"t\",\"hp\":2,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3,\"rows_data\":[\"bbp\",\"...\",\"...\"],\"legend\":{\"b\":\"b\",\"p\":\"p\"}}");
         var bomb1 = g.Blocks[0];
+        var bomb2 = g.Blocks[1];
         var plain = g.Blocks[2]; // hp 2, two cells from bomb1 → only reached if bomb2 chains
         BallHit(g, bomb1);
-        Assert.True(g.Blocks[1].Dead, "adjacent bomb chained");
+        Assert.True(bomb2.Dead, "adjacent bomb chained");
         Assert.True(plain.Hp < 2, "second bomb's explosion reached the far block");
     }
 }

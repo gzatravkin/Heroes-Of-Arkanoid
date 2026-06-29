@@ -23,6 +23,11 @@ export class ScreenShake {
   trigger(type: "playerHit" | "bossAttack") {
     const duration  = type === "playerHit" ? SHAKE_DURATION_PLAYER_HIT_MS  : SHAKE_DURATION_BOSS_ATTACK_MS;
     const magnitude = type === "playerHit" ? SHAKE_MAGNITUDE_PLAYER_HIT    : SHAKE_MAGNITUDE_BOSS_ATTACK;
+    this.pulse(magnitude, duration);
+  }
+
+  /** Trigger an arbitrary shake (e.g. small combo-scaled punches). Never downgrades a bigger active shake. */
+  pulse(magnitude: number, duration: number) {
     // Allow upgrade (bigger shake replaces smaller) but never downgrade.
     if (!this.shake || magnitude >= this.shake.magnitude) {
       this.shake = { elapsed: 0, duration, magnitude };

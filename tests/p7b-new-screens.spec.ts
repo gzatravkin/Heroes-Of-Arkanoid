@@ -65,7 +65,7 @@ test("achievements screen: renders and lists achievements", async ({ page }) => 
   // Should have a grid of achievement cards
   const grid = page.locator("#ach-grid");
   await expect(grid).toBeVisible();
-  const cards = grid.locator(".ach-card");
+  const cards = grid.locator(".card");
   await expect(cards).toHaveCount(13, { timeout: 5000 }); // 13 defined achievements
 
   // Summary shows 0/13 at start
@@ -95,8 +95,30 @@ test("settings screen: renders with all controls", async ({ page }) => {
   await expect(page.locator("#set-btn-reset")).toBeVisible();
 
   // Audio and FX toggles (input is hidden inside CSS toggle; check the label/slider is visible)
-  await expect(page.locator("label[for='set-toggle-audio']")).toBeVisible();
-  await expect(page.locator("label[for='set-toggle-fx']")).toBeVisible();
+  await expect(page.locator("label.toggle:has(#set-toggle-audio)")).toBeVisible();
+  await expect(page.locator("label.toggle:has(#set-toggle-fx)")).toBeVisible();
+});
+
+test("settings screen: SFX volume slider persists and disables with audio", async ({ page }) => {
+  await page.goto("/?scene=settings");
+  await page.waitForSelector("#set-slider-volume", { timeout: 10000 });
+  const slider = page.locator("#set-slider-volume");
+  await expect(slider).toBeEnabled();
+
+  // Dragging persists to localStorage and updates the readout.
+  await slider.fill("40");
+  await expect(page.locator(".vol-value")).toHaveText("40%");
+  expect(await page.evaluate(() => localStorage.getItem("arkanoid_sfx_volume"))).toBe("40");
+
+  // Turning audio off disables the slider (no point adjusting muted SFX).
+  // The checkbox itself is a 0×0 visually-hidden input — click the visible label.
+  const audioToggle = page.locator("label.toggle:has(#set-toggle-audio)");
+  await audioToggle.click();
+  await expect(slider).toBeDisabled();
+
+  // Restore defaults so other specs see a clean audio state.
+  await audioToggle.click();
+  await page.evaluate(() => localStorage.setItem("arkanoid_sfx_volume", "100"));
 });
 
 test("settings screen: reachable from menu via button", async ({ page }) => {
@@ -125,10 +147,10 @@ test("skills screen: renders with spell cards and level badges", async ({ page }
   // Class tabs
   await expect(page.locator("#sk-tabs")).toBeVisible();
   // Spell cards
-  const cards = page.locator(".sk-spell-card");
+  const cards = page.locator(".spell-card");
   await expect(cards.first()).toBeVisible();
   // Level badges
-  const badges = page.locator(".sk-lvl-wrap");
+  const badges = page.locator(".lvl-wrap");
   await expect(badges.first()).toBeVisible();
 });
 

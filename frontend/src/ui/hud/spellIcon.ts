@@ -22,15 +22,23 @@ export function buildSpellIcon(wrap: HTMLElement, spell: SpellDef): void {
   // Exclude WHITE so those fall through to the real /art/ icons below.
   if (atlasFrame && atlasFrame !== Texture.WHITE && atlasFrame.width > 1) {
     // Build an img from the atlas texture using its source image + UV, via a canvas.
+    // Render at 2× the slot (64) for crispness, then CSS downscales to 32.
+    const SZ = 64;
     const canvas = document.createElement("canvas");
-    canvas.width  = 32;
-    canvas.height = 32;
+    canvas.width  = SZ;
+    canvas.height = SZ;
     const ctx = canvas.getContext("2d");
     if (ctx && (atlasFrame as any).baseTexture?.resource?.source) {
       const src = (atlasFrame as any).baseTexture.resource.source as HTMLImageElement | HTMLCanvasElement;
       const fr = (atlasFrame as any).frame;
       if (fr) {
-        ctx.drawImage(src, fr.x, fr.y, fr.width, fr.height, 0, 0, 32, 32);
+        // Center-crop the frame to a square. The themed spell icons ("…LargeIco") are WIDE
+        // banners (e.g. 597×248) with the art centered; drawing the whole frame into the square
+        // slot squashed them into muddy rectangles (docs/13). A centered square crop reads clean.
+        const side = Math.min(fr.width, fr.height);
+        const sx = fr.x + (fr.width  - side) / 2;
+        const sy = fr.y + (fr.height - side) / 2;
+        ctx.drawImage(src, sx, sy, side, side, 0, 0, SZ, SZ);
         const img = document.createElement("img");
         img.src = canvas.toDataURL();
         img.alt = spell.name;

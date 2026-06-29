@@ -76,6 +76,27 @@ test.describe("paladin class kit", () => {
     const s = await getState(page);
     expect(s.barriers.length).toBeGreaterThan(0);
   });
+
+  test("keyboard 'Q' casts the current class's slot 0 (not a hardcoded Fire Mage spell)", async ({ page }) => {
+    // Regression guard: the desktop keybinds used to call castIgnite/castFireball/etc.,
+    // hardcoded to Fire Mage spell ids — so Q/E/W/R did nothing for the other classes.
+    // They now route through castSlot, so Q must cast the Paladin's slot 0 (Shield).
+    await openBattle(page, "hell-1", 1);
+    await waitForPhase(page, "Playing");
+    await cheat(page, "parkBallAbovePaddle");
+    await cheat(page, "setMana", 100);
+    await page.waitForFunction(() => (window as any).__game.getState()?.mana >= 100);
+
+    await page.evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "q" })));
+
+    await page.waitForFunction(
+      () => ((window as any).__game.getState()?.barriers?.length ?? 0) > 0,
+      null,
+      { timeout: 8000 },
+    );
+    const s = await getState(page);
+    expect(s.barriers.length).toBeGreaterThan(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -95,24 +116,25 @@ test.describe("engineer class kit", () => {
     await openBattle(page, "hell-1", 1);
     await waitForPhase(page, "Playing");
 
+    await expect(page.locator("#hud-spell-overload")).toBeVisible();  // signature, slot 0 (docs/04 §3)
     await expect(page.locator("#hud-spell-lightning")).toBeVisible();
     await expect(page.locator("#hud-spell-rocket")).toBeVisible();
-    await expect(page.locator("#hud-spell-radiation")).toBeVisible();
 
-    // Fire Mage slots absent.
+    // Not in the default loadout: radiation is owned-pool but unequipped; fire-mage spells absent.
+    await expect(page.locator("#hud-spell-radiation")).toHaveCount(0);
     await expect(page.locator("#hud-spell-fireball")).toHaveCount(0);
     await expect(page.locator("#hud-spell-turret")).toHaveCount(0);
   });
 
-  test("casting slot 0 (lightning) registers a lightning event or damages blocks", async ({ page }) => {
+  test("casting lightning (loadout slot 1) registers a lightning event or damages blocks", async ({ page }) => {
     await openBattle(page, "hell-1", 1);
     await waitForPhase(page, "Playing");
 
     await cheat(page, "setMana", 100);
     await page.waitForFunction(() => (window as any).__game.getState()?.mana >= 100);
 
-    // Cast slot 0 (lightning).
-    await page.evaluate(() => (window as any).__game.castSlot(0));
+    // Engineer loadout is [overload, lightning, rocket] → lightning is slot 1.
+    await page.evaluate(() => (window as any).__game.castSlot(1));
 
     // Wait a few ticks for the cast to register (mana decrease is a reliable signal).
     // Lightning costs 20 mana; wait up to 3s for the mana to drop.
@@ -148,11 +170,12 @@ test.describe("necromancer class kit", () => {
     await openBattle(page, "hell-1", 1);
     await waitForPhase(page, "Playing");
 
+    await expect(page.locator("#hud-spell-raise")).toBeVisible();  // signature (docs/04 §3 Raise summon)
     await expect(page.locator("#hud-spell-decay")).toBeVisible();
-    await expect(page.locator("#hud-spell-skeleton")).toBeVisible();
     await expect(page.locator("#hud-spell-drain")).toBeVisible();
 
-    // Fire Mage slots absent.
+    // Skeleton is now a draftable kit spell, not the default-loadout signature; fire-mage slots absent.
+    await expect(page.locator("#hud-spell-skeleton")).toHaveCount(0);
     await expect(page.locator("#hud-spell-fireball")).toHaveCount(0);
     await expect(page.locator("#hud-spell-turret")).toHaveCount(0);
   });
@@ -164,7 +187,7 @@ test.describe("necromancer class kit", () => {
     await cheat(page, "setMana", 100);
     await page.waitForFunction(() => (window as any).__game.getState()?.mana >= 100);
 
-    // Cast slot 1 (skeleton).
+    // Necromancer loadout is [skeleton, decay, drain]; cast a mid slot — must not crash.
     await page.evaluate(() => (window as any).__game.castSlot(1));
 
     // Game should still be running (ball loss → Serving is acceptable, not a crash).

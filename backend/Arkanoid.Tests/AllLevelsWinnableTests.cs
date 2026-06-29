@@ -46,7 +46,8 @@ public class AllLevelsWinnableTests
 
     // ── Level discovery ───────────────────────────────────────────────────────
 
-    private static readonly HashSet<string> SkipList = new() { "test-editor-auto", "hell-winnable" };
+    // hell-teleport / village-ghost are legacy non-campaign levels kept only as dungeon/rift test floors.
+    private static readonly HashSet<string> SkipList = new() { "test-editor-auto", "hell-winnable", "hell-teleport", "village-ghost" };
 
     public static IEnumerable<object[]> AllLevelIds()
     {

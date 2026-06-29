@@ -14,7 +14,7 @@ test("paddle bar shows frame 0 at low mana (5)", async ({ page }) => {
 
   // Wait for the renderer to be mounted and paddleLayer accessible.
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 
@@ -22,11 +22,11 @@ test("paddle bar shows frame 0 at low mana (5)", async ({ page }) => {
 
   // Wait for the snapshot to arrive and paddleLayer.setMana() to run.
   await page.waitForFunction(
-    () => (window as any).__renderer?.paddleLayer?._animFrame === 0,
+    () => (window as any).__bridge?.renderer?.paddleLayer?._animFrame === 0,
     null, { timeout: 10_000 },
   );
 
-  const frame = await page.evaluate(() => (window as any).__renderer?.paddleLayer?._animFrame);
+  const frame = await page.evaluate(() => (window as any).__bridge?.renderer?.paddleLayer?._animFrame);
   expect(frame).toBe(0);
 });
 
@@ -35,7 +35,7 @@ test("paddle bar shows frame 3 at full mana (95)", async ({ page }) => {
 
   // Wait for the renderer to be mounted and paddleLayer accessible.
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 
@@ -43,11 +43,11 @@ test("paddle bar shows frame 3 at full mana (95)", async ({ page }) => {
 
   // Wait for the snapshot to arrive and paddleLayer.setMana() to run.
   await page.waitForFunction(
-    () => (window as any).__renderer?.paddleLayer?._animFrame === 3,
+    () => (window as any).__bridge?.renderer?.paddleLayer?._animFrame === 3,
     null, { timeout: 10_000 },
   );
 
-  const frame = await page.evaluate(() => (window as any).__renderer?.paddleLayer?._animFrame);
+  const frame = await page.evaluate(() => (window as any).__bridge?.renderer?.paddleLayer?._animFrame);
   expect(frame).toBe(3);
 });
 
@@ -64,7 +64,7 @@ test("paddle bar frame matches all 4 mana tiers", async ({ page }) => {
   await openBattle(page, "hell-1", 3);
 
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 
@@ -79,7 +79,7 @@ test("paddle bar frame matches all 4 mana tiers", async ({ page }) => {
     await cheat(page, "setMana", manaValue);
     // waitForFunction already asserts _animFrame === expectedFrame; no separate page.evaluate needed.
     await page.waitForFunction(
-      (expected) => (window as any).__renderer?.paddleLayer?._animFrame === expected,
+      (expected) => (window as any).__bridge?.renderer?.paddleLayer?._animFrame === expected,
       expectedFrame,
       { timeout: 5_000 },
     );
@@ -98,7 +98,7 @@ test("paddle frame does not jump more than 1 step between snapshots", async ({ p
   await openBattle(page, "hell-1", 4);
 
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 
@@ -106,7 +106,7 @@ test("paddle frame does not jump more than 1 step between snapshots", async ({ p
   await cheat(page, "setMana", 5);
   // Wait for frame 0 to be stable before the sweep.
   await page.waitForFunction(
-    () => (window as any).__renderer?.paddleLayer?._animFrame === 0,
+    () => (window as any).__bridge?.renderer?.paddleLayer?._animFrame === 0,
     null, { timeout: 5_000 },
   );
 
@@ -117,7 +117,7 @@ test("paddle frame does not jump more than 1 step between snapshots", async ({ p
     // Poll until the renderer has consumed the new snapshot and settled on the
     // expected frame — more robust than a fixed delay on loaded CI machines.
     await page.waitForFunction(
-      (exp) => (window as any).__renderer?.paddleLayer?._animFrame === exp,
+      (exp) => (window as any).__bridge?.renderer?.paddleLayer?._animFrame === exp,
       expectedFrame,
       { timeout: 5_000 },
     );
@@ -150,7 +150,7 @@ test("squash animation activates within 500ms of ball-paddle contact", async ({ 
   await openBattle(page, "hell-1", 5);
 
   await page.waitForFunction(
-    () => !!(window as any).__renderer?.paddleLayer,
+    () => !!(window as any).__bridge?.renderer?.paddleLayer,
     null, { timeout: 10_000 },
   );
 
@@ -165,7 +165,7 @@ test("squash animation activates within 500ms of ball-paddle contact", async ({ 
   let squashSeen = false;
   for (let i = 0; i < 100; i++) {
     const elapsed = await page.evaluate<number>(
-      () => (window as any).__renderer?.paddleLayer?._squashElapsed ?? -1,
+      () => (window as any).__bridge?.renderer?.paddleLayer?._squashElapsed ?? -1,
     );
     if (elapsed >= 0) {
       squashSeen = true;

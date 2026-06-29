@@ -1,0 +1,40 @@
+{
+  "id": "heaven-9",
+  "biome": "heaven",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    ".T........T.",
+    ".I........I.",
+    ".J........J.",
+    "..5BBBBBB6..",
+    "..BASAASAB..",
+    "..BAAVVAAB..",
+    "..BAAAAAAB..",
+    "..WAAAAAAW..",
+    "...3AAAA4...",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "3": "heaven_corner_bl",
+    "4": "heaven_corner_br",
+    "5": "heaven_brick_corner_tl",
+    "6": "heaven_brick_corner_tr",
+    "A": "heaven_basic",
+    "B": "heaven_tough",
+    "S": "heaven_shield_statue",
+    "V": "heaven_vase",
+    "W": "heaven_statue",
+    "T": "heaven_column_top",
+    "I": "heaven_column_mid",
+    "J": "heaven_column_bottom"
+  }
+}

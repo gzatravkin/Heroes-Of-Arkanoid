@@ -19,7 +19,7 @@ const animMap  = new Map<string, Texture[]>();
 
 // Atlas files are numbered atlas-0.json … atlas-N.json
 // Discover them from the generated index written at build time.
-const ATLAS_BASE = "/atlas";
+const ATLAS_BASE = import.meta.env.BASE_URL + "atlas";
 
 // ── Animation manifest ──────────────────────────────────────────────────────
 interface AnimDef { frames: string[]; fps: number }

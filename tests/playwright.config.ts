@@ -21,6 +21,11 @@ export default defineConfig({
     // DPR 1: 390×844 physical pixels instead of 780×1688 at DPR 2 — 4× less
     // GPU fill per frame, significantly reducing GPU load during parallel runs.
     deviceScaleFactor: 1,
+    // Long sessions exhaust the GPU process → headless_shell fast-fails (0xC0000409). Force software
+    // rendering (SwiftShader) + no /dev/shm reliance so the renderer survives back-to-back runs.
+    launchOptions: {
+      args: ["--disable-gpu", "--disable-dev-shm-usage", "--use-gl=swiftshader", "--disable-software-rasterizer"],
+    },
   },
   webServer: [
     {

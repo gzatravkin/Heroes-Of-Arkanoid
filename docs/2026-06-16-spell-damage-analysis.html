@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arkanoid RPG — Spell Block-Damage Analysis</title>
+<style>
+  :root{
+    --bg:#0c0804; --panel:#15100a; --line:#2a2016; --gold:#d8a84e; --gold2:#ffe06a;
+    --txt:#e9ddc7; --dim:#9c8d70; --easy:#5fd07f; --med:#ffc862; --hard:#ff7a6a; --none:#6c7a86;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#1a1109,#0c0804);color:var(--txt);
+       font-family:"Segoe UI",system-ui,sans-serif;padding:24px;line-height:1.45}
+  h1{font-size:22px;color:var(--gold2);margin:0 0 4px;letter-spacing:.04em}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 18px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 16px;font-size:12px;color:var(--dim)}
+  .legend b{color:var(--txt);font-weight:600}
+  .chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#1a1109}
+  .e-easy{background:var(--easy)} .e-med{background:var(--med)} .e-hard{background:var(--hard)} .e-none{background:var(--none);color:#0c0804}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel);
+        border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  thead th{background:#1d150c;color:var(--gold);text-align:left;padding:10px 12px;font-size:12px;
+           letter-spacing:.03em;border-bottom:2px solid var(--gold);position:sticky;top:0}
+  td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.018)}
+  tbody tr:hover{background:rgba(216,168,78,.07)}
+  .sp{font-weight:700;color:var(--gold2)}
+  .hero{display:block;font-size:11px;color:var(--dim);font-weight:400}
+  .num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .bar{display:inline-block;height:9px;border-radius:5px;background:linear-gradient(90deg,#ff7a2a,#ffe06a);vertical-align:middle;margin-left:6px}
+  .small{font-size:12px;color:var(--dim)}
+  .combo{font-size:12px}
+  .combo b{color:#ffd9a0;font-weight:600}
+  .sec{margin:22px 0 8px;color:var(--gold);font-size:13px;letter-spacing:.05em;text-transform:uppercase}
+  .note{background:#120c06;border:1px solid var(--line);border-left:3px solid var(--gold);
+        padding:12px 14px;border-radius:6px;font-size:12.5px;color:var(--dim);margin:0 0 18px}
+  .note b{color:var(--txt)}
+  code{background:#241a0e;padding:1px 5px;border-radius:4px;color:#ffd9a0;font-size:12px}
+</style>
+</head>
+<body>
+  <h1>Arkanoid RPG — Spell Block-Damage Analysis</h1>
+  <p class="sub">Generated 2026-06-16 · all spells, ranked by block-HP a single cast can damage <i>on its own</i>. <b style="color:#ff7a6a">PRE-BALANCE baseline</b> — this is the snapshot that motivated the 2026-06-16 balance pass (Turret/Phoenix/Last&nbsp;Day buffed, Fire&nbsp;Wall toned 3→2, Lightning/Overload/Tesla/Containment/Golem widened). Numbers below are the <i>before</i>; regenerate after playtesting if you want post-balance figures.</p>
+
+  <div class="note">
+    <b>How to read this.</b> Numbers are <b>estimates at spell&nbsp;level&nbsp;1</b> on a dense ~12-wide board, assuming
+    <b>best-case positioning</b> (the most a single cast can do alone, no relics/cards). "Block-HP damaged" = total hit-points
+    removed across all blocks, so a spell that chips 10 blocks for 1 = 10, same as one block for 10.
+    "Self&nbsp;/&nbsp;mana" is that number divided by mana cost (efficiency). Real clears vary with the board, ball position,
+    spell level, hero stats, relics and cards — treat this as a <b>relative ranking</b>, not exact damage.
+    Sorted by <b>Self block-HP</b> (descending), as requested.
+  </div>
+
+  <div class="legend">
+    <span><b>Ease to reach max:</b></span>
+    <span><span class="chip e-easy">Easy</span> fire-and-forget</span>
+    <span><span class="chip e-med">Med</span> needs aim / position / a hit</span>
+    <span><span class="chip e-hard">Hard</span> needs setup, RNG, or taking damage</span>
+    <span><span class="chip e-none">—</span> no direct block damage (utility / multiplier)</span>
+  </div>
+
+  <div class="sec">Direct block-destroyers (ranked)</div>
+  <table>
+    <thead><tr>
+      <th>Spell</th>
+      <th class="num">Self block-HP&nbsp;▼</th>
+      <th>Ease</th>
+      <th class="num">Mana</th>
+      <th class="num">Self / mana</th>
+      <th>Combos that multiply it</th>
+      <th>Max via combination</th>
+    </tr></thead>
+    <tbody>
+
+    <tr>
+      <td class="sp">Fire Wall<span class="hero">Fire Mage</span></td>
+      <td class="num">~110 <span class="bar" style="width:90px"></span></td>
+      <td><span class="chip e-med">Med</span></td>
+      <td class="num">80</td>
+      <td class="num">1.4</td>
+      <td class="combo">Cast with the ball <b>low</b> = sweeps the whole stack. Lights blocks → feeds <b>Conflagration</b>.</td>
+      <td class="combo">Near board-clear by itself; → Conflagration on the survivors it lit.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Reckoning<span class="hero">Paladin</span></td>
+      <td class="num">~85 <span class="bar" style="width:70px"></span></td>
+      <td><span class="chip e-hard">Hard</span></td>
+      <td class="num">35</td>
+      <td class="num">2.4</td>
+      <td class="combo">Charges from <b>HP you lose</b>; fires automatically. Leveling fires sooner + hits harder.</td>
+      <td class="combo">5 columns × rising dmg; can fire several times a level if you keep taking hits.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Last Day<span class="hero">Paladin</span></td>
+      <td class="num">~90 <span class="bar" style="width:74px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">80</td>
+      <td class="num">1.1</td>
+      <td class="combo">Pure DoT (16 strikes/8s, <b>1 dmg each</b> → great vs basics, weak vs tough/elite). <b>Penetration / Duplicate</b> let your ball mop up survivors.</td>
+      <td class="combo">Clears a whole field of 1-HP blocks; pair with a high-dmg spell for the tanks.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Containment Field<span class="hero">Engineer</span></td>
+      <td class="num">~80 <span class="bar" style="width:66px"></span></td>
+      <td><span class="chip e-med">Med</span></td>
+      <td class="num">45</td>
+      <td class="num">1.8</td>
+      <td class="combo">8 ticks over a fat radius. Auto-deploys on an emitter / above the paddle (not freely aimed).</td>
+      <td class="combo">Melts a dense cluster; doubles as emitter-suppression.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Tesla Grid<span class="hero">Engineer</span></td>
+      <td class="num">~72 / zap <span class="bar" style="width:60px"></span></td>
+      <td><span class="chip e-hard">Hard</span></td>
+      <td class="num">80</td>
+      <td class="num">0.9</td>
+      <td class="combo">Fires only when you bounce off <b>both side walls</b>; <b>Conductor</b> relic + wide play = repeat curtains.</td>
+      <td class="combo">Repeatable: each curtain = 2 rows full-width; many per level if you wall-bounce well.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Conflagration<span class="hero">Fire Mage</span></td>
+      <td class="num">~50 solo <span class="bar" style="width:42px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">60</td>
+      <td class="num">0.8</td>
+      <td class="combo"><b>THE combo spell.</b> <b>Ignite</b> / <b>Fire&nbsp;Wall</b> / <b>Ashfall</b> set the board burning, then this detonates <b>every</b> burning block at 6 each.</td>
+      <td class="combo"><b>Board-wide:</b> ignite ~whole board → ~250–300+ HP in one cast (biggest burst in the game).</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Overload<span class="hero">Engineer</span></td>
+      <td class="num">~27 / bomb <span class="bar" style="width:24px"></span></td>
+      <td><span class="chip e-med">Med</span></td>
+      <td class="num">35</td>
+      <td class="num">0.8</td>
+      <td class="combo">Must hit the bomb with the ball. <b>Multiple Overloads chain-detonate</b> each other.</td>
+      <td class="combo">Bomb field: chained blasts clear a big pocket; scales with placement.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Bone Golem<span class="hero">Necromancer</span></td>
+      <td class="num">~24 <span class="bar" style="width:22px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">70</td>
+      <td class="num">0.3</td>
+      <td class="combo">Bulldozes one column (4/tick) while bodyguarding you. Value is half-defensive.</td>
+      <td class="combo">One column gone + soaks enemy fire; pair with a board-wide spell.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Phoenix<span class="hero">Fire Mage</span></td>
+      <td class="num">~18 <span class="bar" style="width:16px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">70</td>
+      <td class="num">0.3</td>
+      <td class="combo"><b>Duplicate / Raise</b> (more balls = more phoenixes to bind) · <b>Magnet</b> steers the ball through blocks so it sweeps more.</td>
+      <td class="combo">Modest; mostly chip + presence. Weak HP-per-mana for 70.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Bonewalker<span class="hero">Necromancer</span></td>
+      <td class="num">~18 <span class="bar" style="width:16px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">40</td>
+      <td class="num">0.5</td>
+      <td class="combo">Autonomous rooftop melee (3/swing). Longer levels = more swings (timed).</td>
+      <td class="combo">Steady passive clear while you focus the ball elsewhere.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Lightning<span class="hero">Engineer</span></td>
+      <td class="num">~10 <span class="bar" style="width:9px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">25</td>
+      <td class="num">0.4</td>
+      <td class="combo"><b>Conductor</b> relic (+1 jump). Cheap, instant, reliable.</td>
+      <td class="combo">~6 blocks at 2 each; spammable filler.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Ignite<span class="hero">Fire Mage (signature)</span></td>
+      <td class="num">~9 solo <span class="bar" style="width:8px"></span></td>
+      <td><span class="chip e-easy">Easy</span></td>
+      <td class="num">25</td>
+      <td class="num">0.4</td>
+      <td class="combo"><b>Combo enabler #1:</b> sets blocks burning for <b>Conflagration</b> + <b>Ashfall</b>; <b>Pyroclasm</b> relic spreads it; <b>Duplicate</b> imbues every ball.</td>
+      <td class="combo">Tiny alone (slow DoT, ~3 blocks); the fuse for the game's biggest burst.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Rot &amp; Collapse (Decay)<span class="hero">Necromancer</span></td>
+      <td class="num">~8 + collapse <span class="bar" style="width:8px"></span></td>
+      <td><span class="chip e-med">Med</span></td>
+      <td class="num">15</td>
+      <td class="num">~0.5</td>
+      <td class="combo">Strips max-HP then <b>collapses the column</b> on a rotted kill — softens tanks for the ball/other spells. <b>Duplicate</b> rots faster.</td>
+      <td class="combo">Turns tough/elite walls into clearable blocks; force-multiplier for everything.</td>
+    </tr>
+
+    <tr>
+      <td class="sp">Turret<span class="hero">Fire Mage</span></td>
+      <td class="num">~4 <span class="bar" style="width:4px"></span></td>
+      <td><span class="chip e-med">Med</span></td>
+      <td class="num">30</td>
+      <td class="num">0.1</td>
+      <td class="combo">Fires only on paddle catch — <b>Slow&nbsp;Time / Shield</b> = more catches; longer levels = more bolts.</td>
+      <td class="combo">Passive trickle; better as sustained pressure than burst.</td>
+    </tr>
+
+    </tbody>
+  </table>
+
+  <div class="sec">Multipliers &amp; enablers — ~0 direct damage, but raise everything above</div>
+  <table>
+    <thead><tr>
+      <th>Spell</th><th>Ease</th><th class="num">Mana</th><th>What it multiplies</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="sp">Lich's Gaze<span class="hero">Necromancer</span></td><td><span class="chip e-none">—</span></td><td class="num">45</td>
+        <td class="combo"><b>Curses</b> blocks → they take <b>+2</b> from the ball. A board-wide damage amp; stacks with every ball-based clear (Ignite, Penetration, Duplicate).</td></tr>
+      <tr><td class="sp">Duplicate<span class="hero">Paladin</span></td><td><span class="chip e-none">—</span></td><td class="num">40</td>
+        <td class="combo"><b>×N balls.</b> Each clone carries your imbue (Ignite/Decay/Penetration) and triggers more Phoenixes — multiplies <i>every</i> ball-based spell.</td></tr>
+      <tr><td class="sp">Raise<span class="hero">Necromancer (signature)</span></td><td><span class="chip e-none">—</span></td><td class="num">35</td>
+        <td class="combo">Adds friendly helper-balls — same multiplier idea as Duplicate, summoned from the paddle.</td></tr>
+      <tr><td class="sp">Penetration<span class="hero">Paladin</span></td><td><span class="chip e-none">—</span></td><td class="num">25</td>
+        <td class="combo">Ball <b>pierces</b> (no bounce) → one shot rips a whole column. Huge with Duplicate / a cursed board.</td></tr>
+      <tr><td class="sp">Ashfall<span class="hero">Fire Mage</span></td><td><span class="chip e-none">—</span></td><td class="num">40</td>
+        <td class="combo">Every <b>ignite-kill</b> rains a 2-dmg ember down its column — pure Ignite multiplier (0 on its own).</td></tr>
+      <tr><td class="sp">Magnet<span class="hero">Engineer</span></td><td><span class="chip e-none">—</span></td><td class="num">20</td>
+        <td class="combo">Steers the ball into blocks — raises the clear rate of every ball-based / orbiting spell.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec">Pure utility — no block clearing</div>
+  <table>
+    <thead><tr><th>Spell</th><th class="num">Mana</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td class="sp">Shield<span class="hero">Paladin (sig)</span></td><td class="num">25</td><td class="small">Reflect barrier — saves the ball from the pit.</td></tr>
+      <tr><td class="sp">Lance of Dawn<span class="hero">Paladin</span></td><td class="num">15</td><td class="small">Temporary pillar to bank trick angles off.</td></tr>
+      <tr><td class="sp">Concussion Charge<span class="hero">Engineer</span></td><td class="num">30</td><td class="small">Damageless knockback save + pickup yank.</td></tr>
+      <tr><td class="sp">Drain<span class="hero">Necromancer</span></td><td class="num">20</td><td class="small">Extra mana (souls) per kill — economy.</td></tr>
+      <tr><td class="sp">Recall<span class="hero">Neutral</span></td><td class="num">15</td><td class="small">Steer balls home — a save.</td></tr>
+      <tr><td class="sp">Slow Time<span class="hero">Neutral</span></td><td class="num">20</td><td class="small">Slows balls — readability / aiming aid.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec">Takeaways</div>
+  <div class="note">
+    • <b>Best solo clears:</b> Fire&nbsp;Wall (board-clear when cast low), then the Paladin/Engineer field spells (Reckoning, Last&nbsp;Day, Containment, Tesla).<br>
+    • <b>Best HP-per-mana:</b> <b>Reckoning</b> (2.4) and <b>Containment</b> (1.8) — but Reckoning is gated behind taking damage.<br>
+    • <b>Highest ceiling, period:</b> the <b>Ignite → Conflagration</b> chain (optionally + Fire&nbsp;Wall / Ashfall) — set the whole board alight, then detonate it all at 6 each for the biggest single burst in the game.<br>
+    • <b>Force-multipliers</b> (Lich's Gaze curse, Duplicate/Raise, Penetration, Decay) read as "0 damage" here but can <i>double or more</i> the effective output of every ball-based clear.<br>
+    • <b>Weakest for cost:</b> Phoenix and Turret (low HP/mana for 70 / 30).
+  </div>
+
+</body>
+</html>

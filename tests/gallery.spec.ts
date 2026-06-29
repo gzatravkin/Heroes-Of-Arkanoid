@@ -67,10 +67,12 @@ for (const [name, cast] of FIRE_SPELLS) {
 }
 
 // ── Other classes' signature spells ─────────────────────────────────────────────
+// Slots index the equipped loadout (signature first). Loadouts:
+//   paladin [shield,spear,duplicate] · engineer [overload,lightning,rocket] · necromancer [skeleton,decay,drain]
 const CLASS_SPELLS: [char: string, slot: number, name: string][] = [
   ["paladin",     0, "spell-paladin-shield"],
-  ["engineer",    0, "spell-engineer-lightning"],
-  ["necromancer", 1, "spell-necromancer-skeleton"],
+  ["engineer",    1, "spell-engineer-lightning"],
+  ["necromancer", 0, "spell-necromancer-skeleton"],
 ];
 for (const [char, slot, name] of CLASS_SPELLS) {
   test(`shot: ${name}`, async ({ page }) => {

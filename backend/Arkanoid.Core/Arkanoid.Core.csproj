@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Let the test project drive sim internals (e.g. BlockDamage) deterministically. -->
+    <InternalsVisibleTo Include="Arkanoid.Tests" />
+  </ItemGroup>
+
 </Project>

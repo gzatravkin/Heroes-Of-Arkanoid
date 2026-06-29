@@ -1,30 +1,33 @@
 {
   "id": "hell-7",
   "biome": "hell",
-  "cols": 8,
-  "rows": 14,
+  "cols": 12,
+  "rows": 18,
   "rows_data": [
-    "AAAAAAAA",
-    "OABBBBAO",
-    "A.ASSA.A",
-    "OABBBBAO",
-    "AAAAAAAA",
-    "L......L",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
+    "...E....E...",
+    "............",
+    "AAA.AAAA.AAA",
+    "ABA.AZZA.ABA",
+    "ABA.ABBA.ABA",
+    "AAA.AAAA.AAA",
+    "T...ABBA...T",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
   "legend": {
     "A": "hell_basic",
     "B": "hell_tough",
-    "O": "hell_obsidian",
-    "S": "hell_ballspawner",
-    "L": "hell_lava"
-  },
-  "descendInterval": 12
+    "Z": "hell_elite",
+    "E": "hell_ballspawner",
+    "T": "hell_teleporter"
+  }
 }

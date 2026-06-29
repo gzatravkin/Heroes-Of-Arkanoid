@@ -1,0 +1,90 @@
+{
+  "level": 1,
+  "exp": 0,
+  "points": 0,
+  "crystals": 0,
+  "shards": 0,
+  "campaignGold": 0,
+  "cardDust": 0,
+  "moduleCores": 0,
+  "medals": 0,
+  "eventTokens": 0,
+  "seasonTokens": 0,
+  "ownedCards": {
+    "molten_core": {
+      "level": 1,
+      "copies": 0
+    },
+    "vigor": {
+      "level": 1,
+      "copies": 0
+    }
+  },
+  "equippedCards": [
+    "molten_core"
+  ],
+  "cardSlots": 3,
+  "daily": {
+    "dayId": -1,
+    "weekId": -1,
+    "missions": [],
+    "streak": 0,
+    "lastClaimDay": -1,
+    "streakClaimedDay": -1
+  },
+  "prestigeTier": 0,
+  "ownedModules": [],
+  "equippedModules": {},
+  "season": {
+    "seasonId": -1,
+    "tokens": 0,
+    "claimedTiers": [],
+    "eventWeek": -1,
+    "eventTokens": 0,
+    "eventClaimed": false
+  },
+  "completedLevels": [],
+  "unlockedRelics": [],
+  "spellLevels": {
+    "ignite": 1,
+    "fireball": 1,
+    "firewall": 1,
+    "turret": 1,
+    "skeleton": 1,
+    "raise": 1,
+    "drain": 1
+  },
+  "equippedSpells": {
+    "fire_mage": [
+      "ignite",
+      "fireball",
+      "firewall"
+    ],
+    "necromancer": [
+      "skeleton",
+      "raise",
+      "drain"
+    ]
+  },
+  "unlockedSpellSlots": 3,
+  "heroProgress": {
+    "necromancer": {
+      "level": 1,
+      "exp": 0,
+      "stars": 0
+    }
+  },
+  "heroTokens": {},
+  "masteries": {},
+  "selectedCharacter": "necromancer",
+  "unlockedCharacters": [
+    "fire_mage",
+    "necromancer"
+  ],
+  "ownedItems": {},
+  "equippedItems": [],
+  "achievements": [],
+  "riftAscension": 0,
+  "tutorialSeen": false,
+  "pendingRift": null
+}

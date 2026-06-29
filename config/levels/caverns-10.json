@@ -1,0 +1,35 @@
+{
+  "id": "caverns-10",
+  "biome": "caverns",
+  "cols": 12,
+  "rows": 18,
+  "rows_data": [
+    "............",
+    "..K......K..",
+    "............",
+    "UU.AA..AA.UU",
+    "AA.MM..MM.AA",
+    "BB.AA..AA.BB",
+    "AA.BB..BB.AA",
+    "WA.AA..AA.AW",
+    ".A.AA..AA.A.",
+    "............",
+    "............",
+    "............",
+    "C..........C",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "legend": {
+    "A": "cavern_basic",
+    "B": "cavern_tough",
+    "C": "cavern_cart",
+    "K": "cavern_stalactite",
+    "M": "cavern_bomb",
+    "U": "cavern_union",
+    "W": "cavern_rock"
+  }
+}

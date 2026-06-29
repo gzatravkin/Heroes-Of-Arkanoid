@@ -28,23 +28,26 @@ public class KitSpellTests
     // ── Phoenix (Fire Mage) ────────────────────────────────────────────────────
 
     [Fact]
-    public void Phoenix_SearsBlocksNearTheBall_OverItsDuration()
+    public void Phoenix_OrbitsTheBall_AndSearsBlocksItSweepsOver()
     {
+        // Design: the phoenix orbits the ball (its own position) and sears blocks it sweeps
+        // over. Park the ball so the block sits on the orbit ring; over its lifetime the
+        // phoenix passes the block repeatedly and burns it. See the Fire Mage spec.
         var g = MakeOneBlock(9);
         g.SetCharacter("fire_mage");
         var blk = g.Blocks[0];
-        // Park the ball right next to the block so it sits inside the sear radius.
         var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-        g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize);
+        // Ball one orbit-radius (56) below the block: the phoenix reaches the block at the top of its orbit.
+        g.Balls[0].Pos = new Vec2(c.X, c.Y + 56);
 
-        g.CastSlot(4); // phoenix
-        Assert.Equal(100 - SimConfig.Default.PhoenixCost, g.ManaValue, 1);
+        g.CastSlot(4); // phoenix — costs 30 mana
+        Assert.Equal(70, g.ManaValue, 1);
+        Assert.Single(g.Phoenixes);
 
-        // Two sear ticks worth of time → at least 2 damage.
-        var ticks = (int)(SimConfig.Default.PhoenixTickInterval * 2.5 / SimConfig.Default.FixedDt);
-        for (int i = 0; i < ticks; i++) g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(blk.Hp <= 9 - 2 * SimConfig.Default.PhoenixDamage,
-            $"phoenix should have seared the block at least twice (hp={blk.Hp})");
+        // Run the full phoenix lifetime (6s) — several orbits, several sear ticks.
+        for (int i = 0; i < (int)(6.0 / SimConfig.Default.FixedDt); i++) g.Tick(SimConfig.Default.FixedDt);
+        Assert.True(blk.Hp < blk.MaxHp,
+            $"the orbiting phoenix should have seared the block it sweeps over (hp={blk.Hp})");
     }
 
     // ── Penetration (Paladin) ──────────────────────────────────────────────────
@@ -54,7 +57,7 @@ public class KitSpellTests
     {
         var g = MakeOneBlock(9);
         g.SetCharacter("paladin");
-        g.CastSlot(3); // penetration — armed
+        g.CastSlot(4); // penetration — armed (holy_echo shifted slot 2→3, penetration→4)
         Assert.Equal(0, g.Balls[0].PhasesLeft);
 
         // Deflect off the paddle → the arm lands.
@@ -62,7 +65,7 @@ public class KitSpellTests
             g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Balls[0].Radius - 1);
         g.Balls[0].Vel = new Vec2(0, SimConfig.Default.BallSpeed);
         g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(SimConfig.Default.PenetrationHits, g.Balls[0].PhasesLeft);
+        Assert.Equal(3, g.Balls[0].PhasesLeft); // penetration grants 3 phase hits
     }
 
     // ── Last Day (Paladin) ─────────────────────────────────────────────────────
@@ -76,14 +79,14 @@ public class KitSpellTests
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":4,\"rows_data\":[\"...\",\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}");
         g.SetCharacter("paladin");
         var blk = g.Blocks[0];
-        g.CastSlot(4); // last day
+        g.CastSlot(5); // last day (holy_echo shifted slot; lastday is now at index 5)
 
         // Send the ball at the ceiling in column 0 first — wrong column, no damage to blk.
         var colX = g.Level.Grid.CellCenter(blk.Col, 0).X;
         g.Balls[0].Pos = new Vec2(colX, g.Balls[0].Radius + 2);
         g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
         g.Tick(SimConfig.Default.FixedDt);
-        Assert.Equal(4 - SimConfig.Default.LastDayDamage, blk.Hp);
+        Assert.Equal(2, blk.Hp); // 4 - 2 lastday damage (balance 2026-06-16: strike dmg 1→2)
     }
 
     // ── Magnet (Engineer) ──────────────────────────────────────────────────────
@@ -109,61 +112,84 @@ public class KitSpellTests
     // ── Overload (Engineer) ────────────────────────────────────────────────────
 
     [Fact]
-    public void Overload_PlacesAFriendlyBomb_ThatChainExplodes()
+    public void Overload_ArmsOnCast_ThenChargesBlockOnHit_ThenExplodesAfterDelay()
     {
+        // Rework (tasks list.md): cast arms the overload; next ball-block hit plants a 0.5 s charge
+        // that then chain-detonates neighbors. No immediate bomb block is placed.
         var g = Make(
             "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":4,\"sprite\":\"s\",\"needToKill\":true}]}",
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":6,\"rows_data\":[\".A.\",\"...\",\"...\",\"...\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}");
         g.SetCharacter("engineer");
         int before = g.Blocks.Count;
-        g.CastSlot(4); // overload
-        Assert.Equal(before + 1, g.Blocks.Count);
+        g.CastSlot(4); // overload — arms the flag, no new block
+        Assert.Equal(before, g.Blocks.Count); // no block placed yet
+        Assert.True(g._overloadArmed, "overload should be armed after cast");
 
-        var bomb = g.Blocks[^1];
-        Assert.True(bomb.Bomb);
-        Assert.False(bomb.NeedToKill, "the placed bomb must not block the win condition");
-
-        // Detonate it with the ball → explosion event raised.
-        var c = g.Level.Grid.CellCenter(bomb.Col, bomb.Row);
+        // Aim ball at the existing block to plant the charge
+        var blk = g.Blocks[0];
+        var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
         g.Balls[0].Pos = new Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
         g.Balls[0].Vel = new Vec2(0, -SimConfig.Default.BallSpeed);
-        g.Tick(SimConfig.Default.FixedDt);
-        Assert.True(bomb.Dead, "ball pops the bomb");
-        Assert.Contains(Arkanoid.Core.Net.Snapshot.From(g, 0).Events, e => e.Type == "explosion");
+        g.Tick(SimConfig.Default.FixedDt); // ball hits block → charge planted
+        Assert.False(g._overloadArmed, "overload arm should be consumed on first block hit");
+        Assert.True(g._overloadChargeTimer > 0, "charge timer should be set after hit");
+        int colCharged = g._overloadChargeCol;
+        int rowCharged = g._overloadChargeRow;
+        Assert.True(colCharged >= 0 && rowCharged >= 0, "charge position should be recorded");
+
+        // Move ball far from all blocks so it doesn't kill them before the charge fires
+        g.Balls[0].Pos = new Vec2(g.Paddle.Center.X, g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Balls[0].Radius - 5);
+        g.Balls[0].Vel = new Vec2(0, 0);
+
+        // Run for 0.6 s → timer fires → explosion event (tick only while Playing)
+        double elapsed = 0;
+        bool sawExplosion = false;
+        while (elapsed < 0.6 && g.Phase == Arkanoid.Core.Sim.GamePhase.Playing)
+        {
+            g.Tick(SimConfig.Default.FixedDt);
+            elapsed += SimConfig.Default.FixedDt;
+            var snap = Arkanoid.Core.Net.Snapshot.From(g, 0);
+            if (snap.Events.Any(e => e.Type == "explosion"))
+                sawExplosion = true;
+        }
+        Assert.True(sawExplosion, "explosion event should fire after 0.5 s delay");
+        Assert.True(g._overloadChargeTimer <= 0, "charge timer should be exhausted");
     }
 
     // ── Bone Golem (Necromancer) ───────────────────────────────────────────────
 
     [Fact]
-    public void Golem_PiercesThroughSeveralBlocks()
+    public void Golem_ClimbsAndBulldozesColumn_AsAMinion_NotAProjectile()
     {
+        // §3 fix: Bone Golem is a climbing bodyguard MINION, not a fat piercing projectile. It rises
+        // from the paddle's column and bulldozes every block above it.
         var g = Make(
             "{\"types\":[{\"id\":\"b\",\"biome\":\"t\",\"hp\":1,\"sprite\":\"s\",\"needToKill\":true}]}",
-            // A column of 4 one-hp blocks above the paddle column's centre... the golem
-            // launches from the paddle X, so put the column wherever the paddle is.
+            // A column of 4 one-hp blocks above the paddle column's centre.
             "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":6,\"rows_data\":[\".A.\",\".A.\",\".A.\",\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}");
         g.SetCharacter("necromancer");
         g.SetPaddleX(g.Level.Grid.CellCenter(1, 0).X); // align with the block column
-        g.CastSlot(3); // golem
+        g.CastSlot(3); // Bone Golem
 
-        Assert.Contains(g.Projectiles, p => p.Kind == "golem");
+        Assert.Contains(g.Minions, m => m.Kind == "golem"); // a minion entity…
+        Assert.Empty(g.Projectiles);                        // …NOT a projectile
         for (int i = 0; i < 300; i++) g.Tick(SimConfig.Default.FixedDt);
-        // GolemPierce=4, GolemDamage=2 → all four 1-hp blocks die to one golem.
         Assert.True(g.Blocks.TrueForAll(b => b.Dead),
-            $"golem should pierce the whole column (alive={g.Blocks.FindAll(b => !b.Dead).Count})");
+            $"the golem should bulldoze the whole column (alive={g.Blocks.FindAll(b => !b.Dead).Count})");
     }
 
     // ── Skeletal Mage (Necromancer) ────────────────────────────────────────────
 
     [Fact]
-    public void Mage_FiresAFanOfSkeletonBolts()
+    public void Mage_CastsLichGaze_NotAFanOfBolts()
     {
+        // §3: Skeletal Mage is now Lich's Gaze — a sweeping curse beam, NOT a bolt fan.
         var g = MakeOneBlock(9);
         g.SetCharacter("necromancer");
-        g.CastSlot(4); // mage
-        Assert.Equal(SimConfig.Default.MageBolts,
-            g.Projectiles.FindAll(p => p.Kind == "skeleton_bullet").Count);
-        Assert.Equal(100 - SimConfig.Default.MageCost, g.ManaValue, 1);
+        g.CastSlot(4); // mage = Lich's Gaze
+        Assert.NotNull(g.LichBeam);    // a sweeping beam, not projectiles
+        Assert.Empty(g.Projectiles);
+        Assert.Equal(75, g.ManaValue, 1); // 100 - 25
     }
 
     // ── Kits expose 5 slots each ───────────────────────────────────────────────

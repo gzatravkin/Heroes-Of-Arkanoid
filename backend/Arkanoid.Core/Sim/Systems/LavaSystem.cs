@@ -38,9 +38,9 @@ internal static class LavaSystem
         if (g._lavaDrainAccumulator < g.Config.Enemies.LavaDrainInterval) return;
         g._lavaDrainAccumulator -= g.Config.Enemies.LavaDrainInterval;
 
-        g.Hp = System.Math.Max(0, g.Hp - 1);
+        // Route through DamagePlayer so post-hit i-frames + Reckoning/Martyr hooks apply uniformly.
         g.RaiseEvent(SimEventKind.LavaDrain, 0, 0);
-        g._log.Log(g.TickCount, "lava", "hp drained by lava in danger zone", $"hp={g.Hp}");
+        CombatSystem.DamagePlayer(g, 1);
     }
 
     private static void Creep(GameInstance g, Block spawner)
@@ -68,11 +68,10 @@ internal static class LavaSystem
                     Indestructible = true, Behavior = BlockBehavior.Lava,
                 };
                 lava.OwnerId = spawner.Id;
-                g.Blocks.Add(lava);
+                g.Blocks.Add(lava); // BlockList auto-invalidates the spatial index + snapshot version
                 spawner.SpawnedCount++;
                 var c = g.Level.Grid.CellCenter(col, row);
                 g.RaiseEvent(SimEventKind.LavaCreep, c.X, c.Y);
-                g._log.Log(g.TickCount, "lava", "crept", $"spawner={spawner.Id} cell=({col},{row})");
                 return; // one cell per cadence
             }
         }
@@ -87,7 +86,6 @@ internal static class LavaSystem
         if (n > 0)
         {
             g.RaiseEvent(SimEventKind.LavaRetract, 0, 0);
-            g._log.Log(g.TickCount, "lava", "retracted", $"spawner={spawner.Id} cells={n}");
         }
     }
 }

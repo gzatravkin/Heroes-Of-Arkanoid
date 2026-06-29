@@ -1,6 +1,6 @@
-import { Container, Graphics, Sprite, TilingSprite, Texture, BLEND_MODES } from "pixi.js";
+import { Container, Graphics, Sprite, TilingSprite, AnimatedSprite, Texture, BLEND_MODES } from "pixi.js";
 import { tex } from "./textures";
-import { tex as atlasTex, animStrip } from "./assets";
+import { tex as atlasTex, anim as animFrames, animStrip } from "./assets";
 
 // Block rendering (pooled): damage states, mirror flags, boss aura, teleporter ring,
 // ghost pulse, shield flash — and NATIVE-ASPECT sizing (the original art is not
@@ -22,6 +22,10 @@ const GHOST_ALPHA_BASE  = 0.45;
 const GHOST_ALPHA_AMP   = 0.12;
 const GHOST_PULSE_SPEED = 0.055;
 const GHOST_TINT        = 0x88ccff;
+// Phase-reactive emphasis (Witchland): the layer the ball can hit RIGHT NOW reads solid; the off-phase
+// layer recedes — so the player always knows which world their ball is in.
+const GHOST_ALPHA_ACTIVE      = 0.97; // a ghost block while a phased ball is in play (now hittable)
+const PHYSICAL_OFFPHASE_ALPHA = 0.5;  // physical block dims when EVERY ball is phased (off-layer)
 
 const TELEPORTER_RING_ALPHA_BASE  = 0.35;
 const TELEPORTER_RING_ALPHA_AMP   = 0.25;
@@ -78,6 +82,25 @@ const WIND_AURA_PULSE      = 0.05;
 // Vase-levelled statues glow warm so the risk the player took is readable.
 const LEVELED_TINT = 0xffd9a0;
 
+// Caverns union-of-sticks: bridge blocks share a warm plank/rope tone so the player reads them as
+// a connected structure that collapses together (docs/04 §8).
+const UNION_TINT = 0xc9a86a;
+
+// Elite (5-HP) tier: a cold steel/ice tint so the player reads it as extra-tough at a glance (2026-06-16).
+const ELITE_TINT = 0x8fb4e0;
+
+// Ignite/firewall burn: blocks on fire get a looping flame overlay + warm tint, so the
+// "fire propagates over time" mechanic is clearly visible (docs Fire Mage spec).
+const BURN_ANIM_KEY = "firemage/spell_firewall/firestandannimation";
+const BURN_TINT     = 0xff7a33;
+const BURN_FPS      = 10;
+// Readability overhaul 2026-06-16 §C: a fully-ignited field used to become one solid orange fire blob —
+// every burning block drew a full-cell additive flame. Now the block sprite stays visible (burn TINT),
+// burning blocks show only a small flame at the TOP EDGE, and at most BURN_FLAME_BUDGET flames exist at
+// once (the rest read as fire via the tint alone). The blocks remain legible as blocks.
+const BURN_FLAME_BUDGET = 8;
+const BURN_FLAME_SIZE   = 0.62; // fraction of the cell (was 1.05 = full cell)
+
 // Cauldron: the Kotelok assets are 7-frame bubbling STRIPS — cycle real frames.
 const CAULDRON_STRIP_KEY   = "village/blocks/Kotelok1";
 const CAULDRON_FRAME_TICKS = 9;
@@ -110,10 +133,10 @@ interface BlockDto {
   id: number; x: number; y: number; hp: number; maxHp: number; sprite: string;
   boss?: boolean; ballPhases: boolean; indestructible: boolean; teleporter: boolean;
   flipX?: boolean; flipY?: boolean; shielded?: boolean;
-  charging?: boolean; allied?: boolean; level?: number;
+  charging?: boolean; allied?: boolean; level?: number; burning?: boolean; cursed?: boolean; union?: boolean; elite?: boolean;
 }
 
-interface Entry { sp: Sprite | TilingSprite; aura?: Graphics; ring?: Graphics; wind?: Sprite }
+interface Entry { sp: Sprite | TilingSprite; aura?: Graphics; ring?: Graphics; wind?: Sprite; fire?: AnimatedSprite }
 
 export class BlockLayer {
   readonly container = new Container();
@@ -209,7 +232,8 @@ export class BlockLayer {
     if (e) e.sp.alpha = 0;
   }
 
-  update(blocks: BlockDto[], tick: number, brickSize: number, windRadius = 0): void {
+  update(blocks: BlockDto[], tick: number, brickSize: number, windRadius = 0,
+         anyGhostBall = false, allGhostBalls = false): void {
     const live = new Set<number>();
     let anyAllied = false;
     for (const b of blocks) {
@@ -223,10 +247,16 @@ export class BlockLayer {
         if (entry.aura) this.container.removeChild(entry.aura);
         if (entry.ring) this.container.removeChild(entry.ring);
         if (entry.wind) this.container.removeChild(entry.wind);
+        if (entry.fire) { this.container.removeChild(entry.fire); entry.fire.destroy(); }
         this.container.removeChild(entry.sp);
         this.pool.delete(id);
       }
     }
+
+    // Flame budget: how many animated burn flames currently exist (the rest of the burning field reads
+    // as fire via the block tint alone). Computed once; kept in sync as flames are added/removed below.
+    let activeFires = 0;
+    for (const e of this.pool.values()) if (e.fire) activeFires++;
 
     for (const b of blocks) {
       const size = b.boss ? brickSize * BOSS_SCALE_MULT : brickSize;
@@ -284,13 +314,20 @@ export class BlockLayer {
       if (b.boss) {
         sp.alpha = 1.0;
         if (aura) {
+          // Soft radial glow (3 stacked falloff rings) instead of a hard-edged disc — reads painted.
           const a = BOSS_AURA_ALPHA + BOSS_AURA_ALPHA_AMP * Math.sin(tick * BOSS_AURA_PULSE_SPEED);
-          aura.clear().beginFill(BOSS_AURA_COLOR, a)
-            .drawCircle(b.x, b.y, brickSize * BOSS_AURA_RADIUS_MULT).endFill();
+          const R = brickSize * BOSS_AURA_RADIUS_MULT;
+          aura.clear();
+          aura.beginFill(BOSS_AURA_COLOR, a * 0.30).drawCircle(b.x, b.y, R).endFill();
+          aura.beginFill(BOSS_AURA_COLOR, a * 0.50).drawCircle(b.x, b.y, R * 0.72).endFill();
+          aura.beginFill(BOSS_AURA_COLOR, a * 0.80).drawCircle(b.x, b.y, R * 0.44).endFill();
         }
       } else if (b.ballPhases) {
         sp.tint = GHOST_TINT;
-        sp.alpha = GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(tick * GHOST_PULSE_SPEED);
+        // Solidify when a phased ball can hit it; otherwise read as a faint, pulsing spectre.
+        sp.alpha = anyGhostBall
+          ? GHOST_ALPHA_ACTIVE
+          : GHOST_ALPHA_BASE + GHOST_ALPHA_AMP * Math.sin(tick * GHOST_PULSE_SPEED);
       } else if (b.indestructible || b.teleporter) {
         sp.alpha = 1.0;
         sp.tint = 0xffffff;
@@ -300,12 +337,46 @@ export class BlockLayer {
             .drawCircle(b.x, b.y, brickSize * TELEPORTER_RING_RADIUS_MULT).endFill();
         }
       } else {
-        sp.alpha = 0.4 + 0.6 * (b.hp / b.maxHp);
-        // Telegraph pulse beats shield flash beats levelled glow beats neutral.
-        sp.tint = b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS
-          ? CHARGE_TINT
+        // Dim physical blocks only when EVERY ball is phased (they're off-layer / unhittable); with any
+        // normal ball in play they stay solid so a hittable layer is never hidden.
+        sp.alpha = (0.4 + 0.6 * (b.hp / b.maxHp)) * (allGhostBalls ? PHYSICAL_OFFPHASE_ALPHA : 1);
+        // Burning beats telegraph beats shield flash beats curse beats levelled glow beats neutral.
+        sp.tint = b.burning ? BURN_TINT
+          : b.charging && (tick % (CHARGE_PULSE_TICKS * 2)) < CHARGE_PULSE_TICKS ? CHARGE_TINT
           : b.shielded ? 0x66ddff
+          : b.cursed ? 0xb060ff // §3 Lich's Gaze: cursed blocks glow sickly purple
+          : b.union ? UNION_TINT
+          : b.elite ? ELITE_TINT // 5-HP elite tier reads cold/steel
           : (b.level ?? 0) > 0 ? LEVELED_TINT : 0xffffff;
+      }
+
+      // Burning flame overlay (budget-capped, top-edge): keeps a fully-ignited field from melting into
+      // one solid fire blob — the block sprite stays visible (burn tint) and only the most recently lit
+      // BURN_FLAME_BUDGET blocks carry an actual flame.
+      if (b.burning && !entry.fire && activeFires < BURN_FLAME_BUDGET) {
+        const frames = animFrames(BURN_ANIM_KEY);
+        if (frames.length >= 2) {
+          const fire = new AnimatedSprite(frames);
+          fire.anchor.set(0.5);
+          fire.blendMode = BLEND_MODES.ADD;
+          fire.tint = 0xffaa44;
+          fire.loop = true;
+          fire.animationSpeed = BURN_FPS / 60;
+          fire.currentFrame = b.id % frames.length; // stagger so neighbours don't sync
+          fire.play();
+          this.container.addChild(fire);
+          entry.fire = fire;
+          activeFires++;
+        }
+      } else if (!b.burning && entry.fire) {
+        this.container.removeChild(entry.fire);
+        entry.fire.destroy();
+        entry.fire = undefined;
+        activeFires--;
+      }
+      if (entry.fire) {
+        entry.fire.width = entry.fire.height = size * BURN_FLAME_SIZE;
+        entry.fire.position.set(b.x, b.y - size * 0.28); // top-edge flame, block stays legible
       }
     }
   }

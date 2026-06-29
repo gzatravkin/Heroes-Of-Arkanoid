@@ -1,0 +1,62 @@
+{
+  "level": 2,
+  "exp": 20,
+  "points": 4,
+  "crystals": 10,
+  "shards": 0,
+  "campaignGold": 25,
+  "cardDust": 0,
+  "moduleCores": 0,
+  "medals": 0,
+  "eventTokens": 0,
+  "seasonTokens": 0,
+  "ownedCards": {
+    "molten_core": {
+      "level": 1,
+      "copies": 0
+    },
+    "vigor": {
+      "level": 1,
+      "copies": 0
+    }
+  },
+  "equippedCards": [
+    "molten_core"
+  ],
+  "cardSlots": 3,
+  "daily": {
+    "dayId": -1,
+    "weekId": -1,
+    "missions": [],
+    "streak": 0,
+    "lastClaimDay": -1,
+    "streakClaimedDay": -1
+  },
+  "prestigeTier": 1,
+  "completedLevels": [],
+  "unlockedRelics": [],
+  "spellLevels": {
+    "ignite": 1,
+    "fireball": 1,
+    "firewall": 1,
+    "turret": 1
+  },
+  "equippedSpells": {
+    "fire_mage": [
+      "ignite",
+      "fireball",
+      "firewall"
+    ]
+  },
+  "unlockedSpellSlots": 3,
+  "selectedCharacter": "fire_mage",
+  "unlockedCharacters": [
+    "fire_mage"
+  ],
+  "ownedItems": {},
+  "equippedItems": [],
+  "achievements": [],
+  "riftAscension": 0,
+  "tutorialSeen": false,
+  "pendingRift": null
+}

@@ -18,7 +18,9 @@ import { tex as atlasTex } from "./assets";
 const ALIAS: Record<string, string> = {
   // ── Hell biome blocks ────────────────────────────────────────────────────
   HellStandart:          "hell/StandartHell",
-  HellStandart2:         "hell/StandartHell2",
+  HellStandart2:         "hell/StandartHell2",   // cobblestone CORNER (sloped) — used as a corner cap
+  HellDemon:             "hell/Standart2Hell",   // demon-rune BODY (the "tough" block)
+  HellDemon2:            "hell/Standart2Hell2",  // demon-rune CORNER (sloped)
   HellInvulnerable:      "hell/HellInvulnerable",
   SkullRed:              "hell/SkullRed",
   SkullBlue:             "hell/SkullBlue",
@@ -30,6 +32,7 @@ const ALIAS: Record<string, string> = {
   // ── Dungeon biome blocks ─────────────────────────────────────────────────
   DungeonStandart:       "dungeon/DungeonStandart",
   DungeonStandart2:      "dungeon/DungeonStandart2",
+  DungeonCorner:         "dungeon/Dungeon2Standart2", // sloped rocky CORNER cap
   DungeonInvulnerable:   "dungeon/DungeonInvulnerable",
   Stalactite:            "dungeon/Stalactite",
   DungeonCart:           "dungeon/DungeonCart",
@@ -37,6 +40,9 @@ const ALIAS: Record<string, string> = {
   // ── Village biome blocks ─────────────────────────────────────────────────
   VillageStandart:       "village/blocks/VillageStandart",
   VillageStandart2:      "village/blocks/VillageStandart2",
+  VillageStandart3:      "village/blocks/VillageStandart3",  // alt body variant
+  VillageCorner:         "village/blocks/Village2Standart",  // sloped CORNER cap
+  VillageCorner2:        "village/blocks/Village2Standart2", // sloped CORNER cap (tough style)
   VillageStandart2Ghost: "village/blocks/VillageStandart2Ghost",
   BatSleeping:           "village/enemies/BatSleeping",
   GrateBomb:             "dungeon/GrateBomb",
@@ -48,6 +54,8 @@ const ALIAS: Record<string, string> = {
   // ── Heaven biome blocks ──────────────────────────────────────────────────
   StandartHaven:         "heaven/StandartHaven",
   Standart2Haven:        "heaven/Standart2Haven",
+  HavenCorner:           "heaven/StandartHaven2",   // sloped rock CORNER cap
+  HavenBrickCorner:      "heaven/Standart2Haven2",  // sloped brick CORNER cap (tough style)
   InvulnerableHaven:     "heaven/InvulnerableHaven",
 
   // ── Boss blocks ──────────────────────────────────────────────────────────
@@ -60,7 +68,8 @@ const ALIAS: Record<string, string> = {
   Bomb:                  "dungeon/Bomb",
   Beholder1:             "village/enemies/Beholder1",
   VillageDeath:          "village/enemies/VillageDeath",
-  Portal:                "village/blocks/Portal",
+  VillageDeathGhost:     "village/enemies/VillageDeathGhost", // ghost necromant (raises ghost corpses)
+  Portal:                "village/blocks/VillagePortal",
   HeavenMeleeStatue:     "heaven/HeavenMeleeStatue",
   WindMaster2:           "heaven/WindMaster2",
   HeavenDefender:        "heaven/HeavenDefender",

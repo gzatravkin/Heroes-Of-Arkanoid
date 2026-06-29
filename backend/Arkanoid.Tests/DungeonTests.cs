@@ -1,56 +1,23 @@
-using Arkanoid.Core.Blocks;
-using Arkanoid.Core.Grid;
 using Arkanoid.Core.Meta;
 using Arkanoid.Core.Sim;
 using Xunit;
 
-/// <summary>
-/// Unit tests for the dungeon run system and ball-core mechanics.
-/// All tests are pure-Core (no file I/O, no server).
-/// </summary>
 public class DungeonTests
 {
-    // ── helpers ───────────────────────────────────────────────────────────────
-
     private static DungeonDef MakeDef(int floors = 3) => new()
     {
-        Id             = "test-dungeon",
-        Name           = "Test Dungeon",
-        Floors         = Enumerable.Range(1, floors).Select(i => $"floor-{i}").ToList(),
-        RewardRelic    = "pyroclasm",
-        RewardCrystals = 50,
+        Id = "test-dungeon", Name = "Test Dungeon",
+        Floors = Enumerable.Range(1, floors).Select(i => $"floor-{i}").ToList(),
+        RewardRelic = "pyroclasm", RewardCrystals = 50,
     };
-
     private static DungeonDef MakeSingleFloorDef() => new()
     {
-        Id             = "one-floor",
-        Name           = "One Floor",
-        Floors         = new List<string> { "floor-1" },
-        RewardRelic    = "pyroclasm",
-        RewardCrystals = 50,
+        Id = "one-floor", Name = "One Floor",
+        Floors = new List<string> { "floor-1" },
+        RewardRelic = "pyroclasm", RewardCrystals = 50,
     };
-
-    private static GameInstance MakeWithBlock(int blockHp, SimConfig? cfg = null)
-    {
-        cfg ??= SimConfig.Default;
-        var catalog = BlockCatalog.FromJson(
-            $"{{\"types\":[{{\"id\":\"b\",\"biome\":\"test\",\"hp\":{blockHp},\"sprite\":\"s\",\"needToKill\":true}}]}}");
-        var level = LevelLoader.FromJson(
-            "{\"id\":\"t\",\"biome\":\"test\",\"cols\":3,\"rows\":3," +
-            "\"rows_data\":[\".A.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}",
-            catalog);
-        return new GameInstance(level, cfg, seed: 1);
-    }
-
-    private static void AimAtBlock(GameInstance g)
-    {
-        var blk = g.Level.Blocks[0];
-        var c   = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(
-            c.X,
-            c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
-        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
-    }
+    private static GameInstance MakeWithBlock(int blockHp, SimConfig? cfg = null) => K.OneBlock(blockHp, cfg);
+    private static void AimAtBlock(GameInstance g) => K.AimAt(g, g.Blocks[0]);
 
     // ── DungeonCatalog ────────────────────────────────────────────────────────
 
@@ -139,26 +106,14 @@ public class DungeonTests
     [Fact]
     public void PickChoice_Relic_AddsToRelics_AdvancesFloor_ClearsChoices()
     {
+        // Deterministic: offer exactly one known relic (the generated pool now also mixes in
+        // ball-cores, paddle-mods AND spell picks, so we can't assume "non-relic ⇒ ball-core").
         var run = DungeonService.StartRun(MakeDef(), seed: 1);
-        DungeonService.OnFloorCleared(run);
+        run.PendingChoices = new System.Collections.Generic.List<string> { "glass_cannon" };
 
-        // Find a choice that is a relic
-        var relicChoice = run.PendingChoices.FirstOrDefault(c =>
-            new[] { "glass_cannon", "flint_core", "pyroclasm", "mana_battery" }.Contains(c));
+        DungeonService.PickChoice(run, "glass_cannon");
 
-        if (relicChoice is null)
-        {
-            // All choices are ball-cores — pick any and verify BallCores
-            var coreChoice = run.PendingChoices[0];
-            DungeonService.PickChoice(run, coreChoice);
-            Assert.Contains(coreChoice, run.BallCores);
-        }
-        else
-        {
-            DungeonService.PickChoice(run, relicChoice);
-            Assert.Contains(relicChoice, run.Relics);
-        }
-
+        Assert.Contains("glass_cannon", run.Relics);
         Assert.Empty(run.PendingChoices);
         Assert.Equal(1, run.FloorIndex);
     }
@@ -182,6 +137,74 @@ public class DungeonTests
         DungeonService.PickChoice(run!, coreChoice!);
         Assert.Contains(coreChoice!, run!.BallCores);
         Assert.Empty(run.PendingChoices);
+    }
+
+    // ── Heal pick + cross-floor HP persistence (docs/04 §5, §6.2) ────────────
+
+    [Fact]
+    public void PickChoice_Heal_RaisesHp_AdvancesFloor_ClearsChoices()
+    {
+        var run = DungeonService.StartRun(MakeDef(), seed: 1);
+        run.Hp = 3;
+        run.PendingChoices = new System.Collections.Generic.List<string> { "heal" };
+
+        DungeonService.PickChoice(run, "heal");
+
+        Assert.Equal(3 + DungeonService.HealAmount, run.Hp);
+        Assert.Empty(run.PendingChoices);
+        Assert.Equal(1, run.FloorIndex);
+        // Heal is consumed, not a persistent boon: it must NOT land in any build list.
+        Assert.Empty(run.Relics);
+        Assert.Empty(run.BallCores);
+        Assert.Empty(run.PaddleMods);
+        Assert.Empty(run.DraftedSpells);
+    }
+
+    [Fact]
+    public void PickChoice_Heal_CapsAtMaxRunHp()
+    {
+        var run = DungeonService.StartRun(MakeDef(), seed: 1);
+        run.Hp = DungeonService.MaxRunHp - 1; // one below the ceiling
+        run.PendingChoices = new System.Collections.Generic.List<string> { "heal" };
+
+        DungeonService.PickChoice(run, "heal");
+
+        Assert.Equal(DungeonService.MaxRunHp, run.Hp); // clamped, not MaxRunHp+1
+    }
+
+    [Fact]
+    public void PickChoice_Heal_FromUnsetHp_UsesBaseline()
+    {
+        var run = DungeonService.StartRun(MakeDef(), seed: 1);
+        Assert.Equal(0, run.Hp); // not yet carried
+        run.PendingChoices = new System.Collections.Generic.List<string> { "heal" };
+
+        DungeonService.PickChoice(run, "heal");
+
+        Assert.Equal(3 + DungeonService.HealAmount, run.Hp); // baseline 3 + heal
+    }
+
+    [Fact]
+    public void GenerateChoices_CanOffer_Heal()
+    {
+        bool sawHeal = false;
+        for (int seed = 0; seed < 300 && !sawHeal; seed++)
+        {
+            var run = DungeonService.StartRun(MakeDef(), seed: seed);
+            DungeonService.OnFloorCleared(run);
+            if (run.PendingChoices.Contains("heal")) sawHeal = true;
+        }
+        Assert.True(sawHeal, "Heal should appear among floor-clear picks at least sometimes");
+    }
+
+    [Fact]
+    public void SetHp_CarriesRunHp_ClampedToAtLeastOne()
+    {
+        var g = MakeWithBlock(blockHp: 1);
+        g.SetHp(5);
+        Assert.Equal(5, g.Hp);
+        g.SetHp(0);
+        Assert.Equal(1, g.Hp); // never zero/negative — that would be instant death
     }
 
     [Fact]
@@ -291,12 +314,12 @@ public class DungeonTests
         g.Serve();
         g.AddBallCore("heavy");
 
-        var blk = g.Level.Blocks[0];
+        var blk = g.Blocks[0];
         int hpBefore = blk.Hp;
         AimAtBlock(g);
         g.Tick(SimConfig.Default.FixedDt);
 
-        int expected = hpBefore - (SimConfig.Default.BallDamage + SimConfig.Default.HeavyBallDamageBonus);
+        int expected = hpBefore - (SimConfig.Default.BallDamage + 1 /* HeavyBallDamageBonus */);
         Assert.Equal(expected, blk.Hp);
     }
 
@@ -307,7 +330,7 @@ public class DungeonTests
         g.Serve();
         // no ball core added
 
-        var blk = g.Level.Blocks[0];
+        var blk = g.Blocks[0];
         int hpBefore = blk.Hp;
         AimAtBlock(g);
         g.Tick(SimConfig.Default.FixedDt);
@@ -354,7 +377,7 @@ public class DungeonTests
         var g = MakeWithBlock(blockHp: 1);
         g.AddBallCore("ember");
         g.Serve();
-        Assert.Equal(SimConfig.Default.EmberBallIgniteHits, g.Balls[0].IgniteHitsLeft);
+        Assert.Equal(2 /* EmberBallIgniteHits */, g.Balls[0].IgniteHitsLeft);
     }
 
     [Fact]

@@ -38,13 +38,14 @@ for (const [label, lives, balls, mana] of [
       [lives, balls, mana] as const,
     );
 
-    // Wait for all three values to land in the sim state simultaneously.
+    // Wait for HP to land, then RE-PIN mana once the freeze is surely active (cheats apply across ticks
+    // server-side, so the first setMana can leak a few regen ticks before freezeMana takes hold). The
+    // re-pin holds because regen is now frozen, giving a deterministic mana bar for the snapshot.
+    await page.waitForFunction((lv) => (window as any).__game.getState()?.hp === lv, lives, { timeout: 10_000 });
+    await page.evaluate((mn) => (window as any).__game.cheat("setMana", mn), mana);
     await page.waitForFunction(
-      ([lv, mn]) => {
-        const s = (window as any).__game.getState();
-        return s?.lives === lv && s?.mana <= mn + 2;
-      },
-      [lives, mana] as const,
+      (mn) => Math.abs(((window as any).__game.getState()?.mana ?? -1) - mn) <= 1,
+      mana,
       { timeout: 10_000 },
     );
 
