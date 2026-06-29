@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Optimize>true</Optimize>
+    <!-- WasmMainJSPath enables browser-bundle generation (AppBundle/_framework/) on publish -->
+    <WasmMainJSPath>main.mjs</WasmMainJSPath>
+    <!-- Fix RuntimeIdentifier so the wasm-tools workload activates without -r browser-wasm on the CLI -->
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
