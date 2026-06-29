@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import { existsSync } from "fs";
 
 const REPO_BASE = "/Heroes-Of-Arkanoid/";
 
@@ -39,15 +40,11 @@ export default defineConfig({
   base: REPO_BASE,
   plugins: [
     svelte(),
-    // Copy _framework from wasm-dist for local builds (GitHub Actions uses public/_framework directly).
-    viteStaticCopy({
-      targets: [
-        {
-          src: "../wasm-dist/AppBundle/_framework",
-          dest: "",
-        },
-      ],
-    }),
+    // Copy _framework from wasm-dist only when it exists (local builds after build-wasm.ps1).
+    // In CI, frontend/public/_framework/ is committed directly so no copy is needed.
+    ...(existsSync("../wasm-dist/AppBundle/_framework")
+      ? [viteStaticCopy({ targets: [{ src: "../wasm-dist/AppBundle/_framework", dest: "" }] })]
+      : []),
     fixAbsPathsPlugin(REPO_BASE),
   ],
   server: { port: 5175, strictPort: true },
