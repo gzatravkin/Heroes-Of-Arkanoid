@@ -4,7 +4,7 @@
 # Run this script once before 'npm run dev' or 'npm run build' in the frontend.
 #
 # Requirements:
-#   dotnet workload install wasm-tools-net8
+#   dotnet workload install wasm-tools-net9
 #
 # Usage:
 #   pwsh build-wasm.ps1            # full build: WASM + Vite
