@@ -127,4 +127,80 @@ public static class GameInitializer
 
         return game;
     }
+
+    /// <summary>
+    /// Catalog-free overload for environments without a filesystem (e.g. WASM).
+    /// Accepts pre-loaded catalogs and a delegate for loading level JSON by level id.
+    /// </summary>
+    public static GameInstance Build(
+        string levelId,
+        int seed,
+        BlockCatalog blockCatalog,
+        RelicCatalog relicCatalog,
+        BonusCatalog? bonusCatalog,
+        IProfileStore profileStore,
+        IDungeonStore dungeonStore,
+        string pid,
+        ISimLog log,
+        CardCatalog cardCatalog,
+        ModuleCatalog moduleCatalog,
+        CharacterCatalog characterCatalog,
+        EventCatalog eventCatalog,
+        Func<string, string> levelJsonLoader)
+    {
+        var run = dungeonStore.Load(pid);
+        bool isRift = run is { Active: true, IsRift: true } && run.Floors.Count > 0;
+        var level = isRift
+            ? LevelLoader.FromRiftFloors(run!.Floors.Select(levelJsonLoader), blockCatalog)
+            : LevelLoader.FromJson(levelJsonLoader(levelId), blockCatalog);
+        var chars = characterCatalog;
+        var game = new GameInstance(level, SimConfig.Default, seed, log, relicCatalog, bonusCatalog, chars: chars);
+        if (isRift) game.SetRiftMode(true);
+
+        var profile = profileStore.Load(pid);
+        game.SetSpellLevels(profile.SpellLevels);
+        game.SetCharacter(profile.SelectedCharacter);
+
+        var heroProg = profile.HeroProgress.TryGetValue(profile.SelectedCharacter, out var hp)
+            ? hp : new HeroProgress();
+        StatResolver.Apply(
+            StatResolver.Resolve(profile.SelectedCharacter, heroProg.Level, heroProg.Stars, profile.Masteries),
+            game);
+        game.SetPerks(StatResolver.PerksFor(profile.SelectedCharacter, heroProg.Stars));
+
+        var loadout = Loadouts.Resolve(profile, chars, profile.SelectedCharacter);
+        game.SetLoadout(loadout);
+        game.SetSpellAffinity(
+            SpellAffinity.MatchedAmong(loadout, profile.SelectedCharacter, chars),
+            SpellAffinity.MatchManaMult);
+
+        CardEffects.Apply(profile, cardCatalog, game);
+        ModuleEffects.Apply(profile, moduleCatalog, game);
+        var liveEvent = eventCatalog.Current(SeasonClock.Default.WeekId(System.DateTimeOffset.UtcNow));
+        if (liveEvent != null) EventService.ApplyModifier(game, liveEvent);
+        ItemEffects.Commit(game);
+
+        if (run is { Active: true } && (isRift || run.CurrentFloor == levelId))
+        {
+            foreach (var relicId in run.Relics)    game.AddRelic(relicId);
+            foreach (var coreId  in run.BallCores)  game.AddBallCore(coreId);
+            foreach (var modId   in run.PaddleMods) game.AddPaddleMod(modId);
+            foreach (var spellId in run.DraftedSpells) game.DraftSpell(spellId, Loadouts.MaxSlots);
+            if (run.Hp   > 0) game.SetHp(run.Hp);
+            if (run.Gold > 0) game.SetGold(run.Gold);
+            if (run.IsRift) { RiftModifierService.ApplyToGame(run, game); game.RiftRewardMult = run.RewardMult; }
+            DungeonService.ApplyTier(game, run.Tier);
+            if (!isRift && DungeonService.IsMinibossFloor(run, run.FloorIndex))
+            {
+                DungeonService.ApplyMiniboss(game);
+                game.SetMinibossFloor(true);
+            }
+        }
+        else if (profile.PrestigeTier > 0)
+        {
+            PrestigeService.ApplyMutators(game, profile.PrestigeTier, seed);
+        }
+
+        return game;
+    }
 }
