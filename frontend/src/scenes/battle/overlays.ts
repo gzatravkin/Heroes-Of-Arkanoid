@@ -423,53 +423,59 @@ export function buildRewardOverlay(
   panel.className = "ov-panel";
 
   if (reward) {
-    const expEl = document.createElement("div");
-    expEl.id = "reward-exp";
-    expEl.className = "ov-reward-row";
-    const expIco = document.createElement("img");
-    expIco.src = "/ui/ExpBarFull.png";
-    css(expIco, { width: "28px", height: "12px", imageRendering: "pixelated" });
-    expEl.appendChild(expIco);
-    const expText = document.createElement("span");
-    countUp(expText, reward.expGained, "+", " EXP");
-    css(expText, { color: "var(--color-xp)", fontSize: "var(--fs-large)" });
-    expEl.appendChild(expText);
-    panel.appendChild(expEl);
+    if (reward.expGained > 0) {
+      const expEl = document.createElement("div");
+      expEl.id = "reward-exp";
+      expEl.className = "ov-reward-row";
+      const expIco = document.createElement("img");
+      expIco.src = "/ui/ExpBarFull.png";
+      css(expIco, { width: "28px", height: "12px", imageRendering: "pixelated" });
+      expEl.appendChild(expIco);
+      const expText = document.createElement("span");
+      countUp(expText, reward.expGained, "+", " EXP");
+      css(expText, { color: "var(--color-xp)", fontSize: "var(--fs-large)" });
+      expEl.appendChild(expText);
+      panel.appendChild(expEl);
+    }
 
-    const pointsEl = document.createElement("div");
-    pointsEl.id = "reward-points";
-    pointsEl.className = "ov-reward-row";
-    const ptIco = document.createElement("img");
-    ptIco.src = "/ui/InterfaceSkillsButton.png";
-    css(ptIco, { width: "22px", height: "22px", imageRendering: "pixelated" });
-    pointsEl.appendChild(ptIco);
-    const ptText = document.createElement("span");
-    countUp(ptText, reward.insightGained, "+", " Insight");
-    css(ptText, { color: "#e8a64c", fontSize: "var(--fs-large)" });
-    pointsEl.appendChild(ptText);
-    panel.appendChild(pointsEl);
+    if ((reward.insightGained ?? 0) > 0) {
+      const pointsEl = document.createElement("div");
+      pointsEl.id = "reward-points";
+      pointsEl.className = "ov-reward-row";
+      const ptIco = document.createElement("span");
+      ptIco.textContent = "◇";
+      css(ptIco, { fontSize: "22px", color: "#e8a64c", lineHeight: "1" });
+      pointsEl.appendChild(ptIco);
+      const ptText = document.createElement("span");
+      countUp(ptText, reward.insightGained, "+", " Insight");
+      css(ptText, { color: "#e8a64c", fontSize: "var(--fs-large)" });
+      pointsEl.appendChild(ptText);
+      panel.appendChild(pointsEl);
+    }
 
-    const crystalsEl = document.createElement("div");
-    crystalsEl.id = "reward-crystals";
-    crystalsEl.className = "ov-reward-row";
-    const cIco = document.createElement("img");
-    cIco.src = "/ui/GemBlue.png";
-    css(cIco, { width: "22px", height: "22px", imageRendering: "pixelated" });
-    crystalsEl.appendChild(cIco);
-    const cText = document.createElement("span");
-    countUp(cText, reward.sparksGained, "+", " Sparks");
-    css(cText, { color: "#ffd56a", fontSize: "var(--fs-large)" });
-    crystalsEl.appendChild(cText);
-    panel.appendChild(crystalsEl);
+    if ((reward.sparksGained ?? 0) > 0) {
+      const crystalsEl = document.createElement("div");
+      crystalsEl.id = "reward-crystals";
+      crystalsEl.className = "ov-reward-row";
+      const cIco = document.createElement("span");
+      cIco.textContent = "✦";
+      css(cIco, { fontSize: "22px", color: "#ffd56a", lineHeight: "1" });
+      crystalsEl.appendChild(cIco);
+      const cText = document.createElement("span");
+      countUp(cText, reward.sparksGained, "+", " Sparks");
+      css(cText, { color: "#ffd56a", fontSize: "var(--fs-large)" });
+      crystalsEl.appendChild(cText);
+      panel.appendChild(crystalsEl);
+    }
 
     // Souls (economy rework) — the spell/hero coin; only biome bosses pay it (>0).
     if ((reward.soulsGained ?? 0) > 0) {
       const goldEl = document.createElement("div");
       goldEl.id = "reward-souls";
       goldEl.className = "ov-reward-row";
-      const gIco = document.createElement("img");
-      gIco.src = "/ui/GemBlue.png";
-      css(gIco, { width: "22px", height: "22px", imageRendering: "pixelated" });
+      const gIco = document.createElement("span");
+      gIco.textContent = "◆";
+      css(gIco, { fontSize: "22px", color: "#6cc0ff", lineHeight: "1" });
       goldEl.appendChild(gIco);
       const gText = document.createElement("span");
       countUp(gText, reward.soulsGained ?? 0, "+", " Souls");
@@ -509,8 +515,15 @@ export function buildRewardOverlay(
     if (heroXp && heroXp.tokensGranted > 0) {
       const tok = document.createElement("div");
       tok.id = "reward-hero-tokens";
-      tok.textContent = `+${heroXp.tokensGranted} Ascension Token${heroXp.tokensGranted === 1 ? "" : "s"}`;
-      css(tok, { fontSize: "var(--fs-small)", color: "var(--text-dim)", marginTop: "var(--sp-1)" });
+      tok.className = "ov-reward-row";
+      const tIco = document.createElement("span");
+      tIco.textContent = "◆";
+      css(tIco, { fontSize: "18px", color: "#6cc0ff", lineHeight: "1" });
+      tok.appendChild(tIco);
+      const tText = document.createElement("span");
+      tText.textContent = `+${heroXp.tokensGranted} Soul${heroXp.tokensGranted === 1 ? "" : "s"}`;
+      css(tText, { fontSize: "var(--fs-small)", color: "#6cc0ff" });
+      tok.appendChild(tText);
       panel.appendChild(tok);
     }
 
@@ -519,6 +532,11 @@ export function buildRewardOverlay(
       first.textContent = "First Clear!";
       css(first, { fontSize: "var(--fs-subhead)", color: "var(--color-first-clear)", marginTop: "var(--sp-1)" });
       panel.appendChild(first);
+    } else if (reward.expGained === 0) {
+      const reclear = document.createElement("div");
+      reclear.textContent = "Re-clear — no new rewards";
+      css(reclear, { fontSize: "var(--fs-small)", color: "var(--text-dim)", marginTop: "var(--sp-1)" });
+      panel.appendChild(reclear);
     }
 
     // Boss-clear progression payoff (docs/04 §4.1/§5): newly unlocked spells + a grown hotbar slot.
