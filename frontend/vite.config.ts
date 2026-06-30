@@ -13,9 +13,13 @@ const REPO_BASE = "/Heroes-Of-Arkanoid/";
 function fixAbsPathsPlugin(base: string): Plugin {
   const prefixes = ["ui", "art", "atlas", "_framework", "achievements", "hints", "items", "spellicons", "icons", "shkatulka", "levelskill"];
   const basePath = base.endsWith("/") ? base.slice(0, -1) : base;
-  // Match both quoted ('/ui/') and unquoted url(/ui/) CSS forms
+  // Match all JS string forms and CSS url():
+  //   '/ui/'  "/ui/"   — quoted JS strings (src=, style=, return statements)
+  //   `/ui/   — backtick template literals (e.g. `/ui/${prefix}.png`)
+  //   url(/ui/ — unquoted CSS url()
   const patterns: [RegExp, string][] = prefixes.flatMap((p) => [
     [new RegExp(`(['"])/${p}/`, "g"), `$1${basePath}/${p}/`] as [RegExp, string],
+    [new RegExp("(`)" + `/${p}/`, "g"), `$1${basePath}/${p}/`] as [RegExp, string],
     [new RegExp(`(url\\()/${p}/`, "g"), `$1${basePath}/${p}/`] as [RegExp, string],
   ]);
 
