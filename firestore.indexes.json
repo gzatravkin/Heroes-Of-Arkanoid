@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "scores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "periodStart", "order": "ASCENDING" },
+        { "fieldPath": "souls",       "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "scores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "maxLevelIndex", "order": "DESCENDING" },
+        { "fieldPath": "maxSpellLevel", "order": "DESCENDING" },
+        { "fieldPath": "maxHeroStars",  "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
