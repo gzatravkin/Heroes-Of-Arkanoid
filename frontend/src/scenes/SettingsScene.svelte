@@ -3,6 +3,9 @@
   import { showTutorial } from "./TutorialOverlay";
   import { navigateTo } from "../ui/transition";
   import { setSfxVolume, consumeSfx } from "../audio/Sfx";
+  import { onAuthStateChanged } from "firebase/auth";
+  import { fbAuth, isFirebaseConfigured } from "../net/firebase";
+  import { linkGoogle, isLinkedGoogle, currentNickname } from "../net/FirebaseAuth";
 
   let audioEnabled = $state(localStorage.getItem("arkanoid_audio") !== "0");
   let musicOn      = $state(localStorage.getItem("arkanoid_music") === "1");
@@ -18,6 +21,34 @@
   function setVolume(v: number)  { sfxVolume = v;    setSfxVolume(v); }
   // Play a sample tone so the player hears the level they're setting (only if audio is on).
   function previewVolume()       { if (audioEnabled) consumeSfx([{ type: "deflect" }]); }
+
+  let gpgsLinked  = $state(isLinkedGoogle());
+  let gpgsLinking = $state(false);
+  let gpgsError   = $state("");
+  let gpgsNick    = $state(currentNickname() ?? "");
+
+  $effect(() => {
+    if (!isFirebaseConfigured()) return;
+    const unsub = onAuthStateChanged(fbAuth(), () => {
+      gpgsLinked = isLinkedGoogle();
+      gpgsNick   = currentNickname() ?? "";
+    });
+    return unsub;
+  });
+
+  async function connectGPGS() {
+    gpgsLinking = true; gpgsError = "";
+    const res = await linkGoogle();
+    if (res.ok) {
+      gpgsLinked = true;
+      gpgsNick   = currentNickname() ?? gpgsNick;
+    } else {
+      gpgsError = res.error === "already_linked"
+        ? "Already linked to a different account."
+        : "Could not connect. Try again.";
+    }
+    gpgsLinking = false;
+  }
 
   async function resetProgress() {
     if (!window.confirm("Reset all progress? This cannot be undone.")) return;
@@ -90,6 +121,35 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
+      <hr class="divider" />
+
+      {#if isFirebaseConfigured()}
+      <div class="row">
+        <div class="row-text">
+          <div class="row-label">
+            <svg class="gpgs-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor"/>
+            </svg>
+            Google Play Games
+          </div>
+          {#if gpgsLinked}
+            <div class="row-desc gpgs-ok">✓ Connected{gpgsNick ? ` as ${gpgsNick}` : ""}</div>
+          {:else if gpgsError}
+            <div class="row-desc gpgs-err">{gpgsError}</div>
+          {:else}
+            <div class="row-desc">Link your Google account to sync scores &amp; earn achievements on any device.</div>
+          {/if}
+        </div>
+        {#if gpgsLinked}
+          <span class="gpgs-badge">Connected</span>
+        {:else}
+          <button class="action-btn" onclick={connectGPGS} disabled={gpgsLinking}>
+            {gpgsLinking ? "Connecting…" : "Connect"}
+          </button>
+        {/if}
+      </div>
+      {/if}
+
       <hr class="divider" />
       <div class="row">
         <div class="row-text">
@@ -214,6 +274,18 @@
     background: #3a2a10; box-shadow: inset 0 0 8px rgba(255,190,80,0.5);
   }
   .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+  .gpgs-logo {
+    width: 16px; height: 16px; vertical-align: middle;
+    margin-right: 5px; margin-bottom: 2px; color: #4caf50;
+  }
+  .gpgs-ok  { color: #4caf50; }
+  .gpgs-err { color: #ef5350; }
+  .gpgs-badge {
+    flex-shrink: 0; padding: 6px 12px; border-radius: 20px;
+    background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4);
+    color: #4caf50; font-size: var(--fs-caption); font-weight: 700;
+    white-space: nowrap;
+  }
   .version {
     margin-top: var(--sp-4h); text-align: center;
     font-size: var(--fs-caption); color: var(--text-faint);
