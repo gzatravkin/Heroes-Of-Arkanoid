@@ -135,11 +135,11 @@ public sealed class SimConfig
     public double FixedDt => 1.0 / TickHz;
 
     public double BallRadius { get; init; } = 5;
-    public double BallSpeed { get; init; } = 360;
+    public double BallSpeed { get; init; } = 306;
     /// <summary>Difficulty rework (2026-06-16): the ball accelerates over time from BallSpeed up to
     /// BallSpeedMax, reaching the cap after BallAccelSeconds of Playing time (classic-Arkanoid feel).
     /// Replaces the old +5%/20-brick ramp. New Game+ adds NgSpeedPerTier to both ends.</summary>
-    public double BallSpeedMax { get; init; } = 750;
+    public double BallSpeedMax { get; init; } = 638;
     public double BallAccelSeconds { get; init; } = 60;
     public double MinVerticalRatio { get; init; } = 0.30;
 

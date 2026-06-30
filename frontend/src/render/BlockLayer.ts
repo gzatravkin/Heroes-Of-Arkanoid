@@ -11,7 +11,7 @@ import { tex as atlasTex, anim as animFrames, animStrip } from "./assets";
 //   hang    — full cell width, natural height, hanging from the cell ceiling
 //   fill    — stretch to the cell (columns: keeps stack continuity)
 
-const BOSS_SCALE_MULT       = 1.15;
+const BOSS_SCALE_MULT       = 1.6;
 const BOSS_AURA_COLOR       = 0xcc0000;
 const BOSS_AURA_RADIUS_MULT = 0.8;
 const BOSS_AURA_ALPHA       = 0.55;

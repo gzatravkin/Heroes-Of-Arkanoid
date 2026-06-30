@@ -78,7 +78,7 @@
     {
       "id": "hell_demon_boss",
       "biome": "hell",
-      "hp": 24,
+      "hp": 12,
       "sprite": "DemonBody",
       "needToKill": true,
       "behavior": "boss"
@@ -86,7 +86,7 @@
     {
       "id": "cavern_goblin_boss",
       "biome": "cavern",
-      "hp": 24,
+      "hp": 12,
       "sprite": "GoblinBody",
       "needToKill": true,
       "behavior": "boss"
@@ -94,7 +94,7 @@
     {
       "id": "village_witch_boss",
       "biome": "village",
-      "hp": 24,
+      "hp": 12,
       "sprite": "WitchChest",
       "needToKill": true,
       "behavior": "boss"
@@ -102,7 +102,7 @@
     {
       "id": "heaven_angel_boss",
       "biome": "heaven",
-      "hp": 26,
+      "hp": 14,
       "sprite": "HeavenBoss",
       "needToKill": true,
       "behavior": "boss"

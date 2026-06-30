@@ -179,13 +179,13 @@ public class FireMageSpellTests
             $"the orbiting phoenix should burn the surrounding ring ({hpBefore} → {hpAfter})");
     }
 
-    // ── Conflagration (§3 rework of Fireball, self-sufficient per owner 2026-06-16) ───
+    // ── Conflagration — requires burning blocks; fizzles on bare cast ───────────
 
     [Fact]
-    public void Conflagration_IsNotAProjectile_AndSelfSufficient_BurstsBlocksNearTheBall()
+    public void Conflagration_WithNoBurningBlocks_FizzlesAndSpendsNoMana()
     {
-        // Owner redesign: Conflagration is NOT a projectile, and a BARE cast (no fire on the board) still
-        // goes off — it bursts the blocks around the ball, so it always does damage + spends mana.
+        // Design: Conflagration is "Ignite then detonate." With no fire on the board it must fizzle —
+        // no mana spent, no damage — forcing the player to use Ignite first.
         const string types = "{\"id\":\"b\",\"biome\":\"t\",\"hp\":20,\"sprite\":\"s\",\"needToKill\":true}";
         const string level = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3," +
             "\"rows_data\":[\"AA.\",\"...\",\"...\"],\"legend\":{\"A\":\"b\"}}";
@@ -195,17 +195,14 @@ public class FireMageSpellTests
         g.ManaValue = 100;
 
         var a = g.Blocks.First(b => b.Col == 0 && b.Row == 0);
-        // Park the ball next to the blocks so the self-seeded burst reaches them.
-        var near = g.Level.Grid.CellCenter(0, 0);
-        g.Balls[0].Pos = new Vec2(near.X, near.Y + SimConfig.Default.CellSize);
-        g.Balls[0].Vel = new Vec2(0, 0);
+        int hpBefore = a.Hp;
 
-        int aBefore = a.Hp;
         g.CastFireball();
         g.Tick(Dt);
-        Assert.Empty(g.Projectiles);                       // never a projectile
-        Assert.True(g.ManaValue < 100, "a self-sufficient bare cast spends mana");
-        Assert.True(a.Hp < aBefore, "a bare cast still bursts blocks near the ball");
+
+        Assert.Empty(g.Projectiles);                        // still never a projectile
+        Assert.Equal(100, (int)g.ManaValue);               // no mana spent on fizzle
+        Assert.Equal(hpBefore, a.Hp);                      // no damage dealt
     }
 
     [Fact]
