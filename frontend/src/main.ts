@@ -64,11 +64,11 @@ function doMount(search: string) {
   else                               mountSvelte(MenuScene);
 }
 
-// Loading screen with animated progress bar shown while atlas + WASM are fetched.
+// Loading screen with a deterministic progress bar (atlas 0–70%, WASM 70–100%).
 const loadingStyle = document.createElement("style");
 loadingStyle.textContent = `
-@keyframes ark-bar-slide{0%{left:-60%;width:50%}60%{width:40%}100%{left:110%;width:50%}}
-.ark-loading-bar-inner{position:absolute;top:0;height:100%;background:linear-gradient(90deg,#d8a84e,#ff9040,#d8a84e);border-radius:3px;animation:ark-bar-slide 1.6s ease-in-out infinite}
+.ark-bar-fill{height:100%;background:linear-gradient(90deg,#d8a84e,#ff9040,#d8a84e);border-radius:3px;width:0%;transition:width 0.25s ease-out}
+.ark-pct{color:rgba(201,177,130,0.65);font-size:0.72rem;letter-spacing:0.05em;min-width:3ch;text-align:right}
 `;
 document.head.appendChild(loadingStyle);
 
@@ -76,10 +76,26 @@ const loading = document.createElement("div");
 loading.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;font-family:var(--font-body,sans-serif)";
 loading.innerHTML = `
   <div style="color:var(--gold,#d8a84e);font-size:1.3rem;letter-spacing:0.08em;text-align:center;text-shadow:0 0 12px rgba(216,168,78,0.5)">Heroes of Arkanoid II</div>
-  <div style="position:relative;width:180px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden"><div class="ark-loading-bar-inner"></div></div>
-  <div style="color:var(--text-dim,#c9b182);font-size:0.82rem;letter-spacing:0.05em">Loading assets…</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="position:relative;width:160px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden"><div class="ark-bar-fill" id="ark-bar"></div></div>
+    <span class="ark-pct" id="ark-pct">0%</span>
+  </div>
+  <div style="color:var(--text-dim,#c9b182);font-size:0.82rem;letter-spacing:0.05em" id="ark-status">Loading assets…</div>
 `;
 host.appendChild(loading);
+
+const barEl  = loading.querySelector<HTMLElement>("#ark-bar")!;
+const pctEl  = loading.querySelector<HTMLElement>("#ark-pct")!;
+const statEl = loading.querySelector<HTMLElement>("#ark-status")!;
+// Atlas = 0–70%, WASM = 0–30% added on top — tracked separately so parallel loading doesn't regress the bar.
+let _atlasPct = 0;
+let _wasmPct  = 0;
+function updateLoadBar(label?: string) {
+  const total = Math.min(100, _atlasPct + _wasmPct);
+  barEl.style.width = `${total}%`;
+  pctEl.textContent = `${Math.round(total)}%`;
+  if (label) statEl.textContent = label;
+}
 
 preloadRelics(); // fire-and-forget; populates relicCache before most scenes render
 preloadSpells(); // populates spellCache so floor-clear spell picks render with name/icon
@@ -124,8 +140,13 @@ function initApp() {
 // Initialise the SPA whether or not the atlas or WASM loads — meta/social scenes are HTML/Svelte
 // and don't need either. Failures must NOT kill the whole app.
 Promise.all([
-  loadAtlas().catch((err) => console.error("Atlas load failed (continuing; battles may lack sprites):", err)),
-  initWasm().catch((err) => console.error("WASM init failed (continuing; offline sim unavailable):", err)),
+  loadAtlas((pct) => { _atlasPct = pct; updateLoadBar("Loading sprites…"); })
+    .catch((err) => console.error("Atlas load failed (continuing; battles may lack sprites):", err)),
+  (async () => {
+    updateLoadBar("Loading engine…");
+    await initWasm().catch((err) => console.error("WASM init failed (continuing; offline sim unavailable):", err));
+    _wasmPct = 30; updateLoadBar("Ready");
+  })(),
 ]).finally(initApp);
 
 // Fire-and-forget: sets up anonymous Firebase auth and derives player nickname.

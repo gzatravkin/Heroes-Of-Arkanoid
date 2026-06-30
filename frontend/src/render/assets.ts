@@ -31,24 +31,24 @@ let animManifest: Record<string, AnimDef> = {};
  * Load all spritesheet atlases.  Safe to call multiple times — resolves
  * immediately on subsequent calls.
  */
-export async function loadAtlas(): Promise<void> {
+export async function loadAtlas(onProgress?: (pct: number) => void): Promise<void> {
   if (loaded) return;
 
-  // Load animation manifest first
+  onProgress?.(2);
   const animResp = await fetch(`${ATLAS_BASE}/animations.json`);
   animManifest = await animResp.json();
 
-  // Discover atlas count via index
   const indexResp = await fetch(`${ATLAS_BASE}/atlas-index.json`);
   const index: string[] = await indexResp.json();
+  onProgress?.(5);
 
-  // Load each atlas
+  const pageWeight = 65 / Math.max(index.length, 1);
+  let done = 5;
+
   for (const filename of index) {
     const jsonUrl  = `${ATLAS_BASE}/${filename}`;
     const imageUrl = `${ATLAS_BASE}/${filename.replace(".json", ".png")}`;
 
-    // In Pixi v7, Spritesheet constructor expects a BaseTexture.
-    // Assets.load returns a Texture; we extract its baseTexture.
     const texture = await Assets.load<Texture>(imageUrl);
     const base: BaseTexture = texture instanceof Texture
       ? texture.baseTexture
@@ -58,10 +58,12 @@ export async function loadAtlas(): Promise<void> {
     const sheet = new Spritesheet(base, data);
     await sheet.parse();
 
-    // Register all frames
     for (const [key, tex] of Object.entries(sheet.textures)) {
       frameMap.set(key, tex as Texture);
     }
+
+    done += pageWeight;
+    onProgress?.(Math.round(done));
   }
 
   // Build animation texture arrays from the manifest

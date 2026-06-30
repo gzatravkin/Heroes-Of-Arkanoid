@@ -88,6 +88,11 @@
     })
     .catch(err => log("menu", "features-load-failed", { err: String(err) }));
 
+  // Show "Get it on Google Play" only on Android and only when NOT already running inside the TWA.
+  const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+  const isInTwa   = typeof document  !== "undefined" && document.referrer.startsWith("android-app://");
+  const showPlayBadge = isAndroid && !isInTwa;
+
   function openDock(entry: DockEntry) {
     const lock = lockByScene[entry.scene];
     if (lock) {
@@ -142,6 +147,18 @@
       {/each}
     </div>
   </div>
+  {#if showPlayBadge}
+    <a class="play-badge" href="https://play.google.com/store/apps/details?id=com.herosofarkanoid.twa"
+       target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">
+      <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 20.5v-17c0-.83 1-.13 1-.13l14 8.63L4 20.63s-1 .7-1-.13z" fill="#4fc3f7"/>
+        <path d="M3 3.5l10.5 8.5L3 20.5V3.5z" fill="#29b6f6"/>
+        <path d="M13.5 12L17 9.5 4.5 2.5 13.5 12z" fill="#b2ebf2"/>
+        <path d="M13.5 12l-9 8.5L17 14.5 13.5 12z" fill="#80deea"/>
+      </svg>
+      <span class="play-text"><span class="play-sub">Get it on</span><span class="play-name">Google Play</span></span>
+    </a>
+  {/if}
   <div class="menu-coins"><CurrencyBar /></div>
   <button id="btn-settings" class="menu-settings" aria-label="Settings"
           onclick={() => navigateTo('/?scene=settings')}>
@@ -271,4 +288,17 @@
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
   .dock-ico { width: 32px; height: 32px; background-repeat: no-repeat; background-position: center; background-size: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7)); }
   .dock-label { color: var(--text-dim); font-size: var(--fs-tiny); font-weight: 600; letter-spacing: 0.03em; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+
+  /* Google Play badge — only rendered on Android */
+  .play-badge {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 18px; border-radius: 10px; text-decoration: none;
+    background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.14);
+    transition: border-color var(--dur-normal), background var(--dur-normal);
+  }
+  .play-badge:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.28); }
+  .play-icon { width: 22px; height: 22px; flex-shrink: 0; }
+  .play-text { display: flex; flex-direction: column; line-height: 1.15; }
+  .play-sub  { font-size: 0.65rem; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; }
+  .play-name { font-size: 0.92rem; font-weight: 700; color: #fff; letter-spacing: 0.01em; }
 </style>
