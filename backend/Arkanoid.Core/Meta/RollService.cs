@@ -25,7 +25,7 @@ public static class RollService
     // ── Fixed roll prices (economy rework §10; tunable). Card/Module spend Sparks; Spell/Hero spend Souls. ──
     public const int CardRollCost   = 30;
     public const int ModuleRollCost = 40;
-    public const int SpellRollCost  = 50;
+    public const int SpellRollCost  = 35;  // lowered from 50 (balance: ~12 wins = 1 roll)
     public const int HeroRollCost   = 80;
 
     public static RollResult RollCard(Profile p, CardCatalog cat, Rng rng)

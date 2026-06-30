@@ -72,6 +72,7 @@ export interface CampaignNode {
   biome: string;
   unlocked: boolean;
   completed: boolean;
+  stars: number;
 }
 
 export interface CampaignData {
@@ -98,6 +99,8 @@ export interface CompleteResult {
     leveledUp: boolean;
     newLevel: number;
     firstClear: boolean;
+    levelStars?: number;
+    starBonusSouls?: number;
     characterUnlocked?: string | null;
     spellsUnlocked?: string[];
     slotsUnlocked?: number;

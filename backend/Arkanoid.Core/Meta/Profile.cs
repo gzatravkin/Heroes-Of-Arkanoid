@@ -71,6 +71,11 @@ public sealed class Profile
     [JsonPropertyName("completedLevels")]
     public List<string> CompletedLevels { get; set; } = new();
 
+    /// <summary>Best star rating (1–3) achieved per level. 3 = full HP, 2 = ≥2 HP, 1 = any win.
+    /// Absent key = never cleared. Grows monotonically; re-clears with worse stars don't downgrade.</summary>
+    [JsonPropertyName("levelStars")]
+    public Dictionary<string, int> LevelStars { get; set; } = new();
+
     [JsonPropertyName("unlockedRelics")]
     public List<string> UnlockedRelics { get; set; } = new();
 

@@ -21,8 +21,8 @@ export const wasmApi = {
   getProfile:       ()                                                             => Promise.resolve(call<any>("GetProfile", pid())),
   getCampaign:      ()                                                             => Promise.resolve(call<any>("GetCampaign", pid())),
   getFeatures:      ()                                                             => Promise.resolve(call<any>("GetFeatures", pid())),
-  complete:         (level: string, treasureBonus = 0, riftMode = "none", blocks = 0) =>
-                      Promise.resolve(call<any>("Complete", pid(), level, treasureBonus, riftMode, blocks)),
+  complete:         (level: string, treasureBonus = 0, riftMode = "none", blocks = 0, hp = 1) =>
+                      Promise.resolve(call<any>("Complete", pid(), level, treasureBonus, riftMode, blocks, hp)),
   mastery:          (node: string)                                                 => Promise.resolve(call<any>("Mastery", pid(), node)),
   ascendHero:       (hero: string)                                                 => Promise.resolve(call<any>("AscendHero", pid(), hero)),
   getHeroStats:     (hero: string)                                                 => Promise.resolve(call<any>("GetHeroStats", pid(), hero)),

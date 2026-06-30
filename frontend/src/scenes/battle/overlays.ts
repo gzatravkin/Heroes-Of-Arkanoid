@@ -468,7 +468,7 @@ export function buildRewardOverlay(
       panel.appendChild(crystalsEl);
     }
 
-    // Souls (economy rework) — the spell/hero coin; only biome bosses pay it (>0).
+    // Souls (economy rework) — the spell/hero coin; bosses pay it and star bonuses add to it.
     if ((reward.soulsGained ?? 0) > 0) {
       const goldEl = document.createElement("div");
       goldEl.id = "reward-souls";
@@ -482,6 +482,20 @@ export function buildRewardOverlay(
       css(gText, { color: "#6cc0ff", fontSize: "var(--fs-large)" });
       goldEl.appendChild(gText);
       panel.appendChild(goldEl);
+    } else if ((reward.starBonusSouls ?? 0) > 0) {
+      // Non-boss re-clear that earned a new star tier — show the star bonus by itself.
+      const sbEl = document.createElement("div");
+      sbEl.id = "reward-star-bonus";
+      sbEl.className = "ov-reward-row";
+      const sbIco = document.createElement("span");
+      sbIco.textContent = "◆";
+      css(sbIco, { fontSize: "22px", color: "#6cc0ff", lineHeight: "1" });
+      sbEl.appendChild(sbIco);
+      const sbText = document.createElement("span");
+      countUp(sbText, reward.starBonusSouls ?? 0, "+", " Souls");
+      css(sbText, { color: "#6cc0ff", fontSize: "var(--fs-large)" });
+      sbEl.appendChild(sbText);
+      panel.appendChild(sbEl);
     }
 
     if (reward.leveledUp) {
@@ -527,12 +541,33 @@ export function buildRewardOverlay(
       panel.appendChild(tok);
     }
 
+    // Level star rating — shown on every win, regardless of first-clear.
+    if ((reward.levelStars ?? 0) > 0) {
+      const lvlStarRow = document.createElement("div");
+      lvlStarRow.id = "reward-level-stars";
+      const starsFilled = "★".repeat(reward.levelStars!);
+      const starsEmpty  = "☆".repeat(Math.max(0, 3 - reward.levelStars!));
+      lvlStarRow.textContent = starsFilled + starsEmpty;
+      css(lvlStarRow, {
+        fontSize: "var(--fs-subhead)", color: "#ffd56a", letterSpacing: "0.14em",
+        marginTop: "var(--sp-1h)", textShadow: "0 0 10px rgba(255,210,80,0.6)",
+      });
+      panel.appendChild(lvlStarRow);
+      if ((reward.starBonusSouls ?? 0) > 0) {
+        const starLabel = document.createElement("div");
+        const tierName = reward.levelStars === 3 ? "Perfect run!" : "Star bonus!";
+        starLabel.textContent = tierName;
+        css(starLabel, { fontSize: "var(--fs-tiny)", color: "#c8a040", marginTop: "1px", letterSpacing: "0.05em" });
+        panel.appendChild(starLabel);
+      }
+    }
+
     if (reward.firstClear) {
       const first = document.createElement("div");
       first.textContent = "First Clear!";
       css(first, { fontSize: "var(--fs-subhead)", color: "var(--color-first-clear)", marginTop: "var(--sp-1)" });
       panel.appendChild(first);
-    } else if (reward.expGained === 0) {
+    } else if (reward.expGained === 0 && (reward.starBonusSouls ?? 0) === 0) {
       const reclear = document.createElement("div");
       reclear.textContent = "Re-clear — no new rewards";
       css(reclear, { fontSize: "var(--fs-small)", color: "var(--text-dim)", marginTop: "var(--sp-1)" });

@@ -88,12 +88,13 @@ public static partial class MetaBridge
         return Serialize(p);
     }
 
-    /// <summary>Level completion: grants first-clear coins + hero XP, optionally rolls a Rift.</summary>
+    /// <summary>Level completion: grants first-clear coins + hero XP, optionally rolls a Rift.
+    /// <paramref name="hp"/> is the player HP at the win moment — drives the 1/2/3-star rating.</summary>
     [JSExport]
-    public static string Complete(string pid, string levelId, int treasureBonus, string riftMode, int blocks)
+    public static string Complete(string pid, string levelId, int treasureBonus, string riftMode, int blocks, int hp)
     {
         var p      = Store.Load(pid);
-        var reward = Rewards.GrantLevelCompletion(p, levelId, ProgressionConfig.Default, treasureBonus);
+        var reward = Rewards.GrantLevelCompletion(p, levelId, ProgressionConfig.Default, treasureBonus, hp);
         var heroXp = Rewards.GrantHeroXp(p, p.SelectedCharacter, blocks,
                          won: true, isBoss: levelId.EndsWith("-boss"));
 
@@ -208,6 +209,7 @@ public static partial class MetaBridge
             n.Id, n.Label, n.Biome,
             Unlocked  = Campaign.IsUnlocked(n, completed),
             Completed = completed.Contains(n.Id),
+            Stars     = p.LevelStars.GetValueOrDefault(n.Id, 0),
         });
         return Serialize(new { nodes });
     }

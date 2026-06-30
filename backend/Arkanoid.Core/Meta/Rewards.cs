@@ -5,12 +5,16 @@ public sealed class RewardResult
     public bool FirstClear     { get; init; }
     public int  ExpGained      { get; init; }
     /// <summary>Coins gained on first clear (economy rework): Sparks (gear) + Insight (mastery) always,
-    /// Souls (spell/hero) on a biome boss.</summary>
+    /// Souls (spell/hero) on a biome boss. Includes StarBonusSouls on first clear.</summary>
     public int  SparksGained   { get; init; }
     public int  SoulsGained    { get; init; }
     public int  InsightGained  { get; init; }
     public int  NewLevel       { get; init; }
     public bool LeveledUp      { get; init; }
+    /// <summary>Best star rating (1–3) earned this run: 3=full HP, 2=≥2HP, 1=any win.</summary>
+    public int  LevelStars     { get; init; }
+    /// <summary>Souls awarded for newly achieving a higher star tier on this level. 0 on re-clears at same/lower stars.</summary>
+    public int  StarBonusSouls { get; init; }
     /// <summary>Character id unlocked by this clear (boss firsts), or null.</summary>
     public string? CharacterUnlocked { get; init; }
     /// <summary>Spell ids newly added to the owned pool by this clear (docs/04 §5 permanent unlock).</summary>
@@ -71,7 +75,7 @@ public static class Rewards
 
     /// <summary>Hero Tokens granted per win toward ★ ascension (§5.4). Bosses pay the larger purse.
     /// (§5.4 names the currency but not its source; a win-drip is the MVP source — tunable.)</summary>
-    private const int HeroTokensPerWin  = 1;
+    private const int HeroTokensPerWin  = 3;  // raised from 1 (balance: ~12 wins = 1 spell roll)
     private const int HeroTokensPerBoss = 5;
 
     /// <summary>Hero-XP accrual (design §5.3): unlike account rewards, this runs EVERY battle with the
@@ -115,18 +119,33 @@ public static class Rewards
         };
     }
 
+    /// <summary>Souls bonus for reaching each star tier for the first time (per new tier, cumulative).</summary>
+    private static int StarTierBonus(int tier) => tier switch { 2 => 20, 3 => 40, _ => 0 };
+
     /// <summary>
     /// Grants first-clear rewards to <paramref name="p"/> for completing <paramref name="levelId"/>.
-    /// Idempotent: subsequent calls with the same levelId return FirstClear=false and grant nothing.
+    /// Idempotent: subsequent calls with the same levelId return FirstClear=false but still
+    /// grant star-upgrade Souls if a higher rating is achieved on the re-clear.
     /// Mutates <paramref name="p"/> in-place.
     /// </summary>
+    /// <param name="hp">Player HP at win — drives the 1/2/3-star rating (3=full HP≥3, 2=HP≥2, 1=any).</param>
     /// <param name="treasureBonus">
     /// Extra crystals from equipped treasure items (from GameInstance.ItemTreasureBonus).
     /// Only applied on first clear.
     /// </param>
     public static RewardResult GrantLevelCompletion(Profile p, string levelId, ProgressionConfig cfg,
-                                                     int treasureBonus = 0)
+                                                     int treasureBonus = 0, int hp = 1)
     {
+        // Stars — computed on every win (re-clears can still improve the tier).
+        int earnedStars = hp >= 3 ? 3 : hp >= 2 ? 2 : 1;
+        int prevStars   = p.LevelStars.GetValueOrDefault(levelId, 0);
+        int newStars    = System.Math.Max(prevStars, earnedStars);
+        p.LevelStars[levelId] = newStars;
+        int starBonusSouls = 0;
+        for (int tier = prevStars + 1; tier <= earnedStars; tier++)
+            starBonusSouls += StarTierBonus(tier);
+        if (starBonusSouls > 0) Wallet.Add(p, Currency.Souls, starBonusSouls);
+
         if (p.CompletedLevels.Contains(levelId))
         {
             return new RewardResult
@@ -135,6 +154,8 @@ public static class Rewards
                 ExpGained      = 0,
                 NewLevel       = p.Level,
                 LeveledUp      = false,
+                LevelStars     = newStars,
+                StarBonusSouls = starBonusSouls,
             };
         }
 
@@ -195,6 +216,10 @@ public static class Rewards
             }
         }
 
+        // Include the star bonus in soulsGained so the UI can display the total (star bonus was
+        // already added to p.Souls above via Wallet.Add; here we just fold it into the shown total).
+        soulsGained += starBonusSouls;
+
         return new RewardResult
         {
             FirstClear     = true,
@@ -204,6 +229,8 @@ public static class Rewards
             InsightGained  = insightGained,
             NewLevel       = p.Level,
             LeveledUp      = p.Level > startingLevel,
+            LevelStars     = earnedStars,
+            StarBonusSouls = starBonusSouls,
             CharacterUnlocked = characterUnlocked,
             SpellsUnlocked = spellsUnlocked,
             SlotsUnlocked  = slotsUnlocked,

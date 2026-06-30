@@ -40,7 +40,7 @@ export function createCampaignFlow(level: string) {
       let rift: RiftOffer | null = null;
       let heroXp: CompleteResult["heroXp"] | undefined;
       try {
-        const data = await metaApi.complete(level, s.crystalBonus ?? 0, riftMode, s.bricksDestroyedThisLevel ?? 0);
+        const data = await metaApi.complete(level, s.crystalBonus ?? 0, riftMode, s.bricksDestroyedThisLevel ?? 0, s.hp ?? 1);
         reward = data.reward;
         rift = data.rift;
         heroXp = data.heroXp;

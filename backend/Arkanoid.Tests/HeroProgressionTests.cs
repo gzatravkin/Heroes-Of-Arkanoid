@@ -72,11 +72,12 @@ public class HeroProgressionTests
     public void WinDripsSouls_BossPaysMore()
     {
         // Economy rework: a win drips Souls (the hero/spell coin) — HeroTokens are retired (★ via rolls).
+        // HeroTokensPerWin = 3, HeroTokensPerBoss = 5.
         var p = Profile.NewDefault();
         Rewards.GrantHeroXp(p, "fire_mage", 10, won: true, isBoss: false);
-        Assert.Equal(1, p.Souls);
+        Assert.Equal(3, p.Souls);
         Rewards.GrantHeroXp(p, "fire_mage", 10, won: true, isBoss: true);
-        Assert.Equal(1 + 5, p.Souls);
+        Assert.Equal(3 + 5, p.Souls);
         Assert.False(p.HeroTokens.ContainsKey("fire_mage")); // no token leak
     }
 

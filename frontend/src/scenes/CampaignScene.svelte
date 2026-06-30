@@ -196,6 +196,9 @@
             <div class="camp-node-label-wrap">
               <span class="camp-node-label">{mn.title}</span>
             </div>
+            {#if mn.node.stars > 0}
+              <div class="camp-node-stars">{"★".repeat(mn.node.stars)}{"☆".repeat(3 - mn.node.stars)}</div>
+            {/if}
           </button>
         {/each}
       </div>
@@ -427,6 +430,11 @@
   .camp-node-label {
     font-size: var(--fs-small); font-weight: 700; color: var(--text);
     text-shadow: 0 1px 2px rgba(0,0,0,0.95); line-height: 1.2; white-space: nowrap;
+  }
+  .camp-node-stars {
+    font-size: 11px; color: #ffd56a; letter-spacing: 0.06em;
+    text-shadow: 0 0 6px rgba(255,200,70,0.55);
+    line-height: 1;
   }
 
   /* ── Rift banner ── */
