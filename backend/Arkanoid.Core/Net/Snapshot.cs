@@ -215,8 +215,9 @@ public sealed class Snapshot
     [JsonPropertyName("phoenixes")] public List<PhoenixDto> Phoenixes { get; set; } = new();
     [JsonPropertyName("events")] public List<EventDto> Events { get; set; } = new();
     [JsonPropertyName("bossActive")] public bool BossActive { get; set; }
-    [JsonPropertyName("bossHp")]     public int  BossHp     { get; set; }
-    [JsonPropertyName("bossMaxHp")]  public int  BossMaxHp  { get; set; }
+    [JsonPropertyName("bossHp")]            public int  BossHp            { get; set; }
+    [JsonPropertyName("bossMaxHp")]         public int  BossMaxHp         { get; set; }
+    [JsonPropertyName("burningBlockCount")] public int  BurningBlockCount { get; set; }
     [JsonPropertyName("bonuses")]    public List<BonusDto> Bonuses { get; set; } = new();
     [JsonPropertyName("widePaddleActive")] public bool WidePaddleActive { get; set; }
     [JsonPropertyName("widePaddleTimer")]  public double WidePaddleTimer  { get; set; }
@@ -348,9 +349,10 @@ public sealed class Snapshot
         s.TeslaLeftCharged  = g._teslaLeftCharged;
         s.TeslaRightCharged = g._teslaRightCharged;
         var aliveBossBlocks = g.Blocks.Where(b => !b.Dead && b.Boss).ToList();
-        s.BossActive = aliveBossBlocks.Count > 0;
-        s.BossHp     = aliveBossBlocks.Sum(b => b.Hp);
-        s.BossMaxHp  = aliveBossBlocks.Sum(b => b.MaxHp);
+        s.BossActive        = aliveBossBlocks.Count > 0;
+        s.BossHp            = aliveBossBlocks.Sum(b => b.Hp);
+        s.BossMaxHp         = aliveBossBlocks.Sum(b => b.MaxHp);
+        s.BurningBlockCount = g.Blocks.Count(b => !b.Dead && b.BurnRemaining > 0);
         foreach (var id in g.ActiveRelics)
         {
             g.RelicCatalog.TryGet(id, out RelicDef? def);

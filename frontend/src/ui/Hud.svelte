@@ -336,16 +336,24 @@
         {@const mana = snap?.mana ?? 0}
         {@const cost = spell.manaCost ?? 0}
         {@const affordable = mana >= cost}
+        {@const needsFire = spell.id === "fireball" && (snap?.burningBlockCount ?? 0) === 0}
+        {@const castable = affordable && !needsFire}
         <div id="hud-spell-{spell.id}"
-             class="hud-spell-slot {affordable ? 'affordable' : 'unaffordable'}"
+             class="hud-spell-slot {castable ? 'affordable' : 'unaffordable'} {needsFire ? 'needs-fire' : ''}"
              role="button" tabindex="0"
-             aria-label="Cast {spell.name} — key {SLOT_KEYS[i] ?? String(i+1)}{cost > 0 ? `, costs ${cost} mana` : ''}"
-             aria-disabled={affordable ? "false" : "true"}
+             aria-label="Cast {spell.name} — key {SLOT_KEYS[i] ?? String(i+1)}{cost > 0 ? `, costs ${cost} mana` : ''}{ needsFire ? ' (ignite blocks first)' : ''}"
+             aria-disabled={castable ? "false" : "true"}
              onpointerdown={e => castSpell(e, i)}
              onkeydown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); castSpell(e, i); } }}>
           <div class="hud-spell-frame">
             <div class="hud-spell-key">{SLOT_KEYS[i] ?? i+1}</div>
             <div class="hud-spell-icon" use:spellIconAction={spell}></div>
+            {#if cost > 0}
+              <div class="hud-spell-cost">{cost}</div>
+            {/if}
+            {#if needsFire}
+              <div class="hud-needs-fire-badge" title="Ignite blocks first">🔥</div>
+            {/if}
           </div>
           <div class="hud-spell-name">{spell.name}</div>
         </div>
@@ -622,6 +630,7 @@
   .hud-spell-slot.affordable { filter: drop-shadow(0 0 6px var(--gold-glow-lo)); }
   .hud-spell-slot.affordable:hover { filter: drop-shadow(0 0 8px var(--gold-glow-mid)) brightness(1.15); }
   .hud-spell-slot.unaffordable { filter: saturate(.3) brightness(.6); cursor: default; }
+  .hud-spell-slot.needs-fire { filter: sepia(.7) hue-rotate(-15deg) brightness(.65); cursor: default; }
   .hud-spell-slot:active { transform: scale(1.06); }
   .hud-spell-slot.affordable:active { filter: drop-shadow(0 0 12px var(--gold-glow-hi)); transform: scale(1.06); }
   .hud-spell-slot:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 4px; }
@@ -629,6 +638,15 @@
     position: absolute; top: 2px; left: 3px;
     font-size: var(--fs-tiny); font-weight: 700; color: var(--gold);
     line-height: 1; text-shadow: 0 1px 2px var(--shadow-hard); pointer-events: none; z-index: 1;
+  }
+  .hud-spell-cost {
+    position: absolute; bottom: 2px; right: 3px;
+    font-size: var(--fs-tiny); font-weight: 700; color: var(--gold);
+    line-height: 1; text-shadow: 0 1px 2px var(--shadow-hard); pointer-events: none; z-index: 1;
+  }
+  .hud-needs-fire-badge {
+    position: absolute; top: 1px; right: 2px;
+    font-size: 9px; pointer-events: none; z-index: 2; line-height: 1;
   }
   .hud-spell-icon {
     font-size: var(--fs-xl); line-height: 1;

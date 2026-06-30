@@ -20,7 +20,7 @@ internal static class ConflagrationSystem
         if (!SpellSystem.Spend(g, def.ManaCost, def.Id)) return;
 
         int dmg = def.Damage + (g.SpellLevel(def.Id) - 1) * def.DamagePerLevel;
-        int detonated = 0, chained = 0;
+        int detonated = 0;
         foreach (var b in targets)
         {
             if (b.Dead) continue;
@@ -28,18 +28,12 @@ internal static class ConflagrationSystem
             g.RaiseEvent(SimEventKind.Explosion, c.X, c.Y);
             BlockDamage.DamageBlock(g, b, dmg, igniteSource: false, killMult: 0.5);
             detonated++;
-            if (b.Dead)
-            {
-                BurnSystem.LightNeighbours(g, b, 1);
-                chained++;
-            }
-            else
-            {
-                b.BurnRemaining = 0;
-            }
+            // Always extinguish fire — dead or alive — so the board has no burning blocks
+            // after a detonation and the player must use Ignite again before recasting.
+            b.BurnRemaining = 0;
         }
         g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
         g._log.Log(g.TickCount, "spell", "conflagration",
-            $"detonated={detonated} chained={chained} dmgEach={dmg}");
+            $"detonated={detonated} dmgEach={dmg}");
     }
 }

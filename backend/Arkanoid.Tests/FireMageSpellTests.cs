@@ -231,6 +231,8 @@ public class FireMageSpellTests
         g.Tick(Dt);
         Assert.True(left.Hp < lBefore && right.Hp < rBefore,
             "every burning block detonates, even the one far from the ball");
+        // Fire is fully consumed — no blocks remain burning so a second cast would fizzle.
+        Assert.Equal(0, g.Blocks.Count(b => !b.Dead && b.BurnRemaining > 0));
     }
 
     // ── Fire Wall (reverted 2026-06-16 to LEGACY: arm a ball → next block hit ignites an AREA) ──
