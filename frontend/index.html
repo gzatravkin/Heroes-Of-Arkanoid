@@ -16,9 +16,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Heroes of Arkanoid II" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Heroes of Arkanoid II</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; }
@@ -44,13 +44,17 @@
       }
       /* The game lives in a fixed portrait design space. On portrait phones
          (aspect ≲ 0.56) it fills the whole viewport; on anything wider it is
-         letterboxed: full height, width clamped, centered, framed. */
+         letterboxed: full height, width clamped, centered, framed.
+         100svh = small/stable viewport — excludes browser chrome (address bar)
+         so the bottom of the game is never hidden behind it on iOS/Android. */
       #app {
         position: relative;
         width: 100%;
         height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
         margin-top: env(safe-area-inset-top, 0px);
         max-width: calc((100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.56);
+        max-width: calc((100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.56);
         /* The frame is the one scroll container for tall scenes. */
         overflow-x: hidden;
         overflow-y: auto;
@@ -89,6 +93,19 @@
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js");
       }
+      // Enter fullscreen on first tap (hides browser chrome on Android Chrome).
+      // iOS Safari ignores requestFullscreen in browser mode — it only goes fullscreen
+      // via "Add to Home Screen" (manifest display:fullscreen handles that).
+      (function () {
+        function tryFullscreen() {
+          var el = document.documentElement;
+          try {
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          } catch (_) {}
+        }
+        document.addEventListener("touchend", tryFullscreen, { once: true, passive: true });
+      })();
     </script>
   </body>
 </html>

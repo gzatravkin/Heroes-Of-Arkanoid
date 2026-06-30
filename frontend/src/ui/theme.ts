@@ -162,7 +162,7 @@ const THEME_CSS = `
   }
   .ui-topbar .ui-title { flex: 1; text-align: center; }
   /* Symmetry spacer so a centered title stays centered next to the back chip */
-  .ui-topbar-spacer { width: 44px; flex: none; }
+  .ui-topbar-spacer { width: 48px; flex: none; }
 
   .ui-title {
     font-family: var(--font-display);
@@ -178,12 +178,13 @@ const THEME_CSS = `
 
   .ui-back {
     flex: none;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(40, 25, 8, 0.85);
     ${nineSlice("/ui/Button1.png", "24 60 24 60", "8px 14px")}
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;

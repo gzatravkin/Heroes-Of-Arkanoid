@@ -61,10 +61,21 @@ function doMount(search: string) {
   else                               mountSvelte(MenuScene);
 }
 
-// Show a minimal loading indicator while fetching the atlas.
+// Loading screen with animated progress bar shown while atlas + WASM are fetched.
+const loadingStyle = document.createElement("style");
+loadingStyle.textContent = `
+@keyframes ark-bar-slide{0%{left:-60%;width:50%}60%{width:40%}100%{left:110%;width:50%}}
+.ark-loading-bar-inner{position:absolute;top:0;height:100%;background:linear-gradient(90deg,#d8a84e,#ff9040,#d8a84e);border-radius:3px;animation:ark-bar-slide 1.6s ease-in-out infinite}
+`;
+document.head.appendChild(loadingStyle);
+
 const loading = document.createElement("div");
-loading.style.cssText = "color:var(--text-dim,#c9b182);font-family:var(--font-body,sans-serif);text-align:center;padding-top:40cqh;font-size:var(--fs-xl,1.2rem)";
-loading.textContent = "Loading assets…";
+loading.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;font-family:var(--font-body,sans-serif)";
+loading.innerHTML = `
+  <div style="color:var(--gold,#d8a84e);font-size:1.3rem;letter-spacing:0.08em;text-align:center;text-shadow:0 0 12px rgba(216,168,78,0.5)">Heroes of Arkanoid II</div>
+  <div style="position:relative;width:180px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden"><div class="ark-loading-bar-inner"></div></div>
+  <div style="color:var(--text-dim,#c9b182);font-size:0.82rem;letter-spacing:0.05em">Loading assets…</div>
+`;
 host.appendChild(loading);
 
 preloadRelics(); // fire-and-forget; populates relicCache before most scenes render
@@ -75,8 +86,13 @@ function initApp() {
   fadeInOnLoad();
 
   // SPA navigate handler: called by navigateTo() instead of location.href.
+  // Strips any leading "/" from the scene-relative URL and prepends the Vite
+  // BASE_URL so navigation works both on localhost ("/") and on GitHub Pages
+  // ("/Heroes-Of-Arkanoid/") without hardcoding the sub-path.
   setNavigateHandler((url) => {
-    const full = url.startsWith("/") ? url : "/" + url;
+    const base = import.meta.env.BASE_URL; // "/" in dev, "/Heroes-Of-Arkanoid/" in prod
+    const path = url.startsWith("/") ? url.slice(1) : url;
+    const full = base + path;
     history.pushState({}, "", full);
     doMount(new URL(full, location.origin).search);
   });

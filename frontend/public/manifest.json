@@ -4,7 +4,7 @@
   "start_url": "/Heroes-Of-Arkanoid/",
   "scope": "/Heroes-Of-Arkanoid/",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#1a0a2e",
   "icons": [
