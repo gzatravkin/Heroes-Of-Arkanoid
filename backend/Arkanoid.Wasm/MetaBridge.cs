@@ -96,6 +96,16 @@ public static partial class MetaBridge
         var reward = Rewards.GrantLevelCompletion(p, levelId, ProgressionConfig.Default, treasureBonus);
         var heroXp = Rewards.GrantHeroXp(p, p.SelectedCharacter, blocks,
                          won: true, isBoss: levelId.EndsWith("-boss"));
+
+        // Record daily mission progress (mirrors GameSession.cs in the REST server).
+        var now    = DateTimeOffset.UtcNow;
+        var clock  = SeasonClock.Default;
+        var dayId  = clock.DayId(now);
+        var weekId = clock.WeekId(now);
+        DailyService.Record(p, Missions, dayId, weekId, "blocks_destroyed", blocks);
+        DailyService.Record(p, Missions, dayId, weekId, "battles_played", 1);
+        DailyService.Record(p, Missions, dayId, weekId, "levels_won", 1);
+
         Store.Save(p, pid);
 
         var riftSeed = unchecked(
@@ -118,6 +128,16 @@ public static partial class MetaBridge
     {
         var p      = Store.Load(pid);
         var heroXp = Rewards.GrantHeroXp(p, p.SelectedCharacter, blocks, won);
+
+        // Record daily mission progress for losses / re-clears too.
+        var now2   = DateTimeOffset.UtcNow;
+        var clock2 = SeasonClock.Default;
+        var dayId2 = clock2.DayId(now2);
+        var wkId2  = clock2.WeekId(now2);
+        DailyService.Record(p, Missions, dayId2, wkId2, "blocks_destroyed", blocks);
+        DailyService.Record(p, Missions, dayId2, wkId2, "battles_played", 1);
+        if (won) DailyService.Record(p, Missions, dayId2, wkId2, "levels_won", 1);
+
         Store.Save(p, pid);
         return Serialize(new { heroXp, profile = p });
     }
@@ -537,10 +557,26 @@ public static partial class MetaBridge
             return Serialize(new { ok = false, reason = "insufficient" });
 
         var result = args.Value.doRoll(NewRng());
+        // Resolve the display name from the relevant catalog so the UI shows a human-readable
+        // item name in the reveal card rather than the raw internal id string.
+        var displayName = kind switch
+        {
+            "card"   => Cards.Cards.FirstOrDefault(c => c.Id == result.Id)?.Name ?? result.Id,
+            "module" => Modules.Modules.FirstOrDefault(m => m.Id == result.Id)?.Name ?? result.Id,
+            "spell"  => Chars.DisplayOf(result.Id)?.Name ?? result.Id,
+            "hero"   => Chars.All.FirstOrDefault(c => c.Id == result.Id)?.Name ?? result.Id,
+            _        => result.Id,
+        };
         Store.Save(p, pid);
         return Serialize(new
         {
-            ok = true, result,
+            ok = true,
+            result = new
+            {
+                kind    = result.Kind,  id     = result.Id,    name   = displayName,
+                wasNew  = result.WasNew, level  = result.Level, stars  = result.Stars,
+                wasted  = result.Wasted, copies = result.Copies,
+            },
             sparks = p.Sparks, souls = p.Souls, insight = p.Insight,
         });
     }
@@ -555,7 +591,8 @@ public static partial class MetaBridge
             card   = new { cost = RollService.CardRollCost,   coin = "sparks", canRoll = RollService.CanRollCard(p, Cards) },
             module = new { cost = RollService.ModuleRollCost, coin = "sparks", canRoll = RollService.CanRollModule(p, Modules) },
             spell  = new { cost = RollService.SpellRollCost,  coin = "souls",  canRoll = RollService.CanRollSpell(p, Chars) },
-            hero   = new { cost = RollService.HeroRollCost,   coin = "souls",  canRoll = RollService.CanRollHero(p) },
+            // poolEmpty distinguishes "nothing unlocked yet (beat a boss first)" from "all maxed (★6)".
+            hero   = new { cost = RollService.HeroRollCost,   coin = "souls",  canRoll = RollService.CanRollHero(p), poolEmpty = p.HeroPool.Count == 0 },
         });
     }
 

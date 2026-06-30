@@ -496,6 +496,24 @@ export function buildRewardOverlay(
       panel.appendChild(heroUp);
     }
 
+    // Show hero star tier and any ascension tokens earned this battle.
+    if (heroXp && heroXp.stars > 0) {
+      const starRow = document.createElement("div");
+      starRow.id = "reward-hero-stars";
+      const filled = "★".repeat(heroXp.stars);
+      const empty  = "☆".repeat(Math.max(0, 6 - heroXp.stars));
+      starRow.textContent = filled + empty;
+      css(starRow, { fontSize: "var(--fs-subhead)", color: "var(--gold)", letterSpacing: "0.1em", marginTop: "var(--sp-1)" });
+      panel.appendChild(starRow);
+    }
+    if (heroXp && heroXp.tokensGranted > 0) {
+      const tok = document.createElement("div");
+      tok.id = "reward-hero-tokens";
+      tok.textContent = `+${heroXp.tokensGranted} Ascension Token${heroXp.tokensGranted === 1 ? "" : "s"}`;
+      css(tok, { fontSize: "var(--fs-small)", color: "var(--text-dim)", marginTop: "var(--sp-1)" });
+      panel.appendChild(tok);
+    }
+
     if (reward.firstClear) {
       const first = document.createElement("div");
       first.textContent = "First Clear!";

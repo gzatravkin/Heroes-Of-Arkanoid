@@ -45,15 +45,15 @@
   }
 
   function revealText(r: RollResult): string {
+    const label = r.name ?? r.id;
     if (kind === "hero") {
-      // Heroes don't auto-ascend: a first pull UNLOCKS the hero; a duplicate banks a pip (ascend manually).
-      if (r.wasNew) return `New hero unlocked: ${r.id}!`;
-      if (r.wasted) return `${r.id} is already ★6 (maxed)`;
-      return `${r.id} — duplicate! ${r.copies} pip${r.copies === 1 ? "" : "s"} toward next ★`;
+      if (r.wasNew) return `New hero unlocked: ${label}!`;
+      if (r.wasted) return `${label} is already ★6 (maxed)`;
+      return `${label} — duplicate! ${r.copies} pip${r.copies === 1 ? "" : "s"} toward next ★`;
     }
-    if (r.wasted)  return `Duplicate — ${r.id} already maxed`;
-    if (r.wasNew)  return `New ${noun}: ${r.id}`;
-    return `${r.id} — duplicate! ${r.copies} ${r.copies === 1 ? "copy" : "copies"} banked`;
+    if (r.wasted)  return `Duplicate — ${label} already maxed`;
+    if (r.wasNew)  return `New ${noun}: ${label}`;
+    return `${label} — duplicate! ${r.copies} ${r.copies === 1 ? "copy" : "copies"} banked`;
   }
   function tone(r: RollResult) { return r.wasted ? "wasted" : r.wasNew ? "new" : "level"; }
 </script>
@@ -63,7 +63,11 @@
         onclick={doRoll}
         title={pool && !pool.canRoll ? `All ${noun.toLowerCase()}s collected` : `Buy a random ${noun.toLowerCase()}`}>
   {#if pool && !pool.canRoll}
-    All collected
+    {#if kind === "hero" && pool.poolEmpty}
+      Beat a boss to unlock heroes
+    {:else}
+      All collected
+    {/if}
   {:else}
     <span class="br-glyph">{coin === "souls" ? "◆" : "✦"}</span>
     Buy Random {noun} · {pool?.cost ?? "…"} {coinName}

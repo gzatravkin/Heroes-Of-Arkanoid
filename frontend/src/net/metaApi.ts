@@ -52,13 +52,13 @@ export interface Profile {
 // ── Rolls (economy rework §2) ────────────────────────────────────────────────
 export type RollKind = "card" | "module" | "spell" | "hero";
 export interface RollResult {
-  kind: number; id: string; wasNew: boolean; level: number; stars: number; wasted: boolean; copies: number;
+  kind: number; id: string; name?: string; wasNew: boolean; level: number; stars: number; wasted: boolean; copies: number;
 }
 export interface RollResponse {
   ok: boolean; reason?: string; result?: RollResult;
   sparks: number; souls: number; insight: number;
 }
-interface RollPool { cost: number; coin: "sparks" | "souls"; canRoll: boolean; }
+interface RollPool { cost: number; coin: "sparks" | "souls"; canRoll: boolean; poolEmpty?: boolean; }
 export interface RollState {
   sparks: number; souls: number; insight: number;
   card: RollPool; module: RollPool; spell: RollPool; hero: RollPool;
