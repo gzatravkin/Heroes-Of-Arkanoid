@@ -19,6 +19,7 @@
     "@pixi/filter-advanced-bloom": "^5.1.1",
     "@pixi/filter-glow": "^5.2.1",
     "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "firebase": "^11.0.0",
     "pixi.js": "^7.4.3",
     "svelte": "^5.56.3"
   }

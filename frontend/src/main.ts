@@ -18,11 +18,13 @@ import DailyScene        from "./scenes/DailyScene.svelte";
 import LeagueScene       from "./scenes/LeagueScene.svelte";
 import ModulesScene      from "./scenes/ModulesScene.svelte";
 import SeasonScene       from "./scenes/SeasonScene.svelte";
+import LeaderboardScene  from "./scenes/LeaderboardScene.svelte";
 import { fadeInOnLoad, setNavigateHandler, navigateTo } from "./ui/transition";
 import { injectTheme } from "./ui/theme";
 import { preloadRelics } from "./net/relicCache";
 import { preloadSpells } from "./net/spellCache";
 import { installCheats } from "./cheats";
+import { initAuth } from "./net/FirebaseAuth";
 
 injectTheme();
 installCheats();
@@ -58,6 +60,7 @@ function doMount(search: string) {
   else if (scene === "achievements") mountSvelte(AchievementsScene);
   else if (scene === "settings")     mountSvelte(SettingsScene);
   else if (scene === "masteries")    mountSvelte(MasteriesScene);
+  else if (scene === "leaderboard")  mountSvelte(LeaderboardScene);
   else                               mountSvelte(MenuScene);
 }
 
@@ -124,3 +127,7 @@ Promise.all([
   loadAtlas().catch((err) => console.error("Atlas load failed (continuing; battles may lack sprites):", err)),
   initWasm().catch((err) => console.error("WASM init failed (continuing; offline sim unavailable):", err)),
 ]).finally(initApp);
+
+// Fire-and-forget: sets up anonymous Firebase auth and derives player nickname.
+// Runs in parallel with asset loading; social features are unavailable until resolved.
+initAuth().catch(() => {});

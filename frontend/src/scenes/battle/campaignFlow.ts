@@ -5,6 +5,7 @@ import { buildRewardOverlay, buildDefeatOverlay } from "./overlays";
 import { navigateTo } from "../../ui/transition";
 import { unlockAchievement } from "../AchievementsScene";
 import { log } from "../../log";
+import { onLevelWin } from "../../net/socialSync";
 
 /** Where to return after the reward overlay — to the rift offer if one opened. */
 function campaignReturnUrl(rift: RiftOffer | null): string {
@@ -61,6 +62,20 @@ export function createCampaignFlow(level: string) {
         rift = data.rift;
         heroXp = data.heroXp;
         log("rift", rift?.opened ? "offered" : "none", rift ?? { level });
+        // Social sync: submit souls, progression, GPGS (fire-and-forget)
+        try {
+          const [profile, campaign] = await Promise.all([
+            metaApi.getProfile().catch(() => null),
+            metaApi.getCampaign().catch(() => null),
+          ]);
+          const levelIndex  = campaign?.nodes?.findIndex((n: any) => n.id === level) ?? -1;
+          const soulsEarned = (reward?.soulsGained ?? 0) + (reward?.starBonusSouls ?? 0);
+          onLevelWin({
+            level, levelIndex, soulsEarned, profile,
+            isBoss:    sawBoss,
+            isPerfect: ballsDropped === 0,
+          }).catch(() => {});
+        } catch { /* never block the overlay */ }
         // Unlock achievements for this win
         await unlockAchievement("first_win");
         if (level.startsWith("hell"))    await unlockAchievement("clear_biome_hell");

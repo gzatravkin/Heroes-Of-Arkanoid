@@ -9,6 +9,9 @@ wasm-dist/
 tests/node_modules/
 node_modules/
 
+# Firebase secrets (see frontend/.env.example for the template)
+frontend/.env
+
 # logs & test artifacts
 backend/Arkanoid.Server/logs/
 backend/Arkanoid.Server/saves/

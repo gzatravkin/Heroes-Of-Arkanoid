@@ -5,6 +5,8 @@
   import { navigateTo } from "../ui/transition";
   import { log } from "../log";
   import CurrencyBar from "../ui/CurrencyBar.svelte";
+  import AuthBadge from "../ui/AuthBadge.svelte";
+  import EventBanner from "../ui/EventBanner.svelte";
 
   // The campaign is a LINEAR chain (economy rework, docs/2026-06-14): nodes render top-to-bottom in
   // list ORDER, one per row, joined by a straight connector to the previous level. No forks, no shops.
@@ -163,8 +165,11 @@
     {#if prestige?.canAscend}
       <button id="btn-ascend" class="camp-ascend" onclick={ascend} disabled={ascending} title="Ascend (Prestige)">⬆</button>
     {/if}
+    <a href="/?scene=leaderboard" class="camp-lb-btn" title="Leaderboard">🏆</a>
+    <AuthBadge />
   </div>
   <div class="camp-coin-strip"><CurrencyBar /></div>
+  <EventBanner onClaim={(souls) => { /* devCoins can credit offline; Firestore already stored it */ }} />
 
   <!-- ── Campaign map ── -->
   <div class="camp-content">
@@ -300,6 +305,17 @@
   .camp-forge-btn:active { transform: scale(0.96); }
   .camp-forge-btn:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; border-radius: 4px; }
   .camp-forge-ico { width: 20px; height: 20px; }
+
+  /* ── Leaderboard button ── */
+  .camp-lb-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(180,140,60,0.15); border: 1px solid rgba(180,140,60,0.35);
+    text-decoration: none; font-size: 18px; line-height: 1;
+    transition: background var(--dur-normal), transform var(--dur-fast);
+  }
+  .camp-lb-btn:hover  { background: rgba(180,140,60,0.3); }
+  .camp-lb-btn:active { transform: scale(0.92); }
 
   /* ── Back link ── */
   .camp-back-link {

@@ -1,0 +1,33 @@
+{
+  "packageId": "com.herosofarkanoid.twa",
+  "host": "gzatravkin.github.io",
+  "startUrl": "/Heroes-Of-Arkanoid/",
+  "name": "Heroes of Arkanoid II",
+  "launcherName": "HeroesArk",
+  "display": "fullscreen",
+  "themeColor": "#12080a",
+  "navigationColor": "#12080a",
+  "backgroundColor": "#12080a",
+  "enableNotifications": false,
+  "orientation": "portrait",
+  "version": { "code": 1, "name": "1.0.0" },
+  "iconUrl": "https://gzatravkin.github.io/Heroes-Of-Arkanoid/icons/icon-512.png",
+  "maskableIconUrl": "https://gzatravkin.github.io/Heroes-Of-Arkanoid/icons/icon-512.png",
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://gzatravkin.github.io/Heroes-Of-Arkanoid/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": { "enabled": false },
+    "playBilling": { "enabled": false }
+  },
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
+  "signing": {
+    "keystore": "android.keystore",
+    "keyAlias": "android"
+  }
+}
