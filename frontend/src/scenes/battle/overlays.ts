@@ -205,6 +205,51 @@ function injectOverlayStyles() {
       .ov-levelup { animation: none; }
     }
 
+    /* ── Level star reveal ── */
+    .ov-stars-section {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; margin-bottom: var(--sp-2);
+    }
+    .ov-stars-row {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .ov-star-earned, .ov-star-empty {
+      font-size: 52px; line-height: 1; display: inline-block;
+      animation: ov-star-pop 0.55s cubic-bezier(0.2, 1.45, 0.4, 1) both;
+    }
+    .ov-star-earned {
+      color: #ffd56a;
+      filter: drop-shadow(0 0 8px rgba(255,200,70,0.85));
+    }
+    .ov-star-empty { color: rgba(255,255,255,0.13); }
+    @keyframes ov-star-pop {
+      0%   { transform: scale(0.05) rotate(-18deg); opacity: 0; }
+      65%  { transform: scale(1.45) rotate(6deg);   opacity: 1; }
+      82%  { transform: scale(0.86) rotate(-3deg); }
+      100% { transform: scale(1)    rotate(0deg);   opacity: 1; }
+    }
+    /* Earned stars pulse after popping in */
+    .ov-star-earned { animation:
+        ov-star-pop  0.55s cubic-bezier(0.2, 1.45, 0.4, 1) both,
+        ov-star-glow 2.4s ease-in-out 1.5s infinite;
+    }
+    @keyframes ov-star-glow {
+      0%,100% { filter: drop-shadow(0 0 7px rgba(255,200,70,0.75)); }
+      50%     { filter: drop-shadow(0 0 18px rgba(255,210,80,1)) drop-shadow(0 0 30px rgba(255,140,30,0.65)); }
+    }
+    .ov-star-label {
+      font-size: var(--fs-caption); font-weight: 700; letter-spacing: 0.09em;
+      color: #c8a040; opacity: 0;
+      animation: ov-star-label-in 0.4s ease-out both;
+    }
+    @keyframes ov-star-label-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ov-star-earned, .ov-star-empty, .ov-star-label { animation: none; opacity: 1; }
+    }
+
     /* Defeat-screen teaching tip — a death is a moment to learn something. */
     .ov-tip {
       max-width: min(360px, 84cqw);
@@ -423,6 +468,34 @@ export function buildRewardOverlay(
   panel.className = "ov-panel";
 
   if (reward) {
+    // ── Animated star reveal (top of panel — most prominent element) ─────────
+    const earnedStars = reward.levelStars ?? 0;
+    if (earnedStars > 0) {
+      const starSec = document.createElement("div");
+      starSec.id = "level-stars";
+      starSec.className = "ov-stars-section";
+
+      const starsRow = document.createElement("div");
+      starsRow.className = "ov-stars-row";
+      for (let i = 1; i <= 3; i++) {
+        const star = document.createElement("div");
+        star.className = i <= earnedStars ? "ov-star-earned" : "ov-star-empty";
+        star.textContent = "★";
+        star.style.animationDelay = `${(i - 1) * 0.32}s`;
+        starsRow.appendChild(star);
+      }
+      starSec.appendChild(starsRow);
+
+      if (earnedStars >= 2) {
+        const lbl = document.createElement("div");
+        lbl.className = "ov-star-label";
+        lbl.textContent = earnedStars === 3 ? "Perfect run!" : "Nice run!";
+        lbl.style.animationDelay = "1.1s";
+        starSec.appendChild(lbl);
+      }
+      panel.appendChild(starSec);
+    }
+
     if (reward.expGained > 0) {
       const expEl = document.createElement("div");
       expEl.id = "reward-exp";
@@ -539,27 +612,6 @@ export function buildRewardOverlay(
       css(tText, { fontSize: "var(--fs-small)", color: "#6cc0ff" });
       tok.appendChild(tText);
       panel.appendChild(tok);
-    }
-
-    // Level star rating — shown on every win, regardless of first-clear.
-    if ((reward.levelStars ?? 0) > 0) {
-      const lvlStarRow = document.createElement("div");
-      lvlStarRow.id = "reward-level-stars";
-      const starsFilled = "★".repeat(reward.levelStars!);
-      const starsEmpty  = "☆".repeat(Math.max(0, 3 - reward.levelStars!));
-      lvlStarRow.textContent = starsFilled + starsEmpty;
-      css(lvlStarRow, {
-        fontSize: "var(--fs-subhead)", color: "#ffd56a", letterSpacing: "0.14em",
-        marginTop: "var(--sp-1h)", textShadow: "0 0 10px rgba(255,210,80,0.6)",
-      });
-      panel.appendChild(lvlStarRow);
-      if ((reward.starBonusSouls ?? 0) > 0) {
-        const starLabel = document.createElement("div");
-        const tierName = reward.levelStars === 3 ? "Perfect run!" : "Star bonus!";
-        starLabel.textContent = tierName;
-        css(starLabel, { fontSize: "var(--fs-tiny)", color: "#c8a040", marginTop: "1px", letterSpacing: "0.05em" });
-        panel.appendChild(starLabel);
-      }
     }
 
     if (reward.firstClear) {

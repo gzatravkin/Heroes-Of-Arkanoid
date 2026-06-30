@@ -159,6 +159,67 @@ public class MetaTests
         Assert.Equal(expected, Cfg.ExpToLevel(5));
     }
 
+    // ── Star rating system (level-completion stars from ball-drops) ─────────────
+
+    [Theory]
+    [InlineData(0, 3)]  // perfect run — no drops
+    [InlineData(1, 2)]  // 1 drop
+    [InlineData(2, 2)]  // 2 drops still 2★
+    [InlineData(3, 1)]  // 3+ drops → 1★
+    [InlineData(9, 1)]  // many drops still floor at 1★
+    public void Stars_ThresholdsCorrect(int ballsDropped, int expectedStars)
+    {
+        var p = Profile.NewDefault();
+        var r = Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: ballsDropped);
+        Assert.Equal(expectedStars, r.LevelStars);
+        Assert.Equal(expectedStars, p.LevelStars["hell-1"]);
+    }
+
+    [Fact]
+    public void Stars_PerfectFirstClear_Grants60BonusSouls()
+    {
+        // 0 drops → 3★; tier-2 bonus (20) + tier-3 bonus (40) = 60 bonus Souls.
+        var p = Profile.NewDefault();
+        var r = Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 0);
+        Assert.Equal(60, r.StarBonusSouls);
+        Assert.Equal(60, p.Souls); // only star bonus for non-boss; win-drip Souls come via GrantHeroXp
+    }
+
+    [Fact]
+    public void Stars_ReClear_GrantsDeltaBonusOnly()
+    {
+        // First clear at 1★ (3 drops → 1★): StarTierBonus(1)=0, so no star bonus Souls.
+        var p = Profile.NewDefault();
+        Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 3);
+        Assert.Equal(1, p.LevelStars["hell-1"]);
+        Assert.Equal(0, p.Souls);
+        var soulsAfter1Star = p.Souls;
+
+        // Re-clear at 2★ (1 drop → 2★) → tier-2 bonus = +20 Souls delta.
+        var r2 = Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 1);
+        Assert.False(r2.FirstClear);
+        Assert.Equal(2, r2.LevelStars);
+        Assert.Equal(20, r2.StarBonusSouls);
+        Assert.Equal(soulsAfter1Star + 20, p.Souls);
+
+        // Re-clear at same 2★ → no new bonus.
+        var soulsAfter2Star = p.Souls;
+        var r3 = Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 1);
+        Assert.Equal(0, r3.StarBonusSouls);
+        Assert.Equal(soulsAfter2Star, p.Souls);
+    }
+
+    [Fact]
+    public void Stars_PerfectReClear_From1Star_Grants60BonusSouls()
+    {
+        // Start at 1★ (3 drops), then re-clear perfectly (0 drops): delta is tier-2+tier-3 = 60.
+        var p = Profile.NewDefault();
+        Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 3);
+        var r = Rewards.GrantLevelCompletion(p, "hell-1", Cfg, ballsDropped: 0);
+        Assert.Equal(3, r.LevelStars);
+        Assert.Equal(60, r.StarBonusSouls);
+    }
+
     [Fact]
     public void ProgressionConfig_ExpToLevel_Level10_MatchesFormula()
     {

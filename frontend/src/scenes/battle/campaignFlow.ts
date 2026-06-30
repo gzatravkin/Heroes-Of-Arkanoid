@@ -22,6 +22,10 @@ export function createCampaignFlow(level: string) {
   // to false the instant the boss dies (which is the same tick we reach "Won"),
   // so we must latch it rather than read it at the win.
   let sawBoss = false;
+  // Ball-drop tracking: count every decrease in (hp + spareBalls) across the whole level.
+  // Pick-ups that ADD spare balls correctly raise the ceiling before the next comparison.
+  let prevTotalLives = -1;
+  let ballsDropped = 0;
 
   // Tests can force/suppress rifts deterministically via localStorage; players roll.
   const riftMode = ((): RiftMode => {
@@ -30,6 +34,18 @@ export function createCampaignFlow(level: string) {
   })();
 
   async function handlePhase(s: Snapshot): Promise<boolean> {
+    // Track ball drops: each decrease in (hp + spareBalls) is a dropped ball.
+    // Increases (extra-ball pickups) correctly raise the comparison ceiling for the next tick.
+    const totalLives = s.hp + (s.spareBalls ?? 0);
+    if (prevTotalLives < 0) {
+      prevTotalLives = totalLives;
+    } else if (totalLives < prevTotalLives) {
+      ballsDropped += prevTotalLives - totalLives;
+      prevTotalLives = totalLives;
+    } else {
+      prevTotalLives = totalLives; // pickup raised the ceiling or no change
+    }
+
     if (s.bossActive) sawBoss = true;
     if (overlayShown) return true;
 
@@ -40,7 +56,7 @@ export function createCampaignFlow(level: string) {
       let rift: RiftOffer | null = null;
       let heroXp: CompleteResult["heroXp"] | undefined;
       try {
-        const data = await metaApi.complete(level, s.crystalBonus ?? 0, riftMode, s.bricksDestroyedThisLevel ?? 0, s.hp ?? 1);
+        const data = await metaApi.complete(level, s.crystalBonus ?? 0, riftMode, s.bricksDestroyedThisLevel ?? 0, ballsDropped);
         reward = data.reward;
         rift = data.rift;
         heroXp = data.heroXp;

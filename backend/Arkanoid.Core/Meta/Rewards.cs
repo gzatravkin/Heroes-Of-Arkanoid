@@ -134,10 +134,11 @@ public static class Rewards
     /// Only applied on first clear.
     /// </param>
     public static RewardResult GrantLevelCompletion(Profile p, string levelId, ProgressionConfig cfg,
-                                                     int treasureBonus = 0, int hp = 1)
+                                                     int treasureBonus = 0, int ballsDropped = 0)
     {
         // Stars — computed on every win (re-clears can still improve the tier).
-        int earnedStars = hp >= 3 ? 3 : hp >= 2 ? 2 : 1;
+        // 0 drops = perfect ★★★, 1-2 drops = ★★☆, 3+ drops = ★☆☆.
+        int earnedStars = ballsDropped == 0 ? 3 : ballsDropped <= 2 ? 2 : 1;
         int prevStars   = p.LevelStars.GetValueOrDefault(levelId, 0);
         int newStars    = System.Math.Max(prevStars, earnedStars);
         p.LevelStars[levelId] = newStars;

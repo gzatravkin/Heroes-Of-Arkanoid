@@ -89,12 +89,12 @@ public static partial class MetaBridge
     }
 
     /// <summary>Level completion: grants first-clear coins + hero XP, optionally rolls a Rift.
-    /// <paramref name="hp"/> is the player HP at the win moment — drives the 1/2/3-star rating.</summary>
+    /// <paramref name="ballsDropped"/> is the count of balls lost this run — drives 1/2/3-star rating.</summary>
     [JSExport]
-    public static string Complete(string pid, string levelId, int treasureBonus, string riftMode, int blocks, int hp)
+    public static string Complete(string pid, string levelId, int treasureBonus, string riftMode, int blocks, int ballsDropped)
     {
         var p      = Store.Load(pid);
-        var reward = Rewards.GrantLevelCompletion(p, levelId, ProgressionConfig.Default, treasureBonus, hp);
+        var reward = Rewards.GrantLevelCompletion(p, levelId, ProgressionConfig.Default, treasureBonus, ballsDropped);
         var heroXp = Rewards.GrantHeroXp(p, p.SelectedCharacter, blocks,
                          won: true, isBoss: levelId.EndsWith("-boss"));
 
