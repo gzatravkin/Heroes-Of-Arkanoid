@@ -5,7 +5,7 @@
   import { setSfxVolume, consumeSfx } from "../audio/Sfx";
   import { onAuthStateChanged } from "firebase/auth";
   import { fbAuth, isFirebaseConfigured } from "../net/firebase";
-  import { linkGoogle, isLinkedGoogle, currentNickname } from "../net/FirebaseAuth";
+  import { linkGoogle, isLinkedGoogle, currentNickname, updateNickname } from "../net/FirebaseAuth";
 
   let audioEnabled = $state(localStorage.getItem("arkanoid_audio") !== "0");
   let musicOn      = $state(localStorage.getItem("arkanoid_music") === "1");
@@ -21,6 +21,19 @@
   function setVolume(v: number)  { sfxVolume = v;    setSfxVolume(v); }
   // Play a sample tone so the player hears the level they're setting (only if audio is on).
   function previewVolume()       { if (audioEnabled) consumeSfx([{ type: "deflect" }]); }
+
+  let nameValue   = $state(currentNickname() ?? "");
+  let nameSaving  = $state(false);
+  let nameMsg     = $state("");
+
+  async function saveName() {
+    if (!nameValue.trim() || nameSaving) return;
+    nameSaving = true; nameMsg = "";
+    const res = await updateNickname(nameValue);
+    nameMsg   = res.ok ? "Saved!" : (res.error === "empty" ? "Name can't be empty." : "Save failed.");
+    nameSaving = false;
+    setTimeout(() => (nameMsg = ""), 2200);
+  }
 
   let gpgsLinked  = $state(isLinkedGoogle());
   let gpgsLinking = $state(false);
@@ -67,6 +80,28 @@
       <div class="ui-topbar-spacer"></div>
     </div>
     <div class="panel">
+      {#if isFirebaseConfigured()}
+      <div class="row">
+        <div class="row-text">
+          <div class="row-label">Player Name</div>
+          <div class="row-desc">Shown on leaderboards. Max 24 characters.</div>
+        </div>
+        <div class="name-ctrl">
+          <input class="name-input" type="text" maxlength="24"
+                 placeholder="Hero#????"
+                 bind:value={nameValue}
+                 onkeydown={e => e.key === "Enter" && saveName()} />
+          <button class="action-btn name-save" onclick={saveName} disabled={nameSaving}>
+            {nameSaving ? "…" : "Save"}
+          </button>
+        </div>
+      </div>
+      {#if nameMsg}
+        <div class="name-msg" class:name-msg-ok={nameMsg === "Saved!"}>{nameMsg}</div>
+      {/if}
+      <hr class="divider" />
+      {/if}
+
       <div class="row">
         <div class="row-text">
           <div class="row-label">Tutorial</div>
@@ -274,6 +309,24 @@
     background: #3a2a10; box-shadow: inset 0 0 8px rgba(255,190,80,0.5);
   }
   .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+  .name-ctrl {
+    display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0;
+  }
+  .name-input {
+    width: 130px; height: 40px; padding: 0 10px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(180,140,60,0.35);
+    border-radius: 8px; color: var(--gold-bright);
+    font-family: var(--font-body); font-size: var(--fs-body); font-weight: 700;
+    outline: none; transition: border-color var(--dur-normal);
+  }
+  .name-input:focus { border-color: rgba(180,140,60,0.75); }
+  .name-input::placeholder { color: rgba(255,255,255,0.25); font-weight: 400; }
+  .name-save { min-width: 64px; }
+  .name-msg {
+    text-align: center; font-size: var(--fs-caption); font-weight: 700;
+    color: var(--color-unequip); margin-top: calc(var(--sp-3) * -1);
+  }
+  .name-msg-ok { color: #4caf50; }
   .gpgs-logo {
     width: 16px; height: 16px; vertical-align: middle;
     margin-right: 5px; margin-bottom: 2px; color: #4caf50;

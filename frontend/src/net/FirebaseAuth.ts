@@ -74,6 +74,22 @@ export function subscribeAuth(cb: (uid: string | null, nickname: string | null, 
   });
 }
 
+/** Update the player's display nickname locally and in Firestore. */
+export async function updateNickname(name: string): Promise<{ ok: boolean; error?: string }> {
+  if (!isFirebaseConfigured()) return { ok: false, error: "not_configured" };
+  const uid = _uid ?? fbAuth().currentUser?.uid;
+  if (!uid) return { ok: false, error: "not_signed_in" };
+  const trimmed = name.trim().slice(0, 24);
+  if (!trimmed) return { ok: false, error: "empty" };
+  try {
+    await setDoc(doc(fbDb(), "users", uid), { nickname: trimmed }, { merge: true });
+    _nickname = trimmed;
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message ?? e) };
+  }
+}
+
 /** Upgrade an anonymous session to Google. Adds the GPGS scope so the access
  *  token can be used with the Play Games REST API. */
 export async function linkGoogle(): Promise<{ ok: boolean; error?: string }> {
