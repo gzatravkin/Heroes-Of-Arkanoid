@@ -54,7 +54,7 @@ public sealed class EnemiesConfig
 public sealed class BossConfig
 {
     public double AttackInterval     { get; init; } = 2.4;
-    public double HazardSpeed        { get; init; } = 210;
+    public double HazardSpeed        { get; init; } = 185;
     public int    HazardDamage       { get; init; } = 1;
     public double HazardRadius       { get; init; } = 9;
     // Level-UX rework (2026-06-15, Option 1 "fair projectiles"): no live homing — aimed boss shots now fall
@@ -72,12 +72,12 @@ public sealed class BossConfig
     public double SeraphVaseFuse     { get; init; } = 8.0;
     public double Phase2Threshold    { get; init; } = 0.60;
     public double Phase3Threshold    { get; init; } = 0.30;
-    public double Phase2AttackInterval { get; init; } = 1.8;
-    public double Phase3AttackInterval { get; init; } = 1.2;
+    public double Phase2AttackInterval { get; init; } = 2.0;
+    public double Phase3AttackInterval { get; init; } = 1.6;
     public double TelegraphDuration  { get; init; } = 0.5;
-    public int    SpreadCount        { get; init; } = 3;
-    public double SpreadHalfAngleDeg { get; init; } = 50.0;
-    public int    RainCount          { get; init; } = 2;
+    public int    SpreadCount        { get; init; } = 2;
+    public double SpreadHalfAngleDeg { get; init; } = 15.0;
+    public int    RainCount          { get; init; } = 1;
     public double SummonSpeedMult    { get; init; } = 1.6;
     public double SummonAimStrength  { get; init; } = 0.0;   // no homing (see HazardAimStrength note)
 }
