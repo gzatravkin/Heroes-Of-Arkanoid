@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "Arkanoid.Wasm.dll",
   "resources": {
-    "hash": "sha256-HL+BOTXUfBHeRS8DMGpBgLkwcFrCDa4GqjrL8JU3Nzk=",
+    "hash": "sha256-bJZZm9LLGFQTMepiglYDVsmFlYVhRk7xxu6JCM/ocmw=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-SvVveFrqwSE/8qjn/DA3aVnuMXhmK4Ln+euLxQu8azU="
     },
@@ -24,8 +24,8 @@
       "System.Runtime.InteropServices.JavaScript.wasm": "sha256-uD2Lw+TYUBfzFB4VpLtou79zdFBdkfNK+T8mB6R4W6Q="
     },
     "assembly": {
-      "Arkanoid.Core.wasm": "sha256-pbSN3uZu4r7eHWnlSqBQ5eLpzOZawpi6dWF8eixc0ME=",
-      "Arkanoid.Wasm.wasm": "sha256-x7+0tzlnjOsT0vJmSos+IAC/ClHeCH8jSGBJ4ekZ/W0=",
+      "Arkanoid.Core.wasm": "sha256-gf5v0srsO9SSc5LEU727wYqAkkt8IVtN+Ak8sUcoxxY=",
+      "Arkanoid.Wasm.wasm": "sha256-tCPJz0sEx/dcs7brByK3Hy6D2NBg64CFLtVZEQKqZFk=",
       "Microsoft.CSharp.wasm": "sha256-aPXj9N2AkJg1Jx78GYOAFSZKBVZxfZM4thCG57pKyT4=",
       "Microsoft.VisualBasic.Core.wasm": "sha256-iMNBy0QFP4MHs36Dhudy1iyDLke/qqC1b47hre/x8as=",
       "Microsoft.VisualBasic.wasm": "sha256-6C7m2Re5Um4ZEdwBDrELPr45MbmHCBnUZi+JDeHa684=",
