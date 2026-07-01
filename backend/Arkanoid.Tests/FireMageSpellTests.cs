@@ -235,36 +235,110 @@ public class FireMageSpellTests
         Assert.Equal(0, g.Blocks.Count(b => !b.Dead && b.BurnRemaining > 0));
     }
 
-    // ── Fire Wall (reverted 2026-06-16 to LEGACY: arm a ball → next block hit ignites an AREA) ──
-
     [Fact]
-    public void FireWall_ArmsBall_IgnitesAreaOnNextBlockHit()
+    public void Conflagration_DetonationSplashesTheBoss_EvenWhenBossIsNotBurning()
     {
-        const string types = "{\"id\":\"b\",\"biome\":\"t\",\"hp\":9,\"sprite\":\"s\",\"needToKill\":true}";
-        const string level = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":5,\"rows\":5," +
-            "\"rows_data\":[\"AAAAA\",\"AAAAA\",\".....\",\".....\",\".....\"],\"legend\":{\"A\":\"b\"}}";
+        // Design (level-balance-bot, 2026-07-03): Ignite is single-target with no way to steer it
+        // onto the boss specifically, so Fire Mage's burst almost always detonates nearby fodder
+        // instead of the boss — confirmed dead in the water at caverns-boss/heaven-boss (Fire Mage
+        // clearing most of the level while the boss sat at full HP). Conflagration's own identity is
+        // already "board-wide" (see the class doc comment) — a detonation must still chip the boss
+        // even when the boss itself isn't among the currently-burning blocks, at half the normal
+        // per-block damage (a splash, not a full hit — the boss still isn't the intended primary
+        // target of an Ignite that never touched it).
+        const string types = "{\"id\":\"b\",\"biome\":\"t\",\"hp\":20,\"sprite\":\"s\",\"needToKill\":true}," +
+            "{\"id\":\"boss\",\"biome\":\"t\",\"hp\":20,\"sprite\":\"s\",\"needToKill\":true,\"behavior\":\"boss\"}";
+        const string level = "{\"id\":\"t\",\"biome\":\"t\",\"cols\":3,\"rows\":3," +
+            "\"rows_data\":[\"X..\",\"...\",\"..A\"],\"legend\":{\"X\":\"boss\",\"A\":\"b\"}}";
         var g = K.Game(types, level);
         g.SetCharacter("fire_mage");
         g.Serve();
         g.ManaValue = 100;
-        g.CastFireWall();
-        Assert.True(g.Balls[0].FireWallArmed, "fire wall arms the ball");
 
-        // The ball's next block hit ignites an AREA of blocks (they burn over time via BurnSystem).
-        var target = g.Blocks.First(b => b.Col == 2 && b.Row == 1);
-        K.AimAt(g, target);
+        // Only the far, non-boss block is burning — the boss itself never caught fire.
+        var fodder = g.Blocks.First(b => !b.Boss);
+        var boss   = g.Blocks.First(b => b.Boss);
+        fodder.BurnRemaining = 5.0;
+        int bossHpBefore = boss.Hp;
+
+        g.CastFireball();
         g.Tick(Dt);
-        Assert.False(g.Balls[0].FireWallArmed, "the arm is consumed on the next block hit");
-        int burning = g.Blocks.Count(b => !b.Dead && b.BurnRemaining > 0);
-        Assert.True(burning >= 3, $"fire wall should ignite an AREA of blocks on the hit; only {burning} burning");
+
+        Assert.True(boss.Hp < bossHpBefore, "the boss takes splash damage even though it was never burning");
+    }
+
+    // ── Fire Wall (owner redesign 2026-07-01): a timed defensive line above the paddle — a
+    // descending ball crossing it bounces back up and is imbued with Ignite; a plain enemy
+    // hazard crossing it is destroyed outright. Distinct from Ignite (single light on a block
+    // hit) and from Paladin's Shield (converts hazards to counter-bolts, never touches the ball).
+
+    [Fact]
+    public void FireWall_SpawnsTimedBarrier_AboveThePaddle()
+    {
+        var g = FireMage();
+        g.CastFireWall();
+        Assert.Single(g.Barriers);
+        var wall = g.Barriers[0];
+        Assert.True(wall.LifeRemaining > 0, "the wall should last for a duration, not be instant");
+        Assert.True(wall.Y < g.Paddle.Center.Y, "the wall should sit above the paddle");
+        Assert.True(wall.ReflectsBall, "Fire Wall should reflect a descending ball");
+        Assert.True(wall.IgnitesBallOnCross, "Fire Wall should ignite the ball on cross");
+        Assert.True(wall.DestroysHazards, "Fire Wall should destroy crossing hazards");
     }
 
     [Fact]
-    public void FireWall_NoMana_DoesNotArm()
+    public void FireWall_ReflectsDescendingBall_AndIgnitesIt()
+    {
+        var g = FireMage();
+        g.CastFireWall();
+        var wall = g.Barriers[0];
+        var ball = g.Balls[0];
+        ball.Pos = new Vec2(wall.CenterX, wall.Y - ball.Radius - 2);
+        ball.Vel = new Vec2(0, SimConfig.Default.BallSpeed); // descending toward the wall
+
+        g.Tick(Dt);
+
+        Assert.True(ball.Vel.Y < 0, "a descending ball crossing the wall should bounce back upward");
+        Assert.True(ball.IgniteHitsLeft > 0, "crossing the wall should imbue Ignite");
+    }
+
+    [Fact]
+    public void FireWall_DestroysCrossingHazard_NoCounterBolt()
+    {
+        var g = FireMage();
+        g.CastFireWall();
+        var wall = g.Barriers[0];
+        g.Hazards.Add(new Projectile
+        {
+            Id = 555, Pos = new Vec2(wall.CenterX, wall.Y - 2), Vel = new Vec2(0, 200),
+            Damage = 1, Radius = 8, Alive = true,
+        });
+
+        g.Tick(Dt);
+
+        Assert.Empty(g.Hazards);
+        Assert.DoesNotContain(g.Projectiles, p => p.Kind == "shieldbolt"); // distinct from Paladin's Shield
+    }
+
+    [Fact]
+    public void FireWall_ExpiresAfterLifetime()
+    {
+        var g = FireMage();
+        g.CastFireWall();
+        double lifetime = g.Barriers[0].LifeRemaining;
+        K.Park(g); // keep the ball out of the drain so Phase stays Playing for the whole wait
+
+        for (int i = 0; i < (int)((lifetime + 0.5) / Dt); i++) g.Tick(Dt);
+
+        Assert.Empty(g.Barriers);
+    }
+
+    [Fact]
+    public void FireWall_NoMana_DoesNotSpawnBarrier()
     {
         var g = FireMage();
         g.ManaValue = 0;
         g.CastFireWall();
-        Assert.False(g.Balls[0].FireWallArmed);
+        Assert.Empty(g.Barriers);
     }
 }

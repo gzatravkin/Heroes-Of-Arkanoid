@@ -7,8 +7,8 @@
     "............",
     ".....WW.....",
     ".1A2.WW.1A2.",
-    ".AAA.WW.AAA.",
-    ".AAA.WW.AAA.",
+    ".BBB.WW.BBB.",
+    ".BBB.WW.BBB.",
     ".3A4.WW.3A4.",
     ".....WW.....",
     "............",
@@ -29,6 +29,7 @@
     "3": "hell_corner_bl",
     "4": "hell_corner_br",
     "A": "hell_basic",
+    "B": "hell_tough",
     "W": "hell_obsidian"
   }
 }

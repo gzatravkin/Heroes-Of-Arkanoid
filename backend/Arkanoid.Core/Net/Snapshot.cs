@@ -84,6 +84,7 @@ public sealed class BarrierDto
     [JsonPropertyName("y")]       public double Y       { get; set; }
     [JsonPropertyName("centerX")] public double CenterX { get; set; }
     [JsonPropertyName("width")]   public double Width   { get; set; }
+    [JsonPropertyName("kind")]    public string Kind     { get; set; } = "shield";
 }
 
 public sealed class ZoneDto
@@ -369,7 +370,7 @@ public sealed class Snapshot
         s.SlowBallActive   = g.SlowBallActive;
         s.SlowBallTimer    = g.SlowBallTimer;
         foreach (var br in g.Barriers)
-            s.Barriers.Add(new BarrierDto { Y = br.Y, CenterX = br.CenterX, Width = br.Width });
+            s.Barriers.Add(new BarrierDto { Y = br.Y, CenterX = br.CenterX, Width = br.Width, Kind = br.Kind });
         foreach (var zn in g.Zones)
             s.Zones.Add(new ZoneDto { X = zn.X, Y = zn.Y, Radius = zn.Radius });
         s.SkeletonActive  = g.SkeletonActive;

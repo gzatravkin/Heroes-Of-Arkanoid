@@ -106,21 +106,18 @@ public class SpellTests
     }
 
     [Fact]
-    public void FireWall_Cast_ArmsBall_IgnitesAreaOnNextBlockHit()
+    public void FireWall_Cast_SpawnsDefensiveBarrierAbovePaddle()
     {
-        // Fire Wall reverted 2026-06-16 to the LEGACY behaviour: cast arms the ball; its NEXT block hit
-        // ignites an AREA of blocks (they burn over time via BurnSystem) — no rising placement wall.
+        // Fire Wall redesign (2026-07-01): cast spawns a timed defensive line above the paddle —
+        // no longer an arm-then-wait-for-a-block-hit spell. See FireMageSpellTests for the
+        // full design-fidelity coverage of its reflect/ignite/destroy behavior.
         var g = Make(); g.Serve();
         g.ManaValue = 100;
         g.CastFireWall();
-        Assert.True(g.Balls[0].FireWallArmed, "fire wall arms the ball");
-        var blk = g.Blocks[0];
-        var c = g.Level.Grid.CellCenter(blk.Col, blk.Row);
-        g.Balls[0].Pos = new Arkanoid.Core.Math.Vec2(c.X, c.Y + SimConfig.Default.CellSize / 2 + g.Balls[0].Radius + 1);
-        g.Balls[0].Vel = new Arkanoid.Core.Math.Vec2(0, -SimConfig.Default.BallSpeed);
-        g.Tick(SimConfig.Default.FixedDt);
-        Assert.False(g.Balls[0].FireWallArmed, "the arm is consumed on the next block hit");
-        Assert.True(blk.BurnRemaining > 0 || blk.Dead, "the hit block is set on fire");
+        Assert.Single(g.Barriers);
+        var wall = g.Barriers[0];
+        Assert.True(wall.ReflectsBall && wall.IgnitesBallOnCross && wall.DestroysHazards);
+        Assert.True(wall.Y < g.Paddle.Center.Y, "the wall sits above the paddle");
     }
 
     [Fact]
@@ -152,7 +149,7 @@ public class SpellTests
     {
         var g = Make(); g.Serve(); g.ManaValue = 0;
         g.CastFireWall();
-        Assert.False(g.Balls[0].FireWallArmed);
+        Assert.Empty(g.Barriers);
     }
 
     [Fact]

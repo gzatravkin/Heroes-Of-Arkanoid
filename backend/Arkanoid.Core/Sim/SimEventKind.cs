@@ -70,6 +70,8 @@ public enum SimEventKind
     ShieldBlock,
     Shield,
     BarrierHit,
+    /// <summary>Fire Wall's defensive line acted — reflected the ball or destroyed a hazard crossing it.</summary>
+    FireWallBlock,
     SecondWind,
     ManaRefund,
     // ── Level ────────────────────────────────────────────────────────────────

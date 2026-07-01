@@ -10,9 +10,6 @@ public sealed class Ball
     public bool Alive = true;
     public int IgniteHitsLeft = 0;     // >0 means imbued with Ignite
     public int DecayHitsLeft  = 0;     // >0 means imbued with Decay (necromancer)
-    /// <summary>LEGACY Fire Wall (reverted 2026-06-16): an armed ball ignites an AREA of blocks on its
-    /// next block hit, which then burn + spread over time via BurnSystem.</summary>
-    public bool FireWallArmed = false;
     /// <summary>Ticks remaining before this ball can be warped by a teleporter again.</summary>
     public int TeleportCooldown = 0;
     /// <summary>Ghost phase (Witchland portal): a ghost ball passes through normal blocks and

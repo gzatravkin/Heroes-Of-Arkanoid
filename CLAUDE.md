@@ -42,11 +42,22 @@ This applies to gameplay AND visuals (see also the persistent memory on the visu
 
 A review of content work verifies **design fidelity** (cite the doc, run the spell) — not code shape (file exists, switch deleted, LOC down). Re-checking the same code-shape criteria that produced a bug catches nothing.
 
+## Balance testing: the level bot
+
+Before/after any boss, hazard, or spell-tuning change — or whenever a level "feels off" —
+run the **level-balance-bot** skill instead of guessing from config numbers. It plays a level
+in-process across 8 RNG seeds with a reasonably-good (not perfect, not robotic) player model
+and reports win rate, survival time, blocks cleared, damage dealt *per spell*, and hazard-dodge
+difficulty (including a check for moments literally impossible to dodge vs. merely humanly
+implausible). Works for any level, not just bosses. See `.claude/skills/level-balance-bot/SKILL.md`
+and `backend/Arkanoid.Tests/LevelBalanceBotTests.cs`.
+
 ## Commands
 
 - Backend: `dotnet build` and `dotnet test` from `backend/`.
 - Frontend typecheck: `npx vite build` from `frontend/` (preferred over `tsc` for Svelte).
 - E2E: `npx playwright test` from `tests/` (boots backend + frontend automatically).
+- Balance data: `dotnet test Arkanoid.Tests --filter "FullyQualifiedName~LevelBalanceBotTests" --logger "console;verbosity=detailed"` from `backend/` (see skill above).
 
 ## Other standing constraints
 

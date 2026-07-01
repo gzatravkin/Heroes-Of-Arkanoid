@@ -49,14 +49,14 @@ public sealed class SpellCatalog : Catalog<SpellDef>
     private const string DefaultJson = """
     { "spells": [
       { "id":"ignite",      "archetype":"Imbue",      "imbueSlot":"ignite",      "hits":4,  "hitsPerLevel":1 },
-      { "id":"fireball",    "archetype":"Instant",     "kind":"conflagration", "damage":6, "damagePerLevel":2 },
-      { "id":"firewall",    "archetype":"Placement",   "placementKind":"firewall", "radius":96, "count":14 },
+      { "id":"fireball",    "archetype":"Instant",     "kind":"conflagration", "damage":9, "damagePerLevel":2 },
+      { "id":"firewall",    "archetype":"Placement",   "placementKind":"firewall", "lifetime":6.0, "durationPerLevel":1.0, "widthMult":2.2 },
       { "id":"turret",      "archetype":"TimedAura",   "duration":7.0, "durationPerLevel":1.0, "tickInterval":0,
         "damage":2, "speed":460, "radiusMult":0.6 },
       { "id":"phoenix",     "archetype":"TimedAura",   "duration":6.0, "durationPerLevel":1.0, "tickInterval":0.45, "radius":56, "damage":2 },
       { "id":"ashfall",     "archetype":"TimedAura",   "duration":6.0, "durationPerLevel":1.0 },
       { "id":"shield",      "archetype":"Placement",   "placementKind":"barrier", "lifetime":4.0, "durationPerLevel":0.5, "widthMult":1.2 },
-      { "id":"spear",       "archetype":"Projectile",  "kind":"spear", "damage":1, "damagePerLevel":1, "pierce":8, "speed":620, "radiusMult":1.4 },
+      { "id":"spear",       "archetype":"Projectile",  "kind":"spear", "damage":2, "damagePerLevel":1, "pierce":8, "speed":620, "radiusMult":1.4 },
       { "id":"reckoning",   "archetype":"Instant",     "hits":3, "damage":3, "damagePerLevel":1 },
       { "id":"duplicate",   "archetype":"Instant",     "extraCopies":1, "extraCopiesPerLevel":1 },
       { "id":"holy_echo",   "archetype":"Instant",     "extraCopies":1, "extraCopiesPerLevel":0, "duration":8.0 },

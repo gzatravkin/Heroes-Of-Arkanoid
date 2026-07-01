@@ -36,7 +36,7 @@ export interface Snapshot {
   slowBallActive: boolean;
   slowBallTimer: number;
   // P6 additions
-  barriers: { y: number; centerX: number; width: number }[];
+  barriers: { y: number; centerX: number; width: number; kind: string }[];
   zones: { x: number; y: number; radius: number }[];
   skeletonActive: boolean;
   spellDrainActive: boolean;

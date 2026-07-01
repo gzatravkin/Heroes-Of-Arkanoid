@@ -124,14 +124,28 @@ internal static partial class SpellSystem
         {
             case "firewall":
             {
-                // LEGACY Fire Wall (reverted 2026-06-16, owner directive "behave as before"): enchant a
-                // random live ball; on its NEXT block hit it ignites an AREA of blocks (BallSystem), which
-                // then burn + spread over time via BurnSystem — not a rising placement wall.
-                var fwBall = g.Balls.FirstOrDefault(b => b.Alive);
-                if (fwBall == null) { g.RaiseEvent(SimEventKind.SpellFizzle, g.Paddle.Center.X, g.Paddle.Center.Y); return; }
+                // Fire Wall (owner redesign 2026-07-01, replacing the arm-then-wait-for-a-block-hit
+                // LEGACY behavior — indirect trigger + mechanically redundant with Ignite): a temporary
+                // defensive line above the paddle. For its Lifetime, any descending ball crossing it
+                // bounces back up AND is imbued with Ignite (sets up the next Conflagration for free);
+                // any plain enemy hazard crossing it is destroyed outright.
                 if (!Spend(g, def.ManaCost, def.Id)) return;
-                fwBall.FireWallArmed = true;
-                g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
+                double wallY = System.Math.Max(
+                    g.Config.BoardOriginY + g.Config.CellSize,
+                    g.Paddle.Center.Y - g.Paddle.Height / 2 - g.Config.CellSize * 3);
+                g.Barriers.Add(new Arkanoid.Core.Entities.Barrier
+                {
+                    Id                 = g._nextBarrierId++,
+                    Y                  = wallY,
+                    CenterX            = g.Paddle.Center.X,
+                    Width              = g.Paddle.Width * def.WidthMult,
+                    LifeRemaining      = def.Lifetime + (g.SpellLevel(def.Id) - 1) * def.DurationPerLevel,
+                    Kind               = "firewall",
+                    ReflectsBall       = true,
+                    IgnitesBallOnCross = true,
+                    DestroysHazards    = true,
+                });
+                g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, wallY);
                 break;
             }
 
@@ -147,6 +161,7 @@ internal static partial class SpellSystem
                     Width         = g.Paddle.Width * def.WidthMult,
                     // Leveling extends how long the barrier guards the pit (docs/01 §61).
                     LifeRemaining = def.Lifetime + (g.SpellLevel(def.Id) - 1) * def.DurationPerLevel,
+                    ReflectsHazardsAsBolts = true,
                 });
                 g.RaiseEvent(SimEventKind.SpellCast, g.Paddle.Center.X, g.Paddle.Center.Y);
                 break;

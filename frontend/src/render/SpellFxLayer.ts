@@ -8,12 +8,17 @@ import { AnimSystem } from "./AnimSystem";
 // containers so the caller can slot each into the correct world z-order, plus an
 // updateAnim(dtMs) for the skeleton's looping AnimSystem.
 
-// Paladin barrier: shield bar rendered per entry in barriers[].
+// Barrier bar rendered per entry in barriers[] — two distinct spells share this collision
+// plumbing (SpellSystem.ClassSpells.UpdateBarriers) but must NOT look alike: Paladin's Shield
+// (steel-blue) intercepts hazards into counter-bolts; Fire Wall (fire-orange, 2026-07-01
+// redesign) reflects + ignites the ball and burns hazards away outright.
 const BARRIER_HEIGHT_FRAC  = 0.18; // fraction of cellSize for bar thickness
 const BARRIER_GLOW_ALPHA   = 0.55;
-const BARRIER_FILL_COLOR   = 0x88ccff; // steel-blue core
-const BARRIER_GLOW_COLOR   = 0x4499ff; // cooler blue additive glow
 const BARRIER_GLOW_W_EXTRA = 16;       // extra px each side for glow halo
+const BARRIER_STYLE: Record<string, { fill: number; glow: number; art: string }> = {
+  shield:   { fill: 0x88ccff, glow: 0x4499ff, art: "paladin/spell_passiveshield/KnightShield" },
+  firewall: { fill: 0xff6a2a, glow: 0xffa040, art: "firemage/spell_firewall/FireStandAnnimation1" },
+};
 
 // Engineer radiation zone: pulsing AoE circle.
 const ZONE_FILL_COLOR      = 0x22ff44;  // toxic green
@@ -26,7 +31,7 @@ const ZONE_PULSE_SPEED     = 0.09;
 // Skeleton summon position (top of board, centered).
 const SKELETON_Y_FRAC = 0.08; // fraction of boardH from top
 
-interface Barrier { y: number; centerX: number; width: number }
+interface Barrier { y: number; centerX: number; width: number; kind: string }
 interface Zone { x: number; y: number; radius: number }
 
 export class SpellFxLayer {
@@ -52,15 +57,16 @@ export class SpellFxLayer {
     this.updateSkeleton(skeletonActive, cellSize, boardW, boardH);
   }
 
-  // --- barriers (Paladin shield bars) ---
+  // --- barriers (Paladin Shield / Fire Wall — same plumbing, distinct look per kind) ---
   private drawBarriers(barriers: Barrier[], cellSize: number): void {
     this.barriersContainer.removeChildren();
     for (const br of barriers) {
+      const style = BARRIER_STYLE[br.kind] ?? BARRIER_STYLE.shield;
       const barH = cellSize * BARRIER_HEIGHT_FRAC;
       // Glow halo (additive, wider than fill).
       const glow = new Graphics();
       glow.blendMode = BLEND_MODES.ADD;
-      glow.beginFill(BARRIER_GLOW_COLOR, BARRIER_GLOW_ALPHA)
+      glow.beginFill(style.glow, BARRIER_GLOW_ALPHA)
         .drawRoundedRect(
           br.centerX - br.width / 2 - BARRIER_GLOW_W_EXTRA,
           br.y - barH * 1.4,
@@ -71,7 +77,7 @@ export class SpellFxLayer {
         .endFill();
       // Core fill.
       const fill = new Graphics();
-      fill.beginFill(BARRIER_FILL_COLOR, 0.92)
+      fill.beginFill(style.fill, 0.92)
         .drawRoundedRect(
           br.centerX - br.width / 2,
           br.y - barH / 2,
@@ -81,21 +87,21 @@ export class SpellFxLayer {
         )
         .endFill();
 
-      // Optionally overlay atlas shield art if available.
-      const shieldTex = tex("paladin/spell_passiveshield/KnightShield");
-      if (shieldTex !== Texture.WHITE) {
-        // Tile the shield art across the barrier width.
+      // Optionally overlay atlas art if available for this kind.
+      const barTex = tex(style.art);
+      if (barTex !== Texture.WHITE) {
+        // Tile the art across the barrier width.
         const tileSize = barH * 3.5;
         const count = Math.max(1, Math.round(br.width / tileSize));
         for (let i = 0; i < count; i++) {
-          const sp = new Sprite(shieldTex);
+          const sp = new Sprite(barTex);
           sp.anchor.set(0.5);
           sp.width  = tileSize;
           sp.height = tileSize;
           sp.x = br.centerX - br.width / 2 + tileSize / 2 + i * tileSize;
           sp.y = br.y;
           sp.alpha = 0.85;
-          sp.tint = BARRIER_FILL_COLOR;
+          sp.tint = style.fill;
           this.barriersContainer.addChild(sp);
         }
       }

@@ -302,36 +302,7 @@ internal static class BallSystem
                 g._overloadChargeRow = blk.Row;
                 g.RaiseEvent(SimEventKind.SpellCast, c.X, c.Y);
             }
-            // LEGACY Fire Wall: an armed ball, on its next block hit, ignites an AREA of blocks around the
-            // impact (they then burn + spread over time via BurnSystem). Consumes the arm.
-            if (b.FireWallArmed)
-            {
-                b.FireWallArmed = false;
-                FireWallIgniteArea(g, c);
-            }
             break; // one block per tick keeps it deterministic
-        }
-    }
-
-    /// <summary>LEGACY Fire Wall area-ignite: light the nearest blocks within radius of the impact point;
-    /// BurnSystem then burns + creeps them over time (fire "spreads" as in the old game).</summary>
-    private static void FireWallIgniteArea(GameInstance g, Vec2 center)
-    {
-        var def = g.GetSpellDef("firewall");
-        double radius = def != null && def.Radius > 0 ? def.Radius : 96;
-        int maxBlocks = def != null && def.Count > 0 ? def.Count : 14;
-        var near = g.Blocks
-            .Where(bl => !bl.Dead && !bl.Indestructible && !bl.Boss && bl.BurnRemaining <= 0)
-            .Select(bl => (bl, d: (g.Level.Grid.CellCenter(bl.Col, bl.Row) - center).Length))
-            .Where(x => x.d <= radius)
-            .OrderBy(x => x.d)
-            .Take(maxBlocks)
-            .ToList();
-        foreach (var (bl, _) in near)
-        {
-            BurnSystem.LightBlock(g, bl, 0);
-            var bc = g.Level.Grid.CellCenter(bl.Col, bl.Row);
-            g.RaiseEvent(SimEventKind.Burn, bc.X, bc.Y);
         }
     }
 

@@ -25,7 +25,10 @@ public class SpellLevelTests
     [Fact]
     public void DefaultLevels_BehaveAsBefore()
     {
-        // §3 Conflagration: with no SetSpellLevels call, a detonation deals base 6 to each burning block.
+        // §3 Conflagration: with no SetSpellLevels call, a detonation deals base 9 to each burning
+        // block (level-balance-bot pass, 2026-07-03: base 6 rarely killed anything meaningful when
+        // Ignite's single-target imbue only lands on whatever the ball last touched — bumped to 9
+        // to give Fire Mage's burst a real payoff once it does land).
         var g = Make();
         g.Serve();
         var blk = g.Blocks.First(b => !b.Dead); blk.BurnRemaining = 5.0;
@@ -33,13 +36,13 @@ public class SpellLevelTests
         g.ManaValue = 25;
         g.CastFireball();
         Assert.Empty(g.Projectiles);
-        Assert.Equal(hp0 - 6, blk.Hp); // base detonation 6
+        Assert.Equal(hp0 - 9, blk.Hp); // base detonation 9
     }
 
     [Fact]
     public void Fireball_Level2_DealsExtraDamage()
     {
-        // §6 scaling: Conflagration's detonation is +2 damage/level (base 6 → 8 at Lvl 2).
+        // §6 scaling: Conflagration's detonation is +2 damage/level (base 9 → 11 at Lvl 2).
         var g = Make();
         g.SetSpellLevels(new Dictionary<string, int> { ["fireball"] = 2 });
         g.Serve();
@@ -47,7 +50,7 @@ public class SpellLevelTests
         int hp0 = blk.Hp;
         g.ManaValue = 25;
         g.CastFireball();
-        Assert.Equal(hp0 - 8, blk.Hp); // base 6 + 2 per level
+        Assert.Equal(hp0 - 11, blk.Hp); // base 9 + 2 per level
     }
 
 

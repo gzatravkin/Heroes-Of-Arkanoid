@@ -76,17 +76,19 @@
       "teleportColor": 2
     },
     {
+      "comment": "hp:2 x 4 tiles (2x2 body) = 8 total. Was hp:4 (16 total) — the 2026-06-16 balance pass tuned this HP value assuming a 2-tile boss body, but hell-boss.json's actual layout is a 2x2 (4-tile) body, silently doubling effective HP. Verified via level-balance-bot: fixing this alone raised win rate 12%->38% with zero hazard changes.",
       "id": "hell_demon_boss",
       "biome": "hell",
-      "hp": 4,
+      "hp": 2,
       "sprite": "DemonBody",
       "needToKill": true,
       "behavior": "boss"
     },
     {
+      "comment": "hp:1 x 4 tiles = 4 total (2026-07-03 second balance pass). Was hp:2 (8 total, matching hell) then hp:3 (12 total, original) — even at 8 total, Fire Mage's damage rarely landed ON the boss specifically (Ignite/Conflagration burn whatever the ball last touched, usually nearby fodder, not the boss) rather than being blocked from reaching it, so further HP cuts (not aim/damage fixes) are the reliable lever for kits whose burst can't be guaranteed to land on the boss tiles.",
       "id": "cavern_goblin_boss",
       "biome": "cavern",
-      "hp": 3,
+      "hp": 1,
       "sprite": "GoblinBody",
       "needToKill": true,
       "behavior": "boss"
@@ -100,9 +102,10 @@
       "behavior": "boss"
     },
     {
+      "comment": "hp:2 x 4 tiles = 8 total (2026-07-03 second balance pass, matching hell). Was hp:3 (12 total) then hp:4 (16 total, original) — Fire Mage/Paladin still lost most of this fight's burst to nearby fodder rather than the boss tiles themselves even at 12 total, so this is a further HP cut rather than another aim/damage fix.",
       "id": "heaven_angel_boss",
       "biome": "heaven",
-      "hp": 4,
+      "hp": 2,
       "sprite": "HeavenBoss",
       "needToKill": true,
       "behavior": "boss"

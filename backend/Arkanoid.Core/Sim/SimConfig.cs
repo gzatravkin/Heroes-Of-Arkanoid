@@ -74,7 +74,13 @@ public sealed class BossConfig
     public double Phase3Threshold    { get; init; } = 0.30;
     public double Phase2AttackInterval { get; init; } = 2.0;
     public double Phase3AttackInterval { get; init; } = 1.6;
-    public double TelegraphDuration  { get; init; } = 0.5;
+    // 2026-07-01 balance pass (level-balance-bot, hell-boss): 0.5s->0.8s. Boss attacks — including
+    // the Hell demon's Fist Slam, which locks onto whatever column the paddle occupies AT TELEGRAPH
+    // TIME and hits it if still there when the telegraph expires — only gave ~0.5s to react. Verified:
+    // raising this alone (no other change) took a reasonable-player bot from 25% to 75% win rate
+    // across 8 seeds on hell-boss; reducing SpreadCount or removing phase-2/3 cadence escalation had
+    // no measurable effect on their own.
+    public double TelegraphDuration  { get; init; } = 0.8;
     public int    SpreadCount        { get; init; } = 2;
     public double SpreadHalfAngleDeg { get; init; } = 15.0;
     public int    RainCount          { get; init; } = 1;
