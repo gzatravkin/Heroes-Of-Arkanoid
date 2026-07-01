@@ -1,6 +1,6 @@
 import { mount, unmount } from "svelte";
 import { loadAtlas } from "./render/assets";
-import { initWasm } from "./wasm/bridge";
+import { initWasm, gameBridge } from "./wasm/bridge";
 import { teardownBridge } from "./testBridge";
 import MenuScene         from "./scenes/MenuScene.svelte";
 import BattleScene       from "./scenes/BattleScene.svelte";
@@ -26,8 +26,21 @@ import { preloadSpells } from "./net/spellCache";
 import { installCheats } from "./cheats";
 import { initAuth } from "./net/FirebaseAuth";
 
+declare const __BUILD_DATE__: string;
+
 injectTheme();
 installCheats();
+
+// Version badge — always visible, bottom-right corner.
+// FE = this JS bundle's build timestamp (Vite injects it).
+// WASM = the C# binary version (GameBridge.WasmVersion, set when build-wasm.ps1 runs).
+const _vBadge = document.createElement("div");
+_vBadge.id = "ark-version";
+_vBadge.textContent = `FE ${__BUILD_DATE__}`;
+_vBadge.style.cssText =
+  "position:fixed;bottom:3px;right:5px;font:9px/1 monospace;" +
+  "color:rgba(201,177,130,0.4);pointer-events:none;z-index:9999;user-select:none";
+document.body.appendChild(_vBadge);
 
 const host = document.getElementById("app")!;
 
@@ -146,6 +159,10 @@ Promise.all([
     updateLoadBar("Loading engine…");
     await initWasm().catch((err) => console.error("WASM init failed (continuing; offline sim unavailable):", err));
     _wasmPct = 30; updateLoadBar("Ready");
+    try {
+      const wasmVer = gameBridge().GetVersion?.() ?? "?";
+      _vBadge.textContent = `FE ${__BUILD_DATE__} | WASM ${wasmVer}`;
+    } catch { /* WASM unavailable in WebSocket-only mode */ }
   })(),
 ]).finally(initApp);
 

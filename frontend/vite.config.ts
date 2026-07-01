@@ -40,8 +40,25 @@ function fixAbsPathsPlugin(base: string): Plugin {
   };
 }
 
+// Formats the build timestamp in Argentina local time (UTC-3, no DST) so the
+// in-game version badge reads in the dev's own clock regardless of CI's TZ.
+function buildDateArg(): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")} ART`;
+}
+
 export default defineConfig({
   base: REPO_BASE,
+  define: {
+    // Baked in at build time — lets the version badge show exactly which JS bundle is live.
+    __BUILD_DATE__: JSON.stringify(buildDateArg()),
+  },
   plugins: [
     svelte(),
     // Copy _framework from wasm-dist only when it exists (local builds after build-wasm.ps1).

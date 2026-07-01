@@ -12,6 +12,12 @@ namespace ArkanoidWasm;
 
 public static partial class GameBridge
 {
+    // Bump this string every time the WASM binary is rebuilt (build-wasm.ps1).
+    // Displayed in the in-game version badge so you can confirm what's deployed.
+    internal const string WasmVersion = "2026-07-01.1";
+
+    [JSExport] public static string GetVersion() => WasmVersion;
+
     // Active game session (one per battle).
     private static GameInstance? _game;
     private static long _tick;
