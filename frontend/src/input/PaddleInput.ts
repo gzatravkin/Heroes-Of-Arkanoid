@@ -1,28 +1,50 @@
 import type { Connection, Snapshot } from "../net/Connection";
 
 // Pointer-based paddle input: works for both mouse (desktop) and touch (mobile).
-// Drag anywhere on the canvas to move the paddle.
-// Tap on the canvas while in Serving phase to serve.
+// RELATIVE mode: the paddle moves by the same delta as the finger — you can start
+// a drag from anywhere on the screen without the paddle jumping to your finger.
+// Tap (no drag) on the canvas while in Serving phase to serve.
 export function attachPaddleInput(canvas: HTMLCanvasElement, conn: Connection, getSnap: () => Snapshot | null): () => void {
-  // Translate a canvas clientX into sim-space X using the same fit scale as Renderer.
-  function toSimX(clientX: number): number | null {
+  let dragging    = false;
+  let lastClientX = 0;
+  let simX        = 0;   // tracked paddle position in sim-space
+
+  function scale(): number {
     const s = getSnap();
-    if (!s) return null;
+    if (!s) return 1;
     const rect = canvas.getBoundingClientRect();
-    const scale = Math.min(rect.width / s.boardW, rect.height / s.boardH) * 0.95;
-    const offX  = (rect.width - s.boardW * scale) / 2;
-    return (clientX - rect.left - offX) / scale;
+    return Math.min(rect.width / s.boardW, rect.height / s.boardH) * 0.95;
   }
 
-  const onMove = (e: PointerEvent) => { const x = toSimX(e.clientX); if (x !== null) conn.paddleX(x); };
-  const onDown = (e: PointerEvent) => { const x = toSimX(e.clientX); if (x !== null) conn.paddleX(x); };
-  const onUp   = (_e: PointerEvent) => { const s = getSnap(); if (s?.phase === "Serving") conn.serve(); };
-  const onKey  = (e: KeyboardEvent) => {
+  const onDown = (e: PointerEvent) => {
+    dragging    = true;
+    lastClientX = e.clientX;
+    // Anchor to the current server-confirmed paddle position so the first
+    // move delta is relative to where the paddle actually is.
+    const s = getSnap();
+    simX = s?.paddleX ?? simX;
+    canvas.setPointerCapture(e.pointerId);
+  };
+
+  const onMove = (e: PointerEvent) => {
+    if (!dragging) return;
+    const sc = scale();
+    const dx = (e.clientX - lastClientX) / sc;
+    lastClientX = e.clientX;
+    simX += dx;
+    conn.paddleX(simX);
+  };
+
+  const onUp = (_e: PointerEvent) => {
+    if (dragging) {
+      const s = getSnap();
+      if (s?.phase === "Serving") conn.serve();
+    }
+    dragging = false;
+  };
+
+  const onKey = (e: KeyboardEvent) => {
     if (e.code === "Space") conn.serve();
-    // Q/E/W/R/T → hotbar slots 0–4. Use the class-agnostic castSlot (like the tap
-    // hotbar) so the keys cast the CURRENT class's spells — the old castIgnite/etc.
-    // were hardcoded to Fire-Mage spell ids, so keyboard play was broken for the
-    // other three classes (their keys tried to cast spells they don't have).
     const k = e.key.toLowerCase();
     if (k === "q") conn.castSlot(0);
     else if (k === "e") conn.castSlot(1);
