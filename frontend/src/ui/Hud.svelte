@@ -163,9 +163,12 @@
   function castSpell(e: Event, idx: number) {
     e.stopPropagation();
     if (!conn) return;
-    const mana = snap?.mana ?? 0;
-    const cost = spells[idx]?.manaCost ?? 0;
-    if (mana >= cost) conn.castSlot(idx);
+    const spell = spells[idx];
+    if (!spell) return;
+    const mana      = snap?.mana ?? 0;
+    const cost      = spell.manaCost ?? 0;
+    const needsFire = spell.id === "fireball" && (snap?.burningBlockCount ?? 0) === 0;
+    if (mana >= cost && !needsFire) conn.castSlot(idx);
   }
 
   // ── Spell icon action ─────────────────────────────────────────────────────
